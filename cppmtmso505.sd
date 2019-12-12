@@ -1,0 +1,647 @@
+%%
+Screen
+        Name            = "cppmtmso505" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Liability for Guest' Property - Ver 7.00     %m" ;
+        Domain          = "cppCRIME" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4];
+        global unsigned ascii number g_end_sequence[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+        Global Unsigned Ascii Number g_state[2] ;
+        Global Unsigned Ascii Number g_county[3] ;
+
+        global signed ascii number g_premium1[9]/dec=2 ;
+
+        Global String G_CRIME_FORM[1];
+
+        Local Unsigned Ascii Number L_LIMIT[8]=0 ,
+                                    L_PREMIUM[6]=0,
+                                    l_deductible_factor[4]=0/dec=3,
+                                    L_NO_ROOMS_1[3]=0,
+                                    L_NO_ROOMS_2[3]=0,
+                                    L_NO_ROOMS_3[3]=0,
+                                    L_NO_ROOMS_4[3]=0,
+                                    l_line_of_business[4],
+                                    L_ACTUAL_NO_ROOMS_1[3]=0,
+                                    L_ACTUAL_NO_ROOMS_2[3]=0,
+                                    L_ACTUAL_NO_ROOMS_3[3]=0,
+                                    L_ACTUAL_NO_ROOMS_4[3]=0,
+                                    L_NO_ROOMS_RATE_1[2]=0,
+                                    L_NO_ROOMS_RATE_2[2]=0,
+                                    L_NO_ROOMS_RATE_3[2]=0,
+                                    L_NO_ROOMS_RATE_4[2]=0,
+                                    L_MINIMUM_PREMIUM[4]=0 ,
+                                    L_PER[2]=0 ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_guest_limit[5]=0,
+                                    l_per_occurrence[6]=0 ;
+
+        Local Signed Ascii Number l_package[4]=0/dec=2,
+                                  l_deviation[4]=0/dec=2,
+                                  l_irpm[4]=0/dec=2 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_DELETE_ENDORSEMENT[1],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ,
+                     L_SCREEN[11] ;
+
+        Access cppCRIME,
+           Set cppCRIME:policy_NO = G_policy_NO ,
+               cppcrime:pol_year = g_year,
+               cppcrime:end_sequence = g_end_sequence,
+               cppCRIME:PREM_NO = G_PREM_NO ,
+               cppCRIME:BUILD_NO = G_BUILD_NO ,
+               cppCRIME:CRIME_FORM = G_CRIME_FORM ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppCRIME:policy_NO <> G_policy_NO Or
+   cppcrime:pol_year <> g_year or
+   cppcrime:end_sequence <> g_end_sequence or
+   cppCRIME:PREM_NO <> G_PREM_NO Or
+   cppCRIME:BUILD_NO <> G_BUILD_NO Or
+   cppCRIME:CRIME_FORM <> G_CRIME_FORM Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Prem No:   ____                                                              |
+| Build No:  ____                                                              |
+| Form:      __                                                                |
+*------------------------------------------------------------------------------*
+| Number of Rooms:       ___                                                   |
+| Deductible:            _____                                                 |
+*------------------------------------------------------------------------------*
+| Rate for rooms up to~___:   ___ X ___  =  Premium: __________                |
+| Rate for rooms up to~___:   ___ X ___  =  Premium: __________                |
+| Rate for rooms up to~___:   ___ X ___  =  Premium: __________                |
+| Rate for rooms over~~___:   ___ X ___  =  Premium: __________                |
+*------------------------------------------------------------------------------*
+| Deductible Factor:                                 __________                |
+| Total Premium:                                     __________                |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+        If FUNCTION = "ADD" Then
+            Begin
+            cppCRIME:policy_NO = G_policy_NO
+            cppcrime:pol_year = g_year
+            cppcrime:end_sequence = g_End_sequence
+            cppCRIME:PREM_NO = G_PREM_NO
+            cppCRIME:BUILD_NO = G_BUILD_NO
+            cppCRIME:CRIME_FORM = G_CRIME_FORM
+            cppCRIME:STATE = g_STATE
+            cppCRIME:COUNTY = g_COUNTY
+            cppcrime:rating_line_of_business = sfsline:rating_line_of_business
+            cppcrime:cppcrime1_sub_code = g_sub_code
+            end
+        End
+        cppCRIME:policy_NO/displayonly ;
+302     cppcrime:pol_year/displayonly;
+303     cppcrime:end_sequence/displayonly ;
+401     cppCRIME:PREM_NO/displayonly ;
+501     cppCRIME:BUILD_NO/displayonly ;
+601     cppCRIME:CRIME_FORM/displayonly ;
+801     cppCRIME:NO_ROOMS;
+901     Begin
+        access cpscrimeded_alias, set cpscrimeded_alias:company_id = sfpname:company_id,
+                                      cpscrimeded_alias:state = cppcrime:state,
+                                      cpscrimeded_alias:line_of_business = l_line_of_business, generic
+        If FUNCTION = "ADD" Then
+            cppCRIME:DEDUCTIBLE = CPSCRIMEDEFAULTS:DEDUCTIBLE
+        End
+        cppCRIME:DEDUCTIBLE/default
+        access cpscrimeded, set cpscrimeded:company_id = sfpname:company_id,
+                                cpscrimeded:state = cppcrime:state,
+                                cpscrimeded:line_of_business = l_line_of_business,
+                                cpscrimeded:deductible = cppcrime:deductible, generic
+
+        If cppCRIME:DEDUCTIBLE <> CPSCRIMEDED:DEDUCTIBLE Then
+            Error 1207
+
+        Activehelp CPSCRIMEDED_ALIAS:DEDUCTIBLE ;
+
+1101    Begin
+        l_line_of_business = sfsline:rating_line_of_business
+        Do RATE_CRIME
+            cppCRIME:DEDUCTIBLE_FACTOR = L_DEDUCTIBLE_FACTOR
+            if cppcrime:deductible_factor = 0 then
+                begin
+                l_deductible_factor = 1.00
+                cppcrime:deductible_factor = 1.00
+                end
+
+        If FUNCTION = "ADD" Or
+           FUNCTION = "CHANGE" Then
+            Begin
+            cppCRIME:ACTUAL_NO_ROOMS[1] = cppCRIME:NO_ROOMS
+            cppCRIME:NO_ROOMS_RATE[1] = L_NO_ROOMS_RATE_1
+            cppCRIME:NO_ROOMS_PER_RATE[1] = L_NO_ROOMS_1
+            cppCRIME:NO_ROOMS_PREMIUM[1] = ((cppCRIME:ACTUAL_NO_ROOMS[1]
+                                           Divide L_PER) *
+                                           L_NO_ROOMS_RATE_1)
+            cppCRIME:NO_ROOMS_RATE[2] = 0
+            cppCRIME:NO_ROOMS_PER_RATE[2] = 0
+            cppCRIME:NO_ROOMS_PREMIUM[2] = 0
+            cppCRIME:ACTUAL_NO_ROOMS[2] = 0
+            cppCRIME:NO_ROOMS_RATE[3] = 0
+            cppCRIME:NO_ROOMS_PER_RATE[3] = 0
+            cppCRIME:NO_ROOMS_PREMIUM[3] = 0
+            cppCRIME:ACTUAL_NO_ROOMS[3] = 0
+            cppCRIME:NO_ROOMS_RATE[4] = 0
+            cppCRIME:NO_ROOMS_PER_RATE[4] = 0
+            cppCRIME:NO_ROOMS_PREMIUM[4] = 0
+            cppCRIME:ACTUAL_NO_ROOMS[4] = 0
+
+            If cppCRIME:NO_ROOMS > L_NO_ROOMS_1 Then
+                Begin
+                cppCRIME:ACTUAL_NO_ROOMS[1] = L_NO_ROOMS_1
+                cppCRIME:ACTUAL_NO_ROOMS[2] = cppCRIME:NO_ROOMS - L_NO_ROOMS_1
+                cppCRIME:ACTUAL_NO_ROOMS[3] = 0
+                cppCRIME:ACTUAL_NO_ROOMS[4] = 0
+                cppCRIME:NO_ROOMS_PER_RATE[2] = L_NO_ROOMS_2
+                cppCRIME:NO_ROOMS_RATE[2] = L_NO_ROOMS_RATE_2
+                cppCRIME:NO_ROOMS_PREMIUM[1] = ((cppCRIME:ACTUAL_NO_ROOMS[1]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_1)
+                cppCRIME:NO_ROOMS_PREMIUM[2] = ((cppCRIME:ACTUAL_NO_ROOMS[2]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_2)
+                cppCRIME:NO_ROOMS_PREMIUM[3] = 0
+                cppCRIME:NO_ROOMS_RATE[3] = 0
+                cppCRIME:NO_ROOMS_RATE[4] = 0
+                cppCRIME:NO_ROOMS_PREMIUM[4] = 0
+                End
+
+            If cppCRIME:NO_ROOMS > L_NO_ROOMS_2 Then
+                Begin
+                cppCRIME:ACTUAL_NO_ROOMS[2] = L_NO_ROOMS_2 - L_NO_ROOMS_1
+                cppCRIME:ACTUAL_NO_ROOMS[3] = cppCRIME:NO_ROOMS - L_NO_ROOMS_2
+                cppCRIME:ACTUAL_NO_ROOMS[4] = 0
+                cppCRIME:NO_ROOMS_RATE[3] = L_NO_ROOMS_RATE_3
+                cppCRIME:NO_ROOMS_PER_RATE[3] = L_NO_ROOMS_3
+                cppCRIME:NO_ROOMS_PREMIUM[1] = ((cppCRIME:ACTUAL_NO_ROOMS[1]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_1)
+                cppCRIME:NO_ROOMS_PREMIUM[2] = ((cppCRIME:ACTUAL_NO_ROOMS[2]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_2)
+                cppCRIME:NO_ROOMS_PREMIUM[3] = ((cppCRIME:ACTUAL_NO_ROOMS[3]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_3)
+                cppCRIME:NO_ROOMS_RATE[4] = 0
+                cppCRIME:NO_ROOMS_PREMIUM[4] = 0
+                End
+
+            If cppCRIME:NO_ROOMS > L_NO_ROOMS_3 Then
+                Begin
+                cppCRIME:ACTUAL_NO_ROOMS[3] = L_NO_ROOMS_3 - L_NO_ROOMS_2
+                cppCRIME:ACTUAL_NO_ROOMS[4] = cppCRIME:NO_ROOMS - L_NO_ROOMS_3
+                cppCRIME:NO_ROOMS_RATE[4] = L_NO_ROOMS_RATE_4
+                cppCRIME:NO_ROOMS_PER_RATE[4] = L_NO_ROOMS_4
+                cppCRIME:NO_ROOMS_PREMIUM[1] = ((cppCRIME:ACTUAL_NO_ROOMS[1]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_1)
+                cppCRIME:NO_ROOMS_PREMIUM[2] = ((cppCRIME:ACTUAL_NO_ROOMS[2]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_2)
+                cppCRIME:NO_ROOMS_PREMIUM[3] = ((cppCRIME:ACTUAL_NO_ROOMS[3]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_3)
+                cppCRIME:NO_ROOMS_PREMIUM[4] = ((cppCRIME:ACTUAL_NO_ROOMS[4]
+                                               Divide L_PER) *
+                                               L_NO_ROOMS_RATE_4)
+                End
+
+            cppCRIME:CRIME_PREMIUM = ((cppCRIME:NO_ROOMS_PREMIUM[1] +
+                                     cppCRIME:NO_ROOMS_PREMIUM[2] +
+                                     cppCRIME:NO_ROOMS_PREMIUM[3] +
+                                     cppCRIME:NO_ROOMS_PREMIUM[4]) *
+                                     l_deductible_factor)
+            if cppcrime:crime_premium < l_minimum_premium then
+                cppcrime:crime_premium = l_minimum_premium
+            access cppcrime1, set cppcrime1:policy_no = g_policy_no,
+                                  cppcrime1:pol_year = g_year,
+                                  cppcrime1:end_sequence = g_end_sequence,
+                                  cppcrime1:prem_no = g_prem_no,
+                                  cppcrime1:build_no = g_build_no,
+                                  cppcrime1:sub_code = g_sub_code, generic
+
+            access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                                   cpsdefault:line_of_business = l_line_of_business, generic
+
+            If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 And
+               cppcrime1:COMPANY_DEVIATION <> 1.00 Then
+                L_DEVIATION = (1 + (cppcrime1:COMPANY_DEVIATION * 0.01))
+            Else
+                L_DEVIATION = cppcrime1:COMPANY_DEVIATION
+
+            If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 And
+               cppcrime1:PACKAGE_MOD <> 1.00 Then
+                L_PACKAGE = (1 + (cppcrime1:PACKAGE_MOD * 0.01))
+            Else
+                L_PACKAGE = cppcrime1:PACKAGE_MOD
+
+            If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 And
+               cppcrime1:irpm <> 1.00 Then
+                l_irpm = (1 + (cppcrime1:irpm * 0.01))
+            Else
+                l_irpm = cppcrime1:irpm
+
+            if cppcrime1:policy_no = g_policy_no and
+               cppcrime1:pol_year = g_year and
+               cppcrime1:end_sequence = g_end_sequence and
+               cppcrime1:prem_no = g_prem_no and
+               cppcrime1:build_no = g_build_no and
+               cppcrime1:sub_code = g_sub_code then
+                begin
+                change cppcrime1
+                    begin
+                    cppcrime1:total_premium = cppcrime:crime_premium
+                    L_premium = cppcrime:crime_premium *
+                                l_deviation *
+                                l_package *
+                                l_irpm
+                    cppcrime1:premium = l_premium
+                    end
+                end
+
+            End
+            g_premium1 = cppcrime:crime_premium
+        End
+        cppCRIME:NO_ROOMS_PER_RATE[1]/displayonly ;
+1201    cppCRIME:NO_ROOMS_PER_RATE[2]/displayonly ;
+1301    cppCRIME:NO_ROOMS_PER_RATE[3]/displayonly ;
+1401    cppCRIME:NO_ROOMS_PER_RATE[4]/displayonly ;
+
+1102    cppCRIME:NO_ROOMS_RATE[1]/displayonly ;
+1202    cppCRIME:NO_ROOMS_RATE[2]/displayonly ;
+1302    cppCRIME:NO_ROOMS_RATE[3]/displayonly ;
+1402    cppCRIME:NO_ROOMS_RATE[4]/displayonly ;
+
+1103    cppCRIME:ACTUAL_NO_ROOMS[1]/displayonly ;
+1203    cppCRIME:ACTUAL_NO_ROOMS[2]/displayonly ;
+1303    cppCRIME:ACTUAL_NO_ROOMS[3]/displayonly ;
+1403    cppCRIME:ACTUAL_NO_ROOMS[4]/displayonly ;
+
+1104    cppCRIME:NO_ROOMS_PREMIUM[1]/displayonly/mask="ZZZ,ZZZ.99" ;
+1204    cppCRIME:NO_ROOMS_PREMIUM[2]/displayonly/mask="ZZZ,ZZZ.99" ;
+1304    cppCRIME:NO_ROOMS_PREMIUM[3]/displayonly/mask="ZZZ,ZZZ.99" ;
+1404    cppCRIME:NO_ROOMS_PREMIUM[4]/displayonly/mask="ZZZ,ZZZ.99" ;
+
+1601    cppcrime:deductible_factor/displayonly ;
+1701    cppCRIME:CRIME_PREMIUM/displayonly/mask="ZZZ,ZZZ.99";
+
+}
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   ABORT = "NO" Then
+    Begin
+    If FUNCTION = "ADD" Or
+       FUNCTION = "CHANGE" Then
+        Begin
+        Access CPSCRTRIGGER, Set CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSCRTRIGGER:STATE = cppCRIME:STATE,
+                                 CPSCRTRIGGER:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+        While CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+              CPSCRTRIGGER:STATE = cppCRIME:STATE And
+              CPSCRTRIGGER:LINE_OF_BUSINESS =  l_line_of_business
+                Begin
+                L_CODE_1 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[1]
+                L_CODE_2 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[2]
+                L_CODE_3 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[9]
+
+                Next CPSCRTRIGGER
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+                Do ADD_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+                Do ADD_sfpEND
+            End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            L_CODE = L_CODE_3
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppCRIME:CRIME_FORM = "L" Then
+                Do ADD_sfpEND
+            End
+
+        End
+
+
+    If FUNCTION = "DELETE" Then
+        Begin
+        Access CPSCRTRIGGER, Set CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSCRTRIGGER:STATE = cppCRIME:STATE,
+                                 CPSCRTRIGGER:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+        While CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+              CPSCRTRIGGER:STATE = cppCRIME:STATE And
+              CPSCRTRIGGER:LINE_OF_BUSINESS =  l_line_of_business
+                Begin
+                L_CODE_1 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[1]
+                L_CODE_2 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[2]
+                L_CODE_3 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[9]
+
+                Next CPSCRTRIGGER
+                End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            L_CODE = L_CODE_3
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" And
+               cppCRIME:CRIME_FORM = "L" Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND_DELETE
+            If L_DELETE_ENDORSEMENT = "Y" Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND_DELETE
+            If L_DELETE_ENDORSEMENT = "Y" Then
+                Do DELETE_sfpEND
+            End
+
+        End
+
+    End
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND_DELETE
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_DELETE_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:LOB_END_CODE = "C" And
+       sfpEND:CODE <> L_CODE_1 And
+       sfpEND:CODE <> L_CODE_2 Then
+        L_DELETE_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence,
+                             cppGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             cppGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = cppGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "C"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure RATE_CRIME
+Begin
+Access CPSCRGUESTPROPERTY, Set CPSCRGUESTPROPERTY:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSCRGUESTPROPERTY:STATE = cppCRIME:STATE,
+                               CPSCRGUESTPROPERTY:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+While CPSCRGUESTPROPERTY:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSCRGUESTPROPERTY:STATE = cppCRIME:STATE And
+      CPSCRGUESTPROPERTY:LINE_OF_BUSINESS = l_line_of_business
+        Begin
+        If sfpNAME:EFF_DATE >= CPSCRGUESTPROPERTY:EFF_DATE Then
+            Begin
+            L_NO_ROOMS_1 = CPSCRGUESTPROPERTY:NO_ROOMS[1]
+            L_NO_ROOMS_2 = CPSCRGUESTPROPERTY:NO_ROOMS[2]
+            L_NO_ROOMS_3 = CPSCRGUESTPROPERTY:NO_ROOMS[3]
+            L_NO_ROOMS_4 = CPSCRGUESTPROPERTY:NO_ROOMS[4]
+            L_NO_ROOMS_RATE_1 = CPSCRGUESTPROPERTY:RATE[1]
+            L_NO_ROOMS_RATE_2 = CPSCRGUESTPROPERTY:RATE[2]
+            L_NO_ROOMS_RATE_3 = CPSCRGUESTPROPERTY:RATE[3]
+            L_NO_ROOMS_RATE_4 = CPSCRGUESTPROPERTY:RATE[4]
+            L_MINIMUM_PREMIUM = CPSCRGUESTPROPERTY:MINIMUM_PREMIUM
+            L_PER = CPSCRGUESTPROPERTY:PER
+            l_guest_limit = cpscrguestproperty:guest_limit
+            l_per_occurrence = cpscrguestproperty:per_occurrence
+            End
+
+        Next CPSCRGUESTPROPERTY
+        End
+
+Access CPSCRIMEDED, Set CPSCRIMEDED:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSCRIMEDED:STATE = cppCRIME:STATE,
+                        CPSCRIMEDED:LINE_OF_BUSINESS = l_line_of_business,
+                        CPSCRIMEDED:DEDUCTIBLE = cppCRIME:DEDUCTIBLE, Generic
+
+While CPSCRIMEDED:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSCRIMEDED:STATE = cppCRIME:STATE And
+      CPSCRIMEDED:LINE_OF_BUSINESS = l_line_of_business And
+      CPSCRIMEDED:DEDUCTIBLE = cppCRIME:DEDUCTIBLE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSCRIMEDED:EFF_DATE Then
+            Begin
+            L_DEDUCTIBLE_FACTOR = CPSCRIMEDED:FACTOR
+            End
+
+        Next CPSCRIMEDED
+        End
+
+End
+
+End

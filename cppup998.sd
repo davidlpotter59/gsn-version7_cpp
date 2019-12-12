@@ -1,0 +1,82 @@
+%%
+Program
+        Name = "cppup998" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat" ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_prem_no[4],
+                                     g_build_no[4],
+                                     g_state[2] ;
+
+        local string l_add_code[7],
+                     l_remove_code[7],
+                     l_tpd_code[7];
+
+        local date l_terror_eff_date[8] ;
+
+initialisation
+g_policy_no = val(commandline[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+g_prem_no = 1
+g_build_no = 1
+
+do remove_terrorism_forms
+
+update
+
+procedure definition
+
+procedure remove_terrorism_forms
+begin
+access cppumbrella, set cppumbrella:policy_no = g_policy_no,
+                        cppumbrella:pol_year = g_year,
+                        cppumbrella:end_sequence = g_end_sequence, generic
+
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_Year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+g_state = cppumbrella:state
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                         SFSMSOTERROR:STATE            = g_STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = sfpNAME:LINE_OF_BUSINESS, Generic
+
+l_remove_code = ""
+l_add_code = ""
+While SFSMSOTERROR:COMPANY_ID       = sfpNAME:COMPANY_ID And
+      SFSMSOTERROR:STATE            = g_STATE And
+      SFSMSOTERROR:LINE_OF_BUSINESS = sfpNAME:LINE_OF_BUSINESS
+        begin
+        if sfpname:eff_date >= sfsmsoterror:eff_date then
+             begin
+             L_remove_code = sfsmsoterror:terrorism_form_to_remove
+             l_add_code    = sfsmsoterror:terrorism_form_to_add
+             l_tpd_code    = uppercase(sfsmsoterror:tpd_forms_to_print[2])
+             end
+        Next SFSMSOTERROR
+        end
+
+Access sfpend, Set sfpend:policy_no = G_policy_no,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+While sfpend:policy_no = g_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence
+        begin
+        If sfpend:CODE = l_remove_code or
+           sfpend:code = l_add_code or
+           sfpend:code = l_tpd_code Then
+            delete sfpend
+
+        next sfpend
+        end
+
+end
+
+End

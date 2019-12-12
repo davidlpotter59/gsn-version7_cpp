@@ -1,0 +1,671 @@
+%%
+Screen
+        Name            = "cppmtmso02f" ;
+        Type            = "Multiline"  ;
+        Repeat line_items, 7 Times Down ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic";
+        Windowtitle = "%a     %s Blanket Worksheet     Ver 7.00 %m" ;
+        Domain          = "cppBLANKET" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ,
+                                     g_prem_no_1[4],
+                                     g_build_no_1[4] ;
+
+        global string g_code[7] ;
+
+        local string l_rate_type[1]="" ,
+                     l_building[1]="",
+                     l_contents[1]="" ,
+                     l_code[7]="",
+                     l_code_1[7]="",
+                     l_code_2[7]="",
+                     l_code_3[7]="",
+                     l_updated[1]="N",
+                     l_add_endorsement[1]="",
+                     l_form_edition[25]="",
+                     l_description[75]="" ;
+
+        Local Unsigned Ascii Number L_TOTAL_1[6]=0,
+                                    L_TOTAL_2[6]=0,
+                                    L_TOTAL_3[6]=0,
+                                    L_TOTAL_4[6]=0,
+                                    l_blanket_coverage[1]=0,
+                                    l_factor_1[4]=0/dec=3,
+                                    l_factor_2[4]=0/dec=3,
+                                    l_factor_3[4]=0/dec=3,
+                                    l_factor_4[4]=0/dec=3,
+                                    l_factor_5[4]=0/dec=3,
+                                    l_factor_6[4]=0/dec=3,
+                                    l_factor_7[4]=0/dec=3,
+                                    l_factor_8[4]=0/dec=3,
+                                    l_factor_9[4]=0/dec=3,
+                                    l_factor_10[4]=0/dec=3,
+                                    l_factor_11[4]=0/dec=3,
+                                    l_factor_12[4]=0/dec=3,
+                                    l_total_blanket[10]=0 ,
+                                    l_sub_code[4]=0 ,
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0 ,
+                                    l_state[2]=0,
+                                    l_line_of_business[4] ;
+
+        Access cppBLANKET,
+           Set cppBLANKET:policy_NO = G_policy_NO ,
+               cppblanket:pol_year = g_year,
+               cppblanket:end_sequence = g_end_sequence;
+
+        include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "func1" sequence "G" tagged update_fn ;
+        "G" continue begin
+                     access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                                            cpsdefault:line_of_business = sfpname:line_of_business, generic
+
+                     if cpsdefault:blanket_exit_screen = 0 then
+                         begin
+                         Warning "You are about to update, click CANCEL to continue"
+                         if abort = "NO" then
+                             begin
+                             l_updated = "Y"
+                             do update_cppgeneral
+                             warning "Updating has been completed"
+                             end
+                         end
+                    end ;
+
+        "exit" sequence "blanketexit"  tagged exit_fn ;
+        "blanketexit" continue begin
+                        access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                                               cpsdefault:line_of_business = sfpname:line_of_business, generic
+
+                        if cpsdefault:blanket_exit_screen = 1 then
+                            do update_cppgeneral
+                        function = "back"
+                        end ;
+
+        "back" return ;
+
+        include "stdfunc7.inc"
+
+menu definition
+
+       include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Toolbar Tagged Main_t Properties
+                        {
+                        Text     = "Main"
+                        FontName = "SansSerif"
+                        Fontsize = 10
+                        }
+                {
+                ToolBarButton
+                        Properties
+                        {
+                        Iconname   = "calc.bmp"
+                        tooltip    = "Update"
+                        }
+                        Events
+                        {
+                        Action    = update_fn
+                        }
+
+}
+
+screen entry
+do get_total
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+
+access validation
+if cppblanket:policy_no <> g_policy_no or
+   cppblanket:pol_year <> g_year or
+   cppblanket:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+
+screen
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*-----------------------------------*--------------------------------------------------*
+| Policy No: _________  ____  ____  | Total Blanket: ______________                    |
+*---------------------------*-------*--------------------*-----------------------------*
+|                           |        Annual Rates        |          Premiums           |
+|                           |                            |                             |
+| Loc  Bld   Cov    Limit   | Fire   EC    VMM   OP5     |  Fire    EC     VMM    OP5  |
+*---------------------------*----------------------------*-----------------------------*
+| ____ ____  __   _________ | _____ _____ _____ ________ | ______ ______ ______ ______ |
+| ____ ____  __   _________ | _____ _____ _____ ________ | ______ ______ ______ ______ |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+|                           |                            |                             |
+*---------------------------*----------------------------*-----------------------------*
+|                              Total Annual:             | ______ ______ ______ ______ |
+|                              Blanket Factor:           | ______ ______ ______ ______ |
+*--------------------------------------------------------*-----------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext  ;
+301     cppBLANKET:policy_NO/displayonly ;
+302     cppblanket:pol_year/displayonly ;
+303     cppblanket:end_sequence/displayonly ;
+
+901     cppBLANKET:PREM_NO/displayonly tagged line_items ;
+902     cppBLANKET:BUILD_NO/displayonly tagged line_items ;
+903     begin
+            l_rate_type = "A"
+        end
+        L_RATE_TYPE/displayonly  tagged line_items;
+904     cppBLANKET:LIMIT[1]/displayonly tagged line_items;
+905     cppBLANKET:BASE_RATE[1]/displayonly tagged line_items;
+906     cppBLANKET:BASE_RATE[2]/displayonly tagged line_items;
+907     cppBLANKET:BASE_RATE[3]/displayonly tagged line_items;
+908     cppBLANKET:BASE_RATE[4]/displayonly tagged line_items;
+909     cppBLANKET:blanket_premium[1]/displayonly tagged line_items;
+910     cppBLANKET:blanket_premium[2]/displayonly tagged line_items;
+911     cppBLANKET:blanket_premium[3]/displayonly tagged line_items;
+912     cppBLANKET:blanket_premium[4]/displayonly tagged line_items;
+
+1001    cppBLANKET:PREM_NO/displayonly tagged line_items;
+1002    cppBLANKET:BUILD_NO/displayonly tagged line_items;
+1003    Begin
+            l_rate_type = "B"
+        end
+        L_RATE_TYPE/displayonly tagged  line_items ;
+1004    cppBLANKET:LIMIT[2]/displayonly tagged line_items ;
+1005    cppBLANKET:BASE_RATE[7]/displayonly tagged line_items;
+1006    cppBLANKET:BASE_RATE[8]/displayonly tagged line_items;
+1007    cppBLANKET:BASE_RATE[9]/displayonly tagged line_items;
+1008    cppBLANKET:BASE_RATE[10]/displayonly tagged line_items;
+1009    cppBLANKET:blanket_premium[7]/displayonly tagged line_items;
+1010    cppBLANKET:blanket_premium[8]/displayonly tagged line_items;
+1011    cppBLANKET:blanket_premium[9]/displayonly tagged line_items;
+1012    cppBLANKET:blanket_premium[10]/displayonly tagged line_items;
+
+304     l_total_blanket/displayonly/mask="ZZ,ZZZ,ZZZ,ZZZ" ;
+2401    l_total_1/displayonly/mask="ZZZZZZ" ;
+2402    l_total_2/displayonly/mask="ZZZZZZ" ;
+2403    l_total_3/displayonly/mask="ZZZZZZ" ;
+2404    l_total_4/displayonly/mask="ZZZZZZ" ;
+2501    begin
+            l_factor_1 = (l_total_1 divide (l_total_blanket divide 100))
+            l_factor_2 = (l_total_2 divide (l_total_blanket divide 100))
+            l_factor_3 = (l_total_3 divide (l_total_blanket divide 100))
+            l_factor_4 = (l_total_4 divide (l_total_blanket divide 100))
+        end
+        l_factor_1/displayonly/mask="Z.999" ;
+2502    l_factor_2/displayonly/mask="Z.999" ;
+2503    l_factor_3/displayonly/mask="Z.999" ;
+2504    l_factor_4/displayonly/mask="Z.999" ;
+
+}
+
+}
+
+screen exit
+access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                       cpsdefault:line_of_business = sfpname:line_of_business, generic
+
+if l_updated = "N" and
+   cpsdefault:blanket_exit_screen = 0 then
+    warning "You have not clicked the UPDATE icon" ;
+
+access sfpend, set sfpend:policy_no    = g_policy_no,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+while sfpend:policy_no    = g_policy_no and
+      sfpend:pol_Year     = g_year and
+      sfpend:end_sequence = g_end_sequence
+    begin
+    if sfpend:code = "MCP201" then
+        begin
+        g_code       = "MCP201"
+        g_prem_no_1  = sfpend:prem_no
+        g_build_no_1 = sfpend:build_no
+        Display Modal Screen "cppmtmso207"
+        With Initial Function "CHANGE|BACK"
+        end
+
+    next sfpend
+    end
+
+procedure definition
+
+procedure get_total
+begin
+access cppblanket_alias, set cppblanket_alias:policy_no = cppblanket:policy_no,
+                             cppblanket_alias:pol_year = cppblanket:pol_year,
+                             cppblanket_alias:end_sequence = cppblanket:end_sequence,  generic
+
+l_total_blanket = 0
+l_total_1 = 0
+l_total_2 = 0
+l_total_3 = 0
+l_total_4 = 0
+while cppblanket_alias:policy_no = cppblanket:policy_no and
+      cppblanket_alias:pol_year = cppblanket:pol_year and
+      cppblanket_alias:end_sequence = cppblanket:end_sequence
+    begin
+    l_total_blanket = l_total_blanket +
+                      cppblanket_alias:limit[1] +
+                      cppblanket_alias:limit[2]
+
+    l_total_1 = l_total_1 +
+                cppblanket_alias:blanket_premium[1] +
+                cppblanket_alias:blanket_premium[7]
+    l_total_2 = l_total_2 +
+                cppblanket_alias:blanket_premium[2] +
+                cppblanket_alias:blanket_premium[8]
+    l_total_3 = l_total_3 +
+                cppblanket_alias:blanket_premium[3] +
+                cppblanket_alias:blanket_premium[9]
+    l_total_4 = l_total_4 +
+                cppblanket_alias:blanket_premium[4] +
+                cppblanket_alias:blanket_premium[10]
+
+    next cppblanket_alias
+    end
+
+end
+
+procedure update_cppgeneral
+begin
+access cppblanket_alias, set cppblanket_alias:policy_no = cppblanket:policy_no,
+                             cppblanket_alias:pol_year = cppblanket:pol_year,
+                             cppblanket_alias:end_sequence = cppblanket:end_sequence,  generic
+
+l_building  = "N"
+l_contents  = "N"
+l_total_1 = 0
+l_total_2 = 0
+l_total_3 = 0
+l_total_4 = 0
+while cppblanket_alias:policy_no = cppblanket:policy_no and
+      cppblanket_alias:pol_year = cppblanket:pol_year and
+      cppblanket_alias:end_sequence = cppblanket:end_sequence
+    begin
+    l_total_1 = l_total_1 +
+                cppblanket_alias:blanket_premium[1] +
+                cppblanket_alias:blanket_premium[7]
+    l_total_2 = l_total_2 +
+                cppblanket_alias:blanket_premium[2] +
+                cppblanket_alias:blanket_premium[8]
+    l_total_3 = l_total_3 +
+                cppblanket_alias:blanket_premium[3] +
+                cppblanket_alias:blanket_premium[9]
+    l_total_4 = l_total_4 +
+                cppblanket_alias:blanket_premium[4] +
+                cppblanket_alias:blanket_premium[10]
+
+    if cppblanket_alias:limit[1] <> 0 then
+        l_building = "Y"
+    if cppblanket_alias:limit[2] <> 0 then
+        l_contents = "Y"
+
+    next cppblanket_alias
+    end
+
+l_factor_5 =  (l_total_1 divide
+              (l_total_blanket divide 100))
+l_factor_6 =  (l_total_2 divide
+              (l_total_blanket divide 100))
+l_factor_7 =  (l_total_3 divide
+              (l_total_blanket divide 100))
+l_factor_8 =  (l_total_4 divide
+              (l_total_blanket divide 100))
+
+if l_building = "Y" and
+   l_contents = "Y" then
+    l_blanket_coverage = 3
+if l_building = "Y" and
+   l_contents = "N" then
+    l_blanket_coverage = 1
+if l_building = "N" and
+   l_contents = "Y" then
+    l_blanket_coverage = 2
+
+access cpsblnktcov, set cpsblnktcov:company_id = sfpname:company_id,
+                        cpsblnktcov:blanket_coverage = l_blanket_coverage, exact
+
+access cppgeneral, set cppgeneral:policy_no = cppblanket:policy_no,
+                       cppgeneral:pol_year = cppblanket:pol_year,
+                       cppgeneral:end_sequence = cppblanket:end_sequence, generic
+
+if cppgeneral:policy_no = cppblanket:policy_no and
+   cppgeneral:pol_year = cppblanket:pol_year and
+   cppgeneral:end_sequence = cppblanket:end_sequence then
+    begin
+    change cppgeneral
+        begin
+        cppgeneral:limit[1]            = l_total_blanket
+        cppgeneral:limit[2]            = 0
+        cppgeneral:base_rate[1]        = l_factor_5
+        cppgeneral:base_rate[2]        = l_factor_6
+        cppgeneral:base_rate[3]        = l_factor_7
+        cppgeneral:base_rate[4]        = l_factor_8
+        cppgeneral:blanket_coverage    = l_blanket_coverage
+        cppgeneral:blanket_description = cpsblnktcov:description/raw
+        if sfscompany:boiler_rating <> 4 then
+            begin
+            cppgeneral:rating_territory_group = cppblanket:rating_territory_group
+            cppgeneral:rating_territory = cppblanket:rating_territory
+            cppgeneral:rating_territory_factor = cppblanket:rating_territory_factor
+            cppgeneral:rating_territory_sub_code = cppblanket:rating_territory_sub_code
+            end
+        end
+
+    end
+
+Access CPSTRIGGER, Set CPSTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                       CPSTRIGGER:STATE = cppBLANKET:STATE,
+                       CPSTRIGGER:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+While CPSTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSTRIGGER:STATE = cppBLANKET:STATE And
+      CPSTRIGGER:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSTRIGGER:EFF_DATE Then
+            Begin
+            l_code_1 = cpstrigger:code[13] -- MCP201
+            l_code_2 = cpstrigger:code[14] -- MCP601
+            l_code_3 = cpstrigger:code[15] -- MCP602
+            End
+
+        Next CPSTRIGGER
+        End
+
+If L_CODE_1 <> "" and
+   sfscompany:boiler_rating <> 4 Then
+    Begin
+    L_CODE = L_CODE_1
+    Do ACCESS_sfpEND_1
+    If L_ADD_ENDORSEMENT = "Y" and
+       cppblanket:agreed_value = 1 Then
+        begin
+        Do ADD_sfpEND_1
+        do add_mcp201_info
+        end
+    If L_ADD_ENDORSEMENT = "N" and
+       cppblanket:agreed_value = 1 then
+        begin
+        do change_mcp201_info
+        end
+    If L_ADD_ENDORSEMENT = "N" and
+       cppblanket:agreed_value = 0 then
+        begin
+        do delete_sfpend_1
+        do delete_mcp201_info
+        end
+    End
+
+If L_CODE_2 <> "" and
+   sfscompany:boiler_rating <> 4 Then
+    Begin
+    L_CODE = L_CODE_2
+    Do ACCESS_sfpEND_1
+    If L_ADD_ENDORSEMENT = "Y" and
+       cppblanket:agreed_value = 1 Then
+        Do ADD_sfpEND_1
+    If L_ADD_ENDORSEMENT = "N" and
+       cppblanket:agreed_value = 0 Then
+        Do DELETE_sfpEND_1
+    End
+
+If L_CODE_3 <> "" and
+   sfscompany:boiler_rating <> 4 Then
+    Begin
+    L_CODE = L_CODE_3
+    Do ACCESS_sfpEND_1
+    If L_ADD_ENDORSEMENT = "Y" and
+       cppblanket:agreed_value = 0 Then
+        Do ADD_sfpEND_1
+    If L_ADD_ENDORSEMENT = "N" and
+       cppblanket:agreed_value = 1 Then
+        Do DELETE_sfpEND_1
+    End
+
+end
+
+procedure add_mcp201_info
+begin
+do delete_mcp201_info
+
+add cppendorse
+   begin
+   cppendorse:policy_no               = g_policy_no
+   cppendorse:pol_year                = g_year
+   cppendorse:end_sequence            = g_end_sequence
+   cppendorse:prem_no                 = 0
+   cppendorse:build_no                = 0
+   cppendorse:code                    = l_code_1
+   cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+   cppendorse:sub_code                = 10
+   cppendorse:eff_date                = sfpname:eff_date
+   cppendorse:exp_date                = sfpname:exp_date
+   cppendorse:limit[1]                = l_total_blanket
+   end
+
+end
+
+procedure change_mcp201_info
+begin
+l_prem_no  = 0
+l_build_no = 0
+access cppendorse, set cppendorse:policy_no = g_policy_no,
+                       cppendorse:pol_year = g_year,
+                       cppendorse:end_sequence = g_end_sequence,
+                       cppendorse:prem_no = l_prem_no,
+                       cppendorse:build_no = l_build_no,
+                       cppendorse:code = l_code_1, generic
+
+if cppendorse:policy_no = g_policy_no and
+   cppendorse:pol_year = g_year and
+   cppendorse:end_sequence = g_end_sequence and
+   cppendorse:prem_no = l_prem_no and
+   cppendorse:build_no = l_build_no and
+   cppendorse:code = l_code_1 then
+    begin
+    change cppendorse
+        begin
+        cppendorse:limit[1]                = l_total_blanket
+        cppendorse:eff_date                = sfpname:eff_date
+        cppendorse:exp_date                = sfpname:exp_date
+        end
+    end
+
+end
+
+procedure delete_mcp201_info
+begin
+access cppendorse, set cppendorse:policy_no = cppgeneral:policy_no,
+                       cppendorse:pol_year = g_year,
+                       cppendorse:end_sequence = g_end_sequence, generic
+
+while cppendorse:policy_no = cppgeneral:policy_no and
+      cppendorse:pol_year = g_year and
+      cppendorse:end_sequence = g_end_sequence
+    begin
+    if cppendorse:code = l_code_1 then
+        begin
+        delete cppendorse
+        end
+
+    next cppendorse
+    end
+
+end
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no = 0000
+l_build_no = 0000
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no = l_prem_no,
+                   sfpend:build_no = l_build_no, generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpend:prem_no <> l_prem_no or
+            sfpend:build_no <> l_build_no
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppGENERAL:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       0000
+    sfpEND:BUILD_NO             =       0000
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    sfpend:terrorism_form       =       0
+    sfpend:manual_premium       =       0
+    sfpend:inland_marine_code   =      "N"
+    sfpend:trigger              =      ""/raw
+    sfpend:minimum_premium      =      "N"
+    sfpend:mpl80_subline_breakout =    0
+    sfpend:rating_code          =      ""/raw
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+end

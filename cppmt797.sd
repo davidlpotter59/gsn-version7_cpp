@@ -1,0 +1,203 @@
+%%
+Screen
+        Name = "CPPMT797" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "CPPinland";
+        Windowtitle = "%a     %s Deviations - Ver 7.00   %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_POPUP[1] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_COMMANDLINE[16] ,
+                     l_type[2],
+                     l_enter[1],
+                     L_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008 ;
+
+        local Unsigned ascii number L_PACKAGE_MOD[5]=0/decimals=3 ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access CPPinland, Set CPPinland:policy_NO    = G_policy_NO,
+                              cppinland:pol_year     = g_year,
+                              cppinland:end_sequence = g_end_sequence,
+                              CPPinland:PREM_NO      = G_PREM_NO,
+                              CPPinland:BUILD_NO     = G_BUILD_NO, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If CPPinland:policy_NO    <> G_policy_NO Or
+   cppinland:pol_year     <> g_year or
+   cppinland:end_sequence <> g_end_sequence or
+   CPPinland:PREM_NO      <> G_PREM_NO Or
+   CPPinland:BUILD_NO     <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+|           PMF                        IRPM                                    |
+*------------------------------------------------------------------------------*
+|         ________                    ________                                 |
+*------------------------------------------------------------------------------*
+
+
+
+
+
+
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+0501    begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            do get_package_mod
+            CPPinland:package_mod = l_package_mod
+            end
+        end
+        CPPinland:package_mod/default
+        hide if sfpname:package = 0 ;
+0502    CPPinland:company_deviation ;
+
+}
+
+update
+if updateok = "YES" and
+   abort    = "NO" then
+    begin
+    access CPPinland_alias, set CPPinland_alias:policy_no    = CPPinland:policy_no,
+                                cppinland_alias:pol_year     = cppinland:pol_year,
+                                cppinland_alias:end_sequence = cppinland:end_sequence,
+                                CPPinland_alias:prem_no      = CPPinland:prem_no,
+                                CPPinland_alias:build_no     = CPPinland:build_no, generic
+
+    change CPPinland_alias
+        begin
+        if CPPinland_alias:package_mod = 0 then
+            CPPinland_alias:package_mod = 1.00
+        if CPPinland_alias:company_deviation = 0 then
+            CPPinland_alias:company_deviation = 1.00
+        end
+    end
+
+procedure definition
+
+procedure get_package_mod
+begin
+access sfpname, set sfpname:policy_no    = CPPinland:policy_no,
+                    sfpname:pol_year     = cppinland:pol_year,
+                    sfpname:end_sequence = cppinland:end_sequence, generic
+
+access CPPliability, set CPPliability:policy_no    = CPPinland:policy_no,
+                         cppliability:pol_year     = cppinland:pol_year,
+                         cppliability:end_sequence = cppinland:end_sequence,
+                         CPPliability:prem_no      = CPPinland:prem_no,
+                         CPPliability:build_no     = CPPinland:build_no, generic
+
+access CPPartisan, set CPPartisan:policy_no    = CPPinland:policy_no,
+                       cppartisan:pol_year     = cppinland:pol_year,
+                       cppartisan:end_sequence = cppinland:end_sequence,
+                       CPPartisan:prem_no      = CPPinland:prem_no,
+                       CPPartisan:build_no     = CPPinland:build_no, generic
+
+access CPPgeneral, set CPPgeneral:policy_no    = CPPinland:policy_no,
+                       cppgeneral:pol_year     = cppinland:pol_year,
+                       cppgeneral:end_sequence = cppinland:end_sequence,
+                       CPPgeneral:prem_no      = CPPinland:prem_no,
+                       CPPgeneral:build_no     = CPPinland:build_no, generic
+
+if CPPgeneral:policy_no = CPPinland:policy_no then
+    l_type = CPPgeneral:type
+if CPPliability:policy_no = CPPinland:policy_no then
+    l_type = CPPliability:type
+if CPPartisan:policy_no = CPPinland:policy_no then
+    l_type = CPPartisan:type
+
+access cpsisopackage, set cpsisopackage:company_id       = sfpname:company_id,
+                          cpsisopackage:state            = CPPinland:state,
+                          cpsisopackage:line_of_business = CPPinland:rating_line_of_business,
+                          cpsisopackage:type             = l_type, generic
+
+l_package_mod = 0
+while cpsisopackage:company_id       = sfpname:company_id and
+      cpsisopackage:state            = CPPinland:state and
+      cpsisopackage:line_of_business = CPPinland:rating_line_of_business and
+      cpsisopackage:type             = l_type
+        begin
+        if (sfpname:eff_date >= cpsisopackage:eff_date and
+           (sfpname:eff_date <= cpsisopackage:exp_date or
+           cpsisopackage:exp_date = 0)) then
+            begin
+            l_package_mod = cpsisopackage:package_mod[2]
+
+            end
+
+        next cpsisopackage
+        end
+
+access CPPinland_alias, set CPPinland_alias:policy_no    = CPPinland:policy_no,
+                            cppinland_alias:pol_year     = cppinland:pol_year,
+                            cppinland_alias:end_sequence = cppinland:end_sequence,
+                            CPPinland_alias:prem_no      = CPPinland:prem_no,
+                            CPPinland_alias:build_no     = CPPinland:build_no, generic
+
+change CPPinland_alias
+    begin
+    CPPinland_alias:package_mod = l_package_mod
+    end
+
+end
+
+End

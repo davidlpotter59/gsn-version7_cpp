@@ -1,0 +1,163 @@
+%%
+Screen
+        Name            = "cppMTMSO899" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPLIABILITY";
+        Windowtitle = "%a     %s Liability Final Rating    Ver 7.00 %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Signed Ascii Number L_SUPPLEMENTAL_PREMIUM[8]=0 ,
+                                  L_END_PREMIUM[8]=0,
+                                  L_MISC_PREMIUM[8]=0 ;
+
+        Local String L_MISC[1] ,
+                     L_FIRST[1]="Y",
+                     L_FIRST_MISC[1]="Y" ;
+
+        Access CPPLIABILITY, Set CPPLIABILITY:POLICY_NO = G_POLICY_NO,
+                                 CPPLIABILITY:POL_YEAR = G_YEAR,
+                                 CPPLIABILITY:END_SEQUENCE  = G_END_SEQUENCE, Generic
+
+        Include "STDKEYS7.INC"
+--        !F7="Calc"/function/icon="OptEnd" ;
+  --      !F8="Down"/function/icon="Factor" ;
+    --    !F9="G"/function/icon="Dev" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "Calc" Display "cppmtmso850" ;
+        "Down" Display "cppmtmso897" ;
+        "G"    Display "cppmtmso898" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPLIABILITY:POLICY_NO <> G_POLICY_NO Or
+   CPPLIABILITY:POL_YEAR <> G_YEAR Or
+   CPPLIABILITY:END_SEQUENCE  <> G_END_SEQUENCE  Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*-------------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                                 |
+| Location No:  ____                                                                  |
+| Building No:  ____                                                                  |
+| Class Code:   _____                                                                 |
+*-------------------------------------------------------------------------------------*
+| Peril                    Rate    Rate Adj  Exposure    Per      Premium       MP    |
+*-------------------------------------------------------------------------------------*
+| Prem/Ops:            __________  _______   ________  ________  __________           |
+| Products:               _______  _______   ________  ________  __________           |
+| Supplemental Charges:                                          __________           |
+| Optional Endorsements:                                         __________           |
+| Independent Contractor:                                        __________           |
+|                                                                                     |
+|                                              Total Premium:    __________  ________ |
+*-------------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext  ;
+301     CPPLIABILITY:POLICY_NO/displayonly  ;
+302     CPPLIABILITY:POL_YEAR/displayonly;
+303     CPPLIABILITY:END_SEQUENCE/displayonly;
+401     CPPLIABILITY:PREM_NO/displayonly ;
+501     CPPLIABILITY:BUILD_NO/displayonly ;
+601     CPPLIABILITY:CLASS_CODE/displayonly ;
+
+--prem/ops
+1001    Begin
+        Access CPPLIABILITY_ALIAS, Set CPPLIABILITY_ALIAS:POLICY_NO = CPPLIABILITY:POLICY_NO,
+                                       CPPLIABILITY_ALIAS:POL_YEAR = CPPLIABILITY:POL_YEAR,
+                                       CPPLIABILITY_ALIAS:END_SEQUENCE = CPPLIABILITY:END_SEQUENCE,
+                                       CPPLIABILITY_ALIAS:PREM_NO = CPPLIABILITY:PREM_NO,
+                                       CPPLIABILITY_ALIAS:BUILD_NO = CPPLIABILITY:BUILD_NO,
+                                       CPPLIABILITY_ALIAS:CLASS_CODE = CPPLIABILITY:CLASS_CODE, Generic
+        End
+        CPPLIABILITY_ALIAS:BASE_RATE[1]/displayonly ;
+1001    CPPLIABILITY_ALIAS:BASE_RATE[1] * cppliability_alias:rates_per[1]
+        hide if cppliability_alias:class_code not one of 5922;
+1001    cppliability_alias:base_rate[1]
+        hide if cppliability_alias:class_code one of 5922 ;
+1002    CPPLIABILITY_ALIAS:ADJUSTED_RATE[1];
+1003    CPPLIABILITY_ALIAS:EXPOSURE[1];
+1004    CPPLIABILITY_ALIAS:RATES_PER[1]
+        hide if cppliability_alias:class_code one of 5922 ;
+1005    CPPLIABILITY_ALIAS:PREM[1];
+
+--products
+1101    CPPLIABILITY_ALIAS:BASE_RATE[2];
+1102    CPPLIABILITY_ALIAS:ADJUSTED_RATE[2];
+1103    CPPLIABILITY_ALIAS:EXPOSURE[2];
+1104    CPPLIABILITY_ALIAS:RATES_PER[2];
+1105    CPPLIABILITY_ALIAS:PREM[2];
+
+-- misc charges
+1201    CPPLIABILITY:TOTAL_MISC/mask="Z,ZZZ,ZZZ.99-"/displayonly ;
+1301    CPPLIABILITY:TOTAL_ENDORSEMENTS/mask="Z,ZZZ,ZZZ.99-"/displayonly ;
+1401    cppliability:independent_contractor_premium/mask="Z,ZZZ,ZZZ.99-"/displayonly ;
+
+-- final premium
+1601    cppliability:prem[1] +
+        cppliability:prem[2] +
+        cppliability:independent_contractor_premium +
+        cppliability:total_misc +
+        cppliability:total_endorsements/mask="Z,ZZZ,ZZZ.99-" ;
+
+}
+
+}
+
+
+End

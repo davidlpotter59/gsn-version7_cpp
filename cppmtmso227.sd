@@ -1,0 +1,132 @@
+%%
+Screen
+        Name            = "cppmtmso227" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Wind Deductible Factor     Ver 7.00 %m" ;
+        Domain          = "cppGENERAL" ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_RATE_TYPE[2] ;
+
+        Local Unsigned Ascii Number L_LIMIT[8],
+                                    l_limit_1[8],
+                                    L_RATE_1[6]=0/decimals=4,
+                                    L_RATE_2[6]=0/decimals=4 ,
+                                    l_line_of_business[4]=0008 ;
+
+        Access cppGENERAL,
+           Set cppGENERAL:policy_NO = G_policy_NO ,
+               cppgeneral:pol_year = g_year,
+               cppgeneral:end_sequence = g_end_sequence,
+               cppGENERAL:PREM_NO = G_PREM_NO ,
+               cppGENERAL:BUILD_NO = G_BUILD_NO ,
+               cppGENERAL:RATE_TYPE = G_RATE_TYPE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppGENERAL:policy_NO <> G_policy_NO Or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence or
+   cppGENERAL:PREM_NO <> G_PREM_NO Or
+   cppGENERAL:BUILD_NO <> G_BUILD_NO Or
+   cppGENERAL:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+| Rate Type:   __                                                              |
+*------------------------------------------------------------------------------*
+| Wind Deductible Factor:  ______                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppGENERAL:policy_NO = G_policy_NO
+            cppgeneral:pol_year = g_year
+            cppgeneral:end_sequence = g_end_sequence
+            cppGENERAL:PREM_NO = G_PREM_NO
+            cppGENERAL:BUILD_NO = G_BUILD_NO
+            cppGENERAL:RATE_TYPE = G_RATE_TYPE
+            End
+        End
+        cppGENERAL:policy_NO/displayonly ;
+302     cppgeneral:pol_year/displayonly ;
+303     cppgeneral:end_sequence/displayonly ;
+401     cppGENERAL:PREM_NO/displayonly ;
+501     cppGENERAL:BUILD_NO/displayonly ;
+601     cppGENERAL:RATE_TYPE/displayonly ;
+801     Begin
+        Access sfswinddeduct, Set sfswinddeduct:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                  sfswinddeduct:STATE = cppGENERAL:STATE,
+                                  sfswinddeduct:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                  sfswinddeduct:DEDUCTIBLE = cppGENERAL:DEDUCTIBLE,
+                                  sfswinddeduct:wind_deductible = cppgeneral:wind_deductible, generic
+
+        if function one of "CHANGE" then
+            cppgeneral:wind_deductible_factor[1] = sfswinddeduct:factor
+        End
+        cppGENERAL:WIND_DEDUCTIBLE_FACTOR[1]/default
+
+        cppgeneral:wind_deductible_factor[2]      = cppgeneral:wind_deductible_factor[1]
+        cppGENERAL:wind_DEDUCTIBLE_FACTOR[3]      = cppGENERAL:wind_DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:wind_DEDUCTIBLE_FACTOR[4]      = cppGENERAL:wind_DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:wind_DEDUCTIBLE_FACTOR[5]      = cppGENERAL:wind_DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:wind_DEDUCTIBLE_FACTOR[6]      = cppGENERAL:wind_DEDUCTIBLE_FACTOR[1] ;
+
+
+}
+
+}
+
+End

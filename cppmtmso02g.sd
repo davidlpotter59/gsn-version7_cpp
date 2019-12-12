@@ -1,0 +1,152 @@
+%%
+Screen
+        Name            = "cppmtmso02g";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Territorial Rating     7.00 %m";
+        Domain          = "cppblanket" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries cppisolib cppmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_STATE[2],
+                                     G_RATE_TYPE[2] ,
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     G_LOSS_INCOME_FACTOR[4]/decimals=3 ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_RATING_TERRITORY[3]=0 ;
+
+        local wdate l_eff_date ;
+
+        Access cppblanket, Set cppblanket:policy_NO = G_policy_NO ,
+                               cppblanket:pol_year = g_year,
+                               cppblanket:end_sequence = g_end_sequence,
+                               cppblanket:PREM_NO = G_PREM_NO,
+                               cppblanket:BUILD_NO = G_BUILD_NO ,
+                               cppblanket:rate_type = g_rate_type ;
+
+        Include "stdkeys7.inc"
+--        !F8="G"/function/icon="Factor" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "G" Display/noreturn "cppmtmso02b" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppblanket:policy_NO <> G_policy_NO Or
+   cppblanket:pol_Year <> g_year or
+   cppblanket:end_sequence <> g_end_sequence or
+   cppblanket:PREM_NO <> G_PREM_NO Or
+   cppblanket:BUILD_NO <> G_BUILD_NO or
+   cppblanket:rate_type <> g_rate_type Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                              Territory:  ___                                 |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        access sfpname, set sfpname:policY_no = g_policy_no,
+                            sfpname:pol_year = g_year,
+                            sfpname:end_sequence = g_end_sequence, generic
+
+        l_eff_date = sfpname:eff_date
+        access cpsratingterr_alias, set cpsratingterr_alias:company_id = sfpname:company_id,
+                                        cpsratingterr_alias:state = cppblanket:state,
+                                        cpsratingterr_alias:line_of_business = sfpname:line_of_business,
+                                        cpsratingterr_alias:county = cppblanket:county, generic
+
+        end
+        cppblanket:RATING_TERRITORY
+        access cpsratingterr, set cpsratingterr:company_id = sfpname:company_id,
+                                  cpsratingterr:state = cppblanket:state,
+                                  cpsratingterr:line_of_business = sfpname:line_of_business,
+                                  cpsratingterr:county = cppblanket:county,
+                                  cpsratingterr:territory = cppblanket:rating_territory, generic
+
+        If cppblanket:RATING_TERRITORY <> CPSRATINGTERR:TERRITORY Then
+            Error 1206
+
+        L_RATING_TERRITORY = cppblanket:RATING_TERRITORY
+        cppblanket:RATING_TERRITORY_SUB_CODE = CPSRATINGTERR_ALIAS:SUB_CODE
+
+        Activehelp if (l_eff_date >= cpsratingterr_alias:eff_date and
+                      (l_eff_date <= cpsratingterr_alias:exp_date or
+                      cpsratingterr_alias:exp_date = 0)) then
+                       CPSRATINGTERR_ALIAS:TERRITORY
+                   else
+                       null,
+                   if (l_eff_date >= cpsratingterr_alias:eff_date and
+                      (l_eff_date <= cpsratingterr_alias:exp_date or
+                      cpsratingterr_alias:exp_date = 0)) then
+                       CPSRATINGTERR_ALIAS:DESCRIPTION
+                   else
+                       null ;
+
+
+}
+
+}
+
+
+End
+/* end of file */

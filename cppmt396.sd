@@ -1,0 +1,177 @@
+%%
+Screen
+        Name = "cppMT396" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppbusiness";
+        Windowtitle = "%a     %s Deviations - Ver 7.00   %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_POPUP[1] ,
+                      g_inquiry[1] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        global string g_coverage[2] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_COMMANDLINE[16] ,
+                     L_COMPANY_ID[10] ,
+                     l_type[2] ;
+
+        Local Unsigned Ascii Number L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008 ;
+
+        local Unsigned ascii number L_PACKAGE_MOD[5]=0/decimals=3 ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access cppbusiness, Set cppbusiness:policy_NO    = G_policy_NO,
+                                cppbusiness:pol_Year     = g_year,
+                                cppbusiness:end_sequence = g_end_sequence,
+                                cppbusiness:PREM_NO      = G_PREM_NO,
+                                cppbusiness:BUILD_NO     = G_BUILD_NO,
+                                cppbusiness:coverage     = g_coverage, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+screen entry
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppbusiness:policy_NO    <> G_policy_NO Or
+   cppbusiness:pol_Year     <> g_year or
+   cppbusiness:end_sequence <> g_end_sequence or
+   cppbusiness:PREM_NO      <> G_PREM_NO Or
+   cppbusiness:BUILD_NO     <> G_BUILD_NO or
+   cppbusiness:coverage     <> g_coverage then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+|           PMF                        IRPM                                    |
+*------------------------------------------------------------------------------*
+|         ________                    ________                                 |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+0501    begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            do get_package_mod
+            cppbusiness:package_mod[1] = l_package_mod
+            end
+        end
+        cppbusiness:package_mod[1]/default
+        hide if sfpname:package = 0 ;
+0501    begin
+        if sfpname:package = 0 then
+            cppbusiness:package_mod[1] = 1.00
+        end
+        cppbusiness:package_mod[1]/displayonly ;
+0502    cppbusiness:company_deviation[1] ;
+
+}
+
+update
+if updateok = "YES" and
+   abort    = "NO" then
+    begin
+    access cppbusiness_alias, set cppbusiness_alias:policy_no    = cppbusiness:policy_no,
+                                  cppbusiness_alias:pol_year     = cppbusiness:pol_year,
+                                  cppbusiness_alias:end_sequence = cppbusiness:end_sequence,
+                                  cppbusiness_alias:prem_no      = cppbusiness:prem_no,
+                                  cppbusiness_alias:build_no     = cppbusiness:build_no,
+                                  cppbusiness_alias:coverage     = cppbusiness:coverage, generic
+
+    change cppbusiness_alias
+        begin
+        if cppbusiness_alias:package_mod[1] = 0 then
+            cppbusiness_alias:package_mod[1] = 1.00
+        if cppbusiness_alias:company_deviation[1] = 0 then
+            cppbusiness_alias:company_deviation[1] = 1.00
+        end
+    end
+
+procedure definition
+
+procedure get_package_mod
+begin
+l_type = cppgeneral:type
+access cpsisopackage, set cpsisopackage:company_id       = sfpname:company_id,
+                          cpsisopackage:state            = cppbusiness:state,
+                          cpsisopackage:line_of_business = cppbusiness:rating_line_of_business,
+                          cpsisopackage:type             = l_type, generic
+
+l_package_mod = 0
+while cpsisopackage:company_id       = sfpname:company_id and
+      cpsisopackage:state            = cppbusiness:state and
+      cpsisopackage:line_of_business = cppbusiness:rating_line_of_business and
+      cpsisopackage:type             = l_type
+        begin
+        if (sfpname:eff_date >= cpsisopackage:eff_date and
+           (sfpname:eff_date <= cpsisopackage:exp_date or
+           cpsisopackage:exp_date = 0)) then
+            begin
+            l_package_mod = cpsisopackage:package_mod[2]
+
+            end
+
+        next cpsisopackage
+        end
+
+end
+
+End

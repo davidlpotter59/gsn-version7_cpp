@@ -1,0 +1,1098 @@
+%%
+Screen
+        Name            = "cppmtmso007";
+        Type            = "Multiline" ;
+        Repeat line_items, 10 Times ;
+        Screensize      = "dynamic" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Domain          = "cppINLAND" ;
+        Windowtitle = "%a    %s Inland Marine - Ver 7.00     %m" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_End_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_SUB_CODE[4] ,
+                                     g_state[2] ;
+
+        Global String G_CRIME_FORM[1],
+                      G_CODE[7] ,
+                      g_business_description[100] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4] ;
+
+        Local Signed Ascii Number L_PACKAGE_MOD[4]=0/decimals=2,
+                                  L_DEVIATION[4]=0/decimals=2,
+                                  L_PACKAGE[4]=0/decimals=2 ,
+                                  L_PREMIUM[9]=0 ,
+                                  l_total_premium[9]=0;
+
+        Local String L_SCREEN[11] ,
+                     L_CODE[7] ,
+                     L_CODE_1[7],
+                     l_code_3[7],
+                     L_CRIME_FORM[1],
+                     L_CODE_2[7],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1],
+                     l_first[1]="Y",
+                     L_DELETE_ENDORSEMENT[1],
+                     L_COMPANY_ID[10] ,
+                     l_display_screen[1]="Y";
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access cppINLAND, Set cppINLAND:policy_NO = G_policy_NO,
+                              cppinland:pol_year = g_year,
+                              cppinland:end_sequence = g_end_sequence,
+                              cppINLAND:PREM_NO = G_PREM_NO,
+                              cppINLAND:BUILD_NO = G_BUILD_NO, Approximate ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "DEC" sequence "Down" tagged dec_fn ;
+        "Down" display "cppmtmso701" ;
+
+        "redisplay" Display/noreturn "cppmtmso007" ;
+
+--        "add" sequence "new" tagged add_fn ;
+--        "new" continue begin
+--                if sfpend:policy_no <> g_policy_no then
+--                        function = "addnew|append"
+--                else
+--                        function = "append"
+--                end ;
+
+--        "addnew" add/autoupdate ;
+        append tagged append_fn ;
+
+        "Chg" sequence "amend|popup" tagged change_fn ;
+        "Change" sequence "Amend|popup" tagged change_fn ;
+        "amend"  change/hidden ;
+        "view" sequence "popup" tagged view_fn ;
+        "popup" Continue Begin
+                         Do SETSCREEN
+                         G_CODE = cppINLAND:CODE
+                         G_CRIME_FORM = L_CRIME_FORM
+                         g_state = cppinland:state
+                         g_prem_no = cppinland:prem_no
+                         g_build_no = cppinland:build_no
+                         G_SUB_CODE = cppINLAND:SUB_CODE
+                         If L_SCREEN <> "" Then
+                             FUNCTION = "disscn"
+                         End ;
+        "disscn" Display L_SCREEN ;
+        "Change" sequence "old|popup" ;
+        "old" change/hidden ;          /* Change an existing record */
+
+        "func1"  sequence "terr"    tagged terr_fn ;
+        "terr" continue  Begin
+                         if sfscompany:special_territory_rating = 1 then
+                             function = "SPEC"
+                         else
+                             Error "You are not setup to do special territory rating"
+                         end ;
+
+        "func2"  sequence "terrfac"    tagged terrfac_fn ;
+        "terrfac" continue begin
+                           if sfscompany:special_territory_rating = 1 then
+                               function = "FACT"
+                           else
+                               Error "You are not setup to do special territory rating"
+                           end ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        include "cppmsoimmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7m.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Toolbar Tagged cpp_t Properties
+                                  {
+                                         Text     = "cpp"
+                                         FontName = "SansSerif"
+                                         Fontsize = 10
+                                  }
+                        {
+                     ToolBarButton
+                                  Properties
+                                  {
+                                      iconname   = "magnif.bmp"
+                                      tooltip    = "View"
+                                  }
+                                  Events
+                                  {
+                                   Action = view_fn
+                               }
+separator
+                     ToolBarButton
+                                  Properties
+                                  {
+                                      iconname   = "notes.bmp"
+                                      tooltip    = "Dec Wording"
+                                  }
+                                  Events
+                                  {
+                                   Action = dec_fn
+                               }
+
+}
+
+Access Validation
+If cppINLAND:policy_NO <> G_policy_NO or
+   cppinland:pol_year <> g_year or
+   cppinland:end_sequence <> g_end_sequence Then
+    Error 1000
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Loc No:    ____                                                              |
+| Build No:  ____                                                              |
+*------------------------------------------------------------------------------*
+| State:     __  _______________  County:     ___ ____________________________ |
+| Package Mod:   ______           Deviation:  ______   IRPM: ______            |
+| Year of Renewal:   __                                                        |
+| Business Desc: _________________________________________________             |
+|                _________________________________________________             |
+*------------------------------------------------------------------------------*
+|      Form/Edition                    Description                 Premium     |
+*------------------------------------------------------------------------------*
+| ______________________  ______________________________________  __________   |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" Then
+            Begin
+            cppINLAND:policy_NO = G_policy_NO
+            cppinland:pol_year = g_year
+            cppinland:end_sequence = g_End_sequence
+            cppINLAND:PREM_NO = G_PREM_NO
+            If G_PREM_NO = 0 Then
+                cppINLAND:PREM_NO = 1
+            cppINLAND:BUILD_NO = G_BUILD_NO
+            If G_BUILD_NO = 0 Then
+                cppINLAND:BUILD_NO = 1
+            cppinland:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppINLAND:policy_NO/displayonly ;
+302     cppinland:pol_year/displayonly ;
+303     cppinland:end_sequence/displayonly ;
+401     cppINLAND:PREM_NO/default Nochange ;
+501     cppINLAND:BUILD_NO/default Nochange;
+701     Begin
+        l_line_of_business = sfsline:rating_line_of_business
+        g_prem_no = cppinland:prem_no
+        g_build_no = cppinland:build_no
+        If FUNCTION One Of "ADD", "NEW", "APPEND" Then
+            Begin
+            If cppGENERAL:STATE <> 0 Then
+                Begin
+                cppINLAND:STATE = cppGENERAL:STATE
+                cppINLAND:COUNTY = cppGENERAL:COUNTY
+                End
+            Else
+            If cppLIABILITY:STATE <> 0 Then
+                Begin
+                cppINLAND:STATE = cppLIABILITY:STATE
+                cppINLAND:COUNTY = cppLIABILITY:COUNTY
+                End
+            Else
+                Begin
+                cppINLAND:STATE = CPSDEFAULT:STATE
+                cppINLAND:COUNTY = CPSDEFAULT:COUNTY
+                End
+            End
+        End
+        cppINLAND:STATE/default
+        Include "statehlp.inc"
+702     SFSSTATE:DESCRIPTION;
+703     cppINLAND:COUNTY/default
+        Include "countyhlp.inc"
+704     SFSSTATE_ALIAS:DESCRIPTION ;
+801     Begin
+        g_state = cppinland:state
+        If FUNCTION One Of "ADD", "NEW", "APPEND" Then
+            begin
+            access sfpmaster, set sfpmaster:policy_no = g_policy_no,
+                                  sfpmaster:pol_year = g_year,
+                                  sfpmaster:end_sequence = g_end_sequence, generic
+
+            change sfpmaster
+                begin
+                sfpmaster:state = cppinland:state
+                sfpmaster:county = cppinland:county
+                end
+
+            Do PACKAGE_MOD
+            if cppinland:package_mod = 0 then
+                cppinland:package_mod = 1.00
+            end
+        End
+        cppINLAND:PACKAGE_MOD/default ;
+802     Begin
+        If FUNCTION One Of "ADD", "NEW", "APPEND" Then
+            begin
+            Do COMPANY_DEVIATION
+            if cppinland:company_deviation = 0 then
+                cppinland:company_deviation = 1.00
+            end
+        End
+        cppINLAND:COMPANY_DEVIATION/default ;
+803     cppinland:irpm/default ;
+901     cppinland:renewal_year ;
+1001    cppinland:business_description[1] ;
+1101    cppinland:business_description[2];
+
+1501    Begin
+        If FUNCTION = "APPEND" Or
+           FUNCTION = "ADD" Or
+           FUNCTION = "NEW" Then
+            Begin
+            Do SUBCODE
+            access cppinland_alias, set cppinland_alias:policy_no = cppinland:policy_no,
+                                        cppinland_alias:pol_year = cppinland:pol_year,
+                                        cppinland_alias:end_sequence = cppinland:end_sequence,
+                                        cppinland_alias:prem_no = cppinland:prem_no,
+                                        cppinland_alias:build_no = cppinland:build_no, generic
+
+            if cppinland:state = 0 then
+                cppinland:state = cppinland_alias:state
+            if cppinland:county = 0 then
+                cppinland:county = cppinland_alias:county
+            if cppinland:company_deviation = 0 then
+                cppinland:company_deviation = cppinland_alias:company_deviation
+            if cppinland:package_mod = 0 then
+                cppinland:package_mod = cppinland_alias:package_mod
+            if cppinland:business_description[1] = "" then
+                begin
+                cppinland:business_description[1] = cppinland_alias:business_description[1]
+                cppinland:business_description[2] = cppinland_alias:business_description[2]
+                end
+            cppinland:premium = 0
+            cppinland:total_premium = 0
+            cppINLAND:SUB_CODE = L_SUB_CODE + 1
+            End
+
+        L_EFF_DATE = sfpNAME:EFF_DATE
+        L_COMPANY_ID = sfpNAME:COMPANY_ID
+        L_STATE = cppINLAND:STATE
+        l_line_of_business = sfsline:rating_line_of_business
+
+        Access SFSOPTEND_ALIAS, Set SFSOPTEND_ALIAS:COMPANY_ID = L_COMPANY_ID,
+                                    SFSOPTEND_ALIAS:STATE = G_STATE,
+                                    SFSOPTEND_ALIAS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        End
+        cppINLAND:CODE/uppercase    tagged line_items
+        Do ACCESS_KEY
+        If cppINLAND:CODE <> SFSOPTEND:CODE Then
+            Error 1264
+
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" Then
+            Begin
+            If SFSOPTEND:TRIGGER_ENDORSEMENT <> "" Then
+                Error "This is a trigger endorsement, must use the appropriate endorsement to add it"
+            End
+
+        Activehelp If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      L_EFF_DATE < sfsoptend_alias:exp_date and
+                      sfsoptend_alias:end_lob_code = "I") Or
+
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0 and
+                      sfsoptend_alias:end_lob_code = "I")) Then
+                       SFSOPTEND_ALIAS:CODE
+                   Else
+                       NULL/width=8 ,
+
+                   If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      L_EFF_DATE < sfsoptend_alias:exp_date and
+                      sfsoptend_alias:end_lob_code = "I") Or
+
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0 and
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "I")) Then
+                       SFSOPTEND_ALIAS:FORM_EDITION
+                   Else
+                       NULL/width=25 ,
+
+                   If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      L_EFF_DATE < sfsoptend_alias:exp_date and
+                      sfsoptend_alias:end_lob_code = "I") Or
+
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0 and
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "I")) Then
+                       SFSOPTEND_ALIAS:DESCRIPTION
+                   Else
+                       NULL/width=75 ;
+1501    Begin
+        l_screen = ""
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" Then
+            Do ACCESS_ENDORSEMENT
+        If cppINLAND:CODE = "" Then
+            Abort()
+        End
+        cppINLAND:FORM_EDITION/displayonly  tagged  line_items ;
+1502    cppINLAND:description/displayonly  tagged line_items ;
+1503    begin
+        If L_SCREEN <> "" Then
+            Begin
+            If FUNCTION = "ADD" Or
+               FUNCTION = "APPEND" Or
+               FUNCTION = "NEW" Then
+                Begin
+                G_CRIME_FORM = L_CRIME_FORM
+                G_CODE = cppINLAND:CODE
+                g_prem_no = cppinland:prem_no
+                g_build_no = cppinland:build_no
+                G_SUB_CODE = cppINLAND:SUB_CODE
+                g_state = cppinland:state
+                g_business_description = trun(cppinland:business_description[1]) +
+                                         " " +
+                                         trun(cppinland:business_description[2])
+                Display Modal Screen L_SCREEN
+                End
+            end
+        end
+        cppINLAND:premium/default  tagged line_items ;
+
+}
+
+preupdate
+begin
+If FUNCTION = "DELETE" Then
+    Begin
+    Do ACCESS_KEY
+    If SFSOPTEND:TRIGGER_ENDORSEMENT <> "" Then
+        Error "This is a trigger endorsement, must use the appropriate endorsement to delete it"
+    End
+end
+
+update
+if abort = "YES" then
+    function = "redisplay"
+
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "ADD", "NEW", "APPEND", "CHANGE" then
+        begin
+        access cppimcov, set cppimcov:policy_no = g_policy_no,
+                             cppimcov:pol_year = g_year,
+                             cppimcov:end_sequence = g_end_sequence, generic
+
+        l_display_screen = "Y"
+        while cppimcov:policy_no = g_policy_no and
+              cppimcov:pol_year = g_year and
+              cppimcov:end_sequence = g_end_sequence
+            begin
+            if cppimcov:prem_no  = cppinland:prem_no and
+               cppimcov:build_no = cppinland:build_no then
+                l_display_screen = "N"
+
+            next cppimcov
+            end
+
+        if l_display_screen = "Y" and
+           l_screen <> "" then
+            begin
+            display modal screen "cppmtmso701"
+            with initial function "ADD|BACK"
+            end
+
+        access sfplocation, set sfplocation:policy_no = g_policy_no,
+                                sfplocation:pol_year = g_year,
+                                sfplocation:end_sequence = g_end_sequence, generic
+
+        l_display_screen = "Y"
+        while sfplocation:policy_no = g_policy_no and
+              sfplocation:pol_year = g_year and
+              sfplocation:end_sequence = g_end_sequence
+            begin
+            if sfplocation:prem_no  = cppinland:prem_no and
+               sfplocation:build_no = cppinland:build_no then
+                l_display_screen = "N"
+
+            next sfplocation
+            end
+
+/*        if l_display_screen = "Y" then
+            begin
+            display modal screen "sfpmt004"
+            with initial function "ADD|BACK"
+            end*/
+
+        access cppinland_alias, set cppinland_alias:policy_no = cppinland:policy_no,
+                                    cppinland_alias:pol_year = cppinland:pol_year,
+                                    cppinland_alias:end_sequence = cppinland:end_sequence,
+                                    cppinland_alias:prem_no = cppinland:prem_no,
+                                    cppinland_alias:build_no = cppinland:build_no, generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+        g_state = cppinland_alias:state
+        access cpstrigger, set cpstrigger:company_id = sfpname:company_id,
+                               cpstrigger:state = g_state,
+                               cpstrigger:line_of_business = l_line_of_business, generic
+
+        while cpstrigger:company_id = sfpname:company_id and
+              cpstrigger:state = g_state and
+              cpstrigger:line_of_business = l_line_of_business
+                begin
+                if sfpname:eff_date >= cpstrigger:eff_date then
+                    l_code_1 = cpstrigger:code[10]
+                    l_code_2 = cpstrigger:code[11]
+                    l_code_3 = cpstrigger:code[12]
+
+                next cpstrigger
+                end
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_cppinland
+            If L_ADD_ENDORSEMENT = "Y" and
+               cppinland:code = "MIM121" Then
+                Do ADD_cppinland
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            Do ACCESS_cppinland
+            If L_ADD_ENDORSEMENT = "Y" and
+               cppinland:code = "MIM100" Then
+                Do ADD_cppinland
+            End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            L_CODE = L_CODE_3
+            Do ACCESS_cppinland
+            If L_ADD_ENDORSEMENT = "Y" Then
+                Do ADD_cppinland
+            End
+
+        end
+
+    If FUNCTION one of "DELETE" then
+        Begin
+        Switch(cppINLAND:CODE)
+          Case "MIM011",
+               "MIM012",
+               "MIM013",
+               "MIM101",
+               "MIM103",
+               "MIM110",
+               "MIM111",
+               "MIM112",
+               "IM7011",
+               "IM7555",
+               "MIM113",
+               "MIM114",
+               "MIM115",
+               "FM101" ,
+               "MIM131" : Begin
+                          Access cppENDORSE, Set cppENDORSE:policy_NO = cppINLAND:policy_NO,
+                                                 cppendorse:pol_year = cppinland:pol_year,
+                                                 cppendorse:end_sequence = cppinland:end_sequence,
+                                                 cppENDORSE:PREM_NO = cppINLAND:PREM_NO,
+                                                 cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO,
+                                                 cppENDORSE:CODE = cppINLAND:CODE, Generic
+
+                          While cppENDORSE:policy_NO = cppINLAND:policy_NO And
+                                cppendorse:pol_year = cppinland:pol_year and
+                                cppendorse:end_sequence = cppinland:end_sequence and
+                                cppENDORSE:PREM_NO = cppINLAND:PREM_NO And
+                                cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppENDORSE:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppENDORSE
+
+                                  Next cppENDORSE
+                                  End
+
+                          Access cppDESC, Set cppDESC:policy_NO = cppINLAND:policy_NO,
+                                              cppdesc:pol_year = cppinland:pol_year,
+                                              cppdesc:end_sequence = cppinland:end_sequence,
+                                              cppDESC:PREM_NO = cppINLAND:PREM_NO,
+                                              cppDESC:BUILD_NO = cppINLAND:BUILD_NO,
+                                              cppDESC:CODE = cppINLAND:CODE, Generic
+
+                          While cppDESC:policy_NO = cppINLAND:policy_NO And
+                                cppdesc:pol_year = cppinland:pol_year and
+                                cppdesc:end_sequence = cppinland:end_sequence and
+                                cppDESC:PREM_NO = cppINLAND:PREM_NO And
+                                cppDESC:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppDESC:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppDESC
+
+                                  Next cppDESC
+                                  End
+                          End
+          case "MIM116" : begin
+                          Access cppENDORSE, Set cppENDORSE:policy_NO = cppINLAND:policy_NO,
+                                                 cppendorse:pol_year = cppinland:pol_year,
+                                                 cppendorse:end_sequence = cppinland:end_sequence,
+                                                 cppENDORSE:PREM_NO = cppINLAND:PREM_NO,
+                                                 cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO,
+                                                 cppENDORSE:CODE = cppINLAND:CODE, Generic
+
+                          While cppENDORSE:policy_NO = cppINLAND:policy_NO And
+                                cppendorse:pol_year = cppinland:pol_year and
+                                cppendorse:end_sequence = cppinland:end_sequence and
+                                cppENDORSE:PREM_NO = cppINLAND:PREM_NO And
+                                cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppENDORSE:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppENDORSE
+
+                                  Next cppENDORSE
+                                  End
+
+                          Access cppDESC, Set cppDESC:policy_NO = cppINLAND:policy_NO,
+                                              cppdesc:pol_year = cppinland:pol_year,
+                                              cppdesc:end_sequence = cppinland:end_sequence,
+                                              cppDESC:PREM_NO = cppINLAND:PREM_NO,
+                                              cppDESC:BUILD_NO = cppINLAND:BUILD_NO,
+                                              cppDESC:CODE = cppINLAND:CODE, Generic
+
+                          While cppDESC:policy_NO = cppINLAND:policy_NO And
+                                cppdesc:pol_year = cppinland:pol_year and
+                                cppdesc:end_sequence = cppinland:end_sequence and
+                                cppDESC:PREM_NO = cppINLAND:PREM_NO And
+                                cppDESC:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppDESC:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppDESC
+
+                                  Next cppDESC
+                                  End
+
+                          access cppinland_alias, set cppinland_alias:policy_no = cppinland:policy_no,
+                                                      cppinland_alias:pol_year = cppinland:pol_year,
+                                                      cppinland_alias:end_sequence = cppinland:end_sequence,
+                                                      cppinland_alias:prem_no = cppinland:prem_no,
+                                                      cppinland_alias:build_no = cppinland:build_no, generic
+
+                          while cppinland_alias:policy_no = cppinland:policy_no and
+                                cppinland_alias:pol_year = cppinland:pol_year and
+                                cppinland_alias:end_sequence = cppinland:end_sequence and
+                                cppinland_alias:prem_no = cppinland:prem_no and
+                                cppinland_alias:build_no = cppinland:build_no
+                                  begin
+                                  if cppinland_alias:code = "MIM504" then
+                                      delete cppinland_alias
+
+                                  next cppinland_alias
+                                  end
+                          End
+          case "MIM121" : begin
+                          Access cppENDORSE, Set cppENDORSE:policy_NO = cppINLAND:policy_NO,
+                                                 cppendorse:pol_year = cppinland:pol_year,
+                                                 cppendorse:end_sequence = cppinland:end_sequence,
+                                                 cppENDORSE:PREM_NO = cppINLAND:PREM_NO,
+                                                 cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO,
+                                                 cppENDORSE:CODE = cppINLAND:CODE, Generic
+
+                          While cppENDORSE:policy_NO = cppINLAND:policy_NO And
+                                cppendorse:pol_year = cppinland:pol_year and
+                                cppendorse:end_sequence = cppinland:end_sequence and
+                                cppENDORSE:PREM_NO = cppINLAND:PREM_NO And
+                                cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppENDORSE:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppENDORSE
+
+                                  Next cppENDORSE
+                                  End
+
+                          Access cppDESC, Set cppDESC:policy_NO = cppINLAND:policy_NO,
+                                              cppdesc:pol_year = cppinland:pol_year,
+                                              cppdesc:end_sequence = cppinland:end_sequence,
+                                              cppDESC:PREM_NO = cppINLAND:PREM_NO,
+                                              cppDESC:BUILD_NO = cppINLAND:BUILD_NO,
+                                              cppDESC:CODE = cppINLAND:CODE, Generic
+
+                          While cppDESC:policy_NO = cppINLAND:policy_NO And
+                                cppdesc:pol_year = cppinland:pol_year and
+                                cppdesc:end_sequence = cppinland:end_sequence and
+                                cppDESC:PREM_NO = cppINLAND:PREM_NO And
+                                cppDESC:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppDESC:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppDESC
+
+                                  Next cppDESC
+                                  End
+
+                          access cppinland_alias, set cppinland_alias:policy_no = cppinland:policy_no,
+                                                      cppinland_alias:pol_year = cppinland:pol_year,
+                                                      cppinland_alias:end_sequence = cppinland:end_sequence,
+                                                      cppinland_alias:prem_no = cppinland:prem_no,
+                                                      cppinland_alias:build_no = cppinland:build_no, generic
+
+                          while cppinland_alias:policy_no = cppinland:policy_no and
+                                cppinland_alias:pol_year = cppinland:pol_year and
+                                cppinland_alias:end_sequence = cppinland:end_sequence and
+                                cppinland_alias:prem_no = cppinland:prem_no and
+                                cppinland_alias:build_no = cppinland:build_no
+                                  begin
+                                  if cppinland_alias:code = "MIM120" then
+                                      delete cppinland_alias
+
+                                  next cppinland_alias
+                                  end
+                          End
+          case "MIM100" : begin
+                          Access cppENDORSE, Set cppENDORSE:policy_NO = cppINLAND:policy_NO,
+                                                 cppendorse:pol_year = cppinland:pol_year,
+                                                 cppendorse:end_sequence = cppinland:end_sequence,
+                                                 cppENDORSE:PREM_NO = cppINLAND:PREM_NO,
+                                                 cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO,
+                                                 cppENDORSE:CODE = cppINLAND:CODE, Generic
+
+                          While cppENDORSE:policy_NO = cppINLAND:policy_NO And
+                                cppendorse:pol_year = cppinland:pol_year and
+                                cppendorse:end_sequence = cppinland:end_sequence and
+                                cppENDORSE:PREM_NO = cppINLAND:PREM_NO And
+                                cppENDORSE:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppENDORSE:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppENDORSE
+
+                                  Next cppENDORSE
+                                  End
+
+                          Access cppDESC, Set cppDESC:policy_NO = cppINLAND:policy_NO,
+                                              cppdesc:pol_year = cppinland:pol_year,
+                                              cppdesc:end_sequence = cppinland:end_sequence,
+                                              cppDESC:PREM_NO = cppINLAND:PREM_NO,
+                                              cppDESC:BUILD_NO = cppINLAND:BUILD_NO,
+                                              cppDESC:CODE = cppINLAND:CODE, Generic
+
+                          While cppDESC:policy_NO = cppINLAND:policy_NO And
+                                cppdesc:pol_year = cppinland:pol_year and
+                                cppdesc:end_sequence = cppinland:end_sequence and
+                                cppDESC:PREM_NO = cppINLAND:PREM_NO And
+                                cppDESC:BUILD_NO = cppINLAND:BUILD_NO And
+                                cppDESC:CODE = cppINLAND:CODE
+                                  Begin
+                                  Delete cppDESC
+
+                                  Next cppDESC
+                                  End
+
+                          access cppinland_alias, set cppinland_alias:policy_no = cppinland:policy_no,
+                                                      cppinland_alias:pol_year = cppinland:pol_year,
+                                                      cppinland_alias:end_sequence = cppinland:end_sequence,
+                                                      cppinland_alias:prem_no = cppinland:prem_no,
+                                                      cppinland_alias:build_no = cppinland:build_no, generic
+
+                          while cppinland_alias:policy_no = cppinland:policy_no and
+                                cppinland_alias:pol_year = cppinland:pol_year and
+                                cppinland_alias:end_sequence = cppinland:end_sequence and
+                                cppinland_alias:prem_no = cppinland:prem_no and
+                                cppinland_alias:build_no = cppinland:build_no
+                                  begin
+                                  if cppinland_alias:code = "MIM102" then
+                                      delete cppinland_alias
+
+                                  next cppinland_alias
+                                  end
+                          End
+          End
+
+        End
+
+    If Abort = "YES" Or
+       FUNCTION = "DELETE" Then
+        FUNCTION = "redisplay"
+    End
+
+Procedure Definition
+
+Procedure COMPANY_DEVIATION
+Begin
+Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO,
+                       cppgeneral:pol_year = g_year,
+                       cppgeneral:end_sequence = g_end_sequence,
+                       cppGENERAL:PREM_NO = G_PREM_NO,
+                       cppGENERAL:BUILD_NO = G_BUILD_NO, Generic
+
+Access cppLIABILITY, Set cppLIABILITY:policy_NO = G_policy_NO,
+                         cppliability:pol_year = g_year,
+                         cppliability:end_sequence = g_end_sequence,
+                         cppLIABILITY:PREM_NO = G_PREM_NO,
+                         cppLIABILITY:BUILD_NO = G_BUILD_NO, Generic
+
+If cppGENERAL:policy_NO = G_policy_NO And
+   cppgeneral:pol_year = g_year and
+   cppgeneral:end_sequence = g_end_sequence and
+   cppGENERAL:PREM_NO = G_PREM_NO And
+   cppGENERAL:BUILD_NO = G_BUILD_NO Then
+    begin
+    cppINLAND:COMPANY_DEVIATION = cppGENERAL:COMPANY_DEVIATION[1]
+    cppinland:irpm = cppgeneral:company_deviation[2]
+    end
+Else
+    If cppLIABILITY:policy_NO = G_policy_NO And
+       cppliability:pol_year = g_year and
+       cppliability:end_sequence = g_end_sequence and
+       cppLIABILITY:PREM_NO = G_PREM_NO And
+       cppLIABILITY:BUILD_NO = G_BUILD_NO Then
+        begin
+        cppINLAND:COMPANY_DEVIATION = cppdeviation:COMPANY_DEVIATION
+        cppinland:irpm = cppdeviation:irpm_deviation
+        end
+Else
+    If cppENDORSE:COMPANY_DEVIATION = 0 Then
+        begin
+        cppINLAND:COMPANY_DEVIATION = 1.00
+        cppinland:irpm = 1.00
+        end
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO,
+                       cppgeneral:pol_year = g_year,
+                       cppgeneral:end_sequence = g_end_sequence,
+                       cppGENERAL:PREM_NO = G_PREM_NO,
+                       cppGENERAL:BUILD_NO = G_BUILD_NO, Generic
+
+Access cppLIABILITY, Set cppLIABILITY:policy_NO = G_policy_NO,
+                         cppliability:pol_year = g_year,
+                         cppliability:end_sequence = g_end_sequence,
+                         cppLIABILITY:PREM_NO = G_PREM_NO,
+                         cppLIABILITY:BUILD_NO = G_BUILD_NO, Generic
+
+If cppGENERAL:policy_NO = G_policy_NO And
+   cppgeneral:pol_year = g_year and
+   cppgeneral:end_sequence = g_end_sequence and
+   cppGENERAL:PREM_NO = G_PREM_NO And
+   cppGENERAL:BUILD_NO = G_BUILD_NO Then
+    cppINLAND:PACKAGE_MOD = cppGENERAL:PACKAGE_MOD[1]
+Else
+    If cppLIABILITY:policy_NO = G_policy_NO And
+       cppliability:pol_year = g_year and
+       cppliability:end_sequence = g_end_sequence and
+       cppLIABILITY:PREM_NO = G_PREM_NO And
+       cppLIABILITY:BUILD_NO = G_BUILD_NO Then
+        cppINLAND:PACKAGE_MOD = cppLIABILITY:PACKAGE_MOD[1]
+Else
+    Begin
+    L_COMPANY_ID = sfpNAME:COMPANY_ID
+    L_STATE = cppinland:state
+    L_EFF_DATE = sfpNAME:EFF_DATE
+
+    Include "sfspackage.pro"
+
+    If L_PACKAGE_MOD <> 0 And
+       sfpNAME:PACKAGE = 1 Then
+        Begin
+        cppINLAND:PACKAGE_MOD = L_PACKAGE_MOD
+        End
+    Else
+        Begin
+        cppINLAND:PACKAGE_MOD = 1.00
+        End
+
+    End
+
+End
+
+Procedure ACCESS_cppINLAND_DELETE
+Begin
+Access cppINLAND_ALIAS, Set cppINLAND_ALIAS:policy_NO = G_policy_NO ,
+                            cppINLAND_ALIAS:pol_year = g_year,
+                            cppINLAND_ALIAS:end_sequence = g_end_sequence,
+                            cppINLAND_ALIAS:PREM_NO = G_PREM_NO,
+                            cppINLAND_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_DELETE_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If cppINLAND_ALIAS:policy_NO <> G_policy_NO Or
+            cppinland_alias:pol_year <> g_year or
+            cppinland_alias:end_sequence <> g_end_sequence or
+            cppINLAND_ALIAS:PREM_NO <> G_PREM_NO Or
+            cppINLAND_ALIAS:BUILD_NO <> G_BUILD_NO
+
+    If cppINLAND_ALIAS:CODE <> L_CODE_1 And
+       cppINLAND_ALIAS:CODE <> L_CODE_2 Then
+        L_DELETE_ENDORSEMENT = "N"
+
+    Next cppINLAND_ALIAS
+    End
+
+End
+
+Procedure ACCESS_cppINLAND
+Begin
+Access cppINLAND_ALIAS, Set cppINLAND_ALIAS:policy_NO = G_policy_NO ,
+                            cppINLAND_ALIAS:pol_year = g_year,
+                            cppINLAND_ALIAS:end_sequence = g_end_sequence,
+                            cppINLAND_ALIAS:PREM_NO = G_PREM_NO,
+                            cppINLAND_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If cppINLAND_ALIAS:policy_NO <> G_policy_NO Or
+            cppinland_alias:pol_year <> g_year or
+            cppinland_alias:end_sequence <> g_end_sequence or
+            cppINLAND_ALIAS:PREM_NO <> G_PREM_NO Or
+            cppINLAND_ALIAS:BUILD_NO <> G_BUILD_NO
+
+    If cppINLAND_ALIAS:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next cppINLAND_ALIAS
+    End
+
+End
+
+Procedure ADD_cppINLAND
+Begin
+Access cppINLAND_ALIAS, Set cppINLAND_ALIAS:policy_NO = G_policy_NO ,
+                            cppINLAND_ALIAS:pol_year = g_year,
+                            cppINLAND_ALIAS:end_sequence = g_end_sequence,
+                            cppINLAND_ALIAS:PREM_NO = G_PREM_NO,
+                            cppINLAND_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If cppINLAND_ALIAS:policy_NO <> G_policy_NO Or
+            cppinland_alias:pol_year <> g_year or
+            cppinland_alias:end_sequence <> g_end_sequence or
+            cppINLAND_ALIAS:PREM_NO <> G_PREM_NO Or
+            cppINLAND_ALIAS:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = cppINLAND_ALIAS:SUB_CODE
+
+    Next cppINLAND_ALIAS
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppENDORSE, Set cppENDORSE:policy_NO = G_policy_NO,
+                       cppendorse:pol_year = g_year,
+                       cppendorse:end_sequence = g_End_sequence,
+                       cppENDORSE:PREM_NO = G_PREM_NO,
+                       cppENDORSE:BUILD_NO = G_BUILD_NO,
+                       cppENDORSE:CODE = cppINLAND:CODE, Generic
+
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = G_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> G_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add cppINLAND_ALIAS
+    Begin
+    cppINLAND_ALIAS:policy_NO            =       G_policy_NO
+    cppinland_alias:pol_year             =       g_year
+    cppinland_alias:end_sequence         =       g_end_sequence
+    cppINLAND_ALIAS:PREM_NO              =       G_PREM_NO
+    cppINLAND_ALIAS:BUILD_NO             =       G_BUILD_NO
+    cppINLAND_ALIAS:SUB_CODE             =       L_SUB_CODE
+    cppINLAND_ALIAS:CODE                 =       L_CODE
+    cppinland_alias:state                =       cppinland:state
+    cppinland_alias:county               =       cppinland:county
+    cppinland_alias:company_deviation    =       cppinland:company_deviation
+    cppinland_alias:package_mod          =       cppinland:package_mod
+    cppinland_alias:business_description[1] =    cppinland:business_description[1]
+    cppinland_alias:business_description[2] =    cppinland:business_description[2]
+    cppINLAND_ALIAS:FORM_EDITION         =       L_FORM_EDITION
+    cppINLAND_ALIAS:DESCRIPTION          =       L_DESCRIPTION
+    cppINLAND_ALIAS:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_cppINLAND
+Begin
+Access cppINLAND_ALIAS, Set cppINLAND_ALIAS:policy_NO = G_policy_NO ,
+                            cppINLAND_ALIAS:pol_year = g_year,
+                            cppINLAND_ALIAS:end_sequence = g_end_sequence,
+                            cppINLAND_ALIAS:PREM_NO = G_PREM_NO,
+                            cppINLAND_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If cppINLAND_ALIAS:policy_NO <> G_policy_NO Or
+            cppinland_alias:pol_year <> g_year or
+            cppinland_alias:end_sequence <> g_end_sequence or
+            cppINLAND_ALIAS:PREM_NO <> G_PREM_NO Or
+            cppINLAND_ALIAS:BUILD_NO <> G_BUILD_NO
+
+    If cppINLAND_ALIAS:CODE = L_CODE Then
+        Delete cppINLAND_ALIAS
+
+    Next cppINLAND_ALIAS
+    End
+
+End
+
+Procedure SUBCODE
+Begin
+Access cppINLAND_ALIAS, Set cppINLAND_ALIAS:policy_NO = cppINLAND:policy_NO,
+                            cppINLAND_ALIAS:pol_year = g_year,
+                            cppINLAND_ALIAS:end_sequence = g_end_sequence,
+                            cppINLAND_ALIAS:PREM_NO = cppINLAND:PREM_NO,
+                            cppINLAND_ALIAS:BUILD_NO = cppINLAND:BUILD_NO,Approximate
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If cppINLAND_ALIAS:policy_NO <> cppINLAND:policy_NO Or
+            cppinland_alias:pol_year <> g_year or
+            cppinland_alias:end_sequence <> g_end_sequence or
+            cppINLAND_ALIAS:PREM_NO <> cppINLAND:PREM_NO Or
+            cppINLAND_ALIAS:BUILD_NO <> cppINLAND:BUILD_NO
+
+    L_SUB_CODE = cppINLAND_ALIAS:SUB_CODE
+
+    Next cppINLAND_ALIAS
+    End
+
+G_SUB_CODE = cppINLAND:SUB_CODE
+
+End
+
+Procedure ACCESS_ENDORSEMENT
+Begin
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = G_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = cppINLAND:CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> G_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> cppINLAND:CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_CODE = cppINLAND:CODE
+        G_CODE = cppINLAND:CODE
+        cppINLAND:FORM_EDITION = SFSOPTEND:FORM_EDITION
+        cppINLAND:DESCRIPTION = SFSOPTEND:DESCRIPTION
+        L_SCREEN = SFSOPTEND:policy_SCREEN
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+Procedure SETSCREEN
+Begin
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = G_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = cppINLAND:CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> G_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> cppINLAND:CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_SCREEN = SFSOPTEND:policy_SCREEN
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+Procedure ACCESS_KEY
+Begin
+l_line_of_business = sfsline:rating_line_of_business
+l_state = cppinland:state
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID ,
+                      SFSOPTEND:STATE = l_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = cppINLAND:CODE, Generic
+
+End
+
+End

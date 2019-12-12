@@ -1,0 +1,220 @@
+%%
+/*
+Date Written: October 2, 2003
+
+Name: cppfm050.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+10/02/2003             RMG              Starting Form
+
+===========================
+*/
+
+Program
+  Name = "cppfm050";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[11] = "cppfm050.cq";
+ String L_SFPLOCATION_ZIP[10];
+ String L_STRING[100];
+ String L_FONT[35];
+ String L_VERTICAL_POS;
+ String L_HORIZONTAL_POS;
+
+ Unsigned Ascii Number L_LINE_COUNTER;
+ Unsigned Ascii Number L_LOOP;
+ Unsigned Ascii Number L_MAX_LINES;
+ Unsigned Ascii Number L_PITCH_HALF/decimals=1;
+ Unsigned Ascii Number L_PITCH_FULL;
+ Unsigned Ascii Number L_PAGE_NUMBER = 1;
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+   Include "swsut300.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "FM050"
+   Include "swsut200.inc"
+   Include "swsut300.inc"
+
+L_MAX_LINES = 50
+
+Writefile(L_FILE_NAME,"%s","<033>&a200h-60V")
+Writefile(L_FILE_NAME,"%s","<033>*c5200h10v0P") --Horizontal line
+
+L_STRING = "SUPPLEMENTAL DECLARATIONS - FM 050"
+L_FONT = L_ARIAL_BOLD_12
+L_PITCH_HALF = 6
+L_PITCH_FULL = 12
+L_VERTICAL_POS = "+140"
+Include "center2.pro"
+
+Writefile(L_FILE_NAME,"%s","<033>&a5000h-120V")
+Writefile(L_FILE_NAME,"%s","01 97")
+
+Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+Writefile(L_FILE_NAME,"%s","<033>*c5200h10v0P") --Horizontal line
+L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+Writefile(L_FILE_NAME,"%s","<033>&a300h+180V")
+Writefile(L_FILE_NAME,"%s","Policy: ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL)
+Writefile(L_FILE_NAME,"%n",SFPPRINT1:POLICY_NO)
+Writefile(L_FILE_NAME,"%s","<033>&a4000h+0V")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+Writefile(L_FILE_NAME,"%s","Expiration Date: ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL)
+Writefile(L_FILE_NAME,"%s",str(SFPNAME:EXP_DATE,"MM/DD/YYYY"))
+L_LINE_COUNTER = L_LINE_COUNTER + 2
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+Writefile(L_FILE_NAME,"%s","<033>&a300h+180V")
+Writefile(L_FILE_NAME,"%s","LOCATION(S) OF PREMISES COVERED:")
+L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+While SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+{
+     If L_LINE_COUNTER >= L_MAX_LINES Then
+       {
+         Do INSERT_NEWPAGE
+       }
+
+     If (Val(SFPLOCATION:STR_ZIPCODE[6,9]) = 0) Then
+       {
+         L_SFPLOCATION_ZIP = SFPLOCATION:STR_ZIPCODE[1,5]
+       }
+     Else
+       {
+         L_SFPLOCATION_ZIP = SFPLOCATION:STR_ZIPCODE[1,5] + "-" +
+                             SFPLOCATION:STR_ZIPCODE[6,9]
+       }
+
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+  Writefile(L_FILE_NAME,"%s","Loc. # ")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+  Writefile(L_FILE_NAME,"%n",SFPLOCATION:PREM_NO)
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a1000h+0V")
+  Writefile(L_FILE_NAME,"%s","Building # ")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+  Writefile(L_FILE_NAME,"%n",SFPLOCATION:BUILD_NO)
+  L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+  Writefile(L_FILE_NAME,"%s",SFPLOCATION:ADDRESS)
+  L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+  For L_LOOP = 1 to 3
+    {
+      If SFPLOCATION:ADDRESS1[L_LOOP] <> "" Then
+        {
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+          Writefile(L_FILE_NAME,"%s",SFPLOCATION:ADDRESS1[l_loop])
+          L_LINE_COUNTER = L_LINE_COUNTER + 1
+        }
+    }
+
+    Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+    Writefile(L_FILE_NAME,"%s",Trun(SFPLOCATION:CITY))
+    Writefile(L_FILE_NAME,"%s",", ")
+    Writefile(L_FILE_NAME,"%s",Trun(SFPLOCATION:STR_STATE))
+    Writefile(L_FILE_NAME,"%s"," ")
+    Writefile(L_FILE_NAME,"%s",L_SFPLOCATION_ZIP)
+    Writefile(L_FILE_NAME,"%s","<NL>")
+    L_LINE_COUNTER = L_LINE_COUNTER + 2
+
+  Next SFPLOCATION
+}
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+
+Procedure Definition
+
+Procedure INSERT_NEWPAGE
+
+{
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+  Writefile(L_FILE_NAME,"%s","<033>&a5000h7250V")
+  Writefile(L_FILE_NAME,"%s","Page ")
+  Writefile(L_FILE_NAME,"%n",L_PAGE_NUMBER)
+
+  Writefile(L_FILE_NAME,"%s","<FF>")
+  L_LINE_COUNTER = 0
+  L_PAGE_NUMBER = L_PAGE_NUMBER + 1
+
+  Writefile(L_FILE_NAME,"%s","<033>&a5000h7250V")
+  Writefile(L_FILE_NAME,"%s","Page ")
+  Writefile(L_FILE_NAME,"%n",L_PAGE_NUMBER)
+
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a200h200V")
+  Writefile(L_FILE_NAME,"%s","<033>*c5200h10v0P") --Horizontal line
+
+  L_STRING = "SUPPLEMENTAL DECLARATIONS - FM 050"
+  L_FONT = L_ARIAL_BOLD_12
+  L_PITCH_HALF = 6
+  L_PITCH_FULL = 12
+  L_VERTICAL_POS = "+140"
+  Include "center2.pro"
+
+  Writefile(L_FILE_NAME,"%s","<033>&a5000h-120V")
+  Writefile(L_FILE_NAME,"%s","01 97")
+
+  Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+  Writefile(L_FILE_NAME,"%s","<033>*c5200h10v0P") --Horizontal line
+  L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+  Writefile(L_FILE_NAME,"%s","<033>&a300h+180V")
+  Writefile(L_FILE_NAME,"%s","Policy: ")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL)
+  Writefile(L_FILE_NAME,"%n",SFPPRINT1:POLICY_NO)
+  Writefile(L_FILE_NAME,"%s","<033>&a4000h+0V")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+  Writefile(L_FILE_NAME,"%s","Expiration Date: ")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL)
+  Writefile(L_FILE_NAME,"%s",str(SFPNAME:EXP_DATE,"MM/DD/YYYY"))
+  L_LINE_COUNTER = L_LINE_COUNTER + 2
+
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+  Writefile(L_FILE_NAME,"%s","<033>&a300h+180V")
+  Writefile(L_FILE_NAME,"%s","LOCATION(S) OF PREMISES COVERED:")
+  L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+}
+
+End

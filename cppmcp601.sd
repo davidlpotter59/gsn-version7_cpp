@@ -1,0 +1,1096 @@
+%%
+/*
+Date Written: December 9, 2005
+
+Name: cppmcp601.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+06/17/2003            DWR
+
+===========================
+*/
+Program
+        Name = "cppmcp601";
+        Type = "File";
+        Domain = "SFPPRINT1";
+        Padcharacter = Space;
+
+        local String L_FILE_NAME[12] = "cppmcp601.cq",
+                     L_SFPLOCATION_ZIP,
+                     l_lob_code[10] ,
+                     l_form_print[15]="",
+                     l_edition_print[10]="",
+                     l_copyright[20]="",
+                     l_form_to_print[7]="MCP 602",
+                     l_print_totals[1]="N",
+                     l_code[7]="" ;
+
+        local unsigned ascii number l_state[2] ,
+                                    l_line_of_business[4]=0008 ,
+                                    l_item_counter,
+                                    l_max_lines=50,
+                                    l_construction[1] ,
+                                    l_contents_limit[8]=0,
+                                    l_building_limit[8]=0,
+                                    l_bi_limit[8]=0,
+                                    l_page[1]=0,
+                                    l_page_counter[1]=0,
+                                    l_count[2]=0,
+                                    l_v_position[5]=0,
+                                    l_edition[4]=0/dec=2 ;
+
+        Include "csfonts.inc"
+
+        Include "swsut100.var"
+
+        Include "swsut200.var"
+
+        include "sfsrevname.var"
+
+Initialization
+--l_print_totals = "N"
+Deletefile (L_FILE_NAME);
+
+Update
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+access sfsline,
+   set sfsline:company_id       = sfpname:company_id,
+       sfsline:line_of_business = sfpname:line_of_business,
+       sfsline:lob_subline      = "00", generic
+
+access sfscompany,
+   set sfscompany:company_id = sfpname:company_id, generic
+
+Access SFPMASTER,
+   Set SFPMASTER:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPMASTER:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPMASTER:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppgeneral,
+   Set cppgeneral:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppgeneral:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppgeneral:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppblanket,
+   Set cppblanket:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppblanket:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppblanket:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+    access sfplocation,
+       set sfplocation:policy_no    = sfpprint1:policy_no,
+           sfplocation:pol_year     = sfpprint1:pol_year,
+           sfplocation:end_sequence = sfpprint1:end_sequence,
+           sfplocation:prem_no      = cppgeneral:prem_no,
+           sfplocation:build_no     = cppgeneral:build_no, generic
+
+Include "swsut100.inc"
+I_CODE = "MCP601"
+Include "swsut200.inc"
+
+l_state    = sfpmaster:state
+l_lob_code = sfsline:lob_code
+--if cppgeneral:agreed_value = 1 then
+--    l_code     = "MCP601"
+--else
+--    l_code     = "MCP602"
+
+access scipscontrol,
+   set scipscontrol:company_id = sfpname:company_id,
+       scipscontrol:state      = l_state,
+       scipscontrol:lob_code   = l_lob_code, exact
+
+access sfsoptend,
+   set sfsoptend:company_id       = sfpname:company_id,
+       sfsoptend:state            = l_state,
+       sfsoptend:line_of_business = l_line_of_business,
+       sfsoptend:code             = i_code, generic
+
+while sfsoptend:company_Id = sfpname:company_Id and
+      sfsoptend:state = l_state and
+      sfsoptend:line_of_business = l_line_of_business and
+      sfsoptend:code = i_code
+        begin
+        if (sfpname:eff_date >= sfsoptend:eff_date and
+           (sfpname:exp_date <= sfsoptend:exp_date or
+           sfsoptend:Exp_date = 0)) then
+            begin
+            l_form_print    = sfsoptend:form_print
+            l_edition       = sfsoptend:edition
+            l_copyright     = sfsoptend:copyright
+            l_edition_print = sfsoptend:edition_print
+            end
+
+        next sfsoptend
+        end
+
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+Writefile(L_FILE_NAME,"%s","Ed. ")
+Writefile(L_FILE_NAME,"%n",l_edition)
+Writefile(L_FILE_NAME,"%s","<033>&a420h7120V")
+Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+Writefile(L_FILE_NAME,"%s"," " + trun(l_copyright))
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+Writefile(L_FILE_NAME,"%s",Trun(l_FORM_PRINT))
+Writefile(L_FILE_NAME,"%s"," ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s",l_EDITION_PRINT)
+Writefile(L_FILE_NAME,"%s","<NL>")
+
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","1. ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Policy No. ")
+writefile(l_file_name,"%s%s",trun(sfsline:alpha),trun(str(sfpprint1:policy_no)))
+writefile(l_file_name,"%s","   of   ")
+writefile(l_file_name,"%s",trun(sfscompany:name[1]))
+writefile(l_file_name,"%s","   Insurance Company.")
+Writefile(L_FILE_NAME,"%s","<NL>")
+
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","2. ")
+writefile(l_file_name,"%s",l_arial_italic)
+writefile(l_file_name,"%s","Your ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Name (Insured): ")
+i_name = sfpname:name[1]
+include "sfsrevname.pro"
+Writefile(L_FILE_NAME,"%s","<033>&a1500h+0V")
+writefile(l_file_name,"%s",trun(i_rev_name))
+if sfpname:name[2] <> "" then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a1500h+120V")
+    i_name = sfpname:name[2]
+    include "sfsrevname.pro"
+    writefile(l_file_name,"%s",trun(i_rev_name))
+    end
+if sfpname:name[3] <> "" then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a1500h+120V")
+    i_name = sfpname:name[3]
+    include "sfsrevname.pro"
+    writefile(l_file_name,"%s",trun(i_rev_name))
+    end
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","3. ")
+writefile(l_file_name,"%s",l_arial_italic)
+writefile(l_file_name,"%s","Your ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Address: ")
+Writefile(L_FILE_NAME,"%s","<033>&a1500h+0V")
+writefile(l_file_name,"%s",trun(sfpname:address[1]))
+if sfpname:address[2] <> "" then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a1500h+120V")
+    writefile(l_file_name,"%s",trun(sfpname:address[2]))
+    end
+if sfpname:address[3] <> "" then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a1500h+120V")
+    writefile(l_file_name,"%s",trun(sfpname:address[3]))
+    end
+
+Writefile(L_FILE_NAME,"%s","<033>&a1500h+120V")
+writefile(l_file_name,"%s",trun(sfpname:city) + ", " + trun(sfpname:str_state) + " ")
+writefile(l_file_name,"%s",str(sfpname:zipcode,"99999-9999"))
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<NL>")
+
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s",l_form_print[1,7])
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_italic_8)
+writefile(l_file_name,"%s","This provides the Statement of Values for the Agreed Value Endorsement.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(L_file_name,"%s","Show values in Schedule.")
+writefile(l_file_name,"%s","<033>&a140h+60v<033>*c5455h6v0P")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","4. ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Statement of Agreed Value as Applicable:")
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a1500h+120V")
+--if cppgeneral:agreed_value = 1 then
+    writefile(l_file_name,"%s",trun(scipscontrol:blanket_mcp201_wording))
+writefile(l_file_name,"%s","<033>&a140h+60v<033>*c5455h3v0P")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s",l_form_to_print)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_italic_8)
+writefile(l_file_name,"%s","This provides the Statement of Values for Average Rates for the Subject Causes of Loss, and may also be used for development of Multiple")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s","Location Risk Dispersion Credit, Show Values in Schedule.")
+writefile(l_file_name,"%s","<033>&a140h+50v<033>*c5455h6v0P")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","5. ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Form to which these rates apply:")
+writefile(l_file_name,"%s","<033>&a1800h+50v<033>*c3800h3v0P")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","6. ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Cause of Loss Options for which Average Rates are requested:")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+writefile(l_file_name,"%s",l_wingdings_8)
+
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+if cppgeneral:form one of 1 then
+  {
+    Writefile(L_FILE_NAME,"%s","<033>&a359h-2V")
+    writefile(l_file_name,"%s","x")
+    Writefile(L_FILE_NAME,"%s","<033>&a+0h+2V")
+  }
+writefile(l_file_name,"%s"," Option 1 (Fire)")
+
+Writefile(L_FILE_NAME,"%s","<033>&a1800h+0V")
+writefile(l_file_name,"%s",l_wingdings_8)
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+if cppgeneral:form one of 2 then
+  {
+    Writefile(L_FILE_NAME,"%s","<033>&a1809h-2V")
+    writefile(l_file_name,"%s","x")
+    Writefile(L_FILE_NAME,"%s","<033>&a+0h+2V")
+  }
+writefile(l_file_name,"%s"," Option 2 (Basic)")
+Writefile(L_FILE_NAME,"%s","<033>&a3100h+0V")
+writefile(l_file_name,"%s",l_wingdings_8)
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+if cppgeneral:form one of 3 then
+  {
+    Writefile(L_FILE_NAME,"%s","<033>&a3109h-2V")
+    writefile(l_file_name,"%s","x")
+    Writefile(L_FILE_NAME,"%s","<033>&a+0h+2V")
+  }
+
+writefile(l_file_name,"%s"," Option 3 (Broad)")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+writefile(l_file_name,"%s",l_wingdings_8)
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+if cppgeneral:sprinkler_leakage = 1 and
+   cppgeneral:form not one of 5 then
+  {
+    Writefile(L_FILE_NAME,"%s","<033>&a359h-2V")
+    writefile(l_file_name,"%s","x")
+    Writefile(L_FILE_NAME,"%s","<033>&a+0h+2V")
+  }
+
+writefile(l_file_name,"%s"," Option 4 (Sprinkler Leakage)")
+Writefile(L_FILE_NAME,"%s","<033>&a1800h+0V")
+writefile(l_file_name,"%s",l_wingdings_8)
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+if cppgeneral:form one of 5 then
+  {
+    Writefile(L_FILE_NAME,"%s","<033>&a1809h-2V")
+    writefile(l_file_name,"%s","x")
+    Writefile(L_FILE_NAME,"%s","<033>&a+0h+2V")
+  }
+
+writefile(l_file_name,"%s"," Option 5 (Expanded)")
+Writefile(L_FILE_NAME,"%s","<033>&a3100h+0V")
+writefile(l_file_name,"%s",l_wingdings_8)
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+if cppgeneral:earthquake = 1 then
+  {
+    Writefile(L_FILE_NAME,"%s","<033>&a3109h-2V")
+    writefile(l_file_name,"%s","x")
+    Writefile(L_FILE_NAME,"%s","<033>&a+0h+2V")
+
+  }
+
+writefile(l_file_name,"%s"," Option 6 (Earthquake)")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","7. ")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+0V")
+writefile(l_file_name,"%s",l_wingdings_8)
+writefile(l_file_name,"%s","<250>")
+writefile(l_file_name,"%s",l_arial_9)
+writefile(l_file_name,"%s"," Check if Multiple Location Risk Dispersion Credit is also Requested.")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","For ")
+writefile(l_file_name,"%s",l_form_print)
+Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+writefile(l_file_name,"%s",l_arial_9)
+writefile(l_file_name,"%s","Sign the Following if Requested by Insurance Company.")
+Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+writefile(l_file_name,"%s",l_arial_9)
+writefile(l_file_name,"%s","I certify that all values shown in the Values Schedule are correct to the best of my knowledge:")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Name")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Title")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Date")
+
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a300h+120V")
+writefile(l_file_name,"%s",l_arial_9)
+writefile(l_file_name,"%s","Statement of Values submitted by (if not")
+writefile(l_file_name,"%s",l_arial_italic_9)
+writefile(l_file_name,"%s"," Insured):")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Name of Representative")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Contact Person (If Another Person)")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Address")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+Writefile(L_FILE_NAME,"%s","<NL>")
+writefile(l_file_name,"%s","<033>&a300h+120v<033>*c2500h3v0P")
+writefile(l_file_name,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+0V")
+writefile(l_file_name,"%s"," Agent's Signature (If Requested by Company)")
+writefile(l_file_name,"%s","<ff>")
+
+l_page_counter = 1
+l_count = 0
+Access cppgeneral,
+   Set cppgeneral:POLICY_NO    = sfpprint1:POLICY_NO ,
+       cppgeneral:POL_YEAR     = sfpprint1:POL_YEAR ,
+       cppgeneral:END_SEQUENCE = sfpprint1:END_SEQUENCE, Generic
+
+while cppgeneral:policy_no    = sfpprint1:policy_no and
+      cppgeneral:pol_Year     = sfpprint1:pol_year and
+      cppgeneral:end_sequence = sfpprint1:end_sequence
+        begin
+        if cppgeneral:limit[1] <> 0 then
+            l_count = l_count + 1
+        if cppgeneral:limit[2] <> 0 then
+            l_count = l_count + 1
+--        if l_count > 12 then
+--            begin
+--            l_count = 0
+--            l_page_of = l_page_of + 1
+--            end
+
+        next cppgeneral
+        end
+
+Access cppbusiness,
+   Set cppbusiness:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppbusiness:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppbusiness:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+while cppbusiness:policy_no    = sfpprint1:policy_no and
+      cppbusiness:pol_Year     = sfpprint1:pol_year and
+      cppbusiness:end_sequence = sfpprint1:end_sequence
+        begin
+        if cppbusiness:limit <> 0 then
+            l_count = l_count + 1
+        if l_count > 12 then
+            begin
+            l_count = 0
+            l_page_counter = l_page_counter+ 1
+            end
+
+        next cppbusiness
+        end
+
+Access cppgeneral,
+   Set cppgeneral:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppgeneral:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppgeneral:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+l_building_limit = 0
+l_contents_limit = 0
+l_bi_limit       = 0
+l_page           = 1
+l_count          = 0
+l_v_position     = 900
+do top_of_page
+while cppgeneral:policy_no    = sfpprint1:policy_no and
+      cppgeneral:pol_Year     = sfpprint1:pol_year and
+      cppgeneral:end_sequence = sfpprint1:end_sequence
+  begin
+    access cppbusiness,
+       set cppbusiness:policy_no    = sfpprint1:policy_no,
+           cppbusiness:pol_year     = sfpprint1:pol_year,
+           cppbusiness:end_sequence = sfpprint1:end_sequence,
+           cppbusiness:prem_no      = cppgeneral:prem_no,
+           cppbusiness:build_no     = cppgeneral:build_no, generic
+
+    if cppgeneral:limit[1] <> 0 then
+      begin
+        l_construction = cppgeneral:construction
+        l_state        = cppgeneral:state
+        access sfsconstruction,
+           set sfsconstruction:company_id       = sfpname:company_id,
+               sfsconstruction:state            = l_state,
+               sfsconstruction:line_of_business = l_line_of_business,
+               sfsconstruction:construction     = l_construction, exact
+
+        if cppgeneral:blanket = 1 then
+            do building_detail_blanket
+        else
+            do building_detail
+      end
+  next cppgeneral
+  end
+
+
+if sfscompany:boiler_rating <> 4 then
+    l_print_totals = "Y"
+else
+    begin
+    if cppgeneral:blanket = 1 then
+        l_print_totals = "Y"
+    else
+        l_print_totals = "N"
+    end
+
+do bottom_of_page
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+
+procedure definition
+
+procedure top_of_page
+begin
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","1. ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Policy No. ")
+writefile(l_file_name,"%s%s",trun(sfsline:alpha),trun(str(sfpprint1:policy_no)))
+writefile(l_file_name,"%s","   of   ")
+writefile(l_file_name,"%s",trun(sfscompany:name[1]))
+writefile(l_file_name,"%s","   Insurance Company.")
+Writefile(L_FILE_NAME,"%s","<NL>")
+
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","2. ")
+writefile(l_file_name,"%s",l_arial_italic)
+writefile(l_file_name,"%s","Your ")
+writefile(l_file_name,"%s",l_arial)
+writefile(l_file_name,"%s","Name (Insured): ")
+i_name = sfpname:name[1]
+include "sfsrevname.pro"
+Writefile(L_FILE_NAME,"%s","<033>&a1500h+0V")
+writefile(l_file_name,"%s",trun(i_rev_name))
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+writefile(l_file_name,"%s",l_arial_bold)
+writefile(l_file_name,"%s","SCHEDULE")
+
+-- horizontal lines
+writefile(l_file_name,"%s",l_push)
+writefile(l_file_name,"%s","<033>&a140h+60v<033>*c5455h5v0P")
+writefile(l_file_name,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a4600h+120V")
+writefile(l_file_name,"%s","Values(c)")
+writefile(l_file_name,"%s","<033>&a4000h+50v<033>*c1600h5v0P")
+writefile(l_file_name,"%s","<033>&a140h+240v<033>*c5455h5v0P")
+writefile(l_file_name,"%s","<033>&a140h+4399v<033>*c5455h5v0P")
+writefile(l_file_name,"%s",l_pop)
+
+-- vertical lines
+writefile(l_file_name,"%s",l_push)
+writefile(l_file_name,"%s","<033>&a140h+60v<033>*c5a2000b0P")
+writefile(l_file_name,"%s","<033>&a500h+0v<033>*c5a2000b0P")
+writefile(l_file_name,"%s","<033>&a4000h+0v<033>*c5a2000b0P")
+writefile(l_file_name,"%s","<033>&a4800h+170v<033>*c5a1930b0P")
+writefile(l_file_name,"%s","<033>&a5600h-170v<033>*c5a2000b0P")
+writefile(l_file_name,"%s",l_pop)
+
+-- first column heading
+writefile(l_file_name,"%s",l_push)
+Writefile(L_FILE_NAME,"%s","<033>&a240h+300V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","(a)")
+Writefile(L_FILE_NAME,"%s","<033>&a230h+120V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","Nos.")
+writefile(l_file_name,"%s",l_pop)
+
+-- second column heading
+writefile(l_file_name,"%s",l_push)
+Writefile(L_FILE_NAME,"%s","<033>&a1700h+300V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s"," Description/Location")
+Writefile(L_FILE_NAME,"%s","<033>&a1700h+120V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","Of Subject Property (b)")
+writefile(l_file_name,"%s",l_pop)
+
+-- third column heading
+writefile(l_file_name,"%s",l_push)
+Writefile(L_FILE_NAME,"%s","<033>&a4200h+320V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","    Actual")
+Writefile(L_FILE_NAME,"%s","<033>&a4200h+120V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","Cash Value")
+writefile(l_file_name,"%s",l_pop)
+
+-- fourth column heading
+Writefile(L_FILE_NAME,"%s","<033>&a4950h+320V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","Replacement")
+Writefile(L_FILE_NAME,"%s","<033>&a4950h+120V")
+writefile(l_file_name,"%s",l_arial_bold_9)
+writefile(l_file_name,"%s","   Value (d)")
+
+end
+
+procedure building_detail_blanket
+begin
+Access cppblanket,
+   Set cppblanket:policy_no    = cppgeneral:policy_no,
+       cppblanket:pol_year     = cppgeneral:pol_year,
+       cppblanket:end_sequence = cppgeneral:end_sequence,generic
+
+ while cppblanket:policy_no    = cppgeneral:policy_no    and
+       cppblanket:pol_year     = cppgeneral:pol_year     and
+       cppblanket:end_sequence = cppgeneral:end_sequence
+{
+l_count = l_count + 1
+   access sfplocation,
+      set sfplocation:policy_no    = cppblanket:policy_no,
+          sfplocation:pol_year     = cppblanket:pol_year,
+          sfplocation:end_sequence = cppblanket:end_sequence,
+          sfplocation:prem_no      = cppblanket:prem_no,
+          sfplocation:build_no     = cppblanket:build_no, generic
+
+        l_construction = cppgeneral:construction
+        l_state        = cppgeneral:state
+        access sfsconstruction,
+           set sfsconstruction:company_id       = sfpname:company_id,
+               sfsconstruction:state            = l_state,
+               sfsconstruction:line_of_business = l_line_of_business,
+               sfsconstruction:construction     = l_construction, exact
+
+  l_building_limit = l_building_limit + cppblanket:limit[1]
+  l_v_position = l_v_position + 350
+  Writefile(L_FILE_NAME,"%s","<033>&a250h" + trun(str(l_v_position)) +"V")
+  writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+  writefile(l_file_name,"%s",trun(str(cppblanket:prem_no)) + "-")
+  writefile(l_file_name,"%s",trun(str(cppblanket:build_no)))
+
+  Writefile(L_FILE_NAME,"%s","<033>&a550h+0V")
+  writefile(l_file_name,"%s",l_arial_8)
+  writefile(l_file_name,"%s",trun(cppblanket:business_desc[1]) + ", ")
+
+  writefile(l_file_name,"%s",trun(uppercase(sfsconstruction:description)) + ", ")
+  writefile(l_file_name,"%s","COVERAGE A - BUILDING")
+  writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+  if cppgeneral:replacement_cost = 0 then
+    {
+      Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+      writefile(l_file_name,"%s",str(cppblanket:limit[1],"ZZ,ZZZ,ZZZ"))
+    }
+  else
+    {
+      Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+      writefile(l_file_name,"%s",str(cppblanket:limit[1],"ZZ,ZZZ,ZZZ"))
+    }
+
+  writefile(l_file_name,"%s",l_arial_8)
+  Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+  writefile(l_file_name,"%s",trun(sfplocation:address) + " ")
+
+  if sfplocation:address1[1] <> "" then
+
+      Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+      writefile(l_file_name,"%s",trun(sfplocation:address1[1]))
+
+  if sfplocation:address1[2] <> "" then
+
+  writefile(l_file_name,"%s",trun(sfplocation:address1[2]))
+  writefile(l_file_name,"%s"," " + trun(sfplocation:city) + ", " +
+                           trun(sfplocation:str_state) + " " +
+                           str(sfplocation:zipcode,"99999-9999"))
+
+  if l_count < 11 then
+    begin
+    l_construction = cppgeneral:construction
+    l_state        = cppgeneral:state
+    access sfsconstruction,
+       set sfsconstruction:company_id       = sfpname:company_id,
+           sfsconstruction:state            = l_state,
+           sfsconstruction:line_of_business = l_line_of_business,
+           sfsconstruction:construction     = l_construction, exact
+  l_count = l_count + 1
+  if cppblanket:limit[2] not one of 0 then
+    {
+      do contents_detail_blanket
+    }
+    end
+    else
+    if l_count > 11 then
+      begin
+      do bottom_of_page
+      writefile(l_file_name,"%s","<FF>")
+      l_v_position = 900
+      l_count = 0
+      l_page = l_page + 1
+      do top_of_page
+     end
+  next cppblanket
+}
+-- vertical lines
+writefile(l_file_name,"%s","<033>&a140h5500v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a500h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4000h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4800h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a5600h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a140h6100v<033>*c5455h5v0P")
+
+end--end building_detail
+
+
+procedure building_detail
+begin
+Access cppgeneral,
+   Set cppgeneral:policy_no    = sfpprint1:policy_no,
+       cppgeneral:pol_year     = sfpprint1:pol_year,
+       cppgeneral:end_sequence = sfpprint1:end_sequence,generic
+
+ while cppgeneral:policy_no    = sfpprint1:policy_no    and
+       cppgeneral:pol_year     = sfpprint1:pol_year     and
+       cppgeneral:end_sequence = sfpprint1:end_sequence
+{
+   access sfplocation,
+      set sfplocation:policy_no    = cppgeneral:policy_no,
+          sfplocation:pol_year     = cppgeneral:pol_year,
+          sfplocation:end_sequence = cppgeneral:end_sequence,
+          sfplocation:prem_no      = cppgeneral:prem_no,
+          sfplocation:build_no     = cppgeneral:build_no, generic
+
+        l_construction = cppgeneral:construction
+        l_state        = cppgeneral:state
+        access sfsconstruction,
+           set sfsconstruction:company_id       = sfpname:company_id,
+               sfsconstruction:state            = l_state,
+               sfsconstruction:line_of_business = l_line_of_business,
+               sfsconstruction:construction     = l_construction, exact
+
+  l_building_limit = l_building_limit + cppgeneral:limit[1]
+  l_v_position = l_v_position + 350
+  Writefile(L_FILE_NAME,"%s","<033>&a250h" + trun(str(l_v_position)) +"V")
+  writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+  writefile(l_file_name,"%s",trun(str(cppgeneral:prem_no)) + "-")
+  writefile(l_file_name,"%s",trun(str(cppgeneral:build_no)))
+
+  Writefile(L_FILE_NAME,"%s","<033>&a550h+0V")
+  writefile(l_file_name,"%s",l_arial_8)
+  writefile(l_file_name,"%s",trun(cppgeneral:business_desc[1]) + ", ")
+
+  writefile(l_file_name,"%s",trun(uppercase(sfsconstruction:description)) + ", ")
+  writefile(l_file_name,"%s","COVERAGE A - BUILDING")
+  writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+  if cppgeneral:replacement_cost = 0 then
+    {
+      Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+      writefile(l_file_name,"%s",str(cppgeneral:limit[1],"ZZ,ZZZ,ZZZ"))
+    }
+  else
+    {
+      Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+      writefile(l_file_name,"%s",str(cppgeneral:limit[1],"ZZ,ZZZ,ZZZ"))
+    }
+
+  writefile(l_file_name,"%s",l_arial_8)
+  Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+  writefile(l_file_name,"%s",trun(sfplocation:address) + " ")
+
+  if sfplocation:address1[1] <> "" then
+
+      Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+      writefile(l_file_name,"%s",trun(sfplocation:address1[1]))
+
+  if sfplocation:address1[2] <> "" then
+
+  writefile(l_file_name,"%s",trun(sfplocation:address1[2]))
+  writefile(l_file_name,"%s"," " + trun(sfplocation:city) + ", " +
+                           trun(sfplocation:str_state) + " " +
+                           str(sfplocation:zipcode,"99999-9999"))
+
+  if l_count < 11 then
+    begin
+    l_construction = cppgeneral:construction
+    l_state        = cppgeneral:state
+    access sfsconstruction,
+       set sfsconstruction:company_id       = sfpname:company_id,
+           sfsconstruction:state            = l_state,
+           sfsconstruction:line_of_business = l_line_of_business,
+           sfsconstruction:construction     = l_construction, exact
+  l_count = l_count + 1
+  if cppgeneral:limit[2] not one of 0 then
+    {
+      do contents_detail
+    }
+    end
+    else
+      begin
+      do bottom_of_page
+      writefile(l_file_name,"%s","<FF>")
+      l_v_position = 900
+      l_count = 0
+      l_page = l_page + 1
+      do top_of_page
+     end
+  next cppgeneral
+}
+-- vertical lines
+writefile(l_file_name,"%s","<033>&a140h5500v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a500h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4000h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4800h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a5600h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a140h6100v<033>*c5455h5v0P")
+
+end--end building_detail
+
+
+procedure contents_detail_blanket
+begin
+access sfplocation,
+   set sfplocation:policy_no    = cppblanket:policy_no,
+       sfplocation:pol_year     = cppblanket:pol_year,
+       sfplocation:end_sequence = cppblanket:end_sequence,
+       sfplocation:prem_no      = cppblanket:prem_no,
+       sfplocation:build_no     = cppblanket:build_no, generic
+
+        l_construction = cppgeneral:construction
+        l_state        = cppgeneral:state
+        access sfsconstruction,
+           set sfsconstruction:company_id       = sfpname:company_id,
+               sfsconstruction:state            = l_state,
+               sfsconstruction:line_of_business = l_line_of_business,
+               sfsconstruction:construction     = l_construction, exact
+
+l_contents_limit = l_contents_limit + cppblanket:limit[2]
+l_v_position = l_v_position + 350
+--if cppgeneral:limit[1] = 0 then
+    Writefile(L_FILE_NAME,"%s","<033>&a250h" + trun(str(l_v_position)) +"V")
+--else
+--    Writefile(L_FILE_NAME,"%s","<033>&a250h+240V")
+writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+writefile(l_file_name,"%s",trun(str(sfplocation:prem_no)) + "-")
+writefile(l_file_name,"%s",trun(str(sfplocation:build_no)))
+Writefile(L_FILE_NAME,"%s","<033>&a550h+0V")
+writefile(l_file_name,"%s",l_arial_8)
+writefile(l_file_name,"%s",trun(cppgeneral:business_desc[1]) + ", ")
+
+writefile(l_file_name,"%s",trun(uppercase(sfsconstruction:description)) + ", ")
+writefile(l_file_name,"%s","COVERAGE B - CONTENTS")
+writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+if cppgeneral:replacement_cost = 0 then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+    writefile(l_file_name,"%s",str(cppblanket:limit[2],"ZZ,ZZZ,ZZZ"))
+    end
+else
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+    writefile(l_file_name,"%s",str(cppblanket:limit[2],"ZZ,ZZZ,ZZZ"))
+    end
+
+writefile(l_file_name,"%s",l_arial_8)
+Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+writefile(l_file_name,"%s",trun(sfplocation:address) + " ")
+if sfplocation:address1[1] <> "" then
+    writefile(l_file_name,"%s",trun(sfplocation:address1[1]))
+if sfplocation:address1[2] <> "" then
+    writefile(l_file_name,"%s",trun(sfplocation:address1[2]))
+writefile(l_file_name,"%s"," " + trun(sfplocation:city) + ", " +
+                           trun(sfplocation:str_state) + " " +
+                           str(sfplocation:zipcode,"99999-9999"))
+
+-- vertical lines
+writefile(l_file_name,"%s","<033>&a140h5500v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a500h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4000h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4800h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a5600h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a140h6100v<033>*c5455h5v0P")
+
+end
+
+procedure contents_detail
+begin
+access sfplocation,
+   set sfplocation:policy_no    = cppgeneral:policy_no,
+       sfplocation:pol_year     = cppgeneral:pol_year,
+       sfplocation:end_sequence = cppgeneral:end_sequence,
+       sfplocation:prem_no      = cppgeneral:prem_no,
+       sfplocation:build_no     = cppgeneral:build_no, generic
+
+        l_construction = cppgeneral:construction
+        l_state        = cppgeneral:state
+        access sfsconstruction,
+           set sfsconstruction:company_id       = sfpname:company_id,
+               sfsconstruction:state            = l_state,
+               sfsconstruction:line_of_business = l_line_of_business,
+               sfsconstruction:construction     = l_construction, exact
+
+l_contents_limit = l_contents_limit + cppgeneral:limit[2]
+l_v_position = l_v_position + 350
+--if cppgeneral:limit[1] = 0 then
+    Writefile(L_FILE_NAME,"%s","<033>&a250h" + trun(str(l_v_position)) +"V")
+--else
+--    Writefile(L_FILE_NAME,"%s","<033>&a250h+240V")
+writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+writefile(l_file_name,"%s",trun(str(sfplocation:prem_no)) + "-")
+writefile(l_file_name,"%s",trun(str(sfplocation:build_no)))
+Writefile(L_FILE_NAME,"%s","<033>&a550h+0V")
+writefile(l_file_name,"%s",l_arial_8)
+writefile(l_file_name,"%s",trun(cppgeneral:business_desc[1]) + ", ")
+
+writefile(l_file_name,"%s",trun(uppercase(sfsconstruction:description)) + ", ")
+writefile(l_file_name,"%s","COVERAGE B - CONTENTS")
+writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+if cppgeneral:replacement_cost = 0 then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+    writefile(l_file_name,"%s",str(cppgeneral:limit[2],"ZZ,ZZZ,ZZZ"))
+    end
+else
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+    writefile(l_file_name,"%s",str(cppgeneral:limit[2],"ZZ,ZZZ,ZZZ"))
+    end
+
+writefile(l_file_name,"%s",l_arial_8)
+Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+writefile(l_file_name,"%s",trun(sfplocation:address) + " ")
+if sfplocation:address1[1] <> "" then
+    writefile(l_file_name,"%s",trun(sfplocation:address1[1]))
+if sfplocation:address1[2] <> "" then
+    writefile(l_file_name,"%s",trun(sfplocation:address1[2]))
+writefile(l_file_name,"%s"," " + trun(sfplocation:city) + ", " +
+                           trun(sfplocation:str_state) + " " +
+                           str(sfplocation:zipcode,"99999-9999"))
+
+-- vertical lines
+writefile(l_file_name,"%s","<033>&a140h5500v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a500h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4000h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4800h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a5600h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a140h6100v<033>*c5455h5v0P")
+end
+
+procedure business_income_detail
+begin
+access sfplocation,
+   set sfplocation:policy_no    = cppblanket:policy_no,
+       sfplocation:pol_year     = cppblanket:pol_year,
+       sfplocation:end_sequence = cppblanket:end_sequence,
+       sfplocation:prem_no      = cppblanket:prem_no,
+       sfplocation:build_no     = cppblanket:build_no, generic
+
+access cppbusiness,
+   set cppbusiness:policy_no    = cppblanket:policy_no,
+       cppbusiness:pol_year     = cppblanket:pol_year,
+       cppbusiness:end_sequence = cppblanket:end_sequence,
+       cppbusiness:prem_no      = cppblanket:prem_no,
+       cppbusiness:build_no     = cppblanket:build_no, generic
+
+l_bi_limit   = l_bi_limit + cppbusiness:limit
+l_v_position = l_v_position + 120
+Writefile(L_FILE_NAME,"%s","<033>&a250h" + trun(str(l_v_position)) +"V")
+--writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+--writefile(l_file_name,"%s",trun(str(cppbusiness:prem_no)) + "-")
+--writefile(l_file_name,"%s",trun(str(cppbusiness:build_no)))
+Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+writefile(l_file_name,"%s",l_arial_8)
+writefile(l_file_name,"%s",trun(cppgeneral:business_desc[1]) + ", ")
+
+access sfsconstruction,
+   set sfsconstruction:company_id       = sfpname:company_id,
+       sfsconstruction:state            = l_state,
+       sfsconstruction:line_of_business = l_line_of_business,
+       sfsconstruction:construction     = l_construction, exact
+
+writefile(l_file_name,"%s",trun(uppercase(sfsconstruction:description)) + ", ")
+writefile(l_file_name,"%s","COVERAGE D - BUSINESS INCOME")
+writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+if cppgeneral:replacement_cost = 0 then
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+    writefile(l_file_name,"%s",str(cppbusiness:limit,"ZZ,ZZZ,ZZZ"))
+    end
+else
+    begin
+    Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+    writefile(l_file_name,"%s",str(cppbusiness:limit,"ZZ,ZZZ,ZZZ"))
+    end
+
+-- vertical lines
+writefile(l_file_name,"%s","<033>&a140h5500v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a500h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4000h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a4800h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a5600h+0v<033>*c5a250b0P")
+writefile(l_file_name,"%s","<033>&a140h6100v<033>*c5455h5v0P")
+end
+
+procedure bottom_of_page
+begin
+if l_print_totals = "Y" then
+    begin
+    Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+    Writefile(L_FILE_NAME,"%s","<033>&a550h5700V")
+    writefile(l_file_name,"%s","TOTAL COVERAGE A - BUILDING")
+    writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+    if cppgeneral:replacement_cost = 0 then
+        begin
+        Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+        writefile(l_file_name,"%s",str(l_building_limit,"ZZ,ZZZ,ZZZ"))
+        end
+    else
+        begin
+        Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+        writefile(l_file_name,"%s",str(l_building_limit,"ZZ,ZZZ,ZZZ"))
+        end
+
+    Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+    Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+    writefile(l_file_name,"%s","TOTAL COVERAGE B - CONTENTS")
+    writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+    if cppgeneral:replacement_cost = 0 then
+        begin
+        Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+        writefile(l_file_name,"%s",str(l_contents_limit,"ZZ,ZZZ,ZZZ"))
+        end
+    else
+        begin
+        Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+        writefile(l_file_name,"%s",str(l_contents_limit,"ZZ,ZZZ,ZZZ"))
+        end
+
+    if l_bi_limit <> 0 then
+        begin
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+        writefile(l_file_name,"%s","TOTAL COVERAGE D - BUSINESS INCOME")
+        writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+        if cppgeneral:replacement_cost = 0 then
+            begin
+            Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+            writefile(l_file_name,"%s",str(l_bi_limit,"ZZ,ZZZ,ZZZ"))
+            end
+        else
+            begin
+            Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+            writefile(l_file_name,"%s",str(l_bi_limit,"ZZ,ZZZ,ZZZ"))
+            end
+        end
+    else
+        begin
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        end
+
+    Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+    Writefile(L_FILE_NAME,"%s","<033>&a550h+120V")
+    writefile(l_file_name,"%s","TOTAL BLANKET COVERAGE")
+    writefile(l_file_name,"%s",l_letter_gothic_bold_10)
+    if cppgeneral:replacement_cost = 0 then
+        begin
+        Writefile(L_FILE_NAME,"%s","<033>&a4200h+0V")
+        writefile(l_file_name,"%s",str(l_building_limit + l_contents_limit + l_bi_limit,"ZZ,ZZZ,ZZZ"))
+        end
+    else
+        begin
+        Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+        writefile(l_file_name,"%s",str(l_building_limit + l_contents_limit + l_bi_limit,"ZZ,ZZZ,ZZZ"))
+        end
+    end
+
+writefile(L_file_name,"%s","<033>&a200h6300V")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+writefile(l_file_name,"%s","(a) Item No. or Build/Loc. Nos.")
+writefile(L_file_name,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+writefile(l_file_name,"%s","(b) Specify Building (Coverage A) or Business Personal Property (Coverage B)")
+writefile(L_file_name,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+writefile(l_file_name,"%s","(c) Show 100% of Values (ACV or Replacement as Applicable)")
+writefile(L_file_name,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+writefile(l_file_name,"%s","(d) Show Replacement Cost Value when MCP 520 Applies to the Subject Property")
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h7200V")
+Writefile(L_FILE_NAME,"%s",Trun(l_FORM_PRINT))
+Writefile(L_FILE_NAME,"%s"," ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s","(" + trun(l_EDITION_PRINT) + ")")
+Writefile(L_FILE_NAME,"%s","<033>&a5000h7200V")
+writefile(l_file_name,"%s","Page " + str(l_page))---- + " of " + str(l_page_counter))
+
+--Writefile(L_FILE_NAME,"%s","<NL>")
+--Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+end
+
+End

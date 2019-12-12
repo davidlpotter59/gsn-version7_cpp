@@ -1,0 +1,277 @@
+%%
+Screen
+        Name            = "cppmtmso752a"
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppdesc" ;
+        Windowtitle = "%a     %s Description     Ver 7.00 %m" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9],
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     g_state[2] ;
+
+        Global String G_CODE[7] ,
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    l_rate[8]=0/dec=4 ,
+                                    l_state[2]=0 ,
+                                    l_limit[8]=0;
+
+        local signed ascii number l_premium[6]=0 ;
+
+        Access cppdesc, Set cppdesc:policy_NO = G_policy_NO,
+                            cppdesc:pol_year = g_year,
+                            cppdesc:end_sequence = g_end_sequence,
+                            cppdesc:PREM_NO = G_PREM_NO,
+                            cppdesc:BUILD_NO = G_BUILD_NO ,
+                            cppdesc:CODE = G_CODE, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        Include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = username, generic
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(delete_fn)
+    disable(change_fn)
+    end
+
+Access Validation
+If cppdesc:policy_NO <> G_policy_NO Or
+   cppdesc:pol_year <> g_year or
+   cppdesc:end_sequence <> g_end_sequence or
+   cppdesc:PREM_NO <> G_PREM_NO Or
+   cppdesc:BUILD_NO <> G_BUILD_NO Or
+   cppdesc:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Limit: ____________  Rate: _______   Premium: _________                      |
+*------------------------------------------------------------------------------*
+|                              Description                                     |
+|                                                                              |
+| ___________________________________________________________________________  |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+Components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppdesc:policy_NO = G_policy_NO
+            cppdesc:pol_year = g_year
+            cppdesc:end_sequence = g_end_sequence
+            cppdesc:PREM_NO = G_PREM_NO
+            cppdesc:BUILD_NO = G_BUILD_NO
+            cppdesc:CODE = G_CODE
+            Do SUBCODE
+            cppdesc:SUB_CODE = L_SUB_CODE
+            End
+        End
+        cppdesc:LIMIT;
+302     begin
+        if function one of "ADD" then
+            begin
+            do access_sfsoptend
+            cppdesc:rate = l_rate
+            end
+        end
+        cppdesc:RATE/default;
+303     Begin
+        If FUNCTION One Of "ADD", "CHANGE" Then
+            Begin
+            cppdesc:TOTAL_PREMIUM = ((cppdesc:LIMIT Divide 100) *
+                                    cppdesc:RATE)
+            End
+        End
+        cppdesc:TOTAL_PREMIUM/displayonly/mask="ZZZZZZ.99" ;
+701     cppdesc:DESCRIPTION/freetextlines=10;
+
+
+}
+
+}
+
+screen exit
+do update_cppdesc
+
+Procedure Definition
+
+procedure update_cppdesc
+begin
+Access cppdesc_ALIAS, Set cppdesc_ALIAS:policy_NO = G_policy_NO,
+                          cppdesc_alias:pol_year = g_year,
+                          cppdesc_alias:end_sequence = g_end_sequence,
+                          cppdesc_ALIAS:PREM_NO = G_PREM_NO,
+                          cppdesc_ALIAS:BUILD_NO = G_BUILD_NO,
+                          cppdesc_ALIAS:CODE = G_CODE, Generic
+
+While cppdesc_ALIAS:policy_NO = G_policy_NO And
+      cppdesc_alias:pol_year = g_year and
+      cppdesc_alias:end_sequence = g_end_sequence and
+      cppdesc_ALIAS:PREM_NO = G_PREM_NO And
+      cppdesc_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppdesc_ALIAS:CODE = G_CODE
+        Begin
+        l_limit   = cppdesc_alias:limit +
+                    l_limit
+        l_rate    = cppdesc_alias:rate
+        l_premium = cppdesc_alias:total_premium +
+                    l_premium
+
+        next cppdesc_alias
+        end
+
+access cppendorse, set cppendorse:policy_no = g_policy_no,
+                       cppendorse:pol_year = g_year,
+                       cppendorse:end_sequence = g_end_sequence,
+                       cppendorse:prem_no  = g_prem_no,
+                       cppendorse:build_no = g_build_no,
+                       cppendorse:code     = g_code, generic
+
+if cppendorse:policy_no = g_policy_no and
+   cppendorse:pol_year = g_year and
+   cppendorse:end_sequence = g_end_sequence and
+   cppendorse:prem_no  = g_prem_no and
+   cppendorse:build_no = g_build_no and
+   cppendorse:code     = g_code then
+    begin
+    change cppendorse
+        begin
+        cppendorse:limit[1]      = l_limit
+        cppendorse:rate[1]       = l_rate
+        cppendorse:total_premium = l_premium
+        end
+    end
+else
+    begin
+    add cppendorse
+        begin
+        cppendorse:policy_no     = g_policy_no
+        cppendorse:pol_year      = g_year
+        cppendorse:end_sequence  = g_end_sequence
+        cppendorse:prem_no       = g_prem_no
+        cppendorse:build_no      = g_build_no
+        cppendorse:code          = g_code
+        cppendorse:sub_code      = 10
+        cppendorse:limit[1]      = l_limit
+        cppendorse:rate[1]       = l_rate
+        cppendorse:total_premium = l_premium
+        end
+    end
+
+end
+
+Procedure SUBCODE
+Begin
+Access cppdesc_ALIAS, Set cppdesc_ALIAS:policy_NO = G_policy_NO,
+                          cppdesc_alias:pol_year = g_year,
+                          cppdesc_alias:end_sequence = g_end_sequence,
+                          cppdesc_ALIAS:PREM_NO = G_PREM_NO,
+                          cppdesc_ALIAS:BUILD_NO = G_BUILD_NO,
+                          cppdesc_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppdesc_ALIAS:policy_NO = G_policy_NO And
+      cppdesc_alias:pol_year = g_Year and
+      cppdesc_alias:end_sequence = g_end_sequence and
+      cppdesc_ALIAS:PREM_NO = G_PREM_NO And
+      cppdesc_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppdesc_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppdesc_ALIAS:SUB_CODE
+
+        Next cppdesc_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+procedure access_sfsoptend
+begin
+access cppinland, set cppinland:policy_no = g_policy_no,
+                      cppinland:pol_year = g_year,
+                      cppinland:end_sequence = g_end_sequence,
+                      cppinland:prem_no  = g_prem_no,
+                      cppinland:build_no = g_build_no, generic
+
+l_state = cppinland:state
+access sfsoptend, set sfsoptend:company_id       = sfpname:company_id,
+                      sfsoptend:state            = l_state,
+                      sfsoptend:line_of_business = sfpname:line_of_business,
+                      sfsoptend:code             = g_code, generic
+
+l_rate = 0
+while sfsoptend:company_id       = sfpname:company_id and
+      sfsoptend:state            = l_state and
+      sfsoptend:line_of_business = sfpname:line_of_business and
+      sfsoptend:code             = g_code
+        begin
+        if sfpname:eff_date >= sfsoptend:eff_date then
+            l_rate = sfsoptend:premium_1[1]
+
+        next sfsoptend
+        end
+
+end
+
+End

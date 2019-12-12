@@ -1,0 +1,419 @@
+%%
+Screen
+        Name            = "cppMTMSO299" ;
+        Type            = "Detail" ;
+        Padcharacter    =  Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppGENERAL_ALIAS";
+        Windowtitle = "%a     %s Property Final Rating   Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_RATE_TYPE[2] ;
+
+        Local String L_MISC[1]="N",
+                     L_SCREEN[11]="";
+
+        Local Signed Ascii Number L_MISC_PREMIUM[8]=0 ,
+                                  L_SUPPLEMENTAL_PREMIUM[8]=0,
+                                  L_OPTIONAL_COVERAGES[8]=0;
+
+        local unsigned ascii number l_prem_no[4]=0,
+                                    l_build_no[4]=0 ;
+
+--        Include "cpsrate.var"
+
+        Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                                     cppgeneral_alias:pol_year = g_year,
+                                     cppgeneral_alias:end_sequence = g_End_sequence, Generic
+
+        Include "STDKEYS7.INC"
+--        !F7="Calc"/function/icon="OptEnd" ;
+  --      !F8="Down"/function/icon="Factor" ;
+    ---    !F9="Up"/function/icon="Opt" ;
+       -- !F11="G"/function/icon="Dev" ;
+--        !F12="I"/function/icon="NetFact" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+--        "Calc" Display "cppmtmso250" ;
+  --      "Down" Display "cppmtmso297" ;
+    --    "Up"   Display "cppmtmso295" ;
+      --  "G"    Display "cppmtmso296" ;
+        -- "I"    Display "cppmtmso298" ;
+
+--        Include "cppmsomenu.inc"
+
+        "FR" Continue Begin
+                      FUNCTION = "FINAL"
+                      End ;
+
+        "FINAL" Display "cppmtmso299" ;
+        "popup" Display L_SCREEN ;
+        "redisplay" Display/noreturn "cppmtmso299" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppGENERAL_ALIAS:policy_NO <> G_policy_NO or
+   cppgeneral_alias:pol_Year <> g_year or
+   cppgeneral_alias:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------*-----------------------------------*
+| Policy No: _________  ____  ____         |                                   |
+| Location No:  ____                       |                                   |
+| Building No:  ____                       |                                   |
+| Rate Type:      __ ____________________  |                                   |
+*------------------------------------------*-----------------------------------*
+|          Specific          Building          Specific        Contents        |
+| Peril    Rate Adj      Rate      Premium     Rate Adj    Rate      Premium   |
+*------------------------------------------------------------------------------*
+| LIMIT:   __________                           __________                     |
+| FIRE:    _______      _______ _____________   _______  _______    __________ |
+| EC:                   _______ _____________            _______    __________ |
+| VMM:                  _______ _____________            _______    __________ |
+| AOP:                  _______ _____________            _______    __________ |
+|  Personal Prop Theft:                                  _________             |
+|  Territory Factor:                                     ______                |
+| SL:                   _______ _____________            _______    __________ |
+| Earthquake:           _______ _____________            _______    __________ |
+| BOILER:                       _____________                       __________ |
+|                                                                              |
+| Total Premium:                _____________                       __________ |
+*------------------------------------------------------------------------------*
+| Total Coverages A and B:      _____________                                  |
+| Supplemental Coverages:       _____________                                  |
+| Optional Endorsements:        _____________                                  |
+| Optional Coverages:           _____________                                  |
+| Final Total:                  _____________                                  |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppGENERAL_ALIAS:policy_NO/displayonly  ;
+302     cppgeneral_alias:pol_year/displayonly ;
+303     cppgeneral_alias:end_sequence/displayonly ;
+401     cppGENERAL_ALIAS:PREM_NO/displayonly ;
+501     cppGENERAL_ALIAS:BUILD_NO/displayonly ;
+601     cppGENERAL_ALIAS:RATE_TYPE/displayonly ;
+602     CPSRATETYPE:DESCRIPTION/displayonly ;
+
+1101    cppGENERAL_ALIAS:LIMIT[1]/displayonly ;
+1102    cppGENERAL_ALIAS:LIMIT[2]/displayonly ;
+
+-- Fire building
+1201    Begin
+        Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO,
+                               cppgeneral:pol_year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence,
+                               cppGENERAL:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                               cppGENERAL:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO,
+                               cppgeneral:rate_type = cppgeneral_alias:rate_type, Generic
+        End
+        cppGENERAL:SPECIFIC_RATE_ADJUSTMENT[1]/displayonly ;
+1202    cppGENERAL:BASE_RATE[1]/displayonly
+        Hide If cppGENERAL:NEW_RATE[1] <> 0 ;
+1202    cppGENERAL:NEW_RATE[1]/displayonly
+        Hide If cppGENERAL:NEW_RATE[1] = 0 ;
+1203    cppGENERAL:PREMIUM[1]/displayonly/mask="Z,ZZZ,ZZZ.99-"  ;
+
+-- fire contents
+1204    cppGENERAL:SPECIFIC_RATE_ADJUSTMENT[2]/displayonly ;
+1205    cppGENERAL:BASE_RATE[7]/displayonly
+        Hide If cppGENERAL:NEW_RATE[7] <> 0 ;
+1205    cppGENERAL:NEW_RATE[7]/displayonly
+        Hide If cppGENERAL:NEW_RATE[7] = 0 ;
+1206    cppGENERAL:PREMIUM[7]/displayonly/mask="Z,ZZZ,ZZZ.99-"  ;
+
+-- ec building
+1301    cppGENERAL:BASE_RATE[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 Or
+                cppGENERAL:NEW_RATE[2] <> 0 ;
+1301    cppGENERAL:NEW_RATE[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 Or
+                cppGENERAL:NEW_RATE[2] = 0 ;
+1302    cppGENERAL:PREMIUM[2]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:FORM = 1 ;
+
+-- ec contents
+1303    cppGENERAL:BASE_RATE[8]/displayonly
+        Hide If cppGENERAL:FORM = 1 Or
+                cppGENERAL:NEW_RATE[8] <> 0 ;
+1303    cppGENERAL:NEW_RATE[8]/displayonly
+        Hide If cppGENERAL:FORM = 1 Or
+                cppGENERAL:NEW_RATE[8] = 0 ;
+1304    cppGENERAL:PREMIUM[8]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:FORM = 1 ;
+
+-- vmm building
+1401    cppGENERAL:BASE_RATE[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1
+        Hide If cppGENERAL:NEW_RATE[3] <> 0 ;
+1401    cppGENERAL:NEW_RATE[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1
+        Hide If cppGENERAL:NEW_RATE[3] = 0 ;
+1402    cppGENERAL:PREMIUM[3]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+
+-- vmm contents
+1403    cppGENERAL:BASE_RATE[9]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1
+        Hide If cppGENERAL:NEW_RATE[9] <> 0 ;
+1403    cppGENERAL:NEW_RATE[9]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1
+        Hide If cppGENERAL:NEW_RATE[9] = 0 ;
+1404    cppGENERAL:PREMIUM[9]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+
+-- AOP building
+1501    cppGENERAL:BASE_RATE[4]/displayonly
+        Hide If cppGENERAL:FORM not one of 3, 5
+        Hide If cppGENERAL:NEW_RATE[4] <> 0 ;
+1501    cppGENERAL:NEW_RATE[4]/displayonly
+        Hide If cppGENERAL:FORM not one of 3, 5
+        Hide If cppGENERAL:NEW_RATE[4] = 0 ;
+1502    cppGENERAL:PREMIUM[4]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:FORM not one of 3, 5;
+
+-- AOP contents
+1503    cppGENERAL:BASE_RATE[10]/displayonly
+        Hide If cppGENERAL:FORM not one of 3, 5
+        Hide If cppGENERAL:NEW_RATE[10] <> 0 ;
+1503    cppGENERAL:NEW_RATE[10]/displayonly
+        Hide If cppGENERAL:FORM not one of 3, 5
+        Hide If cppGENERAL:NEW_RATE[10] = 0 ;
+1504    cppGENERAL:PREMIUM[10]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:FORM not one of 3, 5;
+-- option 5 with theft - building
+1601    cppGENERAL:BRTHEFT/displayonly
+        Hide If cppGENERAL:FORM < 5 Or
+                cppEXCLUSIONS:EXCLUDE_THEFT = 1 Or
+                cppGENERAL:GROUP_NO = 9 ;
+1701    cppGENERAL:THEFT_TERRITORY_FACTOR/displayonly
+        Hide If cppGENERAL:FORM < 5 Or
+                cppEXCLUSIONS:EXCLUDE_THEFT = 1 Or
+                cppGENERAL:GROUP_NO = 9 Or
+                cppGENERAL:GROUP_NO = 7;
+
+-- sprinkler leakage - building
+1801    cppGENERAL:BASE_RATE[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5
+        Hide If cppGENERAL:NEW_RATE[6] <> 0 ;
+1801    cppGENERAL:NEW_RATE[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5
+        Hide If cppGENERAL:NEW_RATE[6] = 0 ;
+1802    cppGENERAL:PREMIUM[6]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+
+-- sprinkler leakage - contents
+1803    cppGENERAL:BASE_RATE[12]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5
+        Hide If cppGENERAL:NEW_RATE[12] <> 0 ;
+1803    cppGENERAL:NEW_RATE[12]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5
+        Hide If cppGENERAL:NEW_RATE[12] = 0 ;
+1804    cppGENERAL:PREMIUM[12]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+
+-- earthquake - building
+1901    cppGENERAL:BASE_RATE[5]/displayonly
+        Hide If cppGENERAL:earthquake = 0
+        Hide If cppGENERAL:NEW_RATE[6] <> 0 ;
+1901    cppGENERAL:NEW_RATE[5]/displayonly
+        Hide If cppGENERAL:earthquake = 0
+        Hide If cppGENERAL:NEW_RATE[5] = 0 ;
+1902    cppGENERAL:PREMIUM[5]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:earthquake = 0 ;
+
+-- earthquake - contents
+1903    cppGENERAL:BASE_RATE[11]/displayonly
+        Hide If cppGENERAL:earthquake = 0
+        Hide If cppGENERAL:NEW_RATE[11] <> 0 ;
+1903    cppGENERAL:NEW_RATE[11]/displayonly
+        Hide If cppGENERAL:earthquake = 0
+        Hide If cppGENERAL:NEW_RATE[11] = 0 ;
+1904    cppGENERAL:PREMIUM[11]/displayonly/mask="Z,ZZZ,ZZZ.99-"
+        Hide If cppGENERAL:earthquake = 0 ;
+
+-- boilers building
+2001    cppPROPERTY:BOILER_PREMIUM[1]/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+
+-- boiler contents
+2002    cppPROPERTY:BOILER_PREMIUM[2]/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+
+2201    cppGENERAL:TOTAL_PREMIUM[1]/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+2202    cppGENERAL:TOTAL_PREMIUM[2]/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+
+2401    cppgeneral:total_premium[1] +
+        cppgeneral:total_premium[2]/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+2501    Begin
+            Do UPDATE_MISC
+        End
+        L_MISC_PREMIUM/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+2601    Begin
+            Do UPDATE_ENDORSEMENTS
+        End
+        L_SUPPLEMENTAL_PREMIUM/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+2701    Begin
+            Do UPDATE_OPTIONAL_COVERAGES
+        End
+        L_OPTIONAL_COVERAGES/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+2801    cppgeneral:total_premium[1] +
+        cppgeneral:total_premium[2] +
+        l_misc_premium +
+        l_supplemental_premium +
+        l_optional_coverages/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+
+}
+
+}
+
+
+Procedure Definition
+
+Procedure UPDATE_OPTIONAL_COVERAGES
+Begin
+Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                        cppproperty:pol_year = cppgeneral_alias:pol_year,
+                        cppproperty:end_sequence = cppgeneral_alias:end_sequence,
+                        cppPROPERTY:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                        cppPROPERTY:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+if cppproperty:prem_no <> l_prem_no or
+   cppproperty:build_no <> l_build_no then
+    begin
+    l_prem_no = cppproperty:prem_no
+    l_build_no = cppproperty:build_no
+    L_OPTIONAL_COVERAGES = cppPROPERTY:AR_PREM +
+                       cppPROPERTY:INFLATION_PREMIUM[1] +
+                       cppproperty:inflation_premium[2] +
+                       cppPROPERTY:PEAK_SEASON_PREM +
+                       cppPROPERTY:GLASS_PREM +
+                       cppPROPERTY:SIGNS_ATTACHED_PREM +
+                       cppPROPERTY:SIGNS_NOT_ATTACHED_PREM +
+                       cppPROPERTY:BUILDING_CODE_PREM +
+                       cppPROPERTY:LOSS_UTILITY_PREM +
+                       cppPROPERTY:MECHANICAL_BREAKDOWN_PREM +
+                       cppPROPERTY:DEBRIS_REMOVAL_PREM +
+                       cppPROPERTY:OFF_PREM_OTHER_LOC_PREM +
+                       cppPROPERTY:OFF_PREM_IN_TRANSIT_PREM +
+                       cppPROPERTY:OUTDOOR_PROPERTY_PREM +
+                       cppPROPERTY:PERSONAL_EFFECTS_PREM +
+                       cppPROPERTY:PERSONAL_PROPERTY_OTHER_PREM +
+                       cppPROPERTY:VALUABLE_PAPERS_PREM +
+                       cppPROPERTY:PRECIOUS_METALS_PREM +
+                       cppPROPERTY:WATER_BACKUP_PREMIUM +
+                       cppproperty:loss_assessment_prem
+    end
+else
+    begin
+    l_optional_coverages = 0
+    end
+
+End
+
+Procedure UPDATE_ENDORSEMENTS
+Begin
+Access sfpEND, Set sfpEND:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                   sfpend:pol_year = cppgeneral_alias:pol_year,
+                   sfpend:end_sequence = cppgeneral_alias:end_sequence,
+                   sfpEND:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                   sfpEND:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+L_SUPPLEMENTAL_PREMIUM = 0
+While sfpEND:policy_NO = cppGENERAL_ALIAS:policy_NO And
+      sfpend:pol_year = cppgeneral_alias:pol_year and
+      sfpend:end_sequence = cppgeneral_alias:end_sequence and
+      sfpEND:PREM_NO = cppGENERAL_ALIAS:PREM_NO And
+      sfpEND:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO
+        Begin
+        If sfpEND:LOB_END_CODE = "P" Then
+            Begin
+            L_SUPPLEMENTAL_PREMIUM = L_SUPPLEMENTAL_PREMIUM  +
+                                     sfpEND:MANUAL_PREMIUM +
+                                     sfpend:premium
+            End
+
+        Next sfpEND
+        End
+
+End
+
+Procedure UPDATE_MISC
+Begin
+Access sfpMISC, Set sfpMISC:policy_NO = G_policy_NO,
+                    sfpmisc:pol_Year = g_Year,
+                    sfpmisc:end_sequence = g_end_sequence, Generic
+
+L_MISC_PREMIUM = 0
+If L_MISC <> "Y" Then
+    Begin
+    While sfpMISC:policy_NO = G_policy_NO and
+          sfpmisc:pol_year = g_year and
+          sfpmisc:end_sequence = g_end_sequence
+        Begin
+        If sfpMISC:LOB_END_CODE = "P" Then
+            Begin
+            L_MISC_PREMIUM = L_MISC_PREMIUM + sfpMISC:PREMIUM
+            L_MISC = "Y"
+            End
+
+        Next sfpMISC
+        End
+    End
+
+End
+
+End

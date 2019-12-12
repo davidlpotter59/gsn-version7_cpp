@@ -1,0 +1,219 @@
+%%          
+Screen
+        Name            = "cppmtmso701" ;
+        Type            = "detail" ;
+        padcharacter    = space ;
+        highlight       = underscore ;
+        screensize      = "dynamic" ;
+        windowtitle = "%a     %s Declaration Page Wording - Ver 7.00     %m" ;
+        domain          = "cppimcov" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        local unsigned ascii number l_sub_code[4]=0 ,
+                                    l_limit[8]=0,
+                                    l_deductible[5]=0;
+
+        local string l_description[75] ;
+
+        local signed ascii number l_premium[9]=0/dec=2 ;
+
+        Access cppIMCOV,
+           Set cppIMCOV:policy_NO = G_policy_NO ,
+               cppimcov:pol_year = g_year,
+               cppimcov:end_sequence = g_end_sequence;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+access validation
+if cppimcov:policy_no <> g_policy_no or
+   cppimcov:pol_year <> g_year or
+   cppimcov:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+screen
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Description:                                                                 |
+| ______________________________________________________________________       |
+| Limit:      __________                                                       |
+| Deductible: _____                                                            |
+| See Form:   _                                                                |
+| Premium:    __________                                                       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function one of "ADD", "NEW" then
+            begin
+            cppimcov:policy_no = g_policy_no
+            cppimcov:pol_year = g_year
+            cppimcov:End_sequence = g_end_sequence
+            end
+        end
+        cppIMCOV:policy_NO/displayonly;
+302     cppimcov:pol_year/displayonly ;
+303     cppimcov:end_sequence/displayonly ;
+401     begin
+        if function one of "ADD", "NEW" then
+            begin
+            do subcode
+            cppimcov:sub_code = l_sub_code
+            end
+        end
+        cppimcov:prem_no    ;
+501     cppimcov:build_no   ;
+801     begin
+        access cppinland, set cppinland:policy_no    = g_policy_no,
+                              cppinland:pol_year     = g_year,
+                              cppinland:end_sequence = g_end_sequence,
+                              cppinland:prem_no      = cppimcov:prem_no,
+                              cppinland:build_no     = cppimcov:build_no, generic
+
+        if function one of "ADD", "NEW" then
+            begin
+            do get_description
+            cppimcov:description = l_description
+            end
+        end
+        cppIMCOV:DESCRIPTION/uppercase/default ;
+901     begin
+        if function one of "ADD", "CHANGE", "NEW" then
+            begin
+            do get_premium
+            cppimcov:premium    = l_premium
+            cppimcov:limit      = l_limit
+            cppimcov:deductible = l_deductible
+            end
+        end
+        cppIMCOV:LIMIT/default ;
+1001    cppIMCOV:DEDUCTIBLE/default ;
+1101    cppIMCOV:SEE_FORM/checkbox/values="0,1"  ;
+1201    cppimcov:premium/default ;
+
+}
+
+}
+
+procedure definition
+
+procedure get_description
+begin
+access cppendorse, set cppendorse:policy_no    = g_policy_no,
+                       cppendorse:pol_year     = g_year,
+                       cppendorse:end_sequence = g_end_sequence,
+                       cppendorse:prem_no      = cppimcov:prem_no,
+                       cppendorse:build_no     = cppimcov:build_no, generic
+
+l_description = ""
+while cppendorse:policy_no    = g_policy_no and
+      cppendorse:pol_year     = g_year and
+      cppendorse:end_sequence = g_end_sequence and
+      cppendorse:prem_no      = cppimcov:prem_no and
+      cppendorse:build_no     = cppimcov:build_no
+    begin
+    if cppendorse:description <> "" and
+       cppendorse:code = "MIM131" then
+        l_description = cppendorse:description
+
+    next cppendorse
+    end
+
+if l_description = "" then
+    l_description = trun(cppinland:business_description[1]) +
+                    " " +
+                    trun(cppinland:business_description[2])
+end
+
+procedure get_premium
+begin
+access cppendorse, set cppendorse:policy_no    = g_policy_no,
+                       cppendorse:pol_year     = g_year,
+                       cppendorse:end_sequence = g_end_sequence,
+                       cppendorse:prem_no      = cppimcov:prem_no,
+                       cppendorse:build_no     = cppimcov:build_no, generic
+
+l_premium = 0
+l_limit   = 0
+while cppendorse:policy_no    = g_policy_no and
+      cppendorse:pol_year     = g_year and
+      cppendorse:end_sequence = g_end_sequence and
+      cppendorse:prem_no      = cppimcov:prem_no and
+      cppendorse:build_no     = cppimcov:build_no
+    begin
+    if cppendorse:premium[1] <> 0 then
+        begin
+        l_deductible = cppendorse:deductible[1]
+        l_limit      = cppendorse:limit[1] + l_limit
+        l_premium    = l_premium + cppendorse:premium[1]
+        end
+
+    next cppendorse
+    end
+
+end
+
+procedure subcode
+begin
+access cppimcov_alias, set cppimcov_alias:policy_no    = cppimcov:policy_no,
+                           cppimcov_alias:pol_year     = cppimcov:pol_year,
+                           cppimcov_alias:end_sequence = cppimcov:end_sequence, generic
+
+l_sub_code = 0
+while cppimcov_alias:policy_no    = cppimcov:policy_no and
+      cppimcov_alias:pol_year     = cppimcov:pol_year and
+      cppimcov_alias:end_sequence = cppimcov:end_sequence
+    begin
+    l_sub_code = cppimcov_alias:sub_code
+
+    next cppimcov_alias
+    end
+
+l_sub_code = l_sub_code + 10
+end
+
+End

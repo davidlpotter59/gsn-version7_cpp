@@ -1,0 +1,160 @@
+%%
+Screen
+        Name = "cppmt896" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppLIABILITY";
+        Windowtitle = "%a     %s Totals By Location - Ver. 7.00     %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Signed Ascii Number L_SUPPLEMENTAL_PREMIUM[8]=0 ,
+                                  L_END_PREMIUM[8]=0,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  l_total[8]=0;
+
+        Local String L_MISC[1] ,
+                     L_FIRST[1]="Y",
+                     L_FIRST_MISC[1]="Y" ;
+
+        Access cppLIABILITY, Set cppLIABILITY:policy_NO = G_policy_NO,
+                                 cppliability:pol_year = g_year,
+                                 cppliability:end_sequence = g_end_sequence, Generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+disable(add_fn)
+disable(change_fn)
+disable(delete_fn)
+
+Access Validation
+If cppLIABILITY:policy_NO <> G_policy_NO or
+   cppliability:pol_Year <> g_year or
+   cppliability:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*-------------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                                 |
+| Location No:  ____                                                                  |
+| Building No:  ____                                                                  |
+| Class Code:   _____                                                                 |
+*--------------*---------*----------*----------*----------*------------*--------------*
+| Peril        |   Rate  | Rate Adj | Exposure |   Per    |  Premium   |    Minimum   |
+*--------------*---------*----------*----------*----------*------------*--------------*
+| Prem/Ops:    | _______ | _______  | ________ | ________ | __________ |   ________   |
+| Products:    | _______ | _______  | ________ | ________ | __________ |   ________   |
+*--------------*---------*----------*----------*----------*------------*--------------*
+|                                       Premium:            __________                |
+|                                       Total Endorsements: __________                |
+|                                       Total Misc:         __________                |
+|                                       Minimum Adjustment: __________                |
+|                                       Total Premium:      __________                |
+*-------------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppLIABILITY:policy_NO/displayonly  ;
+302     cppliability:pol_year/displayonly ;
+303     cppliability:end_sequence/displayonly ;
+401     cppLIABILITY:PREM_NO/displayonly ;
+501     cppLIABILITY:BUILD_NO/displayonly ;
+601     cppLIABILITY:CLASS_CODE/displayonly ;
+
+--prem/ops
+1001    Begin
+        Access cppLIABILITY_ALIAS, Set cppLIABILITY_ALIAS:policy_NO   = cppLIABILITY:policy_NO,
+                                       cppliability_alias:pol_Year   = cppliability:pol_year,
+                                       cppliability_alias:end_sequence = cppliability:end_sequence,
+                                       cppLIABILITY_ALIAS:PREM_NO    = cppLIABILITY:PREM_NO,
+                                       cppLIABILITY_ALIAS:BUILD_NO   = cppLIABILITY:BUILD_NO,
+                                       cppLIABILITY_ALIAS:CLASS_CODE = cppLIABILITY:CLASS_CODE, Generic
+        End
+        cppLIABILITY_ALIAS:BASE_RATE[1];
+1002    cppLIABILITY_ALIAS:ADJUSTED_RATE[1];
+1003    cppLIABILITY_ALIAS:EXPOSURE[1]/mask="ZZ,ZZZ,ZZ9";
+1004    cppLIABILITY_ALIAS:RATES_PER[1];
+1005    cppLIABILITY_ALIAS:PREM[1];
+1006    cppliability_alias:minimum_premium[1] ;
+
+--products
+1101    cppLIABILITY_ALIAS:BASE_RATE[2] ;
+1102    cppLIABILITY_ALIAS:ADJUSTED_RATE[2];
+1103    cppLIABILITY_ALIAS:EXPOSURE[2]/mask="ZZ,ZZZ,ZZ9" ;
+1104    cppLIABILITY_ALIAS:RATES_PER[2];
+1105    cppLIABILITY_ALIAS:PREM[2] ;
+1106    cppliability_alias:minimum_premium[2] ;
+
+-- final premium
+1301    cppliability_alias:prem[1] +
+        cppliability_alias:prem[2]/mask="Z,ZZZ,ZZZ.99-" ;
+1401    cppliability_alias:total_endorsements/mask="Z,ZZZ,ZZZ.99-" ;
+1501    cppliability_alias:total_misc/mask="Z,ZZZ,ZZZ.99-" ;
+1601    cppliability_alias:minimum_premium_adjustment[1] +
+        cppliability_alias:minimum_premium_adjustment[2]/mask="Z,ZZZ,ZZZ.99-"
+        hide if cppliability_alias:prem[1] = 0 ;
+1601    l_total/mask="Z,ZZZ,ZZZ.99-"/displayonly
+        hide if cppliability_alias:prem[1] <> 0 ;
+1701    cppliability_alias:prem[1] +
+        cppliability_alias:prem[2] +
+        cppliability_alias:total_endorsements +
+        cppliability_alias:total_misc +
+        cppliability_alias:minimum_premium_adjustment[1] +
+        cppliability_alias:minimum_premium_adjustment[2]/mask="Z,ZZZ,ZZZ.99-"
+        hide if cppliability_alias:prem[1] = 0 ;
+1701    cppliability_alias:prem[1] +
+        cppliability_alias:prem[2] +
+        cppliability_alias:total_endorsements +
+        cppliability_alias:total_misc/mask="Z,ZZZ,ZZZ.99-"
+        hide if cppliability_alias:prem[1] <> 0 ;
+
+}
+
+End

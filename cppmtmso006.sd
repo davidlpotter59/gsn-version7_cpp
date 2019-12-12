@@ -1,0 +1,1047 @@
+%%
+Screen
+        Name            = "cppmtmso006" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a    %s Farm Property - Ver 7.00     %m" ;
+        Domain          = "cppFARM" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_OPTION[1] ;
+
+        Global Unsigned Ascii Number G_STATE[2] ,
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     g_county[3],
+                                     g_deductible[5],
+                                     g_wind_deductible[5] ;
+
+        Global String G_POPUP[1] ,
+                      G_COMPANY_ID[10] ,
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_LIMIT[8]=0 ,
+                                    L_SUB_CODE[4]=0 ,
+                                    l_override_hurricane_deductible[5],
+                                    L_FORM[1]=0,
+                                    L_STATE[2]=0 ,
+                                    l_mfp032[1]=0,
+                                    l_mfp034[1]=0,
+                                    l_mfp036[1]=0,
+                                    l_line_of_business[4] ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     L_CODE_6[7],
+                     L_CODE_7[7],
+                     l_hurricane_code_1[7],
+                     l_hurricane_code_2[7],
+                     l_hurricane_code_3[7],
+                     L_ADD_ENDORSEMENT[1],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access cppFARM,
+           Set cppFARM:policy_NO = G_policy_NO ,
+               cppfarm:pol_year = g_year,
+               cppfarm:end_sequence = g_end_sequence ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "SPEC" Display "cppmtmso06a" ;
+        "FACT" Display "cppmtmso06b" ;
+
+        "popup" display "l_screen" ;
+
+        "redisplay" display/noreturn "cppmtmso006" tagged redisplay_fn ;
+
+        "farmliab" display "cppmtmso697"   tagged farmliab_fn ;
+        "cova"     display "cppmtmso601"   tagged cova_fn ;
+        "covb"     display "cppmtmso602"   tagged covb_fn ;
+        "covc"     display "cppmtmso603"   tagged covc_fn ;
+        "covd"     display "cppmtmso604"   tagged covd_fn ;
+        "cove"     display "cppmtmso605"   tagged cove_fn ;
+        "misc"     display "cppmtmso606"   tagged misc_fn ;
+        "sup"      display "cppmtmso600"   tagged sup_fn ;
+        "endfarm"  display "cppmtmso650"   tagged endorsefarm_fn ;
+        "dev"      display "cppmtmso696"   tagged dev_fn ;
+
+        "func1"  sequence "terr"    tagged terr_fn ;
+        "terr" continue  Begin
+                   if sfscompany:special_territory_rating = 1 then
+                       function = "SPEC"
+                   else
+                       Error "You are not setup to do special territory rating"
+                   end ;
+
+        "func2"   sequence "terrfac"   tagged terrfac_fn ;
+        "terrfac" continue begin
+                   if sfscompany:special_territory_rating = 1 then
+                       function = "FACT"
+                   else
+                       Error "You are not setup to do special territory rating"
+                    end ;
+        "func3" display "" tagged limits_fn ;
+
+        include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        Include "cppmsofrmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+
+Access Validation
+If cppFARM:policy_NO <> G_policy_NO or
+   cppfarm:pol_year <> g_year or
+   cppfarm:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppFARM:policy_NO = G_policy_NO
+            cppfarm:pol_year = g_year
+            cppfarm:end_sequence = g_End_sequence
+            cppFARM:PREM_NO = G_PREM_NO
+            cppFARM:BUILD_NO = G_BUILD_NO
+            cppfarm:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppFARM:policy_NO/displayonly ;
+302     cppfarm:pol_year/displayonly ;
+303     cppfarm:end_sequence/displayonly ;
+401     cppFARM:PREM_NO/default ;
+501     cppFARM:BUILD_NO/default ;
+
+} -- end of header
+
+CardDialog GUI at 1,80
+{
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Rating Information"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| State: __    _______________    County: ___  _______________________________ |
+| Deductible:  _____              Wind Deductible: _____ Hurricane: _____      |
+| Option:      _                  MFP032:  _  MFP034:  _   MFP036:  _          |
+| Coinsurance: ___                                                             |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201     Begin
+        l_line_of_business = sfsline:rating_line_of_business
+        If FUNCTION = "ADD" Then
+            cppFARM:STATE = CPSFARMDEFAULT:STATE
+        End
+        cppFARM:STATE/default
+        Include "statehlp.inc"
+202     SFSSTATE:DESCRIPTION ;
+203     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            G_STATE = cppFARM:STATE
+            G_LINE_OF_BUSINESS = l_line_of_business
+            G_COMPANY_ID = sfpNAME:COMPANY_ID
+            G_policy_NO = cppFARM:policy_NO
+            Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO,
+                                  sfpmaster:pol_year = g_year,
+                                  sfpmaster:end_sequence = g_end_sequence, Generic
+
+            If sfpMASTER:policy_NO <> G_policy_NO or
+               sfpmaster:pol_Year <> g_year or
+               sfpmaster:end_sequence <> g_end_sequence Then
+                Begin
+                Display Modal Screen "cppmtmso210"
+                With Initial Function "ADD|BACK"
+                End
+
+            cppFARM:COUNTY = CPSFARMDEFAULT:COUNTY
+            Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO,
+                                  sfpmaster:pol_year = g_year,
+                                  sfpmaster:end_sequence = g_end_sequence, Generic
+
+            If sfpMASTER:policy_NO = G_policy_NO and
+               sfpmaster:pol_year = g_Year and
+               sfpmaster:end_sequence = g_End_sequence Then
+                Begin
+                change sfpmaster
+                   begin
+                   sfpmaster:state = cppfarm:state
+                   end
+                end
+            End
+        End
+        cppFARM:COUNTY/default
+        Include "countyhlp.inc"
+204     SFSSTATE_ALIAS:DESCRIPTION ;
+301     begin
+        g_county = cppfarm:county
+        if function one of "ADD" then
+            cppfarm:deductible = cpsfarmdefault:deductible
+        access sfsdeductible_alias, set sfsdeductible_alias:company_id = sfpname:company_id,
+                                        sfsdeductible_alias:state = cppfarm:state,
+                                        sfsdeductible_alias:line_of_business = l_line_of_business, generic
+
+        end
+        cppfarm:deductible/default
+        Access SFSDEDUCTIBLE, Set SFSDEDUCTIBLE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                  SFSDEDUCTIBLE:STATE = cppFARM:STATE,
+                                  SFSDEDUCTIBLE:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                                  SFSDEDUCTIBLE:DEDUCTIBLE = cppFARM:DEDUCTIBLE, Generic
+
+        If cppFARM:DEDUCTIBLE <> SFSDEDUCTIBLE:DEDUCTIBLE Then
+            Error 1207
+
+        Activehelp SFSDEDUCTIBLE_ALIAS:DEDUCTIBLE ;
+302     begin
+        access sfswinddeduct_alias, sfswinddeduct_alias:company_id       = sfpname:company_id,
+                                    sfswinddeduct_alias:state            = cppfarm:state,
+                                    sfswinddeduct_alias:line_of_business = l_line_of_business,
+                                    sfswinddeduct_alias:deductible       = cppfarm:deductible, generic
+        end
+        cppfarm:wind_deductible/default
+        access sfswinddeduct, sfswinddeduct:company_id       = sfpname:company_id,
+                              sfswinddeduct:state            = cppfarm:state,
+                              sfswinddeduct:line_of_business = l_line_of_business,
+                              sfswinddeduct:deductible       = cppfarm:deductible,
+                              sfswinddeduct:wind_deductible  = cppfarm:wind_deductible, generic
+
+        If cppFARM:WIND_DEDUCTIBLE <> SFSWINDDEDUCT:WIND_DEDUCTIBLE And
+           cppFARM:WIND_DEDUCTIBLE <> 0 Then
+            Error 1207
+
+        Activehelp SFSWINDDEDUCT_ALIAS:WIND_DEDUCTIBLE ;
+303     begin
+        access cppfarm_alias, set cppfarm_alias:policy_no    = cppfarm:policy_no,
+                                  cppfarm_alias:pol_year     = cppfarm:pol_year,
+                                  cppfarm_alias:end_sequence = cppfarm:end_sequence,
+                                  cppfarm_alias:prem_no      = cppfarm:prem_no,
+                                  cppfarm_alias:build_no     = cppfarm:build_no, generic
+
+        l_override_hurricane_deductible = cppfarm_alias:override_hurricane_deductible
+        if l_override_hurricane_deductible = 0 and
+           cppfarm_alias:hurricane_changed = 0 then
+            l_override_hurricane_deductible = cppfarm_alias:hurricane_deductible
+        end
+        l_override_hurricane_deductible/default
+        if l_override_hurricane_deductible not one of 0, 2, 3 then
+            error "Invalid Percentage Entered"
+        if l_override_hurricane_deductible <> cppfarm_alias:override_hurricane_deductible and
+           g_inquiry <> "Y" then
+            begin
+            access sfstier, set sfstier:company_id       = sfpname:company_id,
+                                sfstier:state            = cppfarm:state,
+                                sfstier:line_of_business = cppfarm:rating_line_of_business, generic
+
+            l_hurricane_code_1 = ""
+            l_hurricane_code_2 = ""
+            l_hurricane_code_3 = ""
+            while sfstier:company_Id       = sfpname:company_id and
+                  sfstier:state            = cppfarm:state and
+                  sfstier:line_of_business = cppfarm:rating_line_of_business
+                begin
+                if (sfpname:eff_date >= sfstier:eff_date and
+                   (sfpname:eff_date <= sfstier:exp_date or
+                   sfstier:exp_date = 0)) then
+                    begin
+                    if sfstier:hurricane_deductible = cppfarm_alias:hurricane_deductible and
+                       cppfarm_alias:hurricane_deductible <> l_override_hurricane_deductible then
+                        l_hurricane_code_1 = sfstier:hurricane_code
+                    if sfstier:hurricane_deductible = l_override_hurricane_deductible then
+                        l_hurricane_code_2 = sfstier:hurricane_code
+                    if sfstier:hurricane_deductible = cppfarm_alias:override_hurricane_deductible and
+                       cppfarm_alias:override_hurricane_deductible <> l_override_hurricane_deductible then
+                        l_hurricane_code_3 = sfstier:hurricane_code
+                    end
+
+                next sfstier
+                end
+
+            if l_hurricane_code_1 <> "" and
+               sfpname:company_id = "FLEMINGTON" then
+                begin
+                l_code = l_hurricane_code_1
+                do access_sfpend
+                if l_add_endorsement = "Y" and
+                   l_override_hurricane_deductible = cppfarm:hurricane_deductible then
+                    do add_sfpend
+                if l_add_endorsement = "N" and
+                   l_override_hurricane_deductible <> cppfarm:hurricane_deductible then
+                    do delete_sfpend
+                end
+
+            if l_hurricane_code_2 <> "" and
+               sfpname:company_id = "FLEMINGTON" then
+                begin
+                l_code = l_hurricane_code_2
+                do access_sfpend
+                if l_add_endorsement = "Y" then
+                    do add_sfpend
+                end
+
+            if l_hurricane_code_3 <> "" and
+               sfpname:company_id = "FLEMINGTON" then
+                begin
+                l_code = l_hurricane_code_3
+                do access_sfpend
+                if l_add_endorsement = "N" then
+                    do delete_sfpend
+                end
+
+            end
+
+        if g_inquiry <> "Y" then
+            begin
+            access cppfarm_alias, set cppfarm_alias:policy_no    = cppfarm:policy_no,
+                                      cppfarm_alias:pol_year     = cppfarm:pol_year,
+                                      cppfarm_alias:end_sequence = cppfarm:end_sequence,
+                                      cppfarm_alias:prem_no      = cppfarm:prem_no,
+                                      cppfarm_alias:build_no     = cppfarm:build_no, generic
+
+            if cppfarm_alias:policy_no    = cppfarm:policy_no and
+               cppfarm_alias:pol_year     = cppfarm:pol_year and
+               cppfarm_alias:end_sequence = cppfarm:end_sequence and
+               cppfarm_alias:prem_no      = cppfarm:prem_no and
+               cppfarm_alias:build_no     = cppfarm:build_no then
+                begin
+                change cppfarm_alias
+                    begin
+                    if l_override_hurricane_deductible <> cppfarm_alias:override_hurricane_deductible then
+                        begin
+                        cppfarm_alias:override_hurricane_deductible = l_override_hurricane_deductible
+                        cppfarm_alias:hurricane_changed = 1
+                        end
+                    else
+                        begin
+                        cppfarm_alias:hurricane_changed = 0
+                        end
+                    end
+                end
+            end;
+
+
+401     begin
+        if function one of "ADD" then
+            cppfarm:option = cpsfarmdefault:option
+        end
+        cppfarm:option/default
+        if cppfarm:option <> cpsfarmoption:option then
+            error "Invalid Option Code"
+
+        activehelp cpsfarmoption_alias:option,
+                   cpsfarmoption_alias:description ;
+402     begin
+            l_mfp032 = cppfarm:mfp032
+        end
+        cppfarm:mfp032/checkbox/values="0,1" ;
+403     begin
+            l_mfp034 = cppfarm:mfp034
+        end
+        cppfarm:mfp034/checkbox/values="0,1" ;
+404     begin
+            l_mfp036 = cppfarm:mfp036
+        end
+        cppfarm:mfp036/checkbox/values="0,1" ;
+501    begin
+        if function one of "ADD" then
+            cppfarm:coinsurance = cpsfarmdefault:coinsurance
+        end
+        cppfarm:coinsurance/default;
+
+} -- end of rating
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Coverages"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+|                      Coverage A:   ___________                               |
+|                      Coverage B:   ___________                               |
+|                      Coverage C:   ___________                               |
+|                      Coverage D:   ___________                               |
+|                      Coverage E:   ___________                               |
+|                      Misc:         ___________                               |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201    Begin
+        If FUNCTION one of "ADD", "CHANGE" Then
+            Begin
+            G_STATE = cppFARM:STATE
+            G_PREM_NO = cppFARM:PREM_NO
+            G_BUILD_NO = cppFARM:BUILD_NO
+            g_option = cppfarm:option
+            g_state = cppfarm:state
+            g_county = cppfarm:county
+            g_deductible = cppfarm:deductible
+            g_wind_deductible = cppfarm:wind_deductible
+            Display Modal Screen "cppmtmso601"
+            Access cppFARMCOVA, Set cppFARMCOVA:policy_NO = G_policy_NO,
+                                    cppfarmcova:pol_year = g_year,
+                                    cppfarmcova:end_sequence = g_end_sequence,
+                                    cppFARMCOVA:PREM_NO = G_PREM_NO,
+                                    cppFARMCOVA:BUILD_NO = G_BUILD_NO, Generic
+
+            L_LIMIT = 0
+            While cppFARMCOVA:policy_NO = G_policy_NO And
+                  cppfarmcova:pol_year = g_year and
+                  cppfarmcova:end_sequence = g_end_sequence and
+                  cppFARMCOVA:PREM_NO = G_PREM_NO And
+                  cppFARMCOVA:BUILD_NO = G_BUILD_NO
+                    Begin
+                    L_LIMIT = cppFARMCOVA:LIMIT +
+                              L_LIMIT
+
+                    Next cppFARMCOVA
+                    End
+            cppFARM:COVERAGE_A_LIMIT = L_LIMIT
+            End
+        End
+        cppFARM:COVERAGE_A_LIMIT/displayonly;
+301    Begin
+        If FUNCTION one of "ADD", "CHANGE" Then
+            Begin
+            G_STATE = cppFARM:STATE
+            G_PREM_NO = cppFARM:PREM_NO
+            G_BUILD_NO = cppFARM:BUILD_NO
+            g_option = cppfarm:option
+            g_state = cppfarm:state
+            g_county = cppfarm:county
+            g_deductible = cppfarm:deductible
+            g_wind_deductible = cppfarm:wind_deductible
+            Display Modal Screen "cppmtmso602"
+            Access cppFARMcovb, Set cppFARMcovb:policy_NO = G_policy_NO,
+                                    cppfarmcovb:pol_year = g_year,
+                                    cppfarmcovb:end_sequence = g_end_sequence,
+                                    cppFARMcovb:PREM_NO = G_PREM_NO,
+                                    cppFARMcovb:BUILD_NO = G_BUILD_NO, Generic
+
+            L_LIMIT = 0
+            While cppFARMcovb:policy_NO = G_policy_NO And
+                  cppfarmcovb:pol_year = g_year and
+                  cppfarmcovb:end_sequence = g_end_sequence and
+                  cppFARMcovb:PREM_NO = G_PREM_NO And
+                  cppFARMcovb:BUILD_NO = G_BUILD_NO
+                    Begin
+                    L_LIMIT = cppFARMcovb:LIMIT +
+                              L_LIMIT
+
+                    Next cppFARMcovb
+                    End
+            cppFARM:COVERAGE_B_LIMIT = L_LIMIT
+            End
+        End
+        cppFARM:COVERAGE_B_LIMIT/displayonly ;
+401    Begin
+        If FUNCTION one of "ADD", "CHANGE" Then
+            Begin
+            G_STATE = cppFARM:STATE
+            G_PREM_NO = cppFARM:PREM_NO
+            G_BUILD_NO = cppFARM:BUILD_NO
+            g_option = cppfarm:option
+            g_state = cppfarm:state
+            g_county = cppfarm:county
+            g_deductible = cppfarm:deductible
+            g_wind_deductible = cppfarm:wind_deductible
+            Display Modal Screen "cppmtmso603"
+            Access cppFARMCOVC, Set cppFARMCOVC:policy_NO = G_policy_NO,
+                                    cppfarmcovc:pol_year = g_year,
+                                    cppfarmcovc:end_sequence = g_end_sequence,
+                                    cppFARMCOVC:PREM_NO = G_PREM_NO,
+                                    cppFARMCOVC:BUILD_NO = G_BUILD_NO, Generic
+
+            L_LIMIT = 0
+            While cppFARMCOVC:policy_NO = G_policy_NO And
+                  cppfarmcovc:pol_year = g_year and
+                  cppfarmcovc:end_sequence = g_end_sequence and
+                  cppFARMCOVC:PREM_NO = G_PREM_NO And
+                  cppFARMCOVC:BUILD_NO = G_BUILD_NO
+                    Begin
+                    L_LIMIT = cppFARMCOVC:LIMIT +
+                              L_LIMIT
+
+                    Next cppFARMCOVC
+                    End
+            cppFARM:COVERAGE_C_LIMIT = L_LIMIT
+            End
+        End
+        cppFARM:COVERAGE_C_LIMIT/displayonly ;
+501    Begin
+        If FUNCTION one of "ADD", "CHANGE" Then
+            Begin
+            G_PREM_NO = cppFARM:PREM_NO
+            G_BUILD_NO = cppFARM:BUILD_NO
+            G_STATE = cppFARM:STATE
+            g_option = cppfarm:option
+            g_state = cppfarm:state
+            g_county = cppfarm:county
+            g_deductible = cppfarm:deductible
+            g_wind_deductible = cppfarm:wind_deductible
+            Display Modal Screen "cppmtmso604"
+            Access cppFARMCOVD, Set cppFARMCOVD:policy_NO = G_policy_NO,
+                                    cppfarmcovd:pol_year = g_year,
+                                    cppfarmcovd:end_sequence = g_end_sequence,
+                                    cppFARMCOVD:PREM_NO = G_PREM_NO,
+                                    cppFARMCOVD:BUILD_NO = G_BUILD_NO, Generic
+
+            L_LIMIT = 0
+            While cppFARMCOVD:policy_NO = G_policy_NO And
+                  cppfarmcovd:pol_year = g_year and
+                  cppfarmcovd:end_sequence = g_end_sequence and
+                  cppFARMCOVD:PREM_NO = G_PREM_NO And
+                  cppFARMCOVD:BUILD_NO = G_BUILD_NO
+                    Begin
+                    L_LIMIT = cppFARMCOVD:LIMIT +
+                              L_LIMIT
+
+                    Next cppFARMCOVD
+                    End
+            cppFARM:COVERAGE_D_LIMIT = L_LIMIT
+            End
+        End
+        cppFARM:COVERAGE_D_LIMIT/displayonly;
+601    Begin
+        If FUNCTION one of "ADD", "CHANGE" Then
+            Begin
+            G_STATE = cppFARM:STATE
+            G_PREM_NO = cppFARM:PREM_NO
+            G_BUILD_NO = cppFARM:BUILD_NO
+            g_option = cppfarm:option
+            g_state = cppfarm:state
+            g_county = cppfarm:county
+            g_deductible = cppfarm:deductible
+            g_wind_deductible = cppfarm:wind_deductible
+            Display Modal Screen "cppmtmso605"
+            Access cppFARMcove, Set cppFARMcove:policy_NO = G_policy_NO,
+                                    cppfarmcove:pol_year = g_year,
+                                    cppfarmcove:end_sequence = g_end_sequence,
+                                    cppFARMcove:PREM_NO = G_PREM_NO,
+                                    cppFARMcove:BUILD_NO = G_BUILD_NO, Generic
+
+            L_LIMIT = 0
+            While cppFARMcove:policy_NO = G_policy_NO And
+                  cppfarmcove:pol_year = g_year and
+                  cppfarmcove:end_sequence = g_end_sequence and
+                  cppFARMcove:PREM_NO = G_PREM_NO And
+                  cppFARMcove:BUILD_NO = G_BUILD_NO
+                    Begin
+                    L_LIMIT = cppFARMcove:LIMIT +
+                              L_LIMIT
+
+                    Next cppFARMcove
+                    End
+            cppFARM:COVERAGE_E_LIMIT = L_LIMIT
+            End
+        End
+        cppFARM:COVERAGE_E_LIMIT/displayonly;
+701    Begin
+        If FUNCTION one of "ADD", "CHANGE" Then
+            Begin
+            G_STATE = cppFARM:STATE
+            G_PREM_NO = cppFARM:PREM_NO
+            G_BUILD_NO = cppFARM:BUILD_NO
+            g_option = cppfarm:option
+            g_state = cppfarm:state
+            g_county = cppfarm:county
+            g_deductible = cppfarm:deductible
+            g_wind_deductible = cppfarm:wind_deductible
+            Display Modal Screen "cppmtmso606"
+            Access cppFARMMISC, Set cppFARMMISC:policy_NO = G_policy_NO,
+                                    cppfarmmisc:pol_year = g_year,
+                                    cppfarmmisc:end_sequence = g_end_sequence,
+                                    cppFARMMISC:PREM_NO = G_PREM_NO,
+                                    cppFARMMISC:BUILD_NO = G_BUILD_NO, Generic
+
+            L_LIMIT = 0
+            While cppFARMMISC:policy_NO = G_policy_NO And
+                  cppfarmmisc:pol_year = g_year and
+                  cppfarmmisc:end_sequence = g_end_sequence and
+                  cppFARMMISC:PREM_NO = G_PREM_NO And
+                  cppFARMMISC:BUILD_NO = G_BUILD_NO
+                    Begin
+                    L_LIMIT = cppFARMMISC:LIMIT +
+                              L_LIMIT
+
+                    Next cppFARMMISC
+                    End
+            cppFARM:MISC_LIMIT = L_LIMIT
+            End
+        End
+        cppfarm:misc_limit/displayonly ;
+
+} -- end of coverages
+
+}
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    if function = "ADD" then
+        begin
+        access cpppolicy, set cpppolicy:policy_no = cppfarm:policy_no,
+                              cpppolicy:pol_year = cppfarm:pol_year,
+                              cpppolicy:end_Sequence = cppfarm:end_sequence,
+                              cpppolicy:prem_no = cppfarm:prem_no,
+                              cpppolicy:build_no = cppfarm:build_no, generic
+
+        if cpppolicy:policy_no <> cppfarm:policy_no or
+           cpppolicy:pol_year <> cppfarm:pol_year or
+           cpppolicy:end_sequence <> cppfarm:end_sequence or
+           cpppolicy:prem_no <> cppfarm:prem_no or
+           cpppolicy:build_no <> cppfarm:build_no then
+            add cpppolicy
+                begin
+                cpppolicy:policy_no     =       cppfarm:policy_no
+                cpppolicy:pol_year      =       cppfarm:pol_year
+                cpppolicy:end_sequence  =       cppfarm:end_sequence
+                cpppolicy:prem_no       =       cppfarm:prem_no
+                cpppolicy:build_no      =       cppfarm:build_no
+                end
+        end
+
+/*    If FUNCTION = "ADD" And
+       SFSCOMPANY:SPECIAL_TERRITORY_RATING = 1 Then
+        Begin
+            Begin
+            Display Modal Screen "cppmtmso06a"
+            With Initial Function "CHANGE"
+            End
+            Begin
+            Display Modal Screen "cppmtmso06b"
+            With Initial Function "CHANGE"
+            End
+        End*/
+
+/*    If FUNCTION  = "ADD" And
+       cppFARM:COMPANY_DEVIATION = 0 Then
+        Begin
+        G_POPUP = "Y"
+        G_policy_NO = cppFARM:policy_NO
+        G_PREM_NO = cppFARM:PREM_NO
+        G_BUILD_NO = cppFARM:BUILD_NO
+        G_STATE = cppFARM:STATE
+        Display Modal Screen "cppmtmso696"
+        With Initial Function "CHANGE|BACK"
+        G_POPUP = "N"
+        End*/
+
+    If FUNCTION = "ADD" Then
+        Begin
+        Access CPSFARMMISCRATES, Set CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                     CPSFARMMISCRATES:STATE = cppFARM:STATE,
+                                     CPSFARMMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID And
+              CPSFARMMISCRATES:STATE = cppFARM:STATE And
+              CPSFARMMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If sfpNAME:EFF_DATE >= CPSFARMMISCRATES:EFF_DATE Then
+                    Begin
+                    Access cppFARMSUPP, Set cppFARMSUPP:policy_NO = cppFARM:policy_NO,
+                                            cppfarmsupp:pol_year = cppfarm:pol_year,
+                                            cppfarmsupp:end_sequence = cppfarm:end_sequence,
+                                            cppFARMSUPP:PREM_NO = cppFARM:PREM_NO,
+                                            cppFARMSUPP:BUILD_NO = cppFARM:BUILD_NO, Generic
+
+                    If cppFARMSUPP:policy_NO <> cppFARM:policy_NO Or
+                       cppfarmsupp:pol_year <> cppfarm:pol_year or
+                       cppfarmsupp:end_sequence <> cppfarm:end_sequence or
+                       cppFARMSUPP:PREM_NO <> cppFARM:PREM_NO Or
+                       cppFARMSUPP:BUILD_NO <> cppFARM:BUILD_NO Then
+                        Add cppFARMSUPP
+                            Begin
+                            cppFARMSUPP:policy_NO = cppFARM:policy_NO
+                            cppFARMSUPP:PREM_NO = cppFARM:PREM_NO
+                            cppFARMSUPP:BUILD_NO = cppFARM:BUILD_NO
+                            If cppFARM:MFP032 = 1 Then
+                                Begin
+                                cppFARMSUPP:BUILDING_CODE_PERCENT = CPSFARMMISCRATES:BUILDING_CODE_PERCENT
+                                cppFARMSUPP:LOSS_UTILITY_LIMIT = CPSFARMMISCRATES:LOSS_UTILITY_LIMIT
+                                cppFARMSUPP:MECHANICAL_LIMIT = CPSFARMMISCRATES:MECHANICAL_LIMIT
+                                cppFARMSUPP:CREDIT_CARD_LIMIT = CPSFARMMISCRATES:CREDIT_CARD_LIMIT
+                                cppFARMSUPP:DEBRIS_LIMIT = CPSFARMMISCRATES:DEBRIS_LIMIT
+                                cppFARMSUPP:LOSS_USE_LIMIT = CPSFARMMISCRATES:LOSS_USE_PERCENT
+                                cppFARMSUPP:EXTRA_EXP_LIMIT = CPSFARMMISCRATES:EXTRA_EXP_LIMIT
+                                cppFARMSUPP:OPERATIONS_LIMIT = CPSFARMMISCRATES:OPERATIONS_LIMIT
+                                cppFARMSUPP:POLLUTION_LIMIT = CPSFARMMISCRATES:POLLUTION_LIMIT
+                                cppFARMSUPP:LIGHT_POWER_LIMIT = CPSFARMMISCRATES:LIGHT_POWER_LIMIT
+                                cppFARMSUPP:CONTRACT_CARRIER_LIMIT = CPSFARMMISCRATES:CONTRACT_CARRIER_LIMIT
+                                cppFARMSUPP:CAMPERS_LIMIT = CPSFARMMISCRATES:CAMPERS_LIMIT
+                                cppFARMSUPP:FURS_LIMIT = CPSFARMMISCRATES:FURS_LIMIT
+                                cppFARMSUPP:GRAVE_MARKERS_LIMIT = CPSFARMMISCRATES:GRAVE_MARKERS_LIMIT
+                                cppFARMSUPP:GUNS_LIMIT = CPSFARMMISCRATES:GUNS_LIMIT
+                                cppFARMSUPP:JEWELRY_LIMIT = CPSFARMMISCRATES:JEWELRY_LIMIT
+                                cppFARMSUPP:MONEY_LIMIT = CPSFARMMISCRATES:MONEY_LIMIT
+                                cppFARMSUPP:BUS_PROP_LIMIT = CPSFARMMISCRATES:BUS_PROP_LIMIT
+                                cppFARMSUPP:RENTAL_PROP_LIMIT = CPSFARMMISCRATES:RENTAL_PROP_LIMIT
+                                cppFARMSUPP:SECURITIES_LIMIT = CPSFARMMISCRATES:SECURITIES_LIMIT
+                                cppFARMSUPP:SILVERWARE_LIMIT = CPSFARMMISCRATES:SILVERWARE_LIMIT
+                                cppFARMSUPP:WATERCRAFT_LIMIT = CPSFARMMISCRATES:WATERCRAFT_LIMIT
+                                cppFARMSUPP:BOILER = 0
+                                End
+                            else
+                            If cppFARM:mfp034 = 1 Then
+                                Begin
+                                cppFARMSUPP:BUILDING_CODE_PERCENT = 0
+                                cppFARMSUPP:LOSS_UTILITY_LIMIT = 0
+                                cppFARMSUPP:MECHANICAL_LIMIT = 0
+                                cppFARMSUPP:CREDIT_CARD_LIMIT = 0
+                                cppFARMSUPP:DEBRIS_LIMIT = CPSFARMMISCRATES:DEBRIS_LIMIT
+                                cppFARMSUPP:LOSS_USE_LIMIT = 0
+                                cppFARMSUPP:EXTRA_EXP_LIMIT = CPSFARMMISCRATES:EXTRA_EXP_LIMIT
+                                cppFARMSUPP:OPERATIONS_LIMIT = 0
+                                cppFARMSUPP:POLLUTION_LIMIT = 0
+                                cppFARMSUPP:LIGHT_POWER_LIMIT = 0
+                                cppFARMSUPP:CONTRACT_CARRIER_LIMIT = 0
+                                cppFARMSUPP:CAMPERS_LIMIT = 0
+                                cppFARMSUPP:FURS_LIMIT = 0
+                                cppFARMSUPP:GRAVE_MARKERS_LIMIT = 0
+                                cppFARMSUPP:GUNS_LIMIT = 0
+                                cppFARMSUPP:JEWELRY_LIMIT = 0
+                                cppFARMSUPP:MONEY_LIMIT = 0
+                                cppFARMSUPP:BUS_PROP_LIMIT = 0
+                                cppFARMSUPP:RENTAL_PROP_LIMIT = 0
+                                cppFARMSUPP:SECURITIES_LIMIT = 0
+                                cppFARMSUPP:SILVERWARE_LIMIT = 0
+                                cppFARMSUPP:WATERCRAFT_LIMIT = 0
+                                cppFARMSUPP:BOILER = 0
+                                End
+                            else
+                            If cppFARM:mfp036 = 1 Then
+                                Begin
+                                cppFARMSUPP:BUILDING_CODE_PERCENT = 0
+                                cppFARMSUPP:LOSS_UTILITY_LIMIT = 0
+                                cppFARMSUPP:MECHANICAL_LIMIT = 0
+                                cppFARMSUPP:CREDIT_CARD_LIMIT = 0
+                                cppFARMSUPP:DEBRIS_LIMIT = CPSFARMMISCRATES:DEBRIS_LIMIT
+                                cppFARMSUPP:LOSS_USE_LIMIT = 0
+                                cppFARMSUPP:EXTRA_EXP_LIMIT = CPSFARMMISCRATES:EXTRA_EXP_LIMIT
+                                cppFARMSUPP:OPERATIONS_LIMIT = 0
+                                cppFARMSUPP:CONTRACT_CARRIER_LIMIT = CPSFARMMISCRATES:CONTRACT_CARRIER_LIMIT
+                                cppFARMSUPP:POLLUTION_LIMIT = 0
+                                cppFARMSUPP:LIGHT_POWER_LIMIT = 0
+                                cppFARMSUPP:CAMPERS_LIMIT = 0
+                                cppFARMSUPP:FURS_LIMIT = 0
+                                cppFARMSUPP:GRAVE_MARKERS_LIMIT = 0
+                                cppFARMSUPP:GUNS_LIMIT = 0
+                                cppFARMSUPP:JEWELRY_LIMIT = 0
+                                cppFARMSUPP:MONEY_LIMIT = 0
+                                cppFARMSUPP:BUS_PROP_LIMIT = 0
+                                cppFARMSUPP:RENTAL_PROP_LIMIT = 0
+                                cppFARMSUPP:SECURITIES_LIMIT = 0
+                                cppFARMSUPP:SILVERWARE_LIMIT = 0
+                                cppFARMSUPP:WATERCRAFT_LIMIT = 0
+                                cppFARMSUPP:BOILER = 0
+                                End
+
+                            End
+                    End
+
+                Next CPSFARMMISCRATES
+                End
+        End
+
+    Access CPSFARMMISCRATES, Set CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSFARMMISCRATES:STATE = cppFARM:STATE,
+                                 CPSFARMMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSFARMMISCRATES:STATE = cppFARM:STATE And
+          CPSFARMMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSFARMMISCRATES:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSFARMMISCRATES:FORM_CODES[1]
+                L_CODE_2 = CPSFARMMISCRATES:SUPPLEMENTAL_CODES[1]
+                L_CODE_3 = CPSFARMMISCRATES:FORM_CODES[2]
+                L_CODE_4 = CPSFARMMISCRATES:SUPPLEMENTAL_CODES[2]
+                L_CODE_5 = CPSFARMMISCRATES:FORM_CODES[3]
+                L_CODE_6 = CPSFARMMISCRATES:SUPPLEMENTAL_CODES[3]
+                l_code_7 = cpsfarmmiscrates:mcp_form
+                End
+
+            Next CPSFARMMISCRATES
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARM:MFP032 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARM:MFP032 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARM:MFP032 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARM:MFP032 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARM:MFP034 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARM:MFP034 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_4 <> "" Then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARM:MFP034 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARM:MFP034 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_5 <> "" Then
+        Begin
+        L_CODE = L_CODE_5
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARM:MFP036 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARM:MFP036 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_6 <> "" Then
+        Begin
+        L_CODE = L_CODE_6
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARM:MFP036 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARM:MFP036 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_7 <> "" Then
+        Begin
+        L_CODE = L_CODE_7
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" Then
+            Do ADD_sfpEND
+        End
+
+    End
+
+Screen Exit
+        if g_state = 0 then g_state = cppfarm:state ;
+        if g_county = 0 then g_county = cppfarm:county ;
+        g_deductible = cppfarm:deductible ;
+        g_wind_deductible = cppfarm:wind_deductible ;
+        If cppFARM:PREM_NO > 0 Then G_PREM_NO = cppFARM:PREM_NO ;
+        If cppFARM:BUILD_NO > 0 Then G_BUILD_NO = cppFARM:BUILD_NO ;
+        if cppfarm:option > 0 then g_option = cppfarm:option ;
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_End_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_End_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppFARM_ALIAS, Set cppFARM_ALIAS:policy_NO = G_policy_NO,
+                          cppfarm_alias:pol_year = g_year,
+                          cppfarm_alias:end_Sequence = g_End_sequence,
+                          cppFARM_ALIAS:PREM_NO = G_PREM_NO,
+                          cppFARM_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = cppFARM_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_Sequence         =       g_End_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "F"
+    sfpEND:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_End_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

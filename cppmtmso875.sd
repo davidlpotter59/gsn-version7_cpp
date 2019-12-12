@@ -1,0 +1,119 @@
+%%
+Screen
+        Name            = "cppmtmso875"
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppendorse" ;
+        Windowtitle = "%a     %s Additional Insureds - Number of Insureds  Ver. 7.00 %m" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_no[9],
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4] ,
+                                     G_SUB_CODE_1[2],
+                                     G_SUB_CODE_2[2] ;
+
+        Global String G_CODE[7] ,
+                      g_inquiry[1] ;
+
+        string l_enter[1];
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_no = G_policy_no,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO = G_PREM_NO,
+               cppendorse:BUILD_NO = G_BUILD_NO ,
+               cppendorse:CODE = G_CODE,
+               cppendorse:sub_code = g_sub_code ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        Include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsemail,
+   set sfsemail:company_id = sfpname:company_id,
+       sfsemail:user_id    = username, generic
+
+Access Validation
+If cppendorse:policy_no <> G_policy_no Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:PREM_NO <> G_PREM_NO Or
+   cppendorse:BUILD_NO <> G_BUILD_NO Or
+   cppendorse:CODE <> G_CODE or
+   cppendorse:sub_code <> g_sub_code then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Number of Additional Insureds: 10 and Under:~~_                              |
+|      Number of Additional Insureds: Over 10:~~_                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+Components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function = "ADD" then
+            begin
+            cppendorse:policy_no    = g_policy_no
+            cppendorse:pol_year     = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:PREM_NO      = G_PREM_NO
+            cppendorse:BUILD_NO     = G_BUILD_NO
+            cppendorse:CODE         = G_CODE
+            cppendorse:sub_code     = g_sub_code
+            end
+        end
+        cppendorse:no_addl_insureds_under_10/checkbox/values="0,1" ;
+401     cppendorse:no_addl_insureds_over_10/checkbox/values="0,1" ;
+
+}
+
+}
+
+End

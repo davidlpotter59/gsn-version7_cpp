@@ -1,0 +1,1118 @@
+%%
+Program
+        Name = "cppcv100" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4] ,
+                                     G_END_SEQUENCE[4] ,
+                                     G_YEAR_1[4],
+                                     G_END_SEQUENCE_1[4] ,
+                                     G_TRANS_CODE[4] ;
+
+        Local String L_PROCEDURE[50],
+                     l_company_id[10] ,
+                     l_lob_end_code[1] ,
+                     l_type[2],
+                     l_coverage[1],
+                     l_code[7],
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_add_endorsement[1],
+                     l_form_edition[25],
+                     l_description[75];
+
+        local date l_terror_eff_date[8] ;
+
+        local unsigned ascii number l_add_back[1],
+                                    l_state[2] ,
+                                    l_prem_no[4],
+                                    l_build_no[4],
+                                    l_territory[3],
+                                    l_base_Rate_1[6]=0/dec=3,
+                                    l_base_rate_2[6]=0/dec=3,
+                                    l_arate_1[1]=0,
+                                    l_arate_2[1]=0,
+                                    l_products_not_applicable[1]=0,
+                                    l_package_mod[5]=0/dec=3,
+                                    l_zip_code[5],
+                                    l_state2[2],
+                                    l_agent_increase[4]=0/dec=2,
+                                    l_dont_increase[1],
+                                    l_increase[4]=0/dec=2,
+                                    l_inflatzipcode_increase[4]=0/dec=2,
+                                    l_agent_no[4],
+                                    l_rounded_building[8],
+                                    l_rounded_property[8],
+                                    l_percent[4],
+                                    l_rounded_limit[8],
+                                    l_round_factor[5],
+                                    l_stripped_number[8],
+                                    l_sub_code[4],
+                                    l_insurance_limit[8],
+                                    l_increase_used[6]=0/dec=2,
+                                    l_line_of_business[4]=0008,
+                                    l_line_of_business_1[4],
+                                    l_group_1[5]=0/dec=3,
+                                    l_group_2[5]=0/dec=3 ;
+
+        local wdate l_eff_date ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_YEAR_1 = Val(COMMANDLINE[21,24])
+G_END_SEQUENCE_1 = Val(COMMANDLINE[26,29])
+G_TRANS_CODE = Val(COMMANDLINE[31,34])
+
+/* cppblanket FILE UPDATE LOGIC */
+
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access sfpamt, set sfpamt:policy_no    = g_policy_no,
+                   sfpamt:pol_year     = g_year_1,
+                   sfpamt:end_sequence = g_end_sequence_1, generic
+
+access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                      sfpmaster:pol_year     = g_year_1,
+                      sfpmaster:end_sequence = g_end_sequence_1, generic
+
+L_PROCEDURE = "cppblanket FILE UPDATE"
+
+Access CPPBLANKET_ALIAS, Set CPPBLANKET_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPBLANKET_ALIAS:POL_YEAR = G_YEAR,
+                             CPPBLANKET_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBLANKET_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBLANKET_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBLANKET_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+        l_eff_date = sfpname:eff_date
+        l_company_id = sfpname:company_id
+        Access CPSRATINGTERR, Set CPSRATINGTERR:COMPANY_ID = L_COMPANY_ID,
+                                  CPSRATINGTERR:STATE = cppblanket_alias:STATE,
+                                  CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                  CPSRATINGTERR:COUNTY = cppblanket_alias:COUNTY,
+                                  CPSRATINGTERR:TERRITORY = cppblanket_alias:RATING_TERRITORY, Generic
+
+        while CPSRATINGTERR:COMPANY_ID = L_COMPANY_ID and
+              CPSRATINGTERR:STATE = cppblanket_alias:STATE and
+              CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+              CPSRATINGTERR:COUNTY = cppblanket_alias:COUNTY and
+              CPSRATINGTERR:TERRITORY = cppblanket_alias:RATING_TERRITORY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    l_group_1 = cpsratingterr:group_1
+                    l_group_2 = cpsratingterr:group_2
+                    end
+
+                next cpsratingterr
+                end
+
+    Add CPPBLANKET
+        Begin
+        CPPBLANKET:POLICY_NO              = G_POLICY_NO
+        CPPBLANKET:POL_YEAR               = G_YEAR_1
+        CPPBLANKET:END_SEQUENCE           = G_END_SEQUENCE_1
+        CPPBLANKET:PREM_NO                = CPPBLANKET_ALIAS:PREM_NO
+        CPPBLANKET:BUILD_NO               = CPPBLANKET_ALIAS:BUILD_NO
+        CPPBLANKET:RATE_TYPE              = CPPBLANKET_ALIAS:RATE_TYPE
+        CPPBLANKET:RECORD_RDF             = CPPBLANKET_ALIAS:RECORD_RDF/raw
+        if sfpmaster:trans_code one of 14 then
+            begin
+            If cppblanket:RATING_TERRITORY_GROUP = 1 Then
+                cppblanket:RATING_TERRITORY_FACTOR = L_GROUP_1
+            If cppblanket:RATING_TERRITORY_GROUP = 2 Then
+                cppblanket:RATING_TERRITORY_FACTOR = L_GROUP_2
+            end
+
+        End
+
+    Next CPPBLANKET_ALIAS
+    End
+
+/* cppblanketbi FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppblanketbi FILE UPDATE"
+
+Access CPPblanketbi_ALIAS, Set CPPblanketbi_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPblanketbi_ALIAS:POL_YEAR = G_YEAR,
+                             CPPblanketbi_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPblanketbi_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPblanketbi_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPblanketbi_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPblanketbi
+        Begin
+        CPPblanketbi:POLICY_NO              = G_POLICY_NO
+        CPPblanketbi:POL_YEAR               = G_YEAR_1
+        CPPblanketbi:END_SEQUENCE           = G_END_SEQUENCE_1
+        CPPblanketbi:PREM_NO                = CPPblanketbi_ALIAS:PREM_NO
+        CPPblanketbi:BUILD_NO               = CPPblanketbi_ALIAS:BUILD_NO
+        cppblanketbi:coverage               = cppblanketbi_alias:coverage
+        CPPblanketbi:RECORD_RDF             = CPPblanketbi_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPblanketbi_ALIAS
+    End
+
+/* cppbusdependprop FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppbusdependprop FILE UPDATE"
+
+Access CPPBUSDEPENDPROP_ALIAS, Set CPPBUSDEPENDPROP_ALIAS:POLICY_NO = G_POLICY_NO,
+                                   CPPBUSDEPENDPROP_ALIAS:POL_YEAR = G_YEAR,
+                                   CPPBUSDEPENDPROP_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSDEPENDPROP_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSDEPENDPROP_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSDEPENDPROP_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPBUSDEPENDPROP
+        Begin
+        CPPBUSDEPENDPROP:POLICY_NO              = G_POLICY_NO
+        CPPBUSDEPENDPROP:POL_YEAR               = G_YEAR_1
+        CPPBUSDEPENDPROP:END_SEQUENCE           = G_END_SEQUENCE_1
+        CPPBUSDEPENDPROP:PREM_NO                = CPPBUSDEPENDPROP_ALIAS:PREM_NO
+        CPPBUSDEPENDPROP:BUILD_NO               = CPPBUSDEPENDPROP_ALIAS:BUILD_NO
+        CPPBUSDEPENDPROP:RECORD_RDF             = CPPBUSDEPENDPROP_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSDEPENDPROP_ALIAS
+    End
+
+/* cppbusiness FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppbusiness FILE UPDATE"
+
+Access CPPBUSINESS_ALIAS, Set CPPBUSINESS_ALIAS:POLICY_NO = G_POLICY_NO,
+                           CPPBUSINESS_ALIAS:POL_YEAR = G_YEAR,
+                           CPPBUSINESS_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSINESS_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSINESS_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSINESS_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    access cppgeneral, set cppgeneral:policy_no    = cppbusiness_alias:policy_no,
+                           cppgeneral:pol_year     = cppbusiness_alias:pol_year,
+                           cppgeneral:end_sequence = cppbusiness_alias:end_sequence,
+                           cppgeneral:prem_no      = cppbusiness_alias:prem_no,
+                           cppgeneral:build_no     = cppbusiness_alias:build_no, generic
+
+    l_type = cppgeneral:type
+    l_coverage = "P"
+    l_state = cppbusiness_alias:state
+    l_line_of_business = cppbusiness_alias:rating_line_of_business
+    access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                          sfpmaster:pol_year     = g_year_1,
+                          sfpmaster:end_sequence = g_end_sequence_1, generic
+
+    if ((sfpmaster:trans_code one of 10, 14 and
+       sfpname:line_of_business one of 8) or
+       (sfpmaster:trans_code one of 10, 14 and
+       sfpname:line_of_business one of 99 and
+       sfpamt:line_of_business[2] one of 8)) then
+        begin
+        do get_package_mod
+        end
+
+    Add CPPBUSINESS
+        Begin
+        CPPBUSINESS:POLICY_NO              = G_POLICY_NO
+        CPPBUSINESS:POL_YEAR               = G_YEAR_1
+        CPPBUSINESS:END_SEQUENCE           = G_END_SEQUENCE_1
+        CPPBUSINESS:PREM_NO                = CPPBUSINESS_ALIAS:PREM_NO
+        CPPBUSINESS:BUILD_NO               = CPPBUSINESS_ALIAS:BUILD_NO
+        CPPBUSINESS:COVERAGE               = CPPBUSINESS_ALIAS:COVERAGE
+        CPPBUSINESS:RECORD_RDF             = CPPBUSINESS_ALIAS:RECORD_RDF/raw
+        if sfpmaster:trans_code one of 10, 14 and
+           l_package_mod <> 0 then
+            cppbusiness:package_mod[1]     = l_package_mod
+        End
+
+    Next CPPBUSINESS_ALIAS
+    End
+
+/* cppbusoffprem FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppbusoffprem FILE UPDATE"
+
+Access CPPBUSOFFPREM_ALIAS, Set CPPBUSOFFPREM_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPBUSOFFPREM_ALIAS:POL_YEAR = G_YEAR,
+                                CPPBUSOFFPREM_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSOFFPREM_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSOFFPREM_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSOFFPREM_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPBUSOFFPREM
+        Begin
+        CPPBUSOFFPREM:POLICY_NO               = G_POLICY_NO
+        CPPBUSOFFPREM:POL_YEAR                = G_YEAR_1
+        CPPBUSOFFPREM:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPBUSOFFPREM:PREM_NO                 = CPPBUSOFFPREM_ALIAS:PREM_NO
+        CPPBUSOFFPREM:BUILD_NO                = CPPBUSOFFPREM_ALIAS:BUILD_NO
+        CPPBUSOFFPREM:RECORD_RDF              = CPPBUSOFFPREM_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSOFFPREM_ALIAS
+    End
+
+L_PROCEDURE = "cppbuspayroll FILE UPDATE"
+
+Access CPPBUSPAYROLL_ALIAS, Set CPPBUSPAYROLL_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPBUSPAYROLL_ALIAS:POL_YEAR = G_YEAR,
+                                CPPBUSPAYROLL_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSPAYROLL_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSPAYROLL_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSPAYROLL_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPBUSPAYROLL
+        Begin
+        CPPBUSPAYROLL:POLICY_NO               = G_POLICY_NO
+        CPPBUSPAYROLL:POL_YEAR                = G_YEAR_1
+        CPPBUSPAYROLL:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPBUSPAYROLL:PREM_NO                 = CPPBUSPAYROLL_ALIAS:PREM_NO
+        CPPBUSPAYROLL:BUILD_NO                = CPPBUSPAYROLL_ALIAS:BUILD_NO
+        CPPBUSPAYROLL:RECORD_RDF              = CPPBUSPAYROLL_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSPAYROLL_ALIAS
+    End
+
+L_PROCEDURE = "cppcrime FILE UPDATE"
+
+Access CPPCRIME_ALIAS, Set CPPCRIME_ALIAS:POLICY_NO = G_POLICY_NO,
+                           CPPCRIME_ALIAS:POL_YEAR = G_YEAR,
+                           CPPCRIME_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPCRIME_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPCRIME_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPCRIME_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPCRIME
+        Begin
+        CPPCRIME:POLICY_NO               = G_POLICY_NO
+        CPPCRIME:POL_YEAR                = G_YEAR_1
+        CPPCRIME:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPCRIME:PREM_NO                 = CPPCRIME_ALIAS:PREM_NO
+        CPPCRIME:BUILD_NO                = CPPCRIME_ALIAS:BUILD_NO
+        CPPCRIME:CRIME_FORM              = CPPCRIME_ALIAS:CRIME_FORM
+        CPPCRIME:RECORD_RDF              = CPPCRIME_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPCRIME_ALIAS
+    End
+
+L_PROCEDURE = "cppcrimeform FILE UPDATE"
+
+Access CPPCRIMEFORM_ALIAS, Set CPPCRIMEFORM_ALIAS:POLICY_NO = G_POLICY_NO,
+                               CPPCRIMEFORM_ALIAS:POL_YEAR = G_YEAR,
+                               CPPCRIMEFORM_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPCRIMEFORM_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPCRIMEFORM_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPCRIMEFORM_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPCRIMEFORM
+        Begin
+        CPPCRIMEFORM:POLICY_NO               = G_POLICY_NO
+        CPPCRIMEFORM:POL_YEAR                = G_YEAR_1
+        CPPCRIMEFORM:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPCRIMEFORM:PREM_NO                 = CPPCRIMEFORM_ALIAS:PREM_NO
+        CPPCRIMEFORM:BUILD_NO                = CPPCRIMEFORM_ALIAS:BUILD_NO
+        CPPCRIMEFORM:RECORD_RDF              = CPPCRIMEFORM_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPCRIMEFORM_ALIAS
+    End
+
+L_PROCEDURE = "cppearthquake FILE UPDATE"
+
+Access CPPEARTHQUAKE_ALIAS, Set CPPEARTHQUAKE_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPEARTHQUAKE_ALIAS:POL_YEAR = G_YEAR,
+                                CPPEARTHQUAKE_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPEARTHQUAKE_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPEARTHQUAKE_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPEARTHQUAKE_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPEARTHQUAKE
+        Begin
+        CPPEARTHQUAKE:POLICY_NO               = G_POLICY_NO
+        CPPEARTHQUAKE:POL_YEAR                = G_YEAR_1
+        CPPEARTHQUAKE:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPEARTHQUAKE:PREM_NO                 = CPPEARTHQUAKE_ALIAS:PREM_NO
+        CPPEARTHQUAKE:BUILD_NO                = CPPEARTHQUAKE_ALIAS:BUILD_NO
+        CPPEARTHQUAKE:RATE_TYPE               = CPPEARTHQUAKE_ALIAS:RATE_TYPE
+        CPPEARTHQUAKE:RECORD_RDF              = CPPEARTHQUAKE_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPEARTHQUAKE_ALIAS
+    End
+
+L_PROCEDURE = "cppelectmedia FILE UPDATE"
+
+Access CPPELECTMEDIA_ALIAS, Set CPPELECTMEDIA_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPELECTMEDIA_ALIAS:POL_YEAR = G_YEAR,
+                                CPPELECTMEDIA_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPELECTMEDIA_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPELECTMEDIA_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPELECTMEDIA_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPELECTMEDIA
+        Begin
+        CPPELECTMEDIA:POLICY_NO               = G_POLICY_NO
+        CPPELECTMEDIA:POL_YEAR                = G_YEAR_1
+        CPPELECTMEDIA:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPELECTMEDIA:PREM_NO                 = CPPELECTMEDIA_ALIAS:PREM_NO
+        CPPELECTMEDIA:BUILD_NO                = CPPELECTMEDIA_ALIAS:BUILD_NO
+        CPPELECTMEDIA:RECORD_RDF              = CPPELECTMEDIA_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPELECTMEDIA_ALIAS
+    End
+
+L_PROCEDURE = "cppendorse FILE UPDATE"
+
+Access CPPENDORSE_ALIAS, Set CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPENDORSE_ALIAS:POL_YEAR = G_YEAR,
+                             CPPENDORSE_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPENDORSE_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPENDORSE_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPENDORSE_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPENDORSE
+        Begin
+        CPPENDORSE:POLICY_NO               = G_POLICY_NO
+        CPPENDORSE:POL_YEAR                = G_YEAR_1
+        CPPENDORSE:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPENDORSE:PREM_NO                 = CPPENDORSE_ALIAS:PREM_NO
+        CPPENDORSE:BUILD_NO                = CPPENDORSE_ALIAS:BUILD_NO
+        CPPENDORSE:CODE                    = CPPENDORSE_ALIAS:CODE/raw
+        CPPENDORSE:SUB_CODE                = CPPENDORSE_ALIAS:SUB_CODE
+        CPPENDORSE:RECORD_RDF              = CPPENDORSE_ALIAS:RECORD_RDF/raw
+        if cppendorse:code = "MCP201" and
+           g_trans_code = 14 then
+            begin
+            cppendorse:eff_date            = dateadd(cppendorse_alias:eff_date,0,1)
+            cppendorse:exp_date            = dateadd(cppendorse_alias:exp_date,0,1)
+            end
+        End
+
+    Next CPPENDORSE_ALIAS
+    End
+
+L_PROCEDURE = "cppendorse1 FILE UPDATE"
+
+Access CPPendorse1_ALIAS, Set CPPendorse1_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPendorse1_ALIAS:POL_YEAR = G_YEAR,
+                             CPPendorse1_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPendorse1_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPendorse1_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPendorse1_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPendorse1
+        Begin
+        CPPendorse1:POLICY_NO               = G_POLICY_NO
+        CPPendorse1:POL_YEAR                = G_YEAR_1
+        CPPendorse1:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPendorse1:PREM_NO                 = CPPendorse1_ALIAS:PREM_NO
+        CPPendorse1:BUILD_NO                = CPPendorse1_ALIAS:BUILD_NO
+        CPPendorse1:CODE                    = CPPendorse1_ALIAS:CODE/raw
+        CPPendorse1:SUB_CODE                = CPPendorse1_ALIAS:SUB_CODE
+        CPPendorse1:RECORD_RDF              = CPPendorse1_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPendorse1_ALIAS
+    End
+
+L_PROCEDURE = "cppexclusions FILE UPDATE"
+
+Access CPPEXCLUSIONS_ALIAS, Set CPPEXCLUSIONS_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPEXCLUSIONS_ALIAS:POL_YEAR = G_YEAR,
+                                CPPEXCLUSIONS_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPEXCLUSIONS_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPEXCLUSIONS_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPEXCLUSIONS_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPEXCLUSIONS
+        Begin
+        CPPEXCLUSIONS:POLICY_NO               = G_POLICY_NO
+        CPPEXCLUSIONS:POL_YEAR                = G_YEAR_1
+        CPPEXCLUSIONS:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPEXCLUSIONS:PREM_NO                 = CPPEXCLUSIONS_ALIAS:PREM_NO
+        CPPEXCLUSIONS:BUILD_NO                = CPPEXCLUSIONS_ALIAS:BUILD_NO
+        CPPEXCLUSIONS:RATE_TYPE               = CPPEXCLUSIONS_ALIAS:RATE_TYPE
+        CPPEXCLUSIONS:RECORD_RDF              = CPPEXCLUSIONS_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPEXCLUSIONS_ALIAS
+    End
+
+L_PROCEDURE = "cppextperiod FILE UPDATE"
+
+Access CPPEXTPERIOD_ALIAS, Set CPPEXTPERIOD_ALIAS:POLICY_NO = G_POLICY_NO,
+                               CPPEXTPERIOD_ALIAS:POL_YEAR = G_YEAR,
+                               CPPEXTPERIOD_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPEXTPERIOD_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPEXTPERIOD_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPEXTPERIOD_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPEXTPERIOD
+        Begin
+        CPPEXTPERIOD:POLICY_NO               = G_POLICY_NO
+        CPPEXTPERIOD:POL_YEAR                = G_YEAR_1
+        CPPEXTPERIOD:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPEXTPERIOD:PREM_NO                 = CPPEXTPERIOD_ALIAS:PREM_NO
+        CPPEXTPERIOD:BUILD_NO                = CPPEXTPERIOD_ALIAS:BUILD_NO
+        CPPEXTPERIOD:RECORD_RDF              = CPPEXTPERIOD_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPEXTPERIOD_ALIAS
+    End
+
+L_PROCEDURE = "cppgeneral FILE UPDATE"
+
+Access CPPGENERAL_ALIAS, Set CPPGENERAL_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPGENERAL_ALIAS:POL_YEAR = G_YEAR,
+                             CPPGENERAL_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                      sfpmaster:pol_year     = g_year_1,
+                      sfpmaster:end_sequence = g_end_sequence_1, generic
+
+if sfpmaster:trans_code one of 10, 14 then
+    begin
+    l_state = cppgeneral_alias:state
+    do access_terrorism
+    end
+    l_company_id = sfpname:company_id
+    access sfsinflation, set sfsinflation:company_id       = l_company_id,
+                             sfsinflation:state            = cppgeneral_alias:state,
+                             sfsinflation:line_of_business = cppgeneral_alias:rating_line_of_business, generic
+
+    l_percent = 0
+    while sfsinflation:company_id       = l_company_id and
+          sfsinflation:state            = cppgeneral_alias:state and
+          sfsinflation:line_of_business = cppgeneral_alias:rating_line_of_business
+        begin
+        if sfpname:eff_date >= sfsinflation:eff_date then
+            begin
+            if sfsinflation:make_default = 1 then
+                l_percent = sfsinflation:percent
+
+            end
+
+        next sfsinflation
+        end
+
+Repeat Begin
+    Exit If CPPGENERAL_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPGENERAL_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPGENERAL_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+        l_type = cppgeneral_alias:type
+        l_coverage = "P"
+        l_state = cppgeneral_alias:state
+        l_line_of_business = cppgeneral_alias:rating_line_of_business
+        access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                              sfpmaster:pol_year     = g_year_1,
+                              sfpmaster:end_sequence = g_end_sequence_1, generic
+
+        if ((sfpmaster:trans_code one of 10, 14 and
+           sfpname:line_of_business one of 8) or
+           (sfpmaster:trans_code one of 10, 14 and
+           sfpname:line_of_business one of 99 and
+           sfpamt:line_of_business[2] one of 8)) then
+            begin
+            do get_package_mod
+            end
+
+        l_eff_date = sfpname:eff_date
+        l_company_id = sfpname:company_id
+        Access CPSRATINGTERR, Set CPSRATINGTERR:COMPANY_ID = L_COMPANY_ID,
+                                  CPSRATINGTERR:STATE = cppgeneral_alias:STATE,
+                                  CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                  CPSRATINGTERR:COUNTY = cppgeneral_alias:COUNTY,
+                                  CPSRATINGTERR:TERRITORY = cppgeneral_alias:RATING_TERRITORY, Generic
+
+        while CPSRATINGTERR:COMPANY_ID = L_COMPANY_ID and
+              CPSRATINGTERR:STATE = cppgeneral_alias:STATE and
+              CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+              CPSRATINGTERR:COUNTY = cppgeneral_alias:COUNTY and
+              CPSRATINGTERR:TERRITORY = cppgeneral_alias:RATING_TERRITORY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    l_group_1 = cpsratingterr:group_1
+                    l_group_2 = cpsratingterr:group_2
+                    end
+
+                next cpsratingterr
+                end
+
+    Add CPPGENERAL
+        Begin
+        CPPGENERAL:POLICY_NO               = G_POLICY_NO
+        CPPGENERAL:POL_YEAR                = G_YEAR_1
+        CPPGENERAL:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPGENERAL:PREM_NO                 = CPPGENERAL_ALIAS:PREM_NO
+        CPPGENERAL:BUILD_NO                = CPPGENERAL_ALIAS:BUILD_NO
+        CPPGENERAL:RATE_TYPE               = CPPGENERAL_ALIAS:RATE_TYPE
+        CPPGENERAL:RECORD_RDF              = CPPGENERAL_ALIAS:RECORD_RDF/raw
+        if sfpmaster:trans_code one of 14 and
+           l_percent <> 0 and
+           cppgeneral_alias:inflation_guard < l_percent and
+           cppgeneral_alias:rate_type one of 1 then
+            begin
+            cppgeneral:inflation_guard = l_percent
+            end
+
+        if sfpmaster:trans_code one of 10, 14 and
+           l_package_Mod <> 0 then
+            begin
+            cppgeneral:package_mod[1] = l_package_mod
+            end
+
+        if sfpmaster:trans_code one of 14 and
+           sfpname:company_id not one of "GGUND" then
+            begin
+            If cppgeneral:RATING_TERRITORY_GROUP = 1 Then
+                cppgeneral:RATING_TERRITORY_FACTOR = L_GROUP_1
+            If cppgeneral:RATING_TERRITORY_GROUP = 2 Then
+                cppgeneral:RATING_TERRITORY_FACTOR = L_GROUP_2
+            end
+        End
+
+    Next CPPGENERAL_ALIAS
+    End
+
+Access cppgeneral_ALIAS, Set cppgeneral_ALIAS:POLICY_NO = G_POLICY_NO,
+                             cppgeneral_ALIAS:POL_YEAR = G_YEAR_1,
+                             cppgeneral_ALIAS:END_SEQUENCE = G_END_SEQUENCE_1, generic
+
+Repeat Begin
+    Exit If cppgeneral_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            cppgeneral_ALIAS:POL_YEAR <> G_YEAR_1 Or
+            cppgeneral_ALIAS:END_SEQUENCE <> G_END_SEQUENCE_1
+
+    if l_add_back = 1 and
+       g_trans_code one of 14 then
+        begin
+        change cppgeneral_alias
+            begin
+            cppgeneral_alias:remove_terrorism_form = 0
+            end
+        end
+
+    next cppgeneral_alias
+    end
+
+L_PROCEDURE = "cppglass FILE UPDATE"
+
+Access CPPGLASS_ALIAS, Set CPPGLASS_ALIAS:POLICY_NO = G_POLICY_NO,
+                           CPPGLASS_ALIAS:POL_YEAR = G_YEAR,
+                           CPPGLASS_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPGLASS_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPGLASS_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPGLASS_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPGLASS
+        Begin
+        CPPGLASS:POLICY_NO               = G_POLICY_NO
+        CPPGLASS:POL_YEAR                = G_YEAR_1
+        CPPGLASS:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPGLASS:PREM_NO                 = CPPGLASS_ALIAS:PREM_NO
+        CPPGLASS:BUILD_NO                = CPPGLASS_ALIAS:BUILD_NO
+        CPPGLASS:SUB_CODE                = CPPGLASS_ALIAS:SUB_CODE
+        CPPGLASS:RECORD_RDF              = CPPGLASS_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPGLASS_ALIAS
+    End
+
+L_PROCEDURE = "cppglassspec FILE UPDATE"
+
+Access CPPGLASSSPEC_ALIAS, Set CPPGLASSSPEC_ALIAS:POLICY_NO = G_POLICY_NO,
+                               CPPGLASSSPEC_ALIAS:POL_YEAR = G_YEAR,
+                               CPPGLASSSPEC_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPGLASSSPEC_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPGLASSSPEC_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPGLASSSPEC_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPGLASSSPEC
+        Begin
+        CPPGLASSSPEC:POLICY_NO               = G_POLICY_NO
+        CPPGLASSSPEC:POL_YEAR                = G_YEAR_1
+        CPPGLASSSPEC:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPGLASSSPEC:PREM_NO                 = CPPGLASSSPEC_ALIAS:PREM_NO
+        CPPGLASSSPEC:BUILD_NO                = CPPGLASSSPEC_ALIAS:BUILD_NO
+        CPPGLASSSPEC:SUB_CODE                = CPPGLASSSPEC_ALIAS:SUB_CODE
+        CPPGLASSSPEC:RECORD_RDF              = CPPGLASSSPEC_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPGLASSSPEC_ALIAS
+    End
+
+L_PROCEDURE = "cppliabdeduct FILE UPDATE"
+
+Access CPPLIABDEDUCT_ALIAS, Set CPPLIABDEDUCT_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPLIABDEDUCT_ALIAS:POL_YEAR = G_YEAR,
+                                CPPLIABDEDUCT_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPLIABDEDUCT_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPLIABDEDUCT_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPLIABDEDUCT_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPLIABDEDUCT
+        Begin
+        CPPLIABDEDUCT:POLICY_NO               = G_POLICY_NO
+        CPPLIABDEDUCT:POL_YEAR                = G_YEAR_1
+        CPPLIABDEDUCT:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPLIABDEDUCT:RECORD_RDF              = CPPLIABDEDUCT_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPLIABDEDUCT_ALIAS
+    End
+
+L_PROCEDURE = "cppliability FILE UPDATE"
+
+Access CPPLIABILITY_ALIAS, Set CPPLIABILITY_ALIAS:POLICY_NO = G_POLICY_NO,
+                               CPPLIABILITY_ALIAS:POL_YEAR = G_YEAR,
+                               CPPLIABILITY_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPLIABILITY_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPLIABILITY_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPLIABILITY_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+        access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                              sfpmaster:pol_year     = g_year_1,
+                              sfpmaster:end_sequence = g_end_sequence_1, generic
+
+        l_type = cppliability_alias:type
+        l_coverage = "L"
+        l_state = cppliability_alias:state
+        l_line_of_business = cppliability_alias:rating_line_of_business
+        l_company_id = sfpname:company_id
+        access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                              sfpmaster:pol_year     = g_year_1,
+                              sfpmaster:end_sequence = g_end_sequence_1, generic
+
+        if ((sfpmaster:trans_code one of 10, 14 and
+           sfpname:line_of_business one of 8) or
+           (sfpmaster:trans_code one of 10, 14 and
+           sfpname:line_of_business one of 99 and
+           sfpamt:line_of_business[2] one of 8)) then
+            begin
+            do get_package_mod
+            end
+
+    if sfpmaster:trans_code one of 10, 14 then
+        begin
+        l_state = cppliability_alias:state
+        do access_terrorism
+        l_line_of_business = cppliability_alias:rating_line_of_business
+        if l_line_of_business = 0 then
+            l_line_of_business = sfpname:line_of_business
+        if sfpname:company_id = "LEBINS" then
+            do access_cpsliabrates
+        end
+
+        l_eff_date = sfpname:eff_date
+        l_company_id = sfpname:company_id
+        Access CPSRATINGTERR, Set CPSRATINGTERR:COMPANY_ID = L_COMPANY_ID,
+                                  CPSRATINGTERR:STATE = cppliability_alias:STATE,
+                                  CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                  CPSRATINGTERR:COUNTY = cppliability_alias:COUNTY,
+                                  CPSRATINGTERR:TERRITORY = cppliability_alias:RATING_TERRITORY, Generic
+
+        while CPSRATINGTERR:COMPANY_ID = L_COMPANY_ID and
+              CPSRATINGTERR:STATE = cppliability_alias:STATE and
+              CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+              CPSRATINGTERR:COUNTY = cppliability_alias:COUNTY and
+              CPSRATINGTERR:TERRITORY = cppliability_alias:RATING_TERRITORY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    l_group_1 = cpsratingterr:group_1
+                    l_group_2 = cpsratingterr:group_2
+                    end
+
+                next cpsratingterr
+                end
+
+    Add CPPLIABILITY
+        Begin
+        CPPLIABILITY:POLICY_NO               = G_POLICY_NO
+        CPPLIABILITY:POL_YEAR                = G_YEAR_1
+        CPPLIABILITY:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPLIABILITY:PREM_NO                 = CPPLIABILITY_ALIAS:PREM_NO
+        CPPLIABILITY:BUILD_NO                = CPPLIABILITY_ALIAS:BUILD_NO
+        CPPLIABILITY:CLASS_CODE              = CPPLIABILITY_ALIAS:CLASS_CODE
+        CPPLIABILITY:RECORD_RDF              = CPPLIABILITY_ALIAS:RECORD_RDF/raw
+        if sfpmaster:trans_code one of 10, 14 and
+           sfpname:company_id = "LEBINS" then
+            begin
+            if cppliability:company_rate[1] = 0 then
+                cppliability:base_rate[1] = l_base_rate_1
+            if cppliability:company_rate[2] = 0 then
+                cppliability:base_rate[2] = l_base_rate_2
+            cppliability:arate[1] = l_arate_1
+            cppliability:arate[2] = l_arate_2
+            cppliability:product_not_applicable = l_products_not_applicable
+            end
+        if sfpmaster:trans_code one of 10, 14 and
+           l_package_mod <> 0 then
+            cppliability:package_mod[1]      = l_package_mod
+        if l_add_back = 1 and
+           sfpmaster:trans_code one of 10, 14 then
+            cppliability:remove_terrorism_form = 0
+        if sfpmaster:trans_code one of 14 and
+           sfpname:company_id not one of "GGUND" then
+            begin
+            If cppliability:RATING_TERRITORY_GROUP = 1 Then
+                cppliability:RATING_TERRITORY_FACTOR = L_GROUP_1
+            If cppliability:RATING_TERRITORY_GROUP = 2 Then
+                cppliability:RATING_TERRITORY_FACTOR = L_GROUP_2
+            end
+        End
+
+    Next CPPLIABILITY_ALIAS
+    End
+
+L_PROCEDURE = "cppliablimits FILE UPDATE"
+
+Access CPPLIABLIMITS_ALIAS, Set CPPLIABLIMITS_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPLIABLIMITS_ALIAS:POL_YEAR = G_YEAR,
+                                CPPLIABLIMITS_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPLIABLIMITS_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPLIABLIMITS_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPLIABLIMITS_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPLIABLIMITS
+        Begin
+        CPPLIABLIMITS:POLICY_NO               = G_POLICY_NO
+        CPPLIABLIMITS:POL_YEAR                = G_YEAR_1
+        CPPLIABLIMITS:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPLIABLIMITS:RECORD_RDF              = CPPLIABLIMITS_ALIAS:RECORD_RDF/raw
+        if sfpname:company_id = "FLEMINGTON" and
+           sfpmaster:trans_code one of 14 then
+            begin
+            if cppliablimits:form one of 1 then
+                cppliablimits:employment_related_acts = 0
+            else
+            if cppliablimits:form one of 2, 3 then
+                begin
+                cppliablimits:employment_related_acts = 0
+                cppliablimits:newly_acquired_entities = 0
+                end
+            end
+        End
+
+    Next CPPLIABLIMITS_ALIAS
+    End
+
+L_PROCEDURE = "cppdeviation FILE UPDATE"
+
+Access CPPdeviation_ALIAS, Set CPPdeviation_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPdeviation_ALIAS:POL_YEAR = G_YEAR,
+                                CPPdeviation_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPdeviation_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPdeviation_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPdeviation_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPdeviation
+        Begin
+        CPPdeviation:POLICY_NO               = G_POLICY_NO
+        CPPdeviation:POL_YEAR                = G_YEAR_1
+        CPPdeviation:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPdeviation:RECORD_RDF              = CPPdeviation_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPdeviation_ALIAS
+    End
+
+/* cppproperty FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppproperty FILE UPDATE"
+
+Access CPPPROPERTY_ALIAS, Set CPPPROPERTY_ALIAS:POLICY_NO = G_POLICY_NO,
+                              CPPPROPERTY_ALIAS:POL_YEAR = G_YEAR,
+                              CPPPROPERTY_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPPROPERTY_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPPROPERTY_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPPROPERTY_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPPROPERTY
+        Begin
+        CPPPROPERTY:POLICY_NO              = G_POLICY_NO
+        CPPPROPERTY:POL_YEAR               = G_YEAR_1
+        CPPPROPERTY:END_SEQUENCE           = G_END_SEQUENCE_1
+        CPPPROPERTY:PREM_NO                = CPPPROPERTY_ALIAS:PREM_NO
+        CPPPROPERTY:BUILD_NO               = CPPPROPERTY_ALIAS:BUILD_NO
+        CPPPROPERTY:RECORD_RDF             = CPPPROPERTY_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPPROPERTY_ALIAS
+    End
+
+/* cppprotect FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppprotect FILE UPDATE"
+
+Access CPPPROTECT_ALIAS, Set CPPPROTECT_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPPROTECT_ALIAS:POL_YEAR = G_YEAR,
+                             CPPPROTECT_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPPROTECT_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPPROTECT_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPPROTECT_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPPROTECT
+        Begin
+        CPPPROTECT:POLICY_NO              = G_POLICY_NO
+        CPPPROTECT:POL_YEAR               = G_YEAR_1
+        CPPPROTECT:END_SEQUENCE           = G_END_SEQUENCE_1
+        CPPPROTECT:PREM_NO                = CPPPROTECT_ALIAS:PREM_NO
+        CPPPROTECT:BUILD_NO               = CPPPROTECT_ALIAS:BUILD_NO
+        CPPPROTECT:RATE_TYPE              = CPPPROTECT_ALIAS:RATE_TYPE
+        CPPPROTECT:RECORD_RDF             = CPPPROTECT_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPPROTECT_ALIAS
+    End
+
+L_PROCEDURE = "cpppolicy FILE UPDATE"
+
+Access CPPPOLICY_ALIAS, Set CPPPOLICY_ALIAS:POLICY_NO = G_POLICY_NO,
+                            CPPPOLICY_ALIAS:POL_YEAR = G_YEAR,
+                            CPPPOLICY_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPPOLICY_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPPOLICY_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPPOLICY_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPPOLICY
+        Begin
+        CPPPOLICY:POLICY_NO               = G_POLICY_NO
+        CPPPOLICY:POL_YEAR                = G_YEAR_1
+        CPPPOLICY:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPPOLICY:PREM_NO                 = CPPPOLICY_ALIAS:PREM_NO
+        CPPPOLICY:BUILD_NO                = CPPPOLICY_ALIAS:BUILD_NO
+        CPPPOLICY:RECORD_RDF              = CPPPOLICY_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPPOLICY_ALIAS
+    End
+
+L_PROCEDURE = "cppsprinkleak FILE UPDATE"
+
+Access CPPSPRINKLEAK_ALIAS, Set CPPSPRINKLEAK_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPSPRINKLEAK_ALIAS:POL_YEAR = G_YEAR,
+                                CPPSPRINKLEAK_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPSPRINKLEAK_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPSPRINKLEAK_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPSPRINKLEAK_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPSPRINKLEAK
+        Begin
+        CPPSPRINKLEAK:POLICY_NO               = G_POLICY_NO
+        CPPSPRINKLEAK:POL_YEAR                = G_YEAR_1
+        CPPSPRINKLEAK:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPSPRINKLEAK:PREM_NO                 = CPPSPRINKLEAK_ALIAS:PREM_NO
+        CPPSPRINKLEAK:BUILD_NO                = CPPSPRINKLEAK_ALIAS:BUILD_NO
+        CPPSPRINKLEAK:RATE_TYPE               = CPPSPRINKLEAK_ALIAS:RATE_TYPE
+        CPPSPRINKLEAK:RECORD_RDF              = CPPSPRINKLEAK_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPSPRINKLEAK_ALIAS
+    End
+
+L_PROCEDURE = "cppdesc FILE UPDATE"
+
+Access CPPDESC_ALIAS, Set CPPDESC_ALIAS:POLICY_NO = G_POLICY_NO,
+                          CPPDESC_ALIAS:POL_YEAR = G_YEAR,
+                          CPPDESC_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPDESC_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPDESC_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPDESC_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPPDESC
+        Begin
+        CPPDESC:POLICY_NO               = G_POLICY_NO
+        CPPDESC:POL_YEAR                = G_YEAR_1
+        CPPDESC:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPDESC:PREM_NO                 = CPPDESC_ALIAS:PREM_NO
+        CPPDESC:BUILD_NO                = CPPDESC_ALIAS:BUILD_NO
+        CPPDESC:CODE                    = CPPDESC_ALIAS:CODE/raw
+        CPPDESC:SUB_CODE                = CPPDESC_ALIAS:SUB_CODE
+        CPPDESC:RECORD_RDF              = CPPDESC_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPDESC_ALIAS
+    End
+
+Update
+
+Errors
+Writefile("cppcv100.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv100.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv100.err","%s<nl>",L_PROCEDURE)
+
+procedure definition
+
+Procedure ACCESS_CPSLIABRATES
+Begin
+Access cpsliabrates1, Set cpsliabrates1:COMPANY_ID       = l_COMPANY_ID,
+                          cpsliabrates1:STATE            = l_STATE,
+                          cpsliabrates1:LINE_OF_BUSINESS = l_line_of_business,
+                          cpsliabrates1:territory        = l_territory,
+                          cpsliabrates1:CLASS_CODE       = cppLIABILITY_alias:CLASS_CODE, Generic
+
+l_base_rate_1 = 0
+l_base_rate_2 = 0
+l_arate_1 = 0
+l_arate_2 = 0
+l_products_not_applicable = 0
+While cpsliabrates1:COMPANY_ID       = l_COMPANY_ID And
+      cpsliabrates1:STATE            = l_STATE And
+      cpsliabrates1:LINE_OF_BUSINESS = l_line_of_business And
+      cpsliabrates1:territory        = l_territory and
+      cpsliabrates1:CLASS_CODE       = cppLIABILITY_alias:CLASS_CODE
+        Begin
+        write("%c%s",2005,"iamhere")
+        pause(500)
+        If sfpNAME:EFF_DATE >= cpsliabrates1:RATE_DATE Then
+            Begin
+            l_BASE_RATE_1 = cpsliabrates1:premise
+            l_BASE_RATE_2 = cpsliabrates1:products
+            l_ARATE_1 = cpsliabrates1:ARATE[1]
+            l_ARATE_2 = cpsliabrates1:ARATE[2]
+            l_PRODUCTS_NOT_APPLICABLE = cpsliabrates1:products_included
+            End
+
+        Next cpsliabrates1
+        End
+
+End
+
+procedure get_package_mod
+begin
+l_company_id = sfpname:company_id
+access cpsisopackage, set cpsisopackage:company_id       = l_company_id,
+                          cpsisopackage:state            = l_state,
+                          cpsisopackage:line_of_business = l_line_of_business,
+                          cpsisopackage:type             = l_type, generic
+
+l_package_mod = 0
+while cpsisopackage:company_id       = l_company_id and
+      cpsisopackage:state            = l_state and
+      cpsisopackage:line_of_business = l_line_of_business and
+      cpsisopackage:type             = l_type
+        begin
+        if (sfpname:eff_date >= cpsisopackage:eff_date and
+           (sfpname:eff_date <= cpsisopackage:exp_date or
+           cpsisopackage:exp_date = 0)) then
+            begin
+            switch(l_coverage)
+              case "P" : l_package_mod = cpsisopackage:package_mod[2]
+              default  : l_package_mod = cpsisopackage:package_mod[3]
+              end
+
+            end
+
+        next cpsisopackage
+        end
+
+end
+
+procedure access_terrorism
+begin
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access sfpamt, set sfpamt:policy_no    = g_policy_no,
+                   sfpamt:pol_year     = g_year_1,
+                   sfpamt:end_sequence = g_end_sequence_1, generic
+
+if sfpname:line_of_business one of 99 then
+    l_line_of_business_1 = sfpamt:line_of_business[2]
+else
+    l_line_of_business_1 = sfpname:line_of_business
+access sfsmsoterror, set sfsmsoterror:company_id       = sfpname:company_id,
+                         sfsmsoterror:state            = l_state,
+                         sfsmsoterror:line_of_business = l_line_of_business_1, generic
+
+l_add_back = 0
+l_terror_eff_date = 0
+while sfsmsoterror:company_id       = sfpname:company_id and
+      sfsmsoterror:state            = l_state and
+      sfsmsoterror:line_of_business = l_line_of_business_1
+        begin
+        if (sfpname:eff_date >= sfsmsoterror:eff_date and
+           (l_terror_eff_date < sfsmsoterror:eff_date or
+           l_terror_eff_date = 0)) then
+            begin
+            l_terror_eff_date = sfsmsoterror:eff_date
+            l_add_back        = sfsmsoterror:add_terror_back_on_renewal
+            end
+
+        next sfsmsoterror
+        end
+
+end
+
+End

@@ -1,0 +1,1297 @@
+%%
+Screen
+        Name         = "cppmt007";
+        Type         = "Detail" ;
+        Screensize   = "dynamic" ;
+        Highlight    = Underscore ;
+        Padcharacter = Space ;
+        Domain       = "CPPINLAND" ;
+        Windowtitle  = "%a    %s Inland Marine - Ver 7.00     %m" ;
+--      resizeable   = yes ;
+        iconline     = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_SUB_CODE[4] ,
+                                     g_state[2] ,
+                                     g_deductible[5] ,
+                                     g_line_of_business[4] ;
+
+        Global String G_CRIME_FORM[1],
+                      G_CODE[7] ,
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008,
+                                    l_rate[6]=0/dec=3,
+                                    l_per[4]=0 ,
+                                    l_csexec_number[12]=0,
+                                    l_option_1[1]=0,
+                                    l_option_2[1]=0,
+                                    l_option_3[1]=0,
+                                    l_option_4[1]=0,
+                                    l_option_5[1]=0,
+                                    l_option_6[1]=0,
+                                    l_option_7[1]=0,
+                                    l_option_8[1]=0,
+                                    l_option_9[1]=0,
+                                    l_option_10[1]=0,
+                                    l_option_11[1]=0,
+                                    l_option_12[1]=0;
+
+        Local Signed Ascii Number L_PACKAGE_MOD[4]=0/decimals=2,
+                                  L_DEVIATION[4]=0/decimals=2,
+                                  L_PACKAGE[4]=0/decimals=2 ,
+                                  L_PREMIUM[9]=0 ,
+                                  l_total_premium[9]=0;
+
+        Local String L_SCREEN[8] ,
+                     L_CODE[7] ,
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_code_7[7],
+                     l_code_8[7],
+                     l_code_9[7],
+                     l_code_10[7],
+                     l_code_11[7],
+                     l_code_12[7],
+                     l_code_14[7],
+                     l_add[1]="Y",
+                     L_CRIME_FORM[1],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1],
+                     l_first[1]="Y",
+                     l_dec[15],
+                     l_app[3],
+                     l_csexec_application[25]="",
+                     L_DELETE_ENDORSEMENT[1],
+                     L_COMPANY_ID[10] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        include "print.var"
+
+        include "csexec.var"
+
+        include "virtualdecs.var"
+
+        Access cppINLAND, Set cppINLAND:policy_NO    = G_policy_NO,
+                              cppinland:pol_year     = g_year,
+                              cppinland:end_sequence = g_end_sequence,
+                              cppINLAND:PREM_NO      = G_PREM_NO,
+                              cppINLAND:BUILD_NO     = G_BUILD_NO, Approximate ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "redisplay" display/noreturn "cppmt007" ;
+
+        "add" sequence "new|opt|final|redisplay"  tagged add_fn;
+        "new" add/hidden ;
+
+        "change" sequence "chg|final|redisplay"   tagged change_fn ;
+        "chg" change/hidden ;
+
+        "opt" continue begin
+                       do access_sfpend
+                       if l_add = "Y" then
+                           function = "popup"
+                       else
+                           function = "append"
+                       end ;
+        "popup" sequence "endopt|add|back" ;
+        "append" sequence "endopt|append|back" ;
+        "endopt" display "cppmt750" ;
+
+        "update_totals" sequence "final|redisplay" ;
+
+        "final" continue begin
+                         do update_final_rating
+                         end ;
+
+        "func1" display "cppmt750"    tagged opt_end_fn ;
+        "func2" display "cppmt750a"   tagged policy_wide_opt_end_fn ;
+        "func3" display "cppmt798"    tagged totals_location_fn ;
+        "func4" display "cppmt797"    tagged deviations_fn ;
+        "func5" display ""            tagged notes_fn ;
+        "func6" display ""            tagged misc_fn ;
+        "func7" sequence "worksheet"  tagged worksheet_fn ;
+        "worksheet" continue begin
+                             do create_macro
+                             end ;
+        "func8"  sequence "AR" tagged ar_fn ;
+        "AR"  continue begin
+                       do access_cpsimtrigger
+                       g_code = l_code_1
+                       g_state = cppinland:state
+                       l_screen = "cppmt07a"
+                       function = "displayscreen"
+                       end ;
+        "func9"  sequence "CAMERA" tagged camera_fn ;
+        "CAMERA"  continue begin
+                           do access_cpsimtrigger
+                           g_code = l_code_2
+                           g_state = cppinland:state
+                           l_screen = "cppmt07b"
+                           function = "displayscreen"
+                           end ;
+        "func10"  sequence "COMMART" tagged comm_art_fn ;
+        "COMMART"  continue begin
+                            do access_cpsimtrigger
+                            g_code = l_code_3
+                            g_state = cppinland:state
+                            l_screen = "cppmt07c"
+                            function = "displayscreen"
+                            end ;
+
+        "displayscreen" display l_screen ;
+
+        "func11" display "cppmt07d" tagged equipment_fn ;
+        "func12" display "cppmt07e" tagged film_fn ;
+        "func13" display "cppmt07f" tagged floor_plan_fn ;
+        "func14" display "cppmt07g" tagged jewelers_fn ;
+        "func15" display "cppmt07h" tagged mail_fn ;
+        "func16" display "cppmt07i" tagged physicians_fn ;
+        "func17" sequence "SIGNS"   tagged signs_fn ;
+        "SIGNS"  continue begin
+                          do access_cpsimtrigger
+                          g_code = l_code_10
+                          g_state = cppinland:state
+                          l_screen = "cppmt07j"
+                          function = "displayscreen"
+                          end ;
+        "func18" display "cppmt07k" tagged theatre_fn ;
+        "func19"  sequence "VALUE"  tagged value_fn ;
+        "VALUE"  continue begin
+                          do access_cpsimtrigger
+                          g_code = l_code_12
+                          g_state = cppinland:state
+                          l_screen = "cppmt07l"
+                          function = "displayscreen"
+                          end ;
+
+
+        Include "stdfunc7b.inc"
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+        include "cppmenuim7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cppisoimtoolbar7.inc"
+
+}
+
+Access Validation
+If cppINLAND:policy_NO <> G_policy_NO or
+   cppinland:pol_year <> g_year or
+   cppinland:end_sequence <> g_end_sequence Then
+    Error 1000
+
+screen at 2,1 to 25,81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Loc No:    ____                                                              |
+| Build No:  ____                                                              |
+*------------------------------------------------------------------------------*
+| State:     __  _______________  County: ___ ________________________________ |
+| Business Desc: _________________________________________________             |
+|                _________________________________________________             |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppINLAND:policy_NO    = G_policy_NO
+            cppinland:pol_year     = g_year
+            cppinland:end_sequence = g_end_sequence
+            cppINLAND:PREM_NO      = G_PREM_NO
+            If G_PREM_NO = 0 Then
+                cppINLAND:PREM_NO  = 1
+            cppINLAND:BUILD_NO     = G_BUILD_NO
+            If G_BUILD_NO = 0 Then
+                cppINLAND:BUILD_NO = 1
+            cppinland:rating_line_of_business = 0008
+            cppinland:sub_code     = 10
+            End
+        End
+        cppINLAND:policy_NO/displayonly ;
+302     cppinland:pol_year/displayonly ;
+303     cppinland:end_sequence/displayonly ;
+401     cppINLAND:PREM_NO/default Nochange ;
+501     cppINLAND:BUILD_NO/default Nochange;
+701     Begin
+        g_policy_no    = cppinland:policy_no
+        g_year         = cppinland:pol_year
+        g_end_sequence = cppinland:end_sequence
+        g_prem_no      = cppinland:prem_no
+        g_build_no     = cppinland:build_no
+        If FUNCTION One Of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL:STATE <> 0 Then
+                Begin
+                cppINLAND:STATE  = cppGENERAL:STATE
+                cppINLAND:COUNTY = cppGENERAL:COUNTY
+                End
+            Else
+            If cppLIABILITY:STATE <> 0 Then
+                Begin
+                cppINLAND:STATE  = cppLIABILITY:STATE
+                cppINLAND:COUNTY = cppLIABILITY:COUNTY
+                End
+            Else
+                Begin
+                cppINLAND:STATE  = CPSDEFAULT:STATE
+                cppINLAND:COUNTY = CPSDEFAULT:COUNTY
+                End
+            End
+        End
+        cppINLAND:STATE/default
+        Include "statehlp.inc"
+702     SFSSTATE:DESCRIPTION;
+703     cppINLAND:COUNTY/default
+        Include "countyhlp.inc"
+704     SFSSTATE_ALIAS:DESCRIPTION ;
+801     cppinland:business_description[1] ;
+901     cppinland:business_description[2];
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Rating"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Accounts Receivable:               _    Jewelers Block:        _             |
+| Camera/Musical Instrument Dealers: _    Mail:                  _             |
+| Commercial Articles:               _    Physicians & Surgeons: _             |
+| Equipment Dealers:                 _    Signs:                 _             |
+| Film:                              _    Theatrical Property:   _             |
+| Floor Plan:                        _    Valuable Papers:       _             |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     begin
+        g_state = cppinland:state
+        l_option_1 = cppinland:option[1]
+        if function one of "ADD", "CHANGE" then
+            begin
+            if sfsline:lob_code one of "CPORTFOLIO" then
+                begin
+                access sfpmastsupp, set sfpmastsupp:policy_no        = g_policy_no,
+                                        sfpmastsupp:pol_year         = g_year,
+                                        sfpmastsupp:end_sequence     = g_End_sequence,
+                                        sfpmastsupp:line_of_business = g_line_of_business, generic
+
+                if sfpmastsupp:policy_no    = g_policy_no and
+                   sfpmastsupp:pol_year     = g_year and
+                   sfpmastsupp:end_sequence = g_end_sequence then
+                    change sfpmastsupp
+                        begin
+                        sfpmastsupp:state = cppinland:state
+                        end
+                end
+            else
+                begin
+                access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                                      sfpmaster:pol_year     = g_year,
+                                      sfpmaster:end_sequence = g_End_sequence, generic
+
+                if sfpmaster:policy_no    = g_policy_no and
+                   sfpmaster:pol_year     = g_year and
+                   sfpmaster:end_sequence = g_end_sequence then
+                    change sfpmaster
+                        begin
+                        sfpmaster:state = cppinland:state
+                        end
+                end
+            end
+        end
+        cppinland:option[1]/checkbox/values="0,1" ;
+301     begin
+            l_option_2 = cppinland:option[2]
+        end
+        cppinland:option[2]/checkbox/values="0,1" ;
+401     begin
+            l_option_3 = cppinland:option[3]
+        end
+        cppinland:option[3]/checkbox/values="0,1" ;
+501     begin
+            l_option_4 = cppinland:option[4]
+        end
+        cppinland:option[4]/checkbox/values="0,1" ;
+601     begin
+            l_option_5 = cppinland:option[5]
+        end
+        cppinland:option[5]/checkbox/values="0,1" ;
+701     begin
+            l_option_6 = cppinland:option[6]
+        end
+        cppinland:option[6]/checkbox/values="0,1" ;
+202     begin
+            l_option_7 = cppinland:option[7]
+        end
+        cppinland:option[7]/checkbox/values="0,1" ;
+302     begin
+            l_option_8 = cppinland:option[8]
+        end
+        cppinland:option[8]/checkbox/values="0,1" ;
+402     begin
+            l_option_9 = cppinland:option[9]
+        end
+        cppinland:option[9]/checkbox/values="0,1" ;
+502     begin
+            l_option_10 = cppinland:option[10]
+        end
+        cppinland:option[10]/checkbox/values="0,1" ;
+602     begin
+            l_option_11 = cppinland:option[11]
+        end
+        cppinland:option[11]/checkbox/values="0,1" ;
+702     begin
+            l_option_12 = cppinland:option[12]
+        end
+        cppinland:option[12]/checkbox/values="0,1" ;
+
+}
+
+Panel tagged final_rating
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Location Totals"
+        }
+{
+%%
+
+%%
+
+components
+        subscreen at 1,1 to 25,100
+                Properties
+                        {
+                        screen="cppmt799"
+                        }
+
+}
+
+}
+
+}
+
+postupdate
+  do check_sfpname_bill_plan
+if updateok = "YES" and
+   abort    = "NO" then
+    begin
+    if function one of "DELETE" then
+        begin
+        access sfpend, set sfpend:policy_no    = cppinland:policy_no,
+                           sfpend:pol_year     = cppinland:pol_year,
+                           sfpend:end_sequence = cppinland:end_sequence,
+                           sfpend:prem_no      = cppinland:prem_no,
+                           sfpend:build_no     = cppinland:build_no, generic
+
+        while sfpend:policy_no    = cppinland:policy_no and
+              sfpend:pol_year     = cppinland:pol_year and
+              sfpend:end_sequence = cppinland:end_sequence and
+              sfpend:prem_no      = cppinland:prem_no and
+              sfpend:build_no     = cppinland:build_no
+                begin
+                if sfpend:lob_end_code one of "I" then
+                    delete sfpend
+
+                next sfpend
+                end
+
+        end
+
+    if function one of "CHANGE", "CHG" then
+        begin
+        g_state = cppinland:state
+        Access cpsimtrigger, Set cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                 cpsimtrigger:STATE            = cppinland:STATE,
+                                 cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsimtrigger:STATE            = cppinland:STATE And
+              cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If (sfpNAME:EFF_DATE >= cpsimtrigger:EFF_DATE and
+                   (sfpname:eff_date <= cpsimtrigger:exp_date or
+                   cpsimtrigger:exp_date = 0)) Then
+                    Begin
+                    l_code_1  = cpsimtrigger:code[1]    -- A/R
+                    l_code_2  = cpsimtrigger:code[5]    -- Cameras
+                    l_code_3  = cpsimtrigger:code[9]    -- Comm articles
+                    l_code_4  = cpsimtrigger:code[11]   -- Equipment Dealers
+                    l_code_5  = cpsimtrigger:code[16]   -- Film
+                    l_code_6  = cpsimtrigger:code[18]   -- Floor Plan
+                    l_code_7  = cpsimtrigger:code[19]   -- Jewelers Block
+                    l_code_8  = cpsimtrigger:code[25]   -- Mail
+                    l_code_9  = cpsimtrigger:code[30]   -- Physicians
+                    l_code_10 = cpsimtrigger:code[34]   -- Signs
+                    l_code_11 = cpsimtrigger:code[35]   -- Theatrical
+                    l_code_12 = cpsimtrigger:code[36]   -- Valuable Papers
+                    End
+
+                Next cpsimtrigger
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            if cppinland:option[1] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[1] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            if cppinland:option[2] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[2] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            L_CODE = L_CODE_3
+            if cppinland:option[3] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[3] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_4 <> "" Then
+            Begin
+            L_CODE = L_CODE_4
+            if cppinland:option[4] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[4] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_5 <> "" Then
+            Begin
+            L_CODE = L_CODE_5
+            if cppinland:option[5] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[5] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_6 <> "" Then
+            Begin
+            L_CODE = L_CODE_6
+            if cppinland:option[6] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[6] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_7 <> "" Then
+            Begin
+            L_CODE = L_CODE_7
+            if cppinland:option[7] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[7] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_8 <> "" Then
+            Begin
+            L_CODE = L_CODE_8
+            if cppinland:option[8] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[8] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_9 <> "" Then
+            Begin
+            L_CODE = L_CODE_9
+            if cppinland:option[9] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[9] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_10 <> "" Then
+            Begin
+            L_CODE = L_CODE_10
+            if cppinland:option[10] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[10] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_11 <> "" Then
+            Begin
+            L_CODE = L_CODE_11
+            if cppinland:option[11] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[11] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_12 <> "" Then
+            Begin
+            L_CODE = L_CODE_12
+            if cppinland:option[12] = 0 then
+                begin
+                do delete_cppendorse1
+                do delete_cppdesc
+                end
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" and
+               cppinland:option[12] = 0 then
+                Do DELETE_sfpEND
+            End
+
+        end
+
+    if function one of "DELETE" then
+        begin
+        access cppendorse1, set cppendorse1:policy_no    = cppinland:policy_no,
+                                cppendorse1:pol_year     = cppinland:pol_year,
+                                cppendorse1:end_sequence = cppinland:end_sequence,
+                                cppendorse1:prem_no      = cppinland:prem_no,
+                                cppendorse1:build_no     = cppinland:build_no, generic
+
+        while cppendorse1:policy_no    = cppinland:policy_no and
+              cppendorse1:pol_year     = cppinland:pol_year and
+              cppendorse1:end_sequence = cppinland:end_sequence and
+              cppendorse1:prem_no      = cppinland:prem_no and
+              cppendorse1:build_no     = cppinland:build_no
+                begin
+                g_state = cppinland:state
+                Access cpsimtrigger, Set cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                         cpsimtrigger:STATE            = cppinland:STATE,
+                                         cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+                While cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+                      cpsimtrigger:STATE            = cppinland:STATE And
+                      cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                    Begin
+                    If (sfpNAME:EFF_DATE >= cpsimtrigger:EFF_DATE and
+                       (sfpname:eff_date <= cpsimtrigger:exp_date or
+                       cpsimtrigger:exp_date = 0)) Then
+                        Begin
+                        l_code_1  = cpsimtrigger:code[1]    -- A/R
+                        l_code_2  = cpsimtrigger:code[5]    -- Cameras
+                        l_code_3  = cpsimtrigger:code[9]    -- Comm articles
+                        l_code_4  = cpsimtrigger:code[11]   -- Equipment Dealers
+                        l_code_5  = cpsimtrigger:code[16]   -- Film
+                        l_code_6  = cpsimtrigger:code[18]   -- Floor Plan
+                        l_code_7  = cpsimtrigger:code[19]   -- Jewelers Block
+                        l_code_8  = cpsimtrigger:code[25]   -- Mail
+                        l_code_9  = cpsimtrigger:code[30]   -- Physicians
+                        l_code_10 = cpsimtrigger:code[34]   -- Signs
+                        l_code_11 = cpsimtrigger:code[35]   -- Theatrical
+                        l_code_12 = cpsimtrigger:code[36]   -- Valuable Papers
+                        End
+
+                   Next cpsimtrigger
+                   End
+
+                if cppendorse1:code = l_code_1 or
+                   cppendorse1:code = l_code_2 or
+                   cppendorse1:code = l_code_3 or
+                   cppendorse1:code = l_code_4 or
+                   cppendorse1:code = l_code_5 or
+                   cppendorse1:code = l_code_6 or
+                   cppendorse1:code = l_code_7 or
+                   cppendorse1:code = l_code_8 or
+                   cppendorse1:code = l_code_9 or
+                   cppendorse1:code = l_code_10 or
+                   cppendorse1:code = l_code_11 or
+                   cppendorse1:code = l_code_12 then
+                    begin
+                    access cppdesc, set cppdesc:policy_no    = cppendorse1:policy_no,
+                                        cppdesc:pol_year     = cppendorse1:pol_year,
+                                        cppdesc:end_sequence = cppendorse1:end_sequence,
+                                        cppdesc:prem_no      = cppendorse1:prem_no,
+                                        cppdesc:build_no     = cppendorse1:build_no,
+                                        cppdesc:code         = cppendorse1:code, generic
+
+                    while cppdesc:policy_no    = cppendorse1:policy_no and
+                          cppdesc:pol_year     = cppendorse1:pol_year and
+                          cppdesc:end_sequence = cppendorse1:end_Sequence and
+                          cppdesc:prem_no      = cppendorse1:prem_no and
+                          cppdesc:build_no     = cppendorse1:build_no and
+                          cppdesc:code         = cppendorse1:code
+                            begin
+                            delete cppdesc
+
+                            next cppdesc
+                            end
+
+                    delete cppendorse1
+                    end
+
+                next cppendorse1
+                end
+
+        access sfpend, set sfpend:policy_no    = cppinland:policy_no,
+                           sfpend:pol_year     = cppinland:pol_year,
+                           sfpend:end_sequence = cppinland:end_sequence, generic
+--                           sfpend:prem_no      = cppinland:prem_no,
+--                           sfpend:build_no     = cppinland:build_no, generic
+
+        while sfpend:policy_no    = cppinland:policy_no and
+              sfpend:pol_Year     = cppinland:pol_Year and
+              sfpend:end_sequence = cppinland:end_sequence --and
+--              sfpend:prem_no      = cppinland:prem_no and
+--              sfpend:build_no     = cppinland:build_no
+                begin
+                if sfpend:lob_end_code = "I" then
+                    delete sfpend
+
+                next sfpend
+                end
+
+        end
+
+    if function one of "ADD", "NEW", "CHG", "CHANGE" then
+        begin
+        g_state = cppinland:state
+        Access cpsimtrigger, Set cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                 cpsimtrigger:STATE            = cppinland:STATE,
+                                 cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsimtrigger:STATE            = cppinland:STATE And
+              cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If (sfpNAME:EFF_DATE >= cpsimtrigger:EFF_DATE and
+                   (sfpname:eff_date <= cpsimtrigger:exp_date or
+                   cpsimtrigger:exp_date = 0)) Then
+                    Begin
+                    l_code_1  = cpsimtrigger:code[1]    -- A/R
+                    l_code_2  = cpsimtrigger:code[5]    -- Cameras
+                    l_code_3  = cpsimtrigger:code[9]    -- Comm articles
+                    l_code_4  = cpsimtrigger:code[11]   -- Equipment Dealers
+                    l_code_5  = cpsimtrigger:code[16]   -- Film
+                    l_code_6  = cpsimtrigger:code[18]   -- Floor Plan
+                    l_code_7  = cpsimtrigger:code[19]   -- Jewelers Block
+                    l_code_8  = cpsimtrigger:code[25]   -- Mail
+                    l_code_9  = cpsimtrigger:code[30]   -- Physicians
+                    l_code_10 = cpsimtrigger:code[34]   -- Signs
+                    l_code_11 = cpsimtrigger:code[35]   -- Theatrical
+                    l_code_12 = cpsimtrigger:code[36]   -- Valuable Papers
+                    End
+
+                Next cpsimtrigger
+                End
+
+        if function one of "ADD", "NEW" then
+            begin
+            display modal screen "cppmt797"
+            with initial function "CHANGE|BACK"
+            end
+
+        if ((cppinland:option[1] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[1] = 1 and
+           l_option_1 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_1
+            g_state = cppinland:state
+            display modal screen "cppmt07a"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[2] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[2] = 1 and
+           l_option_2 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_2
+            g_state = cppinland:state
+            display modal screen "cppmt07b"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[3] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[3] = 1 and
+           l_option_3 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_3
+            g_state = cppinland:state
+            display modal screen "cppmt07c"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[4] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[4] = 1 and
+           l_option_4 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_4
+            g_state = cppinland:state
+            display modal screen "cppmt07d"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[5] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[5] = 1 and
+           l_option_5 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_5
+            g_state = cppinland:state
+            display modal screen "cppmt07e"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[6] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[6] = 1 and
+           l_option_6 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_6
+            g_state = cppinland:state
+            display modal screen "cppmt07f"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[7] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[7] = 1 and
+           l_option_7 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_7
+            g_state = cppinland:state
+            display modal screen "cppmt07g"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[8] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[8] = 1 and
+           l_option_8 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_8
+            g_state = cppinland:state
+            display modal screen "cppmt07h"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[9] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[9] = 1 and
+           l_option_9 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_9
+            g_state = cppinland:state
+            display modal screen "cppmt07i"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[10] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[10] = 1 and
+           l_option_10 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_10
+            g_state = cppinland:state
+            display modal screen "cppmt07j"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[11] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[11] = 1 and
+           l_option_11 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_11
+            g_state = cppinland:state
+            display modal screen "cppmt07k"
+            with initial function "ADD"
+            end
+        if ((cppinland:option[12] = 1 and
+           function one of "ADD", "NEW") or
+           (cppinland:option[12] = 1 and
+           l_option_12 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_12
+            g_state = cppinland:state
+            display modal screen "cppmt07l"
+            with initial function "ADD"
+            end
+
+        end
+
+    end
+
+procedure definition
+
+Procedure check_sfpname_bill_plan
+
+BEGIN
+  access sfpname,
+     set sfpname:policy_no    = G_policy_no,
+         sfpname:pol_year     = g_year,
+         sfpname:end_sequence = g_end_sequence, exact
+
+  if sfpname:bill_plan = "DB" then
+    {
+      do access_cpsimtrigger
+      L_CODE = L_CODE_14
+      do access_sfpend
+      if l_add_endorsement = "Y" then
+        {
+          do add_sfpend
+        }
+    }
+  else
+    {
+      if sfpname:bill_plan = "AC" then  --delete lmic8002
+        {
+          do access_cpsimtrigger
+          L_CODE = L_CODE_14
+          do access_sfpend
+          if l_add_endorsement = "N" then
+            {
+              do delete_sfpend   --deletes trigger LMIC8002
+            }
+        }
+    }
+END
+
+procedure update_final_rating
+begin
+
+if g_inquiry = "N" then
+    postevent("cppmt799","reload")
+
+end
+
+procedure delete_cppendorse1
+begin
+access cppendorse1,
+   set cppendorse1:policy_no    = g_policy_no,
+       cppendorse1:pol_year     = cppinland:pol_year,
+       cppendorse1:end_sequence = cppinland:end_sequence,
+       cppendorse1:prem_no      = cppinland:prem_no,
+       cppendorse1:build_no     = cppinland:build_no,
+       cppendorse1:code         = l_code, generic
+
+while cppendorse1:policy_no    = g_policy_no and
+      cppendorse1:pol_year     = g_year and
+      cppendorse1:end_sequence = g_end_sequence and
+      cppendorse1:prem_no      = cppinland:prem_no and
+      cppendorse1:build_no     = cppinland:build_no and
+      cppendorse1:code         = l_code
+       begin
+       delete cppendorse1
+
+       next cppendorse1
+       end
+
+end
+
+procedure delete_cppdesc
+begin
+access cppdesc, set cppdesc:policy_no    = g_policy_no,
+                    cppdesc:pol_year     = cppinland:pol_year,
+                    cppdesc:end_sequence = cppinland:end_sequence,
+                    cppdesc:prem_no      = cppinland:prem_no,
+                    cppdesc:build_no     = cppinland:build_no,
+                    cppdesc:code         = l_code, generic
+
+while cppdesc:policy_no    = g_policy_no and
+      cppdesc:pol_year     = g_year and
+      cppdesc:end_sequence = g_end_sequence and
+      cppdesc:prem_no      = cppinland:prem_no and
+      cppdesc:build_no     = cppinland:build_no and
+      cppdesc:code         = l_code
+       begin
+       delete cppdesc
+
+       next cppdesc
+       end
+
+end
+
+procedure access_cpsimtrigger
+begin
+g_state = cppinland:state
+Access cpsimtrigger,
+   Set cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+       cpsimtrigger:STATE            = cppinland:STATE,
+       cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+      cpsimtrigger:STATE            = cppinland:STATE And
+      cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If (sfpNAME:EFF_DATE >= cpsimtrigger:EFF_DATE and
+           (sfpname:eff_date <= cpsimtrigger:exp_date or
+           cpsimtrigger:exp_date = 0)) Then
+            Begin
+            l_code_1  = cpsimtrigger:code[1]    -- A/R
+            l_code_2  = cpsimtrigger:code[5]    -- Cameras
+            l_code_3  = cpsimtrigger:code[9]    -- Comm articles
+            l_code_4  = cpsimtrigger:code[11]   -- Equipment Dealers
+            l_code_5  = cpsimtrigger:code[16]   -- Film
+            l_code_6  = cpsimtrigger:code[18]   -- Floor Plan
+            l_code_7  = cpsimtrigger:code[19]   -- Jewelers Block
+            l_code_8  = cpsimtrigger:code[25]   -- Mail
+            l_code_9  = cpsimtrigger:code[30]   -- Physicians
+            l_code_10 = cpsimtrigger:code[34]   -- Signs
+            l_code_11 = cpsimtrigger:code[35]   -- Theatrical
+            l_code_12 = cpsimtrigger:code[36]   -- Valuable Papers
+            l_code_14 = cpsimtrigger:code[38]   --LMIC8002 if DB only it adds
+            End
+
+        Next cpsimtrigger
+        End
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = g_policy_no ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = g_prem_no,
+                   sfpEND:BUILD_NO     = g_build_no, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+l_add = "Y"
+while sfpEND:policy_NO    = g_policy_no and
+      sfpend:pol_Year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO      = g_prem_no and
+      sfpEND:BUILD_NO     = g_build_no
+    begin
+    l_add = "N"
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = g_policy_no ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+L_SUB_CODE = 0
+while sfpEND:policy_NO = g_policy_no and
+      sfpend:pol_Year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE            = G_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+while SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID and
+      SFSOPTEND:STATE            = G_STATE and
+      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+      SFSOPTEND:CODE             = L_CODE
+    begin
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       g_policy_no
+    sfpend:pol_Year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       g_prem_no
+    sfpEND:BUILD_NO             =       g_build_no
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "I"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = g_policy_no ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+while sfpEND:policy_NO = g_policy_no and
+      sfpend:pol_Year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+end
+
+Procedure CREATE_MACRO
+Begin
+Do REFRESH_WORK_FILES
+L_CSEXEC_APPLICATION = "PRINT"/raw
+
+Access SFSCSEXEC, Set SFSCSEXEC:APPLICATION = L_CSEXEC_APPLICATION , Exact
+
+If SFSCSEXEC:APPLICATION_NUMBER = 0 Then
+    Begin
+    L_CSEXEC_NUMBER = 99999
+    End
+Else
+    Begin
+    L_CSEXEC_NUMBER = SFSCSEXEC:APPLICATION_NUMBER + 1
+
+    Change SFSCSEXEC
+        Begin
+        SFSCSEXEC:APPLICATION_NUMBER = L_CSEXEC_NUMBER
+        End
+    End
+
+L_USERNAME = USERNAME
+I_REPORTA = "cppiso100"
+I_REPORT = "cppiso100.cq"
+I_REPORT_CQE = "cppiso100.cqe"
+I_APP = "cpp"
+I_CSEXEC_NUMBER = L_CSEXEC_NUMBER
+L_DEC = L_APP+Str(I_CSEXEC_NUMBER)+".cq"
+L_DEC_PDF = L_APP+Str(I_CSEXEC_NUMBER)+".pdf"
+I_PARAMETER = I_APP+Str(I_CSEXEC_NUMBER)+".par"
+I_MACROA = I_APP+Str(I_CSEXEC_NUMBER)
+I_MACRO = I_APP+Str(I_CSEXEC_NUMBER)+".mf"
+
+access sfpprint8, set sfpprint8:policy_no = g_policy_no,
+                      sfpprint8:pol_year = g_year,
+                      sfpprint8:end_sequence = g_end_sequence, generic
+
+if sfpprint8:policy_no <> g_policy_no or
+   sfpprint8:pol_Year <> g_year or
+   sfpprint8:end_sequence <> g_end_sequence then
+    begin
+    Add sfpprint8
+        Begin
+        sfpprint8:policy_NO = G_policy_NO
+        sfpprint8:pol_Year = g_Year
+        sfpprint8:end_sequence = g_end_sequence
+        end
+    End
+else
+    begin
+    delete sfpprint8
+    Add sfpprint8
+        Begin
+        sfpprint8:policy_NO = G_policy_NO
+        sfpprint8:pol_Year = g_Year
+        sfpprint8:end_sequence = g_end_sequence
+        end
+    End
+
+Deletefile(I_MACRO)
+Writefile(I_MACRO,"cli rm cppiso100.cq<nl>")
+Writefile(I_MACRO,"cli csbatch cppiso100<nl>")
+Writefile(I_MACRO,"cli pcl2pdf cppiso100.cq %s<nl>",l_dec)
+Closefile(I_MACRO)
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Proc("cli cq %s",I_MACRO)/noconsole
+Else
+    Proc("cli cq %s",I_MACRO)
+
+L_USERNAME = Trun(USERNAME)
+
+Access SFSPROFILE, Set SFSPROFILE:USER_ID = L_USERNAME, Exact
+
+If SFSPROFILE:USER_ID <> L_USERNAME Then
+    Begin
+    L_USERNAME = "default"
+    Access SFSPROFILE, Set SFSPROFILE:USER_ID = L_USERNAME, Exact
+    End
+
+L_UNIX_PATH   = SFSPROFILE:UNIX_PATH/raw
+L_UNIX_SERVER = SFSPROFILE:UNIX_SERVER/raw
+L_CLIENT_PATH = SFSPROFILE:CLIENT_PATH/raw
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Begin
+    Proc("cli mv %s %s",L_DEC,L_DEC_PDF)/noconsole
+    Proc("cli chmod 777 %s ",L_DEC_PDF)/noconsole
+    Proc("cli rm %s",L_DEC)/noconsole
+    Proc("cli mv %s %s %s", L_DEC_PDF," ",Trun(L_UNIX_PATH))/noconsole
+    End
+Else
+    Begin
+    Proc("cli mv %s %s",L_DEC,L_DEC_PDF)
+    Proc("cli chmod 777 %s ",L_DEC_PDF)
+    Proc("cli rm %s",L_DEC)
+    Proc("cli mv %s %s %s", L_DEC_PDF," ",Trun(L_UNIX_PATH))
+    End
+
+Proc("%s %s%s",L_CLIENT_PATH,Trun(L_UNIX_SERVER),Trun(L_DEC_PDF))/client/noconsole
+
+access sfpprint8, set sfpprint8:policy_no = g_policy_no,
+                      sfpprint8:pol_year = g_year,
+                      sfpprint8:end_sequence = g_end_sequence, generic
+
+delete sfpprint8
+
+Do REFRESH_WORK_FILES
+End
+
+Procedure REFRESH_WORK_FILES
+Begin
+Proc ("cli sfpprint8.mk")/noconsole
+End
+
+End

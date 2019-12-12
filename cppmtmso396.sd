@@ -1,0 +1,153 @@
+%%
+Screen
+        Name            = "CPPMTMSO396" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPGENERAL";
+        Windowtitle = "%a     %s Miscellaneous Factors  Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ;
+
+        Access CPPGENERAL, Set CPPGENERAL:POLICY_NO = G_POLICY_NO,
+                               CPPGENERAL:POL_YEAR = G_YEAR,
+                               CPPGENERAL:END_SEQUENCE = G_END_SEQUENCE,
+                               CPPGENERAL:PREM_NO = G_PREM_NO,
+                               CPPGENERAL:BUILD_NO = G_BUILD_NO, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPGENERAL:POLICY_NO <> G_POLICY_NO Or
+   CPPGENERAL:POL_YEAR <> G_YEAR Or
+   CPPGENERAL:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPGENERAL:PREM_NO <> G_PREM_NO Or
+   CPPGENERAL:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+*------------------------------------------------------------------------------*
+| Peril                  Company               PMA                             |
+|                        Deviation                                             |
+*------------------------------------------------------------------------------*
+| FIRE:                  ________            ________                          |
+| EC:                    ________            ________                          |
+| VMM:                   ________            ________                          |
+| AOP:                   ________            ________                          |
+| SL:                    ________            ________                          |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPGENERAL:POLICY_NO/displayonly  ;
+302     CPPGENERAL:POL_YEAR/displayonly;
+303     CPPGENERAL:END_SEQUENCE/displayonly;
+401     CPPGENERAL:PREM_NO/displayonly ;
+501     CPPGENERAL:BUILD_NO/displayonly ;
+
+1001    CPPGENERAL:COMPANY_DEVIATION[1];
+1002    CPPGENERAL:PACKAGE_MOD[1]/default  ;
+1101    Begin
+        If FUNCTION = "CHANGE" And
+           CPPGENERAL:COMPANY_DEVIATION[2] <> CPPGENERAL:COMPANY_DEVIATION[1] Then
+            CPPGENERAL:COMPANY_DEVIATION[2] = CPPGENERAL:COMPANY_DEVIATION[1]
+        End
+        CPPGENERAL:COMPANY_DEVIATION[2]/default
+        Hide If CPPGENERAL:FORM = 1 ;
+1102    CPPGENERAL:PACKAGE_MOD[2]/default
+        Hide If CPPGENERAL:FORM = 1;
+1201    Begin
+        If FUNCTION = "CHANGE" And
+           CPPGENERAL:COMPANY_DEVIATION[3] <> CPPGENERAL:COMPANY_DEVIATION[1] Then
+            CPPGENERAL:COMPANY_DEVIATION[3] = CPPGENERAL:COMPANY_DEVIATION[1]
+        End
+        CPPGENERAL:COMPANY_DEVIATION[3]/default
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1202    CPPGENERAL:PACKAGE_MOD[3]/default
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1301    Begin
+        If FUNCTION = "CHANGE" And
+           CPPGENERAL:COMPANY_DEVIATION[4] <> CPPGENERAL:COMPANY_DEVIATION[1] Then
+            CPPGENERAL:COMPANY_DEVIATION[4] = CPPGENERAL:COMPANY_DEVIATION[1]
+        End
+        CPPGENERAL:COMPANY_DEVIATION[4]/default
+        Hide If CPPGENERAL:FORM < 3 ;
+1302    CPPGENERAL:PACKAGE_MOD[4]/default
+        Hide If CPPGENERAL:FORM < 3 ;
+1401    Begin
+        If FUNCTION = "CHANGE" And
+           CPPGENERAL:COMPANY_DEVIATION[6] <> CPPGENERAL:COMPANY_DEVIATION[1] Then
+            CPPGENERAL:COMPANY_DEVIATION[6] = CPPGENERAL:COMPANY_DEVIATION[1]
+        End
+        CPPGENERAL:COMPANY_DEVIATION[6]/default
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+1402    CPPGENERAL:PACKAGE_MOD[6]/default
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+
+}
+
+}
+
+End

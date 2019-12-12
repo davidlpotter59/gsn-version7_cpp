@@ -1,0 +1,207 @@
+%%
+Screen
+        Name            = "cppMTMSO297" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPGENERAL";
+        Windowtitle = "%a     %s Miscellaneous Factors   Ver 7.0 %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ;
+
+        Access CPPGENERAL, Set CPPGENERAL:POLICY_NO = G_POLICY_NO,
+                               CPPGENERAL:POL_YEAR = G_YEAR,
+                               CPPGENERAL:END_SEQUENCE = G_END_SEQUENCE,
+                               CPPGENERAL:PREM_NO = G_PREM_NO,
+                               CPPGENERAL:BUILD_NO = G_BUILD_NO,
+                               CPPGENERAL:RATE_TYPE = G_RATE_TYPE, Generic
+
+        Include "STDKEYS7.INC"
+        !F8="Down"/function/icon="NetFact" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "Down" Display "cppmtmso298" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPGENERAL:POLICY_NO <> G_POLICY_NO Or
+   CPPGENERAL:POL_YEAR <> G_YEAR Or
+   CPPGENERAL:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPGENERAL:PREM_NO <> G_PREM_NO Or
+   CPPGENERAL:BUILD_NO <> G_BUILD_NO Or
+   CPPGENERAL:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:    __   ____________________                                      |
+*------------------------------------------------------------------------------*
+|          Building     Contents       Wind                                    |
+| Peril   Deductible   Deductible    Deductible   Coinsurance     Public/      |
+|           Factor       Factor        Factor        Factor     Institutional  |
+*------------------------------------------------------------------------------*
+| FIRE:     ______       ______        ______        ______        ______      |
+| EC:       ______       ______        ______        ______        ______      |
+| VMM:      ______       ______        ______        ______        ______      |
+| AOP:      ______       ______        ______        ______        ______      |
+| SL:       ______       ______        ______        ______        ______      |
+*------------------------------------------------------------------------------*
+|         Earthquake                                                           |
+*------------------------------------------------------------------------------*
+| FIRE:     ______                                                             |
+| EC:       ______                                                             |
+| VMM:      ______                                                             |
+| AOP:      ______                                                             |
+| SL:       ______                                                             |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext  ;
+301     CPPGENERAL:POLICY_NO/displayonly  ;
+302     CPPGENERAL:POL_YEAR/displayonly;
+303     CPPGENERAL:END_SEQUENCE/displayonly;
+401     CPPGENERAL:PREM_NO/displayonly ;
+501     CPPGENERAL:BUILD_NO/displayonly ;
+601     CPPGENERAL:RATE_TYPE/displayonly ;
+602     Begin
+        Switch(CPPGENERAL:RATE_TYPE)
+        Case 1  : L_RATE_TYPE_DESC = "BUILDING"
+        Default : L_RATE_TYPE_DESC = "CONTENTS"
+        End
+        End
+        L_RATE_TYPE_DESC/displayonly;
+
+1201    CPPGENERAL:DEDUCTIBLE_FACTOR[1]/displayonly ;
+1202    CPPGENERAL:CONTENTS_DEDUCT_FACTOR[1]/displayonly ;
+1203    CPPGENERAL:WIND_DEDUCTIBLE_FACTOR[1]/displayonly ;
+1204    CPPGENERAL:COINSURANCE_FACTOR[1]/displayonly ;
+1205    CPPGENERAL:PUBLIC_INSTITUTE_FACTOR[1]/displayonly  ;
+
+1301    CPPGENERAL:DEDUCTIBLE_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1;
+1302    CPPGENERAL:CONTENTS_DEDUCT_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+1303    CPPGENERAL:WIND_DEDUCTIBLE_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+1304    CPPGENERAL:COINSURANCE_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+1305    CPPGENERAL:PUBLIC_INSTITUTE_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+
+1401    CPPGENERAL:DEDUCTIBLE_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1402    CPPGENERAL:CONTENTS_DEDUCT_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1403    CPPGENERAL:WIND_DEDUCTIBLE_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1404    CPPGENERAL:COINSURANCE_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1405    CPPGENERAL:PUBLIC_INSTITUTE_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+
+1501    CPPGENERAL:DEDUCTIBLE_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+1502    CPPGENERAL:CONTENTS_DEDUCT_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+1503    CPPGENERAL:WIND_DEDUCTIBLE_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+1504    CPPGENERAL:COINSURANCE_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+1505    CPPGENERAL:PUBLIC_INSTITUTE_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+
+1601    CPPGENERAL:DEDUCTIBLE_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                CPPGENERAL:FORM = 5 ;
+1602    CPPGENERAL:CONTENTS_DEDUCT_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                CPPGENERAL:FORM = 5 ;
+1603    CPPGENERAL:WIND_DEDUCTIBLE_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                CPPGENERAL:FORM = 5 ;
+1604    CPPGENERAL:COINSURANCE_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                CPPGENERAL:FORM = 5 ;
+1605    CPPGENERAL:PUBLIC_INSTITUTE_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                CPPGENERAL:FORM = 5;
+
+2001    CPPGENERAL:EARTHQUAKE_FACTOR[1]/displayonly
+        Hide If CPPGENERAL:EARTHQUAKE = 0 ;
+2101    CPPGENERAL:DEDUCTIBLE_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:EARTHQUAKE = 0  ;
+2201    CPPGENERAL:DEDUCTIBLE_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:EARTHQUAKE = 0  ;
+2301    CPPGENERAL:DEDUCTIBLE_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:EARTHQUAKE = 0  ;
+2401    CPPGENERAL:DEDUCTIBLE_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:EARTHQUAKE = 0  ;
+
+}
+
+}
+
+End

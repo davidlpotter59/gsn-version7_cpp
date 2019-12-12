@@ -1,0 +1,195 @@
+%%
+Screen
+        Name = "cppmtmso009g" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Commercial Umbrella - Ver. 7.00     %m" ;
+        Domain = "cppUMBRELLA" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     g_check_reference[7],
+                                     g_agent_no[4],
+                                     g_opt[2] ;
+
+        Global String g_company[10] ,
+                      G_COMPANY_ID[10] ,
+                      g_function[10],
+                      g_first[1],
+                      g_first_1[1] ;
+
+        global mmddyyyy date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date,
+                             g_exp_date ;
+
+        global string g_lib_1[10],
+                      g_name[50],
+                      g_inquiry[1] ;
+
+        global string G_QUE[10] ,
+                      G_FOB[1] ,
+                      G_FOB_DESCRIPTION[75] ;
+
+        global unsigned ascii number G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Local Unsigned Ascii Number L_TYPE[1]=0 ,
+                                    L_FACTOR[4]=0/dec=2,
+                                    l_line_of_business[4]=0,
+                                    l_mm[2],
+                                    l_dd[2],
+                                    l_yy[4] ,
+                                    l_occurrence[8]=0,
+                                    i_csexec_number[12],
+                                    l_csexec_number[12],
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0,
+                                    l_sub_code[4]=0,
+                                    l_state[2]=0,
+                                    l_per_room[4]=0,
+                                    L_UM_UIM_SURCHARGE[3]=0,
+                                    l_abort_program[1],
+                                    i_trans_code[4],
+                                    L_LIMIT_1[8]=0,
+                                    L_LIMIT_2[8]=0,
+                                    l_minimum_premium[4]=0 ,
+                                    l_no_vehicles[3]=0,
+                                    l_sub[1]=0,
+                                    l_stories[1]=0,
+                                    l_repeat[1]=0,
+                                    l_hotel_total[6]=0,
+                                    l_apt_charge[3]=0,
+                                    l_hotel_charge[3]=0,
+                                    l_increased_total[6]=0,
+                                    l_hotel_each_addl[4]=0/dec=2,
+                                    l_directors_charge[4]=0,
+                                    l_motel_maximum[3]=0,
+                                    l_motel_stories[2]=0,
+                                    l_apt_stories[2]=0,
+                                    l_apt_per[1]=0,
+                                    l_directors_per[1]=0,
+                                    l_hotel_increase[4]=0/dec=2,
+                                    l_each_addl_minimum[4]=0,
+                                    l_increase_million[1]=0,
+                                    l_irpm[4]=0/dec=2,
+                                    l_increased_factor[4]=0/dec=2 ;
+
+        Local String L_TABLE[1]="" ,
+                     L_FORM_EDITION[25],
+                     l_add_endorsement[1],
+                     l_screen[8],
+                     L_DESCRIPTION[75],
+                     L_CODE[7],
+                     l_system_id[15],
+                     l_csexec_application[25],
+                     l_cancellation_string[28],
+                     l_policy_update_string[17],
+                     l_continue_1[3]="",
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_dec[15]="",
+                     l_app[3]="cup" ;
+
+        local signed ascii number l_irpm_total[6]=0;
+
+        include "print.var"
+
+        include "virtualdecs.var"
+
+        Access cppUMBRELLA,
+           Set cppUMBRELLA:policy_NO    = G_policy_NO ,
+               cppumbrella:pol_year     = g_year,
+               cppumbrella:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+access validation
+if cppumbrella:policy_no    <> g_policy_no or
+   cppumbrella:pol_Year     <> g_year or
+   cppumbrella:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+screen at 2,1 to 25, 81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+| Business Desc: ______________________________ ______________________________ |
+*---------------------------------------------*--------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppUMBRELLA:policy_NO    = G_policy_NO
+            cppumbrella:pol_year     = g_year
+            cppumbrella:end_sequence = g_end_sequence
+            End
+        End
+        cppUMBRELLA:policy_NO/displayonly ;
+302     cppumbrella:pol_year/displayonly ;
+303     cppumbrella:end_sequence/displayonly ;
+
+501     cppumbrella:business_desc[1]/uppercase ;
+502     cppumbrella:business_desc[2]/uppercase ;
+
+}
+
+}
+
+End

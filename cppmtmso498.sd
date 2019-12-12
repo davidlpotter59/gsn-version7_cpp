@@ -1,0 +1,124 @@
+%%
+Screen
+        Name            = "cppMTMSO498" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPGLASS";
+        Windowtitle = "%a     %s Miscellaneous Factors  Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ;
+
+        Access CPPGLASS, Set CPPGLASS:POLICY_NO = G_POLICY_NO,
+                             CPPGLASS:POL_YEAR = G_YEAR,
+                             CPPGLASS:END_SEQUENCE = G_END_SEQUENCE,
+                             CPPGLASS:PREM_NO = G_PREM_NO,
+                             CPPGLASS:BUILD_NO = G_BUILD_NO,
+                             CPPGLASS:SUB_CODE = G_SUB_CODE, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPGLASS:POLICY_NO <> G_POLICY_NO Or
+   CPPGLASS:POL_YEAR <> G_YEAR Or
+   CPPGLASS:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPGLASS:PREM_NO <> G_PREM_NO Or
+   CPPGLASS:BUILD_NO <> G_BUILD_NO Or
+   CPPGLASS:SUB_CODE <> G_SUB_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+*------------------------------------------------------------------------------*
+| Position/      Territory        Deductible       Obstruction                 |
+|    Use          Factor            Factor                                     |
+*------------------------------------------------------------------------------*
+|   ______        ______            ______           ______                    |
+*------------------------------------------------------------------------------*
+|   Optional             Vacancy/              50/50                           |
+| Loss Payment         Unoccupancy           Retention                         |
+*------------------------------------------------------------------------------*
+|    _____                _____                _____                           |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext  ;
+301     CPPGLASS:POLICY_NO/displayonly  ;
+302     CPPGLASS:POL_YEAR/displayonly;
+303     CPPGLASS:END_SEQUENCE/displayonly;
+401     CPPGLASS:PREM_NO/displayonly ;
+501     CPPGLASS:BUILD_NO/displayonly ;
+1001    CPPGLASS:POSITION_USE_FACTOR/displayonly ;
+1002    CPPGLASS:TERRITORY_FACTOR/displayonly ;
+1003    CPPGLASS:DEDUCTIBLE_FACTOR/displayonly ;
+1004    CPPGLASS:OBSTRUCTION_FACTOR/displayonly ;
+1501    CPPGLASS:OPTIONAL_LOSS_PAY_FACTOR/displayonly ;
+1502    CPPGLASS:VACANCY_FACTOR/displayonly ;
+1503    CPPGLASS:RETENTION_FACTOR/displayonly ;
+
+}
+
+}
+
+
+End

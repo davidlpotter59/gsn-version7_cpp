@@ -1,0 +1,1898 @@
+%%
+Screen
+        Name = "CPPMT399" ;
+        Type = "Multiline" ;
+        repeat LINE_ITEMS, 10 times, 2 times with 13 spaces across ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "CPPbusiness";
+        Windowtitle = "%a     %s Business Income Premiums - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_CHECK_REFERENCE[7],
+                                     G_AGENT_NO[4],
+                                     G_OPT[2];
+
+        Global String G_COMPANY[10] ,
+                      G_COMPANY_ID[10] ,
+                      G_FUNCTION[10] ,
+                      G_FIRST[1],
+                      G_FIRST_1[1] ;
+
+        global MMDDYYYY date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date ,
+                             g_exp_date ;
+
+        global string g_lib_1[10] ,
+                      g_name[50] ,
+                      g_inquiry[1] ,
+                      g_fob[1],
+                      g_fob_description[75] ,
+                      g_que[10] ;
+
+        global unsigned ascii number g_state[2] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        Local String l_desc[50] ,
+                     l_coverage[1] ,
+                     L_ADD_ENDORSEMENT[1],
+                     L_FORM_EDITION[25],
+                     L_DESCRIPTION[50] ,
+                     l_monthly_percent[5],
+                     l_peril_1[8],
+                     l_peril_2[8],
+                     l_peril_3[8],
+                     l_peril_4[8],
+                     l_code[7] ;
+
+        Local Unsigned Ascii Number l_prem_no[4],
+                                    l_build_no[4],
+                                    l_form[1] ,
+                                    l_construction[1],
+                                    l_protection[2],
+                                    l_territory[3],
+                                    l_class_code[5]=0,
+                                    l_class_sub_code[4]=0,
+                                    l_state[2],
+                                    l_line_of_business[4] ,
+                                    l_group_i[8]=0/dec=5,
+                                    l_no_limit[1],
+                                    l_final_total[8]=0,
+                                    l_terror_line_of_business[4],
+                                    l_payroll_days[3],
+                                    l_days[3],
+                                    l_time_period[1],
+                                    l_electronic_media_factor[5]=0/dec=3,
+                                    l_agreed_value_factor[5]=0/dec=3,
+                                    l_monthly_limitation[5]=0/dec=3,
+                                    l_other_utility_factor[5]=0/dec=3,
+                                    l_extended_factor[5]=0/dec=3,
+                                    l_maximum_factor[5]=0/dec=3,
+                                    l_payroll_factor[5]=0/dec=3,
+                                    l_heat_power_factor[5]=0/dec=3,
+                                    l_seasonal_factor[4]=0/dec=3,
+                                    l_loss_tuition_factor[5]=0/dec=3,
+                                    l_loss_tuition_coinsurance[3]=0,
+                                    l_dependent_property[1]=0,
+                                    l_dependent_factor[5]=0/dec=3,
+                                    l_time_factor[5]=0/dec=3,
+                                    l_ordinance_law_factor[5]=0/dec=3,
+                                    l_utility[1],
+                                    l_utility1_group_i[5]=0/dec=4,
+                                    l_utility2_group_i[5]=0/dec=4,
+                                    l_utility3_group_i[5]=0/dec=4,
+                                    l_utility4_group_i[5]=0/dec=4,
+                                    l_utility5_group_i[5]=0/dec=4,
+                                    l_utility1_group_ii[5]=0/dec=4,
+                                    l_utility2_group_ii[5]=0/dec=4,
+                                    l_utility3_group_ii[5]=0/dec=4,
+                                    l_utility4_group_ii[5]=0/dec=4,
+                                    l_utility5_group_ii[5]=0/dec=4,
+                                    l_utility1_broad[5]=0/dec=4,
+                                    l_utility2_broad[5]=0/dec=4,
+                                    l_utility3_broad[5]=0/dec=4,
+                                    l_utility4_broad[5]=0/dec=4,
+                                    l_utility5_broad[5]=0/dec=4,
+                                    l_utility1_special[5]=0/dec=4,
+                                    l_utility2_special[5]=0/dec=4,
+                                    l_utility3_special[5]=0/dec=4,
+                                    l_utility4_special[5]=0/dec=4,
+                                    l_utility5_special[5]=0/dec=4,
+                                    l_utility1_earthquake[1]=0/dec=4,
+                                    l_utility2_earthquake[1]=0/dec=4,
+                                    l_utility3_earthquake[1]=0/dec=4,
+                                    l_utility4_earthquake[1]=0/dec=4,
+                                    l_utility5_earthquake[1]=0/dec=4,
+                                    l_bi_factor[6]=0/dec=4,
+                                    l_special_bi_factor[6]=0/dec=4,
+                                    l_group_ii[6]=0/dec=4,
+                                    l_special[5]=0/dec=3,
+                                    l_special_office[3]=0,
+                                    l_special_relativities[4]=0,
+                                    l_special_theft[5]=0/dec=3,
+                                    l_theft_rate[8]=0/dec=3,
+                                    l_territory_factor[6]=0/dec=4,
+                                    l_protection_factor[5]=0/dec=3,
+                                    l_coinsurance_factor[5]=0/dec=3,
+                                    l_deductible_factor_1[6]=0/dec=4,
+                                    l_deductible_factor_2[6]=0/dec=4,
+                                    l_deductible_factor_3[6]=0/dec=4,
+                                    l_deductible_factor[6]=0/dec=4,
+                                    l_limit[8]=0,
+                                    l_limit_1[8]=0,
+                                    l_limit_2[8]=0,
+                                    l_adj_rate_1[6]=0/dec=3,
+                                    l_adj_rate_2[6]=0/dec=3,
+                                    l_adj_rate_3[6]=0/dec=3,
+                                    l_adj_rate_4[6]=0/dec=3,
+                                    l_adj_rate_5[6]=0/dec=3,
+                                    l_adj_rate_6[6]=0/dec=3,
+                                    l_adj_rate_7[6]=0/dec=3,
+                                    l_adj_rate_8[6]=0/dec=3,
+                                    l_general_total[8]=0,
+                                    l_premium[8]=0,
+                                    l_premium_1[8]=0,
+                                    l_premium_2[8]=0,
+                                    l_premium_3[8]=0,
+                                    l_premium_4[8]=0,
+                                    l_premium_5[8]=0,
+                                    l_premium_6[8]=0,
+                                    l_premium_7[8]=0,
+                                    l_premium_8[8]=0,
+                                    l_total_premium_1[8]=0,
+                                    l_deductible_limit[8]=0,
+                                    l_inflation_factor[4]=0/dec=2,
+                                    l_loss_cost[6]=0/dec=4 ,
+                                    l_base_rate_1[6]=0/dec=3,
+                                    l_total_premium[8]=0,
+                                    l_building_total[8]=0,
+                                    l_contents_total[8]=0;
+
+        Unsigned Ascii Number L_TERRORISM_PREMIUM[8]/decimals =0;
+        Unsigned Ascii Number L_general_TERRORISM_PREMIUM[8]/decimals =0;
+        Unsigned Ascii Number L_TERROR_PERCENTAGE[5]/decimals=4;
+        Unsigned Ascii Number L_TERROR_MINIMUM[3];
+        Unsigned Ascii Number L_FOUND[1];
+        Unsigned Ascii Number L_SUB_CODE[4];
+        Wdate L_TERROR_EFF_DATE;
+
+        Access CPPbusiness, Set CPPbusiness:policy_NO    = G_policy_NO,
+                                cppbusiness:pol_year     = g_year,
+                                cppbusiness:end_sequence = g_end_sequence, generic
+
+        scrollmessage = "" ;
+
+        Include "stdkeys7.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+        reaccess ;
+
+EVENT DEFINITION
+        default eventhandler {
+                             "reload" { function = "reaccess" abort() }
+                             }
+
+Toolbar Definition
+
+screen entry
+l_total_premium_1 = 0
+
+Access Validation
+If CPPbusiness:policy_NO <> G_policy_NO or
+   cppbusiness:pol_year <> g_year or
+   cppbusiness:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen
+{
+%%
+*------------------------------------------------------------------------------*
+|  Prem No    Build No   Premium             Prem No    Build No   Premium     |
+|    ____      ____     _________                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+| Total:                _________                                              |
+| Terrorism:            _________                                              |
+| Final Total:          _________                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0301    CPPbusiness:prem_no/displayonly  tagged LINE_ITEMS;
+0302    CPPbusiness:build_no/displayonly tagged LINE_ITEMS;
+0303    begin
+        if g_inquiry <> "Y" then
+            begin
+            do totals
+            access CPPbusiness_alias, set CPPbusiness_alias:policy_no = CPPbusiness:policy_no,
+                                          cppbusiness_alias:pol_year = cppbusiness:pol_year,
+                                          cppbusiness_alias:end_sequence = cppbusiness:end_sequence,
+                                          CPPbusiness_alias:prem_no  = CPPbusiness:prem_no,
+                                          CPPbusiness_alias:build_no = CPPbusiness:build_no,
+                                          CPPbusiness_alias:coverage = CPPbusiness:coverage, generic
+
+            l_premium = CPPbusiness_alias:total_premium
+            l_total_premium_1 = l_total_premium_1 + l_premium
+            end
+        else
+            begin
+            l_premium         = cppbusiness:total_premium
+            l_total_premium_1 = l_total_premium_1 + cppbusiness:total_premium
+            end
+        end
+        l_premium/displayonly           tagged LINE_ITEMS;
+
+1401    begin
+        if g_inquiry <> "Y" then
+            begin
+            If CPPgeneral:REMOVE_TERRORISM_FORM = 0 Then
+                begin
+                L_TERRORISM_PREMIUM = 0
+                Do GET_TERRORISM_PREMIUM
+                end
+            Else
+                l_terrorism_premium = 0
+
+            l_final_total = l_total_premium_1 +
+                            l_terrorism_premium
+            end
+        else
+            begin
+            do check_terrorism
+            l_final_total = l_total_premium_1 +
+                            l_terrorism_premium
+            end
+        end
+        l_total_premium_1/displayonly ;
+1501    l_terrorism_premium/displayonly ;
+1601    l_final_total/displayonly ;
+
+}
+
+Procedure Definition
+
+Procedure GET_TERRORISM_PREMIUM
+begin
+access CPPgeneral, set CPPgeneral:policy_no = g_policy_no,
+                       cppgeneral:pol_year = g_year,
+                       cppgeneral:end_sequence = g_end_sequence, generic
+
+while CPPgeneral:policy_no = g_policy_no and
+      cppgeneral:pol_year = g_year and
+      cppgeneral:end_sequence = g_end_sequence
+    begin
+    if CPPgeneral:total_premium[2] = 0 then
+        l_general_total = CPPgeneral:total_premium[1] +
+                          l_general_total
+    else
+        l_general_total = CPPgeneral:total_premium[2] +
+                          l_general_total
+
+    next CPPgeneral
+    end
+
+Access CPPbusiness_alias, Set CPPbusiness_alias:policy_NO = G_policy_NO,
+                              cppbusiness_alias:pol_year = g_year,
+                              cppbusiness_alias:end_sequence = g_end_sequence,
+                              CPPbusiness_alias:PREM_NO  = G_PREM_NO,
+                              CPPbusiness_alias:BUILD_NO = G_BUILD_NO, generic
+
+L_STATE = CPPbusiness_alias:state
+Do ACCESS_SFSMSOTERROR
+l_general_terrorism_premium = 0
+if l_terror_percentage <> 0 then
+    begin
+    L_TERRORISM_PREMIUM = L_total_premium_1 * l_terror_PERCENTAGE
+    l_general_terrorism_premium = ((l_total_premium_1 +
+                                  l_general_total) *
+                                  l_terror_percentage)
+
+    If L_TERRORISM_PREMIUM <= L_TERROR_MINIMUM Then
+        L_TERRORISM_PREMIUM = L_TERROR_MINIMUM
+    end
+
+access sfpend, set sfpend:policy_no = CPPbusiness:policy_no,
+                   sfpend:pol_year = cppbusiness:pol_year,
+                   sfpend:end_sequence = cppbusiness:end_sequence,
+                   sfpend:prem_no  = 0,
+                   sfpend:build_no = 0, generic
+
+while sfpend:policy_no = CPPbusiness:policy_no and
+      sfpend:pol_year = cppbusiness:pol_year and
+      sfpend:end_sequence = cppbusiness:end_sequence and
+      sfpend:prem_no  = 0 and
+      sfpend:build_no = 0
+        begin
+        if sfpend:terrorism_form = 1 and
+           sfpend:code = sfsmsoterror:terrorism_form_to_add then
+            begin
+            change sfpend
+                begin
+                sfpend:premium = l_general_terrorism_premium
+                end
+            end
+
+        next sfpend
+        end
+end
+
+procedure check_terrorism
+begin
+Access CPPbusiness_alias, Set CPPbusiness_alias:policy_NO = G_policy_NO,
+                              cppbusiness_alias:pol_year = g_year,
+                              cppbusiness_alias:end_sequence = g_end_sequence,
+                              CPPbusiness_alias:PREM_NO  = G_PREM_NO,
+                              CPPbusiness_alias:BUILD_NO = G_BUILD_NO, generic
+
+L_STATE = CPPbusiness_alias:state
+Do ACCESS_SFSMSOTERROR
+if l_terror_percentage <> 0 then
+    begin
+    L_TERRORISM_PREMIUM = L_total_premium_1 * l_terror_PERCENTAGE
+    If L_TERRORISM_PREMIUM <= L_TERROR_MINIMUM Then
+        L_TERRORISM_PREMIUM = L_TERROR_MINIMUM
+    end
+
+end
+
+Procedure ACCESS_SFSMSOTERROR
+begin
+l_terror_line_of_business = 0011
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpname:company_id,
+                         SFSMSOTERROR:STATE            = CPPbusiness:STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = l_terror_line_of_business, generic
+
+l_terror_percentage = 0
+l_terror_minimum = 0
+While SFSMSOTERROR:COMPANY_ID       = sfpname:company_id And
+      SFSMSOTERROR:STATE            = CPPbusiness:STATE And
+      SFSMSOTERROR:LINE_OF_BUSINESS = l_terror_line_of_business
+    begin
+    if sfpname:eff_date >= sfsmsoterror:eff_date then
+        begin
+        L_TERROR_EFF_DATE   = SFSMSOTERROR:EFF_DATE
+        L_TERROR_PERCENTAGE = SFSMSOTERROR:PERCENTAGE
+        L_TERROR_MINIMUM    = SFSMSOTERROR:MINIMUM_PREMIUM
+        end
+
+    Next SFSMSOTERROR
+    end
+
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpname:company_id,
+                         SFSMSOTERROR:STATE            = CPPbusiness:STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = l_terror_line_of_business,
+                         SFSMSOTERROR:EFF_DATE         = L_TERROR_EFF_DATE, Exact
+
+end
+
+Procedure ACCESS_KEY
+Begin
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpname:company_id ,
+                      SFSOPTEND:STATE            = CPPbusiness:STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = CPPbusiness:rating_line_of_business,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+
+While SFSOPTEND:COMPANY_ID       = sfpname:company_id And
+      SFSOPTEND:STATE            = CPPbusiness:STATE And
+      SFSOPTEND:LINE_OF_BUSINESS = CPPbusiness:rating_line_of_business And
+      SFSOPTEND:CODE             = L_CODE
+        Begin
+        If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+           (sfpname:eff_date <= sfsoptend:exp_date or
+           sfsoptend:exp_date = 0)) Then
+            Begin
+            L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+            L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+            End
+
+        Next SFSOPTEND
+        End
+
+End
+
+Procedure SUBCODE
+Begin
+Access sfpEND_alias, Set sfpEND_alias:policy_NO = G_policy_NO,
+                         sfpend_alias:pol_year = g_year,
+                         sfpend_alias:end_sequence = g_end_sequence,
+                         sfpend_alias:prem_no  = 0,
+                         sfpend_alias:build_no = 0, generic
+
+L_SUB_CODE = 0
+while sfpEND_alias:policy_NO = G_policy_NO and
+      sfpend_alias:pol_year = g_year and
+      sfpend_alias:end_sequence = g_end_sequence and
+      sfpend_alias:prem_no  = 0 and
+      sfpend_alias:build_no = 0
+        begin
+        L_SUB_CODE = sfpEND_alias:SUB_CODE
+
+        Next sfpEND_alias
+        End
+
+End
+
+procedure totals
+begin
+if CPPbusiness:monthly_recovery_limitation = 1 then
+    do monthly_recovery
+
+if CPPbusiness:agreed_value = 1 then
+    do access_cpsbusmiscrates
+
+if CPPbusiness:electronic_media = 1 then
+    begin
+    do electronic_media
+    do access_cpsbusmiscrates
+    end
+
+if CPPbusiness:extended_period_indemnity = 1 then
+    do extended_period_indemnity
+
+if CPPbusiness:max_recovery_period = 1 then
+    do access_cpsbusmiscrates
+
+if CPPbusiness:payroll_limitation = 1 then
+    begin
+    do ordinary_payroll
+    do access_cpsbusmiscrates
+    end
+
+if CPPbusiness:max_recovery_period = 1 then
+    do access_cpsbusmiscrates
+
+if CPPbusiness:seasonal_leases = 1 then
+    do access_cpsbusmiscrates
+
+if CPPbusiness:loss_tuition_fees = 1 then
+    begin
+    do loss_tuition_fees
+    do access_cpsbusmiscrates
+    end
+
+if CPPbusiness:building_law = 1 then
+    do access_cpsbusmiscrates
+
+if CPPbusiness:dependent_property = 1 then
+    begin
+    do access_dependent_property
+    do access_cpsbusmiscrates
+    end
+
+if CPPbusiness:time_period = 1 then
+    begin
+    do time_period
+    do access_cpsbusmiscrates
+    end
+
+if CPPbusiness:utility = 1 then
+    begin
+    do loss_cost
+    do utility
+    end
+
+l_limit_1 = CPPbusiness:limit divide 100
+do group_i
+l_premium_1 = l_adj_rate_1 * l_limit_1
+do group_ii
+l_premium_2 = l_adj_rate_2 * l_limit_1
+do broad_special
+l_premium_3 = l_adj_rate_3 * l_limit_1
+
+access CPPbusiness_alias, set CPPbusiness_alias:policy_no = CPPbusiness:policy_no,
+                              cppbusiness_alias:pol_year = cppbusiness:pol_year,
+                              cppbusiness_alias:end_sequence = cppbusiness:end_sequence,
+                              CPPbusiness_alias:prem_no  = CPPbusiness:prem_no,
+                              CPPbusiness_alias:build_no = CPPbusiness:build_no,
+                              CPPbusiness_alias:coverage = CPPbusiness:coverage, generic
+
+change CPPbusiness_alias
+    begin
+    CPPbusiness_alias:bi_premium[1] = l_premium_1
+    CPPbusiness_alias:bi_premium[2] = l_premium_2
+    CPPbusiness_alias:bi_premium[3] = l_premium_3
+    CPPbusiness_alias:total_premium = l_premium_1 +
+                                      l_premium_2 +
+                                      l_premium_3
+    end
+
+end
+
+procedure loss_tuition_fees
+begin
+l_code = "CPQ305 "
+access CPPendorse, set CPPendorse:policy_no = CPPbusiness:policy_no,
+                       cppendorse:pol_year = cppbusiness:pol_year,
+                       cppendorse:end_sequence = cppbusiness:end_sequence,
+                       CPPendorse:prem_no  = CPPbusiness:prem_no,
+                       CPPendorse:build_no = CPPbusiness:build_no,
+                       CPPendorse:code     = l_code, generic
+
+l_loss_tuition_coinsurance = CPPendorse:coinsurance
+end
+
+procedure access_dependent_property
+begin
+l_code = "CPQ301 "
+access CPPendorse, set CPPendorse:policy_no = CPPbusiness:policy_no,
+                       cppendorse:pol_year = cppbusiness:pol_year,
+                       cppendorse:end_sequence = cppbusiness:end_sequence,
+                       CPPendorse:prem_no  = CPPbusiness:prem_no,
+                       CPPendorse:build_no = CPPbusiness:build_no,
+                       CPPendorse:code     = l_code, generic
+
+if CPPendorse:option[1] = 1 then
+    l_dependent_property = 1
+if CPPendorse:option[2] = 1 then
+    l_dependent_property = 2
+if CPPendorse:option1[1] = 1 then
+    l_dependent_property = 3
+end
+
+procedure time_period
+begin
+l_code = "CPQ307 "
+access CPPendorse, set CPPendorse:policy_no = CPPbusiness:policy_no,
+                       cppendorse:pol_year = cppbusiness:pol_year,
+                       cppendorse:end_sequence = cppbusiness:end_sequence,
+                       CPPendorse:prem_no  = CPPbusiness:prem_no,
+                       CPPendorse:build_no = CPPbusiness:build_no,
+                       CPPendorse:code     = l_code, generic
+
+if CPPendorse:option[1] = 1 then
+    l_time_period = 1
+else
+if CPPendorse:option[2] = 1 then
+    l_time_period = 0
+end
+
+procedure utility
+begin
+l_code = "CPQ308 "
+access CPPendorse, set CPPendorse:policy_no = CPPbusiness:policy_no,
+                       cppendorse:pol_year = cppbusiness:pol_year,
+                       cppendorse:end_sequence = cppbusiness:end_sequence,
+                       CPPendorse:prem_no  = CPPbusiness:prem_no,
+                       CPPendorse:build_no = CPPbusiness:build_no,
+                       CPPendorse:code     = l_code, generic
+
+if CPPendorse:option1[1] = 1 then
+    begin
+    l_utility = 1
+    do access_cpsutility
+    end
+
+if CPPendorse:option1[2] = 1 then
+    begin
+    l_utility = 2
+    do access_cpsutility
+    end
+
+if CPPendorse:option1[3] = 1 then
+    begin
+    l_utility = 3
+    do access_cpsutility
+    end
+
+if CPPendorse:option1[4] = 1 then
+    begin
+    l_utility = 4
+    do access_cpsutility
+    end
+
+if CPPendorse:option1[5] = 1 then
+    begin
+    l_utility = 5
+    do access_cpsutility
+    end
+
+end
+
+procedure monthly_recovery
+begin
+l_code = "CPQ304 "
+access CPPendorse, set CPPendorse:policy_no = CPPbusiness:policy_no,
+                       cppendorse:pol_year = cppbusiness:pol_year,
+                       cppendorse:end_sequence = cppbusiness:end_sequence,
+                       CPPendorse:prem_no  = CPPbusiness:prem_no,
+                       CPPendorse:build_no = CPPbusiness:build_no,
+                       CPPendorse:code     = l_code, generic
+
+l_monthly_percent = CPPendorse:monthly_percent
+access cpsmonthlimit, set cpsmonthlimit:company_id       = sfpname:company_id,
+                          cpsmonthlimit:state            = CPPbusiness:state ,
+                          cpsmonthlimit:line_of_business = CPPbusiness:rating_line_of_business,
+                          cpsmonthlimit:risk_type        = CPPbusiness:risk_type,
+                          cpsmonthlimit:monthly_percent  = l_monthly_percent, generic
+
+while cpsmonthlimit:company_id       = sfpname:company_id and
+      cpsmonthlimit:state            = CPPbusiness:state and
+      cpsmonthlimit:line_of_business = CPPbusiness:rating_line_of_business and
+      cpsmonthlimit:risk_type        = CPPbusiness:risk_type and
+      cpsmonthlimit:monthly_percent  = l_monthly_percent
+        begin
+        if (sfpname:eff_date >= cpsmonthlimit:eff_date and
+           (sfpname:eff_date <= cpsmonthlimit:exp_date or
+           cpsmonthlimit:exp_date = 0)) then
+            begin
+            switch(CPPbusiness:coverage)
+              case "D1" : l_monthly_limitation = cpsmonthlimit:factor[2]
+              default   : l_monthly_limitation = cpsmonthlimit:factor[1]
+              end
+            end
+
+        next cpsmonthlimit
+        end
+
+end
+
+procedure access_cpsutility
+begin
+access cpsutility, set cpsutility:company_id       = sfpname:company_id,
+                       cpsutility:state            = CPPbusiness:state ,
+                       cpsutility:line_of_business = CPPbusiness:rating_line_of_business, generic
+
+while cpsutility:company_id       = sfpname:company_id and
+      cpsutility:state            = CPPbusiness:state and
+      cpsutility:line_of_business = CPPbusiness:rating_line_of_business
+        begin
+        if (sfpname:eff_date >= cpsutility:eff_date and
+           (sfpname:eff_date <= cpsutility:exp_date or
+           cpsutility:exp_date = 0)) then
+            begin
+            switch(l_utility)
+              case 1  : begin
+                        l_utility1_group_i    = cpsutility:group_i[1]
+                        l_utility1_group_ii   = cpsutility:group_ii[1]
+                        l_utility1_broad      = cpsutility:broad[1]
+                        l_utility1_special    = cpsutility:special[1]
+                        l_utility1_earthquake = cpsutility:earthquake[1]
+                        end
+              case 2  : begin
+                        l_utility2_group_i    = cpsutility:group_i[2]
+                        l_utility2_group_ii   = cpsutility:group_ii[2]
+                        l_utility2_broad      = cpsutility:broad[2]
+                        l_utility2_special    = cpsutility:special[2]
+                        l_utility2_earthquake = cpsutility:earthquake[2]
+                        end
+              case 3  : begin
+                        l_utility3_group_i    = cpsutility:group_i[3]
+                        l_utility3_group_ii   = cpsutility:group_ii[3]
+                        l_utility3_broad      = cpsutility:broad[3]
+                        l_utility3_special    = cpsutility:special[3]
+                        l_utility3_earthquake = cpsutility:earthquake[3]
+                        end
+              case 4  : begin
+                        l_utility4_group_i    = cpsutility:group_i[4]
+                        l_utility4_group_ii   = cpsutility:group_ii[4]
+                        l_utility4_broad      = cpsutility:broad[4]
+                        l_utility4_special    = cpsutility:special[4]
+                        l_utility4_earthquake = cpsutility:earthquake[4]
+                        end
+              default : begin
+                        l_utility5_group_i    = cpsutility:group_i[5]
+                        l_utility5_group_ii   = cpsutility:group_ii[5]
+                        l_utility5_broad      = cpsutility:broad[5]
+                        l_utility5_special    = cpsutility:special[5]
+                        l_utility5_earthquake = cpsutility:earthquake[5]
+                        end
+              end
+            end
+
+        next cpsutility
+        end
+
+end
+
+procedure ordinary_payroll
+begin
+access CPPbuspayroll, set CPPbuspayroll:policy_no = CPPbusiness:policy_no,
+                          cppbuspayroll:pol_year = cppbusiness:pol_year,
+                          cppbuspayroll:end_sequence = cppbusiness:end_sequence,
+                          CPPbuspayroll:prem_no  = CPPbusiness:prem_no,
+                          CPPbuspayroll:build_no = CPPbusiness:build_no, generic
+
+l_payroll_days = CPPbuspayroll:no_days
+
+end
+
+procedure extended_period_indemnity
+begin
+access CPPextperiod, set CPPextperiod:policy_no = CPPbusiness:policy_no,
+                         cppextperiod:pol_year = cppbusiness:pol_year,
+                         cppextperiod:end_sequence = cppbusiness:end_sequence,
+                         CPPextperiod:prem_no  = CPPbusiness:prem_no,
+                         CPPextperiod:build_no = CPPbusiness:build_no, generic
+
+l_days = CPPextperiod:no_days
+access cpsextended, set cpsextended:company_id       = sfpname:company_id,
+                        cpsextended:state            = CPPbusiness:state ,
+                        cpsextended:line_of_business = CPPbusiness:rating_line_of_business,
+                        cpsextended:days             = l_days, generic
+
+while cpsextended:company_id       = sfpname:company_id and
+      cpsextended:state            = CPPbusiness:state and
+      cpsextended:line_of_business = CPPbusiness:rating_line_of_business and
+      cpsextended:days             = l_days
+        begin
+        if (sfpname:eff_date >= cpsextended:eff_date and
+           (sfpname:eff_date <= cpsextended:exp_date or
+           cpsextended:exp_date = 0)) then
+            begin
+            l_extended_factor = cpsextended:factor
+            end
+
+        next cpsextended
+        end
+
+end
+
+procedure electronic_media
+begin
+access CPPelectmedia, set CPPelectmedia:policy_no = CPPbusiness:policy_no,
+                          cppelectmedia:pol_year = cppbusiness:pol_year,
+                          cppelectmedia:end_sequence = cppbusiness:end_sequence,
+                          CPPelectmedia:prem_no  = CPPbusiness:prem_no,
+                          CPPelectmedia:build_no = CPPbusiness:build_no, generic
+
+l_no_limit = CPPelectmedia:no_limit
+
+end
+
+procedure access_cpsbusmiscrates
+begin
+access cpsbusmiscrates, set cpsbusmiscrates:company_id       = sfpname:company_id,
+                            cpsbusmiscrates:state            = CPPbusiness:state ,
+                            cpsbusmiscrates:line_of_business = CPPbusiness:rating_line_of_business, generic
+
+while cpsbusmiscrates:company_id       = sfpname:company_id and
+      cpsbusmiscrates:state            = CPPbusiness:state and
+      cpsbusmiscrates:line_of_business = CPPbusiness:rating_line_of_business
+        begin
+        if (sfpname:eff_date >= cpsbusmiscrates:eff_date and
+           (sfpname:eff_date <= cpsbusmiscrates:exp_date or
+           cpsbusmiscrates:exp_date = 0)) then
+            begin
+            l_agreed_value_factor = cpsbusmiscrates:agreed_value_factor
+            switch(l_no_limit)
+              case 1  : l_electronic_media_factor = cpsbusmiscrates:electronic_media_factor[2]
+              default : l_electronic_media_factor = cpsbusmiscrates:electronic_media_factor[1]
+              end
+            switch(CPPbusiness:coverage)
+              case "D" : switch(CPPbusiness:risk_type)
+                         case "O" : l_maximum_factor = cpsbusmiscrates:max_recovery_factor[3]
+                         case "M" : l_maximum_factor = cpsbusmiscrates:max_recovery_factor[2]
+                         default  : l_maximum_factor = cpsbusmiscrates:max_recovery_factor[1]
+                         end
+              default  : switch(CPPbusiness:risk_type)
+                         case "O" : l_maximum_factor = cpsbusmiscrates:max_recovery_factor[6]
+                         case "M" : l_maximum_factor = cpsbusmiscrates:max_recovery_factor[5]
+                         default  : l_maximum_factor = cpsbusmiscrates:max_recovery_factor[4]
+                         end
+              end
+            switch(l_payroll_days)
+              case 90  : l_payroll_factor = cpsbusmiscrates:payroll_limitation_factor[2]
+              case 180 : l_payroll_factor = cpsbusmiscrates:payroll_limitation_factor[3]
+              default  : l_payroll_factor = cpsbusmiscrates:payroll_limitation_factor[1]
+              end
+            l_heat_power_factor = cpsbusmiscrates:heat_power_factor
+            switch(CPPbusiness:coverage)
+              case "D" : l_seasonal_factor = cpsbusmiscrates:seasonal_leases_factor[1]
+              default  : l_seasonal_factor = cpsbusmiscrates:seasonal_leases_factor[2]
+              end
+            switch(CPPbusiness:coverage)
+              case "D" : switch(l_loss_tuition_coinsurance)
+                           case 50  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[1]
+                           case 60  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[2]
+                           case 70  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[3]
+                           case 80  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[4]
+                           case 90  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[5]
+                           case 100 : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[6]
+                           case 125 : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor_1[1]
+                           end
+              default  : switch(l_loss_tuition_coinsurance)
+                           case 50  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[7]
+                           case 60  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[8]
+                           case 70  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[9]
+                           case 80  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[10]
+                           case 90  : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[11]
+                           case 100 : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor[12]
+                           case 125 : l_loss_tuition_factor = cpsbusmiscrates:loss_tuition_factor_1[2]
+                           end
+              end
+
+            l_ordinance_law_factor = cpsbusmiscrates:building_law_factor[1]
+
+            switch(l_time_period)
+              case 1  : l_time_factor = cpsbusmiscrates:time_period_factor[1]
+              default : l_time_factor = cpsbusmiscrates:time_period_factor[2]
+              end
+
+            switch(l_dependent_property)
+              case 1  : l_dependent_factor = cpsbusmiscrates:dependant_prop_factor[3]
+              case 2  : l_dependent_factor = cpsbusmiscrates:dependant_prop_factor[2]
+              default : l_dependent_factor = cpsbusmiscrates:dependant_prop_factor[1]
+              end
+            end
+
+        next cpsbusmiscrates
+        end
+
+end
+
+procedure group_i
+begin
+switch(CPPbusiness:coverage)
+  case "D2" : do extra_expense
+  default   : do business_income
+  end
+
+do loss_cost
+do base_rate_1
+do protection
+do territory
+l_group_i = l_group_i * l_protection_factor * l_territory_factor
+if CPPbusiness:new_rate <> 0 then
+    begin
+    l_group_i = CPPbusiness:new_rate
+    end
+else
+if CPPgeneral:new_rate[1] <> 0 then
+    begin
+    l_group_i = CPPgeneral:new_rate[1]
+    end
+
+access CPPbusiness_alias, set CPPbusiness_alias:policy_no  = CPPbusiness:policy_no,
+                              cppbusiness_alias:pol_year = cppbusiness:pol_year,
+                              cppbusiness_alias:end_sequence = cppbusiness:end_sequence,
+                              CPPbusiness_alias:prem_no   = CPPbusiness:prem_no,
+                              CPPbusiness_alias:build_no  = CPPbusiness:build_no,
+                              CPPbusiness_alias:coverage  = CPPbusiness:coverage, generic
+
+change CPPbusiness_alias
+    begin
+    CPPbusiness_alias:bi_factor[1] = l_group_i
+    CPPbusiness_alias:base_rate[1] = l_group_i
+
+    if CPPbusiness_alias:utility = 1 then
+        begin
+        if CPPbusiness_alias:monthly_recovery_limitation = 1 then
+            l_other_utility_factor = l_monthly_limitation
+        if CPPbusiness_alias:max_recovery_period = 1 then
+            l_other_utility_factor = l_maximum_factor
+        if CPPbusiness_alias:extended_period_indemnity = 1 then
+            l_other_utility_factor = l_extended_factor
+        if CPPbusiness_alias:loss_tuition_fees = 1 then
+            l_other_utility_factor = l_loss_tuition_factor
+        if CPPbusiness_alias:seasonal_leases = 1 then
+            l_other_utility_factor = l_seasonal_factor
+        if CPPbusiness_alias:agreed_value = 1 then
+            l_other_utility_factor = l_agreed_value_factor
+        if CPPbusiness_alias:electronic_media = 1 then
+            l_other_utility_factor = l_electronic_media_factor
+        if CPPbusiness_alias:payroll_limitation = 1 and
+           l_payroll_factor <> 1.00 then
+            l_other_utility_factor = l_payroll_factor
+        if CPPbusiness_alias:heat_power_refrig = 1 then
+            l_other_utility_factor = l_heat_power_factor
+        if CPPbusiness_alias:time_period = 1 then
+            l_other_utility_factor = l_time_factor
+        if CPPbusiness_alias:dependent_property = 1 then
+            l_other_utility_factor = l_dependent_factor
+        if CPPbusiness_alias:building_law = 1 then
+            l_other_utility_factor = l_ordinance_law_factor
+
+        if l_utility1_group_i <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = ((l_group_i +
+                                             l_utility1_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[1] = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility1_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_1                   = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility1_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility2_group_i <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = ((l_group_i +
+                                             l_utility2_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[1] = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility2_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_1                   = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility2_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility3_group_i <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = ((l_group_i +
+                                             l_utility3_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[1] = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility3_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_1                   = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility3_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility4_group_i <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = ((l_group_i +
+                                             l_utility4_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[1] = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility4_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_1                   = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility4_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility5_group_i <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = ((l_group_i +
+                                             l_utility5_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[1] = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility5_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_1                   = ((CPPbusiness_alias:base_rate[1] +
+                                             l_utility5_group_i) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        end
+    else
+        begin
+        if CPPbusiness_alias:monthly_recovery_limitation = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_monthly_limitation
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_monthly_limitation
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_monthly_limitation
+            end
+
+        if CPPbusiness_alias:max_recovery_period = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_maximum_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_maximum_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_maximum_factor
+            end
+
+        if CPPbusiness_alias:extended_period_indemnity = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_extended_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_extended_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_extended_factor
+            end
+
+        if CPPbusiness_alias:loss_tuition_fees = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_loss_tuition_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_loss_tuition_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_loss_tuition_factor
+            end
+
+        if CPPbusiness_alias:seasonal_leases = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_seasonal_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_seasonal_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_seasonal_factor
+            end
+
+        if CPPbusiness_alias:agreed_value = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = (CPPbusiness_alias:bi_factor[1] *
+                                             (l_bi_factor *
+                                             l_agreed_value_factor))
+            CPPbusiness_alias:base_rate[1] = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_agreed_value_factor))
+            l_adj_rate_1                   = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_agreed_value_factor))
+            end
+
+        if CPPbusiness_alias:electronic_media = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = (CPPbusiness_alias:bi_factor[1] *
+                                             (l_bi_factor *
+                                             l_electronic_media_factor))
+            CPPbusiness_alias:base_rate[1] = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_electronic_media_factor))
+            l_adj_rate_1                   = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_electronic_media_factor))
+            end
+
+        if CPPbusiness_alias:payroll_limitation = 1 and
+           l_payroll_factor <> 1.00 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = (CPPbusiness_alias:bi_factor[1] *
+                                             (l_bi_factor *
+                                             l_payroll_factor))
+            CPPbusiness_alias:base_rate[1] = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_payroll_factor))
+            l_adj_rate_1                   = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_payroll_factor))
+            end
+
+        if CPPbusiness_alias:heat_power_refrig = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = (CPPbusiness_alias:bi_factor[1] *
+                                             (l_bi_factor *
+                                             l_heat_power_factor))
+            CPPbusiness_alias:base_rate[1] = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_heat_power_factor))
+            l_adj_rate_1                   = (CPPbusiness_alias:base_rate[1] *
+                                             (l_bi_factor *
+                                             l_heat_power_factor))
+            end
+
+        if CPPbusiness_alias:time_period = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_time_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_time_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_time_factor
+            end
+
+        if CPPbusiness_alias:dependent_property = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_dependent_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_dependent_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_dependent_factor
+            end
+
+        if CPPbusiness_alias:building_law = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[1] = CPPbusiness_alias:bi_factor[1] *
+                                             l_ordinance_law_factor
+            CPPbusiness_alias:base_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                             l_ordinance_law_factor
+            l_adj_rate_1                   = CPPbusiness_alias:base_rate[1] *
+                                             l_ordinance_law_factor
+            end
+        end
+
+    if CPPbusiness_alias:monthly_recovery_limitation = 0 and
+       CPPbusiness_alias:max_recovery_period         = 0 and
+       CPPbusiness_alias:loss_tuition_fees           = 0 and
+       CPPbusiness_alias:seasonal_leases             = 0 and
+       CPPbusiness_alias:agreed_value                = 0 and
+       CPPbusiness_alias:electronic_media            = 0 and
+       CPPbusiness_alias:payroll_limitation          = 0 and
+       CPPbusiness_alias:heat_power_refrig           = 0 and
+       CPPbusiness_alias:extended_period_indemnity   = 0 and
+       CPPbusiness_alias:building_law                = 0 and
+       CPPbusiness_alias:time_period                 = 0 and
+       CPPbusiness_alias:dependent_property          = 0 and
+       CPPbusiness_alias:utility                     = 0 then
+        begin
+        CPPbusiness_alias:bi_factor[1] = l_group_i *
+                                         l_bi_factor
+        CPPbusiness_alias:base_rate[1] = l_group_i *
+                                         l_bi_factor
+        l_adj_rate_1                   = l_group_i *
+                                         l_bi_factor
+        end
+
+    if CPPbusiness_alias:new_rate = 0 then
+        begin
+        CPPbusiness_alias:adj_rate[1] = CPPbusiness_alias:base_rate[1] *
+                                        l_loss_cost *
+                                        CPPbusiness_alias:company_deviation[1] *
+                                        CPPbusiness_alias:package_mod[1]
+        l_adj_rate_1                  = CPPbusiness_alias:base_rate[1] *
+                                        l_loss_cost *
+                                        CPPbusiness_alias:company_deviation[1] *
+                                        CPPbusiness_alias:package_mod[1]
+        end
+    else
+        begin
+        CPPbusiness_alias:adj_rate[1] = CPPbusiness_alias:new_rate *
+                                        l_loss_cost *
+                                        CPPbusiness_alias:company_deviation[1] *
+                                        CPPbusiness_alias:package_mod[1]
+        l_adj_rate_1                  = CPPbusiness_alias:new_rate *
+                                        l_loss_cost *
+                                        CPPbusiness_alias:company_deviation[1] *
+                                        CPPbusiness_alias:package_mod[1]
+        end
+    end
+
+end
+
+procedure group_ii
+begin
+switch(CPPbusiness:coverage)
+  case "D2" : do extra_expense
+  default   : do business_income
+  end
+
+do loss_cost
+access CPPbusiness_alias, set CPPbusiness_alias:policy_no  = CPPbusiness:policy_no,
+                              cppbusiness_alias:pol_year = cppbusiness:pol_year,
+                              cppbusiness_alias:end_sequence = cppbusiness:end_sequence,
+                              CPPbusiness_alias:prem_no   = CPPbusiness:prem_no,
+                              CPPbusiness_alias:build_no  = CPPbusiness:build_no,
+                              CPPbusiness_alias:coverage  = CPPbusiness:coverage, generic
+
+change CPPbusiness_alias
+    begin
+    CPPbusiness_alias:bi_factor[2] = CPPgeneral:base_rate[2]
+    CPPbusiness_alias:base_rate[2] = CPPgeneral:base_rate[2]
+    if CPPbusiness_alias:utility = 1 then
+        begin
+        if CPPbusiness_alias:monthly_recovery_limitation = 1 then
+            l_other_utility_factor = l_monthly_limitation
+        if CPPbusiness_alias:max_recovery_period = 1 then
+            l_other_utility_factor = l_maximum_factor
+        if CPPbusiness_alias:extended_period_indemnity = 1 then
+            l_other_utility_factor = l_extended_factor
+        if CPPbusiness_alias:loss_tuition_fees = 1 then
+            l_other_utility_factor = l_loss_tuition_factor
+        if CPPbusiness_alias:seasonal_leases = 1 then
+            l_other_utility_factor = l_seasonal_factor
+        if CPPbusiness_alias:agreed_value = 1 then
+            l_other_utility_factor = l_agreed_value_factor
+        if CPPbusiness_alias:electronic_media = 1 then
+            l_other_utility_factor = l_electronic_media_factor
+        if CPPbusiness_alias:payroll_limitation = 1 and
+           l_payroll_factor <> 1.00 then
+            l_other_utility_factor = l_payroll_factor
+        if CPPbusiness_alias:heat_power_refrig = 1 then
+            l_other_utility_factor = l_heat_power_factor
+        if CPPbusiness_alias:time_period = 1 then
+            l_other_utility_factor = l_time_factor
+        if CPPbusiness_alias:dependent_property = 1 then
+            l_other_utility_factor = l_dependent_factor
+        if CPPbusiness_alias:building_law = 1 then
+            l_other_utility_factor = l_ordinance_law_factor
+
+        if l_utility1_group_ii <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility1_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility1_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_2                   = ((CPPgeneral:base_rate[2] +
+                                             l_utility1_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility2_group_ii <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility2_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility2_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_2                   = ((CPPgeneral:base_rate[2] +
+                                             l_utility2_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility3_group_ii <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility3_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility3_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_2                   = ((CPPgeneral:base_rate[2] +
+                                             l_utility3_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility4_group_ii <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility4_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility4_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_2                   = ((CPPgeneral:base_rate[2] +
+                                             l_utility4_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        if l_utility5_group_ii <> 0 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility5_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            CPPbusiness_alias:base_rate[2] = ((CPPgeneral:base_rate[2] +
+                                             l_utility5_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            l_adj_rate_2                   = ((CPPgeneral:base_rate[2] +
+                                             l_utility5_group_ii) *
+                                             CPPgeneral:theft_territory_factor *
+                                             l_other_utility_factor)
+            end
+        end
+    else
+        begin
+        if CPPbusiness_alias:monthly_recovery_limitation = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_monthly_limitation
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_monthly_limitation
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_monthly_limitation
+            end
+
+        if CPPbusiness_alias:max_recovery_period = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_maximum_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_maximum_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_maximum_factor
+            end
+
+        if CPPbusiness_alias:loss_tuition_fees = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_loss_tuition_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_loss_tuition_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_loss_tuition_factor
+            end
+
+        if CPPbusiness_alias:seasonal_leases = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_seasonal_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_seasonal_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_seasonal_factor
+            end
+
+        if CPPbusiness_alias:agreed_value = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = (CPPbusiness_alias:bi_factor[2] *
+                                             (l_bi_factor *
+                                             l_agreed_value_factor))
+            CPPbusiness_alias:base_rate[2] = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_agreed_value_factor))
+            l_adj_rate_2                   = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_agreed_value_factor))
+            end
+
+        if CPPbusiness_alias:electronic_media = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = (CPPbusiness_alias:bi_factor[2] *
+                                             (l_bi_factor *
+                                             l_electronic_media_factor))
+            CPPbusiness_alias:base_rate[2] = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_electronic_media_factor))
+            l_adj_rate_2                   = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_electronic_media_factor))
+            end
+
+        if CPPbusiness_alias:payroll_limitation = 1 and
+           l_payroll_factor <> 1.00 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = (CPPbusiness_alias:bi_factor[2] *
+                                             (l_bi_factor *
+                                             l_payroll_factor))
+            CPPbusiness_alias:base_rate[2] = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_payroll_factor))
+            l_adj_rate_2                   = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_payroll_factor))
+            end
+
+        if CPPbusiness_alias:heat_power_refrig = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = (CPPbusiness_alias:bi_factor[2] *
+                                             (l_bi_factor *
+                                             l_heat_power_factor))
+            CPPbusiness_alias:base_rate[2] = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_heat_power_factor))
+            l_adj_rate_2                   = (CPPbusiness_alias:base_rate[2] *
+                                             (l_bi_factor *
+                                             l_heat_power_factor))
+            end
+
+        if CPPbusiness_alias:extended_period_indemnity = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_extended_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_extended_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_extended_factor
+            end
+
+
+        if CPPbusiness_alias:time_period = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_time_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_time_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_time_factor
+            end
+
+        if CPPbusiness_alias:dependent_property = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_dependent_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_dependent_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_dependent_factor
+            end
+
+        if CPPbusiness_alias:building_law = 1 then
+            begin
+            CPPbusiness_alias:bi_factor[2] = CPPbusiness_alias:bi_factor[2] *
+                                             l_ordinance_law_factor
+            CPPbusiness_alias:base_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                             l_ordinance_law_factor
+            l_adj_rate_2                   = CPPbusiness_alias:base_rate[2] *
+                                             l_ordinance_law_factor
+            end
+        end
+
+    if CPPbusiness_alias:monthly_recovery_limitation = 0 and
+       CPPbusiness_alias:max_recovery_period         = 0 and
+       CPPbusiness_alias:loss_tuition_fees           = 0 and
+       CPPbusiness_alias:seasonal_leases             = 0 and
+       CPPbusiness_alias:agreed_value                = 0 and
+       CPPbusiness_alias:electronic_media            = 0 and
+       CPPbusiness_alias:payroll_limitation          = 0 and
+       CPPbusiness_alias:heat_power_refrig           = 0 and
+       CPPbusiness_alias:extended_period_indemnity   = 0 and
+       CPPbusiness_alias:building_law                = 0 and
+       CPPbusiness_alias:time_period                 = 0 and
+       CPPbusiness_alias:dependent_property          = 0 and
+       CPPbusiness_alias:utility                     = 0 then
+        begin
+        CPPbusiness_alias:bi_factor[2] = CPPgeneral:base_rate[2] *
+                                         l_bi_factor
+        CPPbusiness_alias:base_rate[2] = CPPgeneral:base_rate[2] *
+                                         l_bi_factor
+        l_adj_rate_2                   = CPPgeneral:base_rate[2] *
+                                         l_bi_factor
+        end
+
+    if CPPbusiness_alias:new_rate_1[1] = 0 then
+        begin
+        CPPbusiness_alias:adj_rate[2] = CPPbusiness_alias:base_rate[2] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        l_adj_rate_2                  = CPPbusiness_alias:base_rate[2] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        end
+    else
+        begin
+        CPPbusiness_alias:adj_rate[2] = CPPbusiness_alias:new_rate_1[1] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        l_adj_rate_2                  = CPPbusiness_alias:new_rate_1[1] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        end
+    end
+
+end
+
+procedure base_rate_1
+begin
+if CPPgeneral:perpetual_rated = 0 then
+    begin
+    l_class_code = CPPgeneral:class_code
+    l_coverage = "B"
+    access cpsgroupi, set cpsgroupi:company_id       = sfpname:company_id,
+                          cpsgroupi:state            = CPPbusiness:state,
+                          cpsgroupi:line_of_business = CPPbusiness:rating_line_of_business,
+                          cpsgroupi:class_code       = l_class_code, generic
+
+    while cpsgroupi:company_id       = sfpname:company_id and
+          cpsgroupi:state            = CPPbusiness:state and
+          cpsgroupi:line_of_business = CPPbusiness:rating_line_of_business and
+          cpsgroupi:class_code       = l_class_code
+            begin
+            if sfpname:eff_date >= cpsgroupi:rate_date then
+                begin
+                switch(l_coverage)
+                  case "B" : switch(CPPgeneral:construction)
+                               case 1  : l_group_i = cpsgroupi:rate[1]
+                               case 2  : l_group_i = cpsgroupi:rate[2]
+                               case 3  : l_group_i = cpsgroupi:rate[3]
+                               case 4  : l_group_i = cpsgroupi:rate[4]
+                               default : l_group_i = cpsgroupi:rate[5]
+                               end
+                  default  : switch(CPPgeneral:construction)
+                               case 1  : l_group_i = cpsgroupi:rate[6]
+                               case 2  : l_group_i = cpsgroupi:rate[7]
+                               case 3  : l_group_i = cpsgroupi:rate[8]
+                               case 4  : l_group_i = cpsgroupi:rate[9]
+                               default : l_group_i = cpsgroupi:rate[10]
+                               end
+                  end
+                end
+
+            next cpsgroupi
+            end
+    end
+else
+    begin
+    l_class_code = CPPgeneral:class_code
+    l_class_sub_code = CPPgeneral:sub_code
+    access cpsperpetual, set cpsperpetual:company_id       = sfpname:company_id,
+                             cpsperpetual:state            = CPPbusiness:state,
+                             cpsperpetual:line_of_business = CPPbusiness:rating_line_of_business,
+                             cpsperpetual:class_code       = l_class_code,
+                             cpsperpetual:sub_code         = l_class_sub_code, generic
+
+    while cpsperpetual:company_id       = sfpname:company_id and
+          cpsperpetual:state            = CPPbusiness:state and
+          cpsperpetual:line_of_business = CPPbusiness:rating_line_of_business and
+          cpsperpetual:class_code       = l_class_code and
+          cpsperpetual:sub_code         = l_class_sub_code
+            begin
+            if sfpname:eff_date >= cpsperpetual:eff_date then
+                begin
+                switch(CPPgeneral:protection)
+                  case 1, 2, 3, 4 : l_group_i = cpsperpetual:fire_factor
+                  case 5, 6, 7, 8 : l_group_i = cpsperpetual:ec_factor
+                  default         : l_group_i = cpsperpetual:vmm_factor
+                  end
+                end
+
+            next cpsperpetual
+            end
+    end
+
+end
+
+procedure protection
+begin
+l_protection = CPPgeneral:protection
+access cpsprotfact, set cpsprotfact:company_id       = sfpname:company_id,
+                        cpsprotfact:state            = CPPbusiness:state,
+                        cpsprotfact:line_of_business = CPPbusiness:rating_line_of_business,
+                        cpsprotfact:protection       = l_protection, generic
+
+while cpsprotfact:company_id       = sfpname:company_id and
+      cpsprotfact:state            = CPPbusiness:state and
+      cpsprotfact:line_of_business = CPPbusiness:rating_line_of_business and
+      cpsprotfact:protection       = l_protection
+        begin
+        if sfpname:eff_date >= cpsprotfact:rate_date then
+            begin
+            switch(CPPgeneral:construction)
+              case 1, 2, 3 : l_protection_factor = cpsprotfact:rate[1]
+              default      : l_protection_factor = cpsprotfact:rate[2]
+              end
+            end
+
+        next cpsprotfact
+        end
+end
+
+procedure territory
+begin
+l_territory = CPPgeneral:territory
+access sfsterrfactors, set sfsterrfactors:company_id       = sfpname:company_id,
+                           sfsterrfactors:state            = CPPbusiness:state,
+                           sfsterrfactors:line_of_business = CPPbusiness:rating_line_of_business,
+                           sfsterrfactors:territory        = l_territory, generic
+
+while sfsterrfactors:company_id       = sfpname:company_id and
+      sfsterrfactors:state            = CPPbusiness:state and
+      sfsterrfactors:line_of_business = CPPbusiness:rating_line_of_business and
+      sfsterrfactors:territory        = l_territory
+        begin
+        if sfpname:eff_date >= sfsterrfactors:eff_date then
+            begin
+            l_territory_factor = sfsterrfactors:factor[1]
+            end
+
+        next sfsterrfactors
+        end
+
+end
+
+procedure broad_special
+begin
+if CPPgeneral:form = 2 then
+    begin
+    switch(CPPbusiness:coverage)
+      case "D2" : do extra_expense
+      default   : do business_income
+      end
+    end
+else
+    begin
+    do special_business_income
+    l_bi_factor = l_special_bi_factor
+    end
+
+do loss_cost
+access CPPbusiness_alias, set CPPbusiness_alias:policy_no  = CPPbusiness:policy_no,
+                              cppbusiness_alias:pol_year = cppbusiness:pol_year,
+                              cppbusiness_alias:end_sequence = cppbusiness:end_sequence,
+                              CPPbusiness_alias:prem_no   = CPPbusiness:prem_no,
+                              CPPbusiness_alias:build_no  = CPPbusiness:build_no,
+                              CPPbusiness_alias:coverage  = CPPbusiness:coverage, generic
+
+change CPPbusiness_alias
+    begin
+    if CPPbusiness_alias:utility = 1 then
+        begin
+        if l_utility1_broad <> 0 and
+           CPPgeneral:form = 2 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility1_broad
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility1_broad
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility1_broad
+            end
+        else
+        if l_utility1_special <> 0 and
+           CPPgeneral:form = 3 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility1_special
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility1_special
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility1_special
+            end
+        if l_utility2_broad <> 0 and
+           CPPgeneral:form = 2 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility2_broad
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility2_broad
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility2_broad
+            end
+        else
+        if l_utility2_special <> 0 and
+           CPPgeneral:form = 3 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility2_special
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility2_special
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility2_special
+            end
+        if l_utility3_broad <> 0 and
+           CPPgeneral:form = 2 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility3_broad
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility3_broad
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility3_broad
+            end
+        else
+        if l_utility3_special <> 0 and
+           CPPgeneral:form = 3 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility3_special
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility3_special
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility3_special
+            end
+        if l_utility4_broad <> 0 and
+           CPPgeneral:form = 2 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility4_broad
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility4_broad
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility4_broad
+            end
+        else
+        if l_utility4_special <> 0 and
+           CPPgeneral:form = 3 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility4_special
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility4_special
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility4_special
+            end
+        if l_utility5_broad <> 0 and
+           CPPgeneral:form = 2 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility5_broad
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility5_broad
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility5_broad
+            end
+        else
+        if l_utility5_special <> 0 and
+           CPPgeneral:form = 3 then
+            begin
+            CPPbusiness_alias:bi_factor[3] = CPPgeneral:base_rate[3] +
+                                             l_utility5_special
+            CPPbusiness_alias:base_rate[3] = CPPgeneral:base_rate[3] +
+                                             l_utility5_special
+            l_adj_rate_3                   = CPPgeneral:base_rate[3] +
+                                             l_utility5_special
+            end
+        end
+    else
+        begin
+        CPPbusiness_alias:bi_factor[3] = cppgeneral:base_rate[3]
+        CPPbusiness_alias:base_rate[3] = cppgeneral:base_rate[3]
+        l_adj_rate_3                   = cppgeneral:base_rate[3]
+        end
+
+    if CPPbusiness_alias:new_rate_1[2] = 0 then
+        begin
+        CPPbusiness_alias:adj_rate[3] = CPPbusiness_alias:base_rate[3] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        l_adj_rate_3                  = CPPbusiness_alias:base_rate[3] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        end
+    else
+        begin
+        CPPbusiness_alias:adj_rate[3] = CPPbusiness_alias:new_rate_1[2] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        l_adj_rate_3                  = CPPbusiness_alias:new_rate_1[2] *
+                                        l_loss_cost *
+                                        CPPbusiness:company_deviation[1] *
+                                        CPPbusiness:package_mod[1]
+        end
+    end
+
+end
+
+procedure extra_expense
+begin
+access CPPgeneral, set CPPgeneral:policy_no = CPPbusiness:policy_no,
+                       cppgeneral:pol_year = cppbusiness:pol_year,
+                       cppgeneral:end_sequence = cppbusiness:end_sequence,
+                       CPPgeneral:prem_no  = CPPbusiness:prem_no,
+                       CPPgeneral:build_no = CPPbusiness:build_no, generic
+
+access cpsbusextra, set cpsbusextra:company_id       = sfpname:company_id,
+                        cpsbusextra:state            = CPPbusiness:state,
+                        cpsbusextra:line_of_business = CPPbusiness:rating_line_of_business, generic
+
+while cpsbusextra:company_id       = sfpname:company_id and
+      cpsbusextra:state            = CPPbusiness:state and
+      cpsbusextra:line_of_business = CPPbusiness:rating_line_of_business
+        begin
+        if sfpname:eff_date >= cpsbusextra:eff_date then
+            begin
+            switch(CPPbusiness:recovery_set)
+              case 1 : l_bi_factor = cpsbusextra:no_monthly_factor
+              case 2 : l_bi_factor = cpsbusextra:monthly_3_factor[1]
+              case 3 : l_bi_factor = cpsbusextra:monthly_3_factor[2]
+              case 4 : l_bi_factor = cpsbusextra:monthly_4_factor[1]
+              case 5 : l_bi_factor = cpsbusextra:monthly_4_factor[2]
+              case 6 : l_bi_factor = cpsbusextra:monthly_4_factor[3]
+              end
+            end
+
+        next cpsbusextra
+        end
+
+end
+
+procedure business_income
+begin
+access CPPgeneral, set CPPgeneral:policy_no = CPPbusiness:policy_no,
+                       cppgeneral:pol_year = cppbusiness:pol_year,
+                       cppgeneral:end_sequence = cppbusiness:end_sequence,
+                       CPPgeneral:prem_no  = CPPbusiness:prem_no,
+                       CPPgeneral:build_no = CPPbusiness:build_no, generic
+
+switch(CPPbusiness:coverage)
+  case "D" : l_form = 1
+  default  : l_form = 2
+  end
+
+access cpsbusratefact, set cpsbusratefact:company_id       = sfpname:company_id,
+                           cpsbusratefact:state            = CPPbusiness:state,
+                           cpsbusratefact:line_of_business = CPPbusiness:rating_line_of_business,
+                           cpsbusratefact:form             = l_form,
+                           cpsbusratefact:coinsurance      = CPPbusiness:coinsurance, generic
+
+while cpsbusratefact:company_id       = sfpname:company_id and
+      cpsbusratefact:state            = CPPbusiness:state and
+      cpsbusratefact:line_of_business = CPPbusiness:rating_line_of_business and
+      cpsbusratefact:form             = l_form and
+      cpsbusratefact:coinsurance      = CPPbusiness:coinsurance
+        begin
+        if sfpname:eff_date >= cpsbusratefact:eff_date then
+            begin
+            switch(CPPbusiness:risk_type)
+              case "R" : l_bi_factor = cpsbusratefact:factor[3]
+              case "M" : l_bi_factor = cpsbusratefact:factor[2]
+              default  : l_bi_factor = cpsbusratefact:factor[1]
+              end
+            end
+
+        next cpsbusratefact
+        end
+
+end
+
+procedure special_business_income
+begin
+access CPPgeneral, set CPPgeneral:policy_no = CPPbusiness:policy_no,
+                       cppgeneral:pol_year = cppbusiness:pol_year,
+                       cppgeneral:end_sequence = cppbusiness:end_sequence,
+                       CPPgeneral:prem_no  = CPPbusiness:prem_no,
+                       CPPgeneral:build_no = CPPbusiness:build_no, generic
+
+l_form         = CPPgeneral:form
+l_construction = CPPgeneral:construction
+access cpsbusbaserate, set cpsbusbaserate:company_id       = sfpname:company_id,
+                           cpsbusbaserate:state            = CPPbusiness:state,
+                           cpsbusbaserate:line_of_business = CPPbusiness:rating_line_of_business,
+                           cpsbusbaserate:option           = l_form,
+                           cpsbusbaserate:construction     = l_construction, generic
+
+while cpsbusbaserate:company_id       = sfpname:company_id and
+      cpsbusbaserate:state            = CPPbusiness:state and
+      cpsbusbaserate:line_of_business = CPPbusiness:rating_line_of_business and
+      cpsbusbaserate:option           = l_form and
+      cpsbusbaserate:construction     = l_construction
+        begin
+        if sfpname:eff_date >= cpsbusbaserate:eff_date then
+            begin
+            switch(CPPbusiness:apartment_condo)
+              case 1   : switch(CPPbusiness:coverage)
+                           case "D1" : l_special_bi_factor = cpsbusbaserate:factor[1]
+                           default   : l_special_bi_factor = cpsbusbaserate:factor[2]
+                           end
+              default  : switch(CPPbusiness:coverage)
+                           case "D1" : l_special_bi_factor = cpsbusbaserate:factor[3]
+                           default   : l_special_bi_factor = cpsbusbaserate:factor[4]
+                           end
+              end
+            end
+
+        next cpsbusbaserate
+        end
+
+end
+
+procedure loss_cost
+begin
+access sfslosscost, set sfslosscost:company_id       = sfpname:company_id,
+                        sfslosscost:state            = CPPbusiness:state,
+                        sfslosscost:line_of_business = CPPbusiness:rating_line_of_business, generic
+
+l_loss_cost = 0
+while sfslosscost:company_id       = sfpname:company_id and
+      sfslosscost:state            = CPPbusiness:state and
+      sfslosscost:line_of_business = CPPbusiness:rating_line_of_business
+        begin
+        if sfpname:eff_date >= sfslosscost:eff_date then
+            l_loss_cost = sfslosscost:rate
+
+        next sfslosscost
+        end
+
+end
+
+End

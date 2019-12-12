@@ -1,0 +1,1301 @@
+%%
+/*
+Date Written: July 22, 2003
+
+Name: cppmcp070.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+07/22/2003            DWR     Initial Layout Crime Supplemental Dec
+12/03/2003            DWR     Began form completion
+===========================
+*/
+
+Program
+  Name = "cppmcp070";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcp070.cq";
+ string l_code_1[7]="" ,
+        l_sub_code[4];
+ wdate l_eff_date;
+ unsigned ascii number l_state[2];
+ unsigned ascii number l_premium[8],
+                       l_found_mcp171[1];
+
+ unsigned ascii number l_line_of_business[4];
+ string l_company_id[10];
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+--   Include "swsut300.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+   Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access sfpend_alias,
+   Set sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppcrime1,
+   Set cppcrime1:POLICY_NO    = sfpprint1:POLICY_NO ,
+       cppcrime1:POL_YEAR     = sfpprint1:POL_YEAR ,
+       cppcrime1:END_SEQUENCE = sfpprint1:END_SEQUENCE, generic
+
+Access cppcrime,
+   Set cppcrime:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppcrime:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppcrime:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppcrime_alias,
+   Set cppcrime_alias:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppcrime_alias:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppcrime_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access sfsline,
+   Set sfsline:line_of_business = sfpname:line_of_business,
+       sfsline:company_id       = sfpname:company_id,
+       sfsline:lob_subline      = "00", exact
+
+   Include "swsut100.inc"
+   I_CODE = "MCP070"
+   Include "swsut200.inc"
+
+While cppcrime1:POLICY_NO    = sfpprint1:POLICY_NO And
+      cppcrime1:POL_YEAR     = sfpprint1:POL_YEAR And
+      cppcrime1:END_SEQUENCE = sfpprint1:END_SEQUENCE --and
+{
+  If cppcrime1:code = "MCP070" Then
+    { --cppcrime1:code begin
+        l_state            = cppcrime1:state
+        L_COMPANY_ID       = sfpname:COMPANY_ID
+        L_LINE_OF_BUSINESS = sfsline:rating_LINE_OF_BUSINESS
+
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE, generic
+
+         While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+               SFSOPTEND:STATE            = L_STATE and
+               SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+               SFSOPTEND:CODE             = I_CODE
+
+           {  --start of sfsoptend check
+             If (sfpname:eff_date >= sfsoptend:eff_date and
+                (sfpname:eff_date < sfsoptend:exp_date or
+                 sfsoptend:exp_date = 0)) then
+               {
+                 l_eff_date = sfsoptend:eff_date
+               }
+             next sfsoptend
+           }
+
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE,
+               SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+        Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+        Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s"," 1994 MSO, Inc.")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","<033>*c5000h5v0p") --Horizontal line
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a1100h+140V")
+        Writefile(L_FILE_NAME,"%s","CRIME SUPPLEMENTAL DECLARATIONS - MCP 070 ")
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","06 94")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+60V")
+        Writefile(L_FILE_NAME,"%s","<033>*c5000h5v0p") --Horizontal line
+        Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","MCP 070 is used with MCP 170 and one or more of the Crime Coverage Forms when providing crime insurance.")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+20V")
+        Writefile(L_FILE_NAME,"%s","<033>*c5000h5v0p") --Horizontal line
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no, exact
+
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","Location:")
+        Writefile(L_FILE_NAME,"%n",cppcrime1:prem_no)
+
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","Building: ")
+        Writefile(L_FILE_NAME,"%n",cppcrime1:build_no)
+
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+150V")
+        Writefile(L_FILE_NAME,"%s",l_underline_start)
+        Writefile(L_FILE_NAME,"%s","Coverage")
+        Writefile(L_FILE_NAME,"%s",l_underline_end)
+        Writefile(L_FILE_NAME,"%s","<033>&a2400h+0V")
+        Writefile(L_FILE_NAME,"%s",l_underline_start)
+        Writefile(L_FILE_NAME,"%s","Limit")
+        Writefile(L_FILE_NAME,"%s",l_underline_end)
+        Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+        Writefile(L_FILE_NAME,"%s",l_underline_start)
+        Writefile(L_FILE_NAME,"%s","Deductible")
+        Writefile(L_FILE_NAME,"%s",l_underline_end)
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s",l_underline_start)
+        Writefile(L_FILE_NAME,"%s","Premium")
+        Writefile(L_FILE_NAME,"%s",l_underline_end)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","")
+--  }--end of cppcrime1:code if---
+
+                   --***MCP 171***
+
+If cppcrime1:code = "MCP771" then
+  {
+    l_code_1 = "MCP771"
+/*    Writefile(L_FILE_NAME,"%s",l_arial_9)
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+    Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+    Writefile(L_FILE_NAME,"%s","<250>")
+    Writefile(L_FILE_NAME,"%s",l_arial_9)
+    Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+    Writefile(L_FILE_NAME,"%s","MCP 771")*/
+  }
+else
+  {
+    l_code_1 = "MCP171"
+    do print_mcp171
+  }
+
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                          --***MCP 172***
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form   = "B"
+
+      if cppcrime1:code = "MCP070" and cppcrime:crime_form = "B" then
+        {
+          do read_cppcrime1
+          l_code_1 = "MCP172"
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+          Writefile(L_FILE_NAME,"%s","<250>")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+          Writefile(L_FILE_NAME,"%s","X")
+          Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+          Writefile(L_FILE_NAME,"%s","MCP 172")
+          Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_premium,"ZZ,ZZZ,ZZZ"))
+        }
+      Else
+        if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "B" then
+          {
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+            Writefile(L_FILE_NAME,"%s","MCP 172")
+          }
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                          --***MCP 173***
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = sfpprint1:POLICY_NO ,
+           cppcrime:POL_YEAR     = sfpprint1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = sfpprint1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form   = "C"
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form = "C" then
+      {
+--        do read_cppcrime1
+--        l_code_1 = "MCP173"
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+        Writefile(L_FILE_NAME,"%s","X")
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 173")
+        Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        if cppcrime:crime_total[1] <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+            Writefile(L_FILE_NAME,"%s","X")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Inside the Premises")
+            Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+          }
+        Else
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Inside the Premises")
+          }
+        if cppcrime:crime_total[2] <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+            Writefile(L_FILE_NAME,"%s","X")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Outside the Premises")
+            Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[2],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[2],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+          }
+        else
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Outside the Premises")
+          }
+      }
+
+    If cppcrime1:code = "MCP070" and cppcrime:crime_form <> "C" then
+      {
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 173")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","Inside the Premises")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","Outside the Premises")
+      }
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                     --***MCP 175***
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form   = "D"
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form = "D" then
+      {
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+        Writefile(L_FILE_NAME,"%s","X")
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 175")
+        Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        if cppcrime:crime_total[1] > 0 then
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+            Writefile(L_FILE_NAME,"%s","X")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Robbery Inside the Premises")
+            Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+          }
+        else
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Robbery Inside the Premises")
+          }
+
+      if cppcrime:crime_total[2] > 0 then
+        {
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+          Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+          Writefile(L_FILE_NAME,"%s","<250>")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+          Writefile(L_FILE_NAME,"%s","X")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+          Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+          Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[2],"ZZ,ZZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[2],"ZZ,ZZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+        }
+      else
+        {
+          Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+          Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+          Writefile(L_FILE_NAME,"%s","<250>")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+          Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+        }
+      if cppcrime:crime_total[3] > 0 then
+        {
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+          Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+          Writefile(L_FILE_NAME,"%s","<250>")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+          Writefile(L_FILE_NAME,"%s","X")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+          Writefile(L_FILE_NAME,"%s","Safe Burglary Inside the Premises")
+          Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[2],"ZZ,ZZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[2],"ZZ,ZZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+        }
+      else
+        {
+          Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+          Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+          Writefile(L_FILE_NAME,"%s","<250>")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+          Writefile(L_FILE_NAME,"%s","Safe Burglary Inside the Premises")
+        }
+      }
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "D" then
+      {
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 175")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+        Writefile(L_FILE_NAME,"%s","Robbery Inside the Premises")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+        Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+        Writefile(L_FILE_NAME,"%s","Safe Burglary Inside the Premises")
+      }
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                     --***MCP 177***
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form = "E"
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form = "E" then
+      {
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+        Writefile(L_FILE_NAME,"%s","X")
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 177")
+        Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppcrime_alias:crime_total[1],",ZZZ,ZZZ"))
+      }
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "E" then
+      {
+         Writefile(L_FILE_NAME,"%s",l_arial_9)
+         Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+         Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+         Writefile(L_FILE_NAME,"%s","<250>")
+         Writefile(L_FILE_NAME,"%s",l_arial_9)
+         Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+         Writefile(L_FILE_NAME,"%s","MCP 177")
+      }
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                     --***MCP 179***
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form = "H"
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form = "H" then
+      {
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+        Writefile(L_FILE_NAME,"%s","X")
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 179")
+        Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+
+        if cppcrime:crime_total[1] > 0 then
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+            Writefile(L_FILE_NAME,"%s","X")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Theft Inside the Premises")
+            Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+          }
+        else
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Theft Inside the Premises")
+          }
+        if cppcrime:crime_total[2] > 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+            Writefile(L_FILE_NAME,"%s","X")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+            Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[2],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[2],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+          }
+        else
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+            Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+            Writefile(L_FILE_NAME,"%s","<250>")
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+            Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+          }
+      }
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "H" then
+      {
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 179")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+        Writefile(L_FILE_NAME,"%s","Theft Inside the Premises")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+        Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+      }
+    Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                     --***MCP 181***
+
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form = "L"
+
+    Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = cppcrime1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = cppcrime1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           sfplocation:prem_no      = cppcrime1:prem_no,
+           sfplocation:build_no     = cppcrime1:build_no, Generic
+
+    I_str_state        = sfplocation:str_state
+    include "swsut102.inc"
+
+    l_company_id       = sfpname:company_id
+    l_line_of_business = 8
+
+    Access cpscrguestproperty,
+       Set cpscrguestproperty:company_id       = l_company_id,
+           cpscrguestproperty:state            = I_state,
+           cpscrguestproperty:line_of_business = l_line_of_business, generic
+
+     While cpscrguestproperty:company_id       = l_company_id and
+           cpscrguestproperty:state            = i_state and
+           cpscrguestproperty:line_of_business = l_line_of_business and
+           cpscrguestproperty:eff_date         <= sfpname:eff_date
+       {
+         l_eff_date = cpscrguestproperty:eff_date
+         next cpscrguestproperty
+       }
+
+    Access cpscrguestproperty,
+      Set cpscrguestproperty:company_id       = l_company_id,
+          cpscrguestproperty:state            = I_state,
+          cpscrguestproperty:line_of_business = l_line_of_business,
+          cpscrguestproperty:eff_date         = l_eff_date, exact
+
+   Access cpscrimedefaults,
+      set cpscrimedefaults:company_id = l_company_id,
+          cpscrimedefaults:crime_form = cppcrime:crime_form,generic
+
+
+   If cppcrime1:code = "MCP070" and cppcrime:crime_form = "L" then
+     {
+        l_code_1 = "MCP181"
+        do read_cppcrime1
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+       Writefile(L_FILE_NAME,"%s","X")
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","MCP 181")
+       Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       if cpscrguestproperty:guest_limit > 0 then
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+           Writefile(L_FILE_NAME,"%s","X")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Per Guest Limit")
+           Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cpscrguestproperty:guest_limit,"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+--           Writefile(L_FILE_NAME,"%s","$ ")
+--           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+--           Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_premium,"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+         }
+       else
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Per Guest Limit")
+         }
+       if cpscrguestproperty:per_occurrence > 0 then
+         {
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+           Writefile(L_FILE_NAME,"%s","X")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Aggregate / Total Limit")
+           Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cpscrguestproperty:per_occurrence,"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(l_premium,"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+         }
+       else
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Aggregate / Total Limit")
+         }
+     }
+
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "L" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","MCP 181")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+       Writefile(L_FILE_NAME,"%s","Per Guest Limit")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+       Writefile(L_FILE_NAME,"%s","Aggregate / Total Limit")
+     }
+   Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                     --***MCP 183***
+
+   Access cppcrime,
+      Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+          cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+          cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+          cppcrime:prem_no      = cppcrime1:prem_no,
+          cppcrime:build_no     = cppcrime1:build_no,
+          cppcrime:crime_form = "Q"
+
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form = "Q" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+       Writefile(L_FILE_NAME,"%s","X")
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","MCP 183")
+       Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       if cppcrime:crime_total[1] > 0 then
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+           Writefile(L_FILE_NAME,"%s","X")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Robbery Inside the Premises")
+           Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[1],"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+         }
+       else
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Robbery Inside the Premises")
+         }
+       if cppcrime:crime_total[2] > 0 then
+         {
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+           Writefile(L_FILE_NAME,"%s","X")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+           Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[2],"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[2],"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+         }
+       else
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+         }
+       if cppcrime:crime_total[2] > 0 then
+         {
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a405h+5V")
+           Writefile(L_FILE_NAME,"%s","X")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Safe Burglary Inside the Premises")
+           Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[2],"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+           Writefile(L_FILE_NAME,"%s","$ ")
+           Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+           Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_total[2],"ZZ,ZZZ,ZZZ"))
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+         }
+       else
+         {
+           Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+           Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+           Writefile(L_FILE_NAME,"%s","<250>")
+           Writefile(L_FILE_NAME,"%s",l_arial_9)
+           Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+           Writefile(L_FILE_NAME,"%s","Safe Buurglary Inside the Premises")
+         }
+     }
+
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "Q" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","MCP 183")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+       Writefile(L_FILE_NAME,"%s","Robbery Inside the Premises")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+       Writefile(L_FILE_NAME,"%s","Robbery Outside the Premises")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+       Writefile(L_FILE_NAME,"%s","Safe Burglary Inside the Premises")
+     }
+   Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                   --***MCP 185***
+
+   Access cppcrime,
+      Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+          cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+          cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+          cppcrime:prem_no      = cppcrime1:prem_no,
+          cppcrime:build_no     = cppcrime1:build_no,
+          cppcrime:crime_form = "W"
+
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form = "W" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+       Writefile(L_FILE_NAME,"%s","X")
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","MCP 185")
+       Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_premium,"ZZ,ZZZ,ZZZ"))
+     }
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "W" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","MCP 185")
+     }
+   Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+
+
+
+
+
+           --***Storekeepers Burglary and Robbery***
+
+
+   if cppcrime1:code = "MCP070" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","Storekeepers Burglary and Robbery")
+     }
+
+/*
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+       Writefile(L_FILE_NAME,"%s","X")
+       Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+       Writefile(L_FILE_NAME,"%s","$ ")
+       Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+       Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_premium,",ZZZ,ZZZ"))
+
+*/
+   Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                   --***Storekeepers Broad Form***
+
+   if cppcrime1:code = "MCP070" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","Storekeepers Broad Form")
+     }
+
+/*
+   Writefile(L_FILE_NAME,"%s",l_arial_9)
+   Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+   Writefile(L_FILE_NAME,"%s","X")
+   Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+   Writefile(L_FILE_NAME,"%s","$ ")
+   Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+   Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+   Writefile(L_FILE_NAME,"%s",l_arial_9)
+   Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+   Writefile(L_FILE_NAME,"%s","$ ")
+   Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+   Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+   Writefile(L_FILE_NAME,"%s",l_arial_9)
+   Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+   Writefile(L_FILE_NAME,"%s","$ ")
+   Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+   Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_premium,",ZZZ,ZZZ"))
+
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","Storekeepers Broad Form")
+     } --3rd end
+
+*/
+   Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+
+                   --***Additional Conditions***
+
+   if cppcrime1:code = "MCP070" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","Additional Conditions applicable to the")
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s","following forms:")
+     }
+
+/*
+   Writefile(L_FILE_NAME,"%s",l_arial_9)
+   Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+   Writefile(L_FILE_NAME,"%s","X")
+   Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+   Writefile(L_FILE_NAME,"%s","$ ")
+   Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+   Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+   Writefile(L_FILE_NAME,"%s",l_arial_9)
+   Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+   Writefile(L_FILE_NAME,"%s","$ ")
+   Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+   Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+   Writefile(L_FILE_NAME,"%s",l_arial_9)
+   Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+   Writefile(L_FILE_NAME,"%s","$ ")
+   Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+   Writefile(L_FILE_NAME,"%s",str(cppcrime:crime_premium,",ZZZ,ZZZ"))
+
+   if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "" then
+     {
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+       Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+       Writefile(L_FILE_NAME,"%s","<250>")
+       Writefile(L_FILE_NAME,"%s",l_arial_9)
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+       Writefile(L_FILE_NAME,"%s","Additional Conditions applicable to the")
+       Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+       Writefile(L_FILE_NAME,"%s","following forms:")
+     }
+
+   Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+*/
+
+
+   Writefile(L_FILE_NAME,"%s","<FF>")
+    }
+  next cppcrime1
+} -- End of while
+
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+
+procedure definition
+
+procedure print_mcp171
+Begin
+    Access cppcrime,
+       Set cppcrime:POLICY_NO    = cppcrime1:POLICY_NO ,
+           cppcrime:POL_YEAR     = cppcrime1:POL_YEAR ,
+           cppcrime:END_SEQUENCE = cppcrime1:END_SEQUENCE,
+           cppcrime:prem_no      = cppcrime1:prem_no,
+           cppcrime:build_no     = cppcrime1:build_no,
+           cppcrime:crime_form   = "A"
+
+    if cppcrime1:code = "MCP070" and cppcrime:crime_form = "A"  then
+      { -- 1st begin
+        do read_cppcrime1
+        l_code_1 = "MCP171"
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+        Writefile(L_FILE_NAME,"%s","<250>")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        If l_found_mcp171 = 1 then
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a205h+5V")
+            Writefile(L_FILE_NAME,"%s","X")
+          }
+        Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+        Writefile(L_FILE_NAME,"%s","MCP 171")
+        if l_found_mcp171 = 1 then
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:limit[1],"ZZ,ZZZ,ZZZ"))
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+          }
+        if l_found_mcp171 = 1 then
+          {
+            Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(cppcrime:deductible,"ZZ,ZZZ"))
+          }
+        if l_found_mcp171 = 1 then
+          {
+            Writefile(L_FILE_NAME,"%s",l_arial_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+            Writefile(L_FILE_NAME,"%s","$ ")
+            Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+            Writefile(L_FILE_NAME,"%s",str(l_premium,"ZZ,ZZZ,ZZZ"))
+          }
+      }
+/*
+    Else
+      if cppcrime1:code = "MCP070" and cppcrime:crime_form <> "A" then
+        {
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s",L_WINGDINGS_8)
+          Writefile(L_FILE_NAME,"%s","<250>")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+          Writefile(L_FILE_NAME,"%s","MCP 171")
+        }*/
+End
+
+procedure read_cppcrime1
+begin
+access cppcrime1_alias,
+   set cppcrime1_alias:policY_no    = cppcrime1:policy_no,
+       cppcrime1_alias:pol_year     = cppcrime1:pol_year,
+       cppcrime1_alias:end_sequence = cppcrime1:end_sequence,
+       cppcrime1_alias:prem_no      = cppcrime1:prem_no,
+       cppcrime1_alias:build_no     = cppcrime1:build_no, generic
+
+l_premium = 0
+while cppcrime1_alias:policY_no    = cppcrime1:policy_no and
+      cppcrime1_alias:pol_year     = cppcrime1:pol_year and
+      cppcrime1_alias:end_sequence = cppcrime1:end_sequence and
+      cppcrime1_alias:prem_no      = cppcrime1:prem_no and
+      cppcrime1_alias:build_no     = cppcrime1:build_no
+  begin
+    if cppcrime1_alias:code = l_code_1 then
+      {
+        l_found_mcp171 = 1
+        l_premium = cppcrime1_alias:premium
+      }
+    next cppcrime1_alias
+  end
+
+end
+
+End

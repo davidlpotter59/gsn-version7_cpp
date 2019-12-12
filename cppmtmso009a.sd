@@ -1,0 +1,324 @@
+%%
+Screen
+        Name = "cppmtmso009a" ;
+        Type = "Multiline" ;
+        Repeat LINE_ITEMS, 10 Times Down ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Auto Premiums - Ver. 7.00     %m" ;
+        Domain = "cppUMUNDERLYING" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_state[2],
+                                     g_line_of_business[4] ;
+
+        Local Unsigned Ascii Number L_TYPE[1]=0 ,
+                                    L_FACTOR[4]=0/dec=2,
+                                    L_STATE[2]=0,
+                                    L_SUB_CODE[4]=0,
+                                    L_UM_UIM_SURCHARGE[3]=0,
+                                    l_line_of_business[4]=0,
+                                    L_LIMIT_1[8]=0,
+                                    L_LIMIT_2[8]=0 ;
+
+        Local String L_TABLE[1]="" ,
+                     l_coverage[1]="A";
+
+        Access cppUMUNDERLYING,
+           Set cppUMUNDERLYING:policy_NO    = G_policy_NO ,
+               cppumunderlying:pol_year     = g_year,
+               cppumunderlying:end_sequence = g_end_sequence,
+               cppumunderlying:coverage     = l_coverage ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "add" sequence "new"  tagged add_fn ;
+         "new" continue begin
+                        if cppumunderlying:policy_no <> g_policy_no or
+                           cppumunderlying:pol_year <> g_year or
+                           cppumunderlying:end_sequence <> g_end_sequence or
+                           cppumunderlying:coverage <> l_coverage then
+                            function = "addnew|append"
+                        else
+                            function = "append"
+                        end;
+        "addnew" add/autoupdate ;
+        append    tagged append_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7m.inc"
+}
+
+screen entry
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpamt, set sfpamt:policy_no    = g_policy_no,
+                       sfpamt:pol_year     = g_year,
+                       sfpamt:end_sequence = g_end_sequence, generic
+
+    g_line_of_business = sfpamt:line_of_business[4]
+    end
+else
+    begin
+    g_line_of_business = sfpname:line_of_business
+    end
+
+access validation
+if cppumunderlying:policy_no    <> g_policy_no or
+   cppumunderlying:pol_year     <> g_year or
+   cppumunderlying:end_sequence <> g_end_sequence then
+    error 1000
+
+skip if cppumunderlying:coverage not one of "A"  ;
+
+screen
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+|                                 Automobile                                   |
+*------------------------------------------------------------------------------*
+|   Premium  Heavy     Limit       UM/UIM    No Vehicles  Factor   Premium     |
+|                                                                              |
+| __________   _     __________       _         ____       _____  __________   |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION one of "ADD", "NEW", "APPEND", "ADDNEW" Then
+            Begin
+            cppumunderlying:policy_NO = G_policy_NO
+            cppumunderlying:pol_year = g_year
+            cppumunderlying:end_sequence = g_end_sequence
+            cppumunderlying:coverage = "A"
+            cppumunderlying:line_of_business = g_line_of_business
+            End
+        if function one of "CHANGE" then
+            begin
+            cppumunderlying:coverage = "A"
+            cppumunderlying:line_of_business = g_line_of_business
+            end
+        End
+        cppumunderlying:policy_NO/displayonly ;
+302     cppumunderlying:pol_year/displayonly ;
+303     cppumunderlying:end_sequence/displayonly ;
+
+901     begin
+        If FUNCTION one of "ADD", "NEW", "APPEND", "ADDNEW" Then
+            Begin
+            do subcode
+            cppumunderlying:sub_code = l_sub_code
+            cppumunderlying:state = g_state
+            End
+        End
+        cppumunderlying:PREMIUM                      tagged LINE_ITEMS
+        If cppumunderlying:PREMIUM = 0 Then
+            Begin
+            cppumunderlying:LIMIT[1] = 0
+            cppumunderlying:limit[2] = 0
+            cppumunderlying:UM_UIM = 0
+            cppumunderlying:NO_VEHICLES = 0
+            cppumunderlying:PERCENT = 0
+            cppumunderlying:TOTAL_PREMIUM = 0
+            End ;
+902     begin
+        if cppumunderlying:premium = 0 then
+            abort()
+        end
+        cppumunderlying:heavy/checkbox/values="0,1"  tagged LINE_ITEMS;
+903     cppumunderlying:limit_1                      tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0 or
+                cppumunderlying:heavy = 1
+        If cppumunderlying:limit_1 <> CPSUMLIMITS3:LIMIT Then
+            Error 1238
+
+        Activehelp CPSUMLIMITS3_ALIAS:LIMIT ;
+903     cppumunderlying:limit_1                      tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0 or
+                cppumunderlying:heavy = 0
+        If cppumunderlying:limit_1 <> CPSUMLIMITS4:LIMIT Then
+            Error 1238
+
+        Activehelp CPSUMLIMITS4_ALIAS:LIMIT ;
+904     cppumunderlying:UM_UIM/checkbox/values="0,1" tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0 or
+                cpsumdefault:um_uim = 0 ;
+905     cppumunderlying:NO_VEHICLES                  tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0 ;
+906     Begin
+        If FUNCTION One Of "ADD", "CHANGE", "NEW", "APPEND", "ADDNEW" Then
+            Begin
+            L_TYPE = 3
+            L_TABLE = "A"
+            if cppumunderlying:heavy = 1 then
+                l_table = "B"
+            L_LIMIT_1 = cppumunderlying:limit_1
+            L_LIMIT_2 = 0
+            Do GET_FACTORS
+            l_state = cppumbrella:state
+            l_line_of_business = cppumbrella:line_of_business
+            access cpsumdefault, set cpsumdefault:company_id = sfpname:company_id, generic
+
+            if cpsumdefault:factor = 1 then
+                l_factor = l_factor * 100
+            cppumunderlying:PERCENT = L_FACTOR
+            If cppumunderlying:UM_UIM = 1 Then
+                cppumunderlying:UM_UIM_SURCHARGE = L_UM_UIM_SURCHARGE
+            End
+        End
+        cppumunderlying:PERCENT/default              tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0
+        hide if sfscompany:boiler_rating = 4 ;
+906     begin
+        If FUNCTION One Of "ADD", "CHANGE", "NEW", "APPEND", "ADDNEW" Then
+            Begin
+            L_TYPE = 3
+            L_TABLE = "A"
+            if cppumunderlying:heavy = 1 then
+                l_table = "B"
+            L_LIMIT_1 = cppumunderlying:limit_1
+            L_LIMIT_2 = 0
+            Do GET_FACTORS
+            l_state = cppumbrella:state
+            l_line_of_business = cppumbrella:line_of_business
+            access cpsumdefault, set cpsumdefault:company_id = sfpname:company_id, generic
+
+--            if cpsumdefault:factor = 1 then
+--                l_factor = l_factor * 100
+            cppumunderlying:PERCENT1 = L_FACTOR
+            If cppumunderlying:UM_UIM = 1 Then
+                cppumunderlying:UM_UIM_SURCHARGE = L_UM_UIM_SURCHARGE
+            End
+        End
+        cppumunderlying:PERCENT1/default              tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0
+        hide if sfscompany:boiler_rating <> 4 ;
+907     begin
+        If FUNCTION One Of "ADD", "CHANGE", "NEW", "APPEND", "ADDNEW" Then
+            Begin
+            if sfscompany:boiler_rating = 4 then
+                cppumunderlying:TOTAL_PREMIUM = (cppumunderlying:PREMIUM *
+                                                (cppumunderlying:percent1 Divide 100))
+            else
+                cppumunderlying:TOTAL_PREMIUM = (cppumunderlying:PREMIUM *
+                                                (cppumunderlying:percent Divide 100))
+
+            If cppumunderlying:UM_UIM = 1 Then
+                cppumunderlying:TOTAL_PREMIUM = cppumunderlying:TOTAL_PREMIUM +
+                                                L_UM_UIM_SURCHARGE
+            end
+        end
+        cppumunderlying:TOTAL_PREMIUM/displayonly    tagged LINE_ITEMS
+        Hide If cppumunderlying:PREMIUM = 0 ;
+
+}
+
+screen exit
+if sfscompany:boiler_rating = 4 then
+    begin
+    display modal screen "cppmtmso009f"
+    with initial function "CHANGE"
+    end
+
+procedure definition
+
+procedure subcode
+begin
+access cppumunderlying_alias, set cppumunderlying_alias:policy_no    = cppumunderlying:policy_no,
+                                  cppumunderlying_alias:pol_year     = cppumunderlying:pol_year,
+                                  cppumunderlying_alias:end_sequence = cppumunderlying:end_sequence,
+                                  cppumunderlying_alias:coverage     = cppumunderlying:coverage, generic
+
+l_sub_code = 0
+while cppumunderlying_alias:policy_no    = cppumunderlying:policy_no and
+      cppumunderlying_alias:pol_year     = cppumunderlying:pol_year and
+      cppumunderlying_alias:end_sequence = cppumunderlying:end_sequence and
+      cppumunderlying_alias:coverage     = cppumunderlying:coverage
+        begin
+        l_sub_code = cppumunderlying_alias:sub_code
+
+        next cppumunderlying_alias
+        end
+
+l_sub_code = l_sub_code + 10
+end
+
+procedure get_factors
+begin
+l_state = g_state
+access cpsumfactors, set cpsumfactors:company_id = sfpname:company_id,
+                         cpsumfactors:state = l_state,
+                         cpsumfactors:line_of_business = g_line_of_business,
+                         cpsumfactors:type = l_type,
+                         cpsumfactors:limit_1 = l_limit_1,
+                         cpsumfactors:limit_2 = l_limit_2,
+                         cpsumfactors:table = l_table, generic
+
+l_factor = 0
+l_um_uim_surcharge = 0
+while cpsumfactors:company_id = sfpname:company_id and
+      cpsumfactors:state = l_state and
+      cpsumfactors:line_of_business = g_line_of_business and
+      cpsumfactors:type = l_type and
+      cpsumfactors:limit_1 = l_limit_1 and
+      cpsumfactors:limit_2 = l_limit_2 and
+      cpsumfactors:table = l_table
+        begin
+        if sfpname:eff_date >= cpsumfactors:eff_date then
+            begin
+            l_factor = cpsumfactors:factor
+            l_um_uim_surcharge = cpsumfactors:um_uim_surcharge
+            end
+
+        next cpsumfactors
+        end
+
+end
+
+End

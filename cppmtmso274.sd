@@ -1,0 +1,90 @@
+%%
+Screen
+        Name            = "cppmtmso274";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s General Business Description   Ver 7.0  %m";
+        Domain          = "sfpamt" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4];
+
+        Access sfpamt, Set sfpamt:policy_NO = G_policy_NO ,
+                           sfpamt:pol_year = g_year,
+                           sfpamt:end_sequence = g_end_sequence, generic;
+
+        Include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+
+access validation
+if sfpamt:policy_no <> g_policy_no or
+   sfpamt:pol_year <> g_year or
+   sfpamt:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*-----------------------------------------------------------------------------------*
+| General Business Description: __________________________________________________  |
+|                               __________________________________________________  |
+*-----------------------------------------------------------------------------------*
+
+%%
+
+components
+
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function one of "ADD" then
+            begin
+            sfpamt:policy_no = g_policy_no
+            sfpamt:pol_year = g_year
+            sfpamt:end_sequence = g_end_sequence
+            end
+        end
+        sfpamt:business_description[1]/uppercase ;
+401     sfpamt:business_description[2]/uppercase ;
+
+
+}
+
+}
+
+End

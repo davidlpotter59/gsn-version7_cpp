@@ -1,0 +1,164 @@
+%%
+Screen
+        Name            = "cppmtmso800b" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space;
+        Highlite        = Underscore;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Limits - Ver 7.00     %m";
+        Domain          = "cppendorse";
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4] ,
+                                     G_STATE[2] ;
+
+        local string l_code[7]="Name" ;
+
+        local unsigned ascii number l_prem_no[4]=0001,
+                                    l_build_no[4]=0001 ,
+                                    l_sub_code[4]=0 ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence , generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppendorse:policy_NO    <> G_policy_NO or
+   cppendorse:pol_Year     <> g_year or
+   cppendorse:end_sequence <> g_End_sequence or
+   cppendorse:prem_no      <> l_prem_no or
+   cppendorse:build_no     <> l_build_no then
+    Error 1000 ;
+
+skip if cppendorse:code <> l_code ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+| Name:     __________________________________________________                 |
+|           __________________________________________________                 |
+|           __________________________________________________                 |
+| Address:  __________________________________________________                 |
+|           __________________________________________________                 |
+|           __________________________________________________                 |
+| City:     ___________________________ State: ____  Zip Code: ___________     |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function one of "ADD" then
+            begin
+            cppendorse:policy_no = g_policy_no
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:prem_no = l_prem_no
+            cppendorse:build_no = l_build_no
+            cppendorse:code = l_code
+            do subcode
+            cppendorse:sub_code = l_sub_code
+            end
+        end
+        cppendorse:policy_NO/displayonly ;
+302     cppendorse:pol_year/displayonly ;
+303     cppendorse:end_sequence/displayonly ;
+501     cppendorse:NAME[1]/upper ;
+601     cppendorse:NAME[2]/upper ;
+701     cppendorse:NAME[3]/uppercase ;
+801     cppendorse:ADDRESS/uppercase;
+901     cppendorse:ADDRESS[1]/uppercase ;
+1001    cppendorse:ADDRESS[2]/uppercase;
+1101    cppendorse:CITY ;
+1102    Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:STR_STATE = SFSDEFAULT:STR_STATE
+            End
+        End
+        cppendorse:STR_STATE/default ;
+1103    cppendorse:STR_ZIPCODE;
+1103    Begin
+        If cppendorse:STR_ZIPCODE[6,9] = "" Then
+            cppendorse:STR_ZIPCODE[6,9] = "0000"
+        End
+        cppendorse:STR_ZIPCODE/displayonly ;
+
+}
+
+}
+
+procedure definition
+
+procedure subcode
+begin
+  access cppendorse_alias,
+     set cppendorse_alias:policy_no    = cppendorse:policy_no,
+         cppendorse_alias:pol_year     = cppendorse:pol_year,
+         cppendorse_alias:end_sequence = cppendorse:end_sequence,
+         cppendorse_alias:prem_no      = cppendorse:prem_no,
+         cppendorse_alias:build_no     = cppendorse:build_no,
+         cppendorse_alias:code         = cppendorse:code, generic
+
+l_sub_code = 0
+while cppendorse_alias:policy_no    = cppendorse:policy_no and
+      cppendorse_alias:pol_Year     = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      cppendorse_alias:prem_no      = cppendorse:prem_no and
+      cppendorse_alias:build_no     = cppendorse:build_no and
+      cppendorse_alias:code         = cppendorse:code
+        begin
+          l_sub_code = cppendorse_alias:sub_code
+
+          next cppendorse_alias
+        end
+
+l_sub_code = l_sub_code + 10
+end
+
+End

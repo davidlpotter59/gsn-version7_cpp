@@ -1,0 +1,303 @@
+%%
+Screen
+        Name            = "CPPMTMSO398" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPBUSINESS";
+        Windowtitle = "%a     %s Miscellaneous Factors  Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ;
+
+        Access CPPBUSINESS, Set CPPBUSINESS:POLICY_NO = G_POLICY_NO,
+                                CPPBUSINESS:POL_YEAR = G_YEAR,
+                                CPPBUSINESS:END_SEQUENCE = G_END_SEQUENCE,
+                                CPPBUSINESS:PREM_NO = G_PREM_NO,
+                                CPPBUSINESS:BUILD_NO = G_BUILD_NO, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPBUSINESS:POLICY_NO <> G_POLICY_NO Or
+   CPPBUSINESS:POL_YEAR <> G_YEAR Or
+   CPPBUSINESS:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPBUSINESS:PREM_NO <> G_PREM_NO Or
+   CPPBUSINESS:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    ________  ____  ____                                           |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPBUSINESS:POLICY_NO/displayonly  ;
+302     CPPBUSINESS:POL_YEAR/displayonly;
+303     CPPBUSINESS:END_SEQUENCE/displayonly;
+401     CPPBUSINESS:PREM_NO/displayonly ;
+501     CPPBUSINESS:BUILD_NO/displayonly ;
+
+} -- end of header
+
+CardDialog GUI at 1,80
+
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Limits"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Peril    Agreed   Dependent   Electronic  Extended   Heat/   Maximum         |
+|          Value    Property      Media     Indemnity  Power   Recovery        |
+*------------------------------------------------------------------------------*
+| FIRE:    ______    ______       _____      _____     ______    ______        |
+| EC:      ______    ______       _____      _____     ______    ______        |
+| VMM:     ______    ______       _____      _____     ______    ______        |
+| AOP:     ______    ______       _____      _____     ______    ______        |
+| SL:      ______    ______       _____      _____     ______    ______        |
+*------------------------------------------------------------------------------*
+%%
+components
+
+fields
+
+-- Fire
+501    CPPBUSINESS:AGREED_VALUE_FACTOR[1]/displayonly ;
+502    CPPBUSINESS:DEPENDENT_PROP_FACTOR[1]/displayonly ;
+503    CPPBUSINESS:ELECTRONIC_MEDIA_FACTOR[1]/displayonly ;
+504    CPPBUSINESS:EXTENDED_INDEMNITY_FACTOR[1]/displayonly ;
+505    CPPBUSINESS:HEAT_POWER_FACTOR[1]/displayonly ;
+506    CPPBUSINESS:MAX_RECOVERY_FACTOR[1]/displayonly ;
+
+-- EC
+601    CPPBUSINESS:AGREED_VALUE_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+602    CPPBUSINESS:DEPENDENT_PROP_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+603    CPPBUSINESS:ELECTRONIC_MEDIA_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+604    CPPBUSINESS:EXTENDED_INDEMNITY_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+605    CPPBUSINESS:HEAT_POWER_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+606    CPPBUSINESS:MAX_RECOVERY_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+
+-- VMM
+701    CPPBUSINESS:AGREED_VALUE_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+702    CPPBUSINESS:DEPENDENT_PROP_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+703    CPPBUSINESS:ELECTRONIC_MEDIA_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+704    CPPBUSINESS:EXTENDED_INDEMNITY_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+705    CPPBUSINESS:HEAT_POWER_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+706    CPPBUSINESS:MAX_RECOVERY_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+
+-- AOP
+801    CPPBUSINESS:AGREED_VALUE_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+802    CPPBUSINESS:DEPENDENT_PROP_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+803    CPPBUSINESS:ELECTRONIC_MEDIA_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+804    CPPBUSINESS:EXTENDED_INDEMNITY_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+805    CPPBUSINESS:HEAT_POWER_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+806    CPPBUSINESS:MAX_RECOVERY_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+
+-- Sprinkler Leakage
+901    CPPBUSINESS:AGREED_VALUE_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+902    CPPBUSINESS:DEPENDENT_PROP_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+903    CPPBUSINESS:ELECTRONIC_MEDIA_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+904    CPPBUSINESS:EXTENDED_INDEMNITY_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+905    CPPBUSINESS:HEAT_POWER_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+906    CPPBUSINESS:MAX_RECOVERY_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+
+} -- end of limits
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "More Limits"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Peril    Monthly    Loss       Ordinary   Seasonal   Building    Off         |
+|          Recovery  Tuition     Payroll     Leases     /Law     Premises      |
+*------------------------------------------------------------------------------*
+| FIRE:    _______   ______       _____      _____      ______    ______       |
+| EC:      _______   ______       _____      _____      ______    ______       |
+| VMM:     _______   ______       _____      _____      ______    ______       |
+| AOP:     _______   ______       _____      _____      ______    ______       |
+| SL:      _______   ______       _____      _____      ______    ______       |
+*------------------------------------------------------------------------------*
+| Territory Factor:  ______                                                    |
+*------------------------------------------------------------------------------*
+%%
+components
+
+fields
+
+-- Fire
+501    CPPBUSINESS:MONTHLY_RECOVERY_FACTOR[1]/displayonly ;
+502    CPPBUSINESS:LOSS_TUITION_FACTOR[1]/displayonly ;
+503    CPPBUSINESS:PAYROLL_LIMITATION_FACTOR[1]/displayonly ;
+504    CPPBUSINESS:SEASONAL_LEASES_FACTOR[1]/displayonly ;
+505    CPPBUSINESS:BUILDING_LAW_FACTOR[1]/displayonly ;
+506    CPPBUSINESS:OFF_PREM_FACTOR[1]/displayonly ;
+
+-- EC
+601    CPPBUSINESS:MONTHLY_RECOVERY_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+602    CPPBUSINESS:LOSS_TUITION_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+603    CPPBUSINESS:PAYROLL_LIMITATION_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+604    CPPBUSINESS:SEASONAL_LEASES_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+605    CPPBUSINESS:BUILDING_LAW_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1;
+606    CPPBUSINESS:OFF_PREM_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1;
+
+-- VMM
+701    CPPBUSINESS:MONTHLY_RECOVERY_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+702    CPPBUSINESS:LOSS_TUITION_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+703    CPPBUSINESS:PAYROLL_LIMITATION_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+704    CPPBUSINESS:SEASONAL_LEASES_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+705    CPPBUSINESS:BUILDING_LAW_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+706    CPPBUSINESS:OFF_PREM_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+
+-- AOP
+801    CPPBUSINESS:MONTHLY_RECOVERY_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+802    CPPBUSINESS:LOSS_TUITION_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+803    CPPBUSINESS:PAYROLL_LIMITATION_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+804    CPPBUSINESS:SEASONAL_LEASES_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+805    CPPBUSINESS:BUILDING_LAW_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+806    CPPBUSINESS:OFF_PREM_FACTOR[4]/displayonly
+        Hide If CPPGENERAL:FORM < 3 ;
+
+-- Sprinkler Leakage
+901    CPPBUSINESS:MONTHLY_RECOVERY_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+902    CPPBUSINESS:LOSS_TUITION_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+903    CPPBUSINESS:PAYROLL_LIMITATION_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+904    CPPBUSINESS:SEASONAL_LEASES_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+905    CPPBUSINESS:BUILDING_LAW_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+906    CPPBUSINESS:OFF_PREM_FACTOR[6]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+1101    CPPBUSINESS:RATING_TERRITORY_FACTOR/displayonly;
+
+} -- end of more limits
+
+}
+
+}
+
+
+End

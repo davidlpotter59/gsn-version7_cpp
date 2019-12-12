@@ -1,0 +1,508 @@
+%%
+/*
+Date Written: June 17, 2003
+
+Name: cppmcl192.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+06/17/2003             REL                inital setup of form
+
+===========================
+*/
+
+Program
+  Name = "cppmcl192";
+  Type = "File";
+  Domain = "sfpprint1";
+  Padcharacter = Space;
+
+  String L_FILE_NAME[12] = "cppmcl192.cq";
+
+  Include "csfonts.inc"
+  Include "swsut100.var"
+  Include "swsut200.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+   Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+   Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCL192 "
+--   Include "swsut200.inc"
+  /* swsut200.inc
+
+This program defines the correct edition date for a form.
+-----------------------------------------------------------------------------------
+Use swsut200.var for the Varibles needed.
+
+This include was written to work with SFPNAME but can be set to anything else
+with the proper fields.
+
+You must use the include file swsut100.inc to get the correct state.
+It converts the String state into a number state.
+------------------------------------------------------------------------------------------
+Cut and paste this above the include file in the previous screen to define
+the varible.
+
+I_CODE = ""
+
+I_CODE should be set to what form this iclude file is being
+       used in: ex "BU0312 ".
+
+----------------------------------------------------------------------------------
+Then use: Trun(SFSOPTEND:FORM_PRINT) and SFSOPTEND:EDITION_PRINT in the code
+to show the correct form name and edition date.
+----------------------------------------------------------------------------------------
+*/
+
+Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = SFPNAME:COMPANY_ID,
+           SFSOPTEND:STATE            = I_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE, generic
+
+I_LATEST_EDITION_DATE = 00.00.0000
+
+While SFSOPTEND:COMPANY_ID       = SFPNAME:COMPANY_ID And
+      SFSOPTEND:STATE            = I_STATE And
+      SFSOPTEND:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS And
+      SFSOPTEND:CODE             = I_CODE
+{
+  If SFSOPTEND:EFF_DATE >  I_LATEST_EDITION_DATE And
+     SFSOPTEND:EFF_DATE <= SFPNAME:EFF_DATE Then
+    {
+      I_LATEST_EDITION_DATE = SFSOPTEND:EFF_DATE
+    }
+  Next SFSOPTEND
+}
+
+Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = SFPNAME:COMPANY_ID,
+           SFSOPTEND:STATE            = I_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE,
+           SFSOPTEND:EFF_DATE         = I_LATEST_EDITION_DATE , Exact
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+{
+  If SFPEND:CODE = "MCL192" Then
+    {
+access cppendorse,
+   set CPPENDORSE:POLICY_NO    = sfpprint1:POLICY_NO ,
+       CPPENDORSE:POL_YEAR     = sfpprint1:pol_year,
+       CPPENDORSE:END_SEQUENCE = sfpprint1:end_sequence,
+       CPPENDORSE:PREM_NO      = sfpend:prem_no,
+       CPPENDORSE:BUILD_NO     = sfpend:build_no,
+       CPPENDORSE:CODE         = sfpend:code, generic
+
+Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+Writefile(L_FILE_NAME,"%s"," 2002 MSO, Inc.")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+Writefile(L_FILE_NAME,"%s"," ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+Writefile(L_FILE_NAME,"%s","<NL>")
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","SEXUAL ABUSE ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s","OR ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_bold_9)
+Writefile(L_FILE_NAME,"%s","SEXUAL MISCONDUCT")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s"," LIMITED LIABILITY")
+Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+Writefile(L_FILE_NAME,"%s"," PART II")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","This endorsement provides limited liability coverage for Sexual Abuse or Sexual Misconduct.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","The provisions of this endorsement apply only when the endorsement number is listed in the Declarations.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","<033>&a200h-60V")
+Writefile(L_FILE_NAME,"%s","<033>*c5800h5v0P") --Horizontal line
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","Policy # ")
+Writefile(L_FILE_NAME,"%n",sfpprint1:policy_no)
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+Writefile(L_FILE_NAME,"%s","SCHEDULE")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+240V")
+Writefile(L_FILE_NAME,"%s","Limits of Liability")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","$")
+Writefile(L_FILE_NAME,"%s",l_letter_gothic_10)
+Writefile(L_FILE_NAME,"%s",str(cppendorse:limit[1],"ZZZ,ZZZ,ZZZ"))
+Writefile(L_FILE_NAME,"%s","<033>&a1350h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","Each Person Limit")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","$")
+Writefile(L_FILE_NAME,"%s",l_letter_gothic_10)
+Writefile(L_FILE_NAME,"%s",str(cppendorse:limit[2],"ZZZ,ZZZ,ZZZ"))
+
+Writefile(L_FILE_NAME,"%s","<033>&a1350h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","General Aggregate / Total Limit")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","A.")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+0V")
+Writefile(L_FILE_NAME,"%s","Coverage")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","We ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","pay for the benefit of ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insureds, ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","up to the applicable")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","limit(s) of liability described in this endorsement, those")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","sums the ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","becomes legally liable to pay as")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","damages because of the ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured's ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","vicarious liability,")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","including negligent supervision, for ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","bodily injury ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","personal injury ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","resulting from ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual abuse ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","misconduct ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","committed by any other ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or any person")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","acting on behalf of the ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured.")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+180V")
+Writefile(L_FILE_NAME,"%s","Multiple incidents of ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual abuse ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual misconduct")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","to any one person shall be deemed to be one incident and")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","subject to the coverage and limits in effect at the time of")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","the first incident, even if some of the incidents take place")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","after expiration of this policy.")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+180V")
+Writefile(L_FILE_NAME,"%s","Defense is provided in connection with this coverage in")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","accordance with the defense provisions described under")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","Supplemental Coverage 1 in Part II B.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","B.")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+0V")
+Writefile(L_FILE_NAME,"%s","PART II C")
+Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","LIABILITY NOT INSURED ")
+Writefile(L_FILE_NAME,"%s","is extended to")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","include the following:")
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","Except as provided in Item A above:")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+120V")
+Writefile(L_FILE_NAME,"%s","1. ")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","We")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s"," do not insure ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","bodily injury, property damage,")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","advertising injury, personal injury ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or medical")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","payments arising out of any actual, alleged or")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","threatened ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual abuse ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual  misconduct")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","committed by any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s"," or any person performing")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","services for or on behalf of any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a350h+180V")
+Writefile(L_FILE_NAME,"%s","2. ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a500h+0V")
+Writefile(L_FILE_NAME,"%s","We ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","do not insure any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured's ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","liability arising out of")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","the employment, investigation, retention, supervision")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","of any person,  or the reporting to the proper")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","authorities, or failure to so report, of any act of any")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","person whose conduct would be excluded either")
+Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+Writefile(L_FILE_NAME,"%s","under this or any other exclusion in this policy.")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h1950V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","C. ")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+0V")
+Writefile(L_FILE_NAME,"%s","PERSONS INSURED MODIFICATION")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","The following are not ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insureds ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","and coverage does not")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s","apply under this endorsement to:")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","1.")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","Any person who personally participated in")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","committing any")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s"," sexual abuse ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s"," sexual misconduct.")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+240V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","2.")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","Any person who became aware of")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s"," sexual abuse ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual misconduct ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","and failed to act in a way to")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","prevent a recurrence of ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual abuse")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s"," or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","misconduct.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+240V")
+Writefile(L_FILE_NAME,"%s","D.")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+0V")
+Writefile(L_FILE_NAME,"%s","ADDITIONAL CONDITIONS")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s","1.")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","The Limits of Liability Condition in Part II D is")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","extended to include the following:")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","a.")
+
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+0V")
+Writefile(L_FILE_NAME,"%s","Coverage (Each Person) Limit")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","Our ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","maximum limit payable under ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Sexual Abuse")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Sexual Misconduct ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","Liability Coverage to any")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","one person, regardless of the number of")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","incidents involving that person, is the Each")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","Person Limit shown in the Schedule.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+180V")
+Writefile(L_FILE_NAME,"%s","b.")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+0V")
+Writefile(L_FILE_NAME,"%s","General Aggregate / Total Limits")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Our ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","aggregate / total maximum limit of liability")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","payable under ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Sexual Abuse ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Sexual")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","Misconduct ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","Liability Coverage for all damages,")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","regardless of the number of ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insureds, ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","claims")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","made or suits brought, or persons or")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","organizations making claims or bringing suits, is")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","the General Aggregate Limit shown in the")
+Writefile(L_FILE_NAME,"%s","<033>&a3450h+120V")
+Writefile(L_FILE_NAME,"%s","Schedule.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+240V")
+Writefile(L_FILE_NAME,"%s","2.")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+0V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","The Other Insurance General Condition is extended")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","as follows:")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","This insurance is excess over any other valid and")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","collectible insurance or agreement of indemnity")
+Writefile(L_FILE_NAME,"%s","<033>&a3300h+120V")
+Writefile(L_FILE_NAME,"%s","available to the ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insured.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+240V")
+Writefile(L_FILE_NAME,"%s","ADDITIONAL DEFINITIONS")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Sexual abuse")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s"," or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","sexual misconduct ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","means any illegal or")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s","offensive physical act, contact or conduct of a sexual")
+Writefile(L_FILE_NAME,"%s","<033>&a3150h+120V")
+Writefile(L_FILE_NAME,"%s","nature.")
+Writefile(L_FILE_NAME,"%s","<033>&a300h7000V")
+    }
+  Next SFPEND
+}
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

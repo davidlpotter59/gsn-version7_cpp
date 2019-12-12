@@ -1,0 +1,105 @@
+%%
+Screen
+        Name            = "cppmtmso001b" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle= "%a     %s Reinsurance Worksheet   Ver 7.0  %m" ;
+        Domain          = "SFPREINS" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+
+        Access SFPREINS,
+           Set SFPREINS:POLICY_NO = G_POLICY_NO,
+               SFPREINS:POL_YEAR = G_YEAR,
+               SFPREINS:END_SEQUENCE = G_END_SEQUENCE ;
+
+
+        Include "STDKEYS7.INC"
+--        !F8="G"/function/icon="Detl" ;
+--        !F9="Down"/function/icon="Prem" ;
+
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "G" display "cppmtmso001e" ;
+        "Down" display "cppmtmso001f" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+
+Access Validation
+If SFPREINS:POLICY_NO <> G_POLICY_NO Or
+   SFPREINS:POL_YEAR <> G_YEAR Or
+   SFPREINS:END_SEQUENCE <> G_END_SEQUENCE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No:      _________  ____  ____                                        |
+*------------------------------------------------------------------------------*
+| Limit:          __________                                                   |
+| Premium:        _____________                                                |
+*------------------------------------------------------------------------------*
+| Reins Co:       ______                                                       |
+| Retention:      ____________                                                 |
+| Reins Premium:  __________                                                   |
+| Comm Rate:      _____                                                        |
+| Percentage:     _________                                                    |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     SFPREINS:POLICY_NO/displayonly  ;
+302     SFPREINS:POL_YEAR/displayonly ;
+303     SFPREINS:END_SEQUENCE/displayonly ;
+501     SFPREINS:LIMIT/default ;
+601     SFPREINS:PREMIUM/default ;
+801     SFPREINS:REINS_CO/default ;
+901     SFPREINS:RETENTION/default ;
+1001    SFPREINS:REINS_PREMIUM/default ;
+1101    SFPREINS:COMM_RATE/default ;
+1201    SFPREINS:PERCENTAGE/default;
+
+}
+
+}
+
+End

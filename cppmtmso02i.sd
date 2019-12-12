@@ -1,0 +1,440 @@
+%%
+Screen
+        Name = "cppmtmso02i";
+        Type = "Detail" ;
+        Highlight=Underscore ;
+        Padcharacter=Space ;
+        Screensize="dynamic";
+        Windowtitle="%a     %s Territorial Rating     4.00 %m";
+        Domain="cppGENERAL" ;
+--      resizeable = "yes" ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_STATE[2],
+                                     G_RATE_TYPE[2] ,
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     G_LOSS_INCOME_FACTOR[4]/decimals=3 ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_RATING_TERRITORY[3]=0 ,
+                                    l_group_1[5]=0/dec=3 ,
+                                    l_territory[3]=0,
+                                    l_zipcode[9]=0,
+                                    l_state[2],
+                                    l_special_exposure_factor[5]=0/dec=3,
+                                    l_distance_to_shore[2],
+                                    l_group_2[5]=0/dec=3 ;
+
+        local wdate l_eff_date ;
+
+        local string l_str_zipcode[9]="" ;
+
+        Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO ,
+                               cppgeneral:pol_year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence,
+                               cppGENERAL:PREM_NO = G_PREM_NO,
+                               cppGENERAL:BUILD_NO = G_BUILD_NO ,
+                               cppgeneral:rate_type = g_rate_type ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppGENERAL:policy_NO <> G_policy_NO Or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence or
+   cppGENERAL:PREM_NO <> G_PREM_NO Or
+   cppGENERAL:BUILD_NO <> G_BUILD_NO or
+   cppgeneral:rate_type <> g_rate_type Then
+    Error 1000 ;
+
+screen
+{
+%%
+*------------------------------------------------------------------------------*
+|                              Territory:      ___                             |
+*------------------------------------------------------------------------------*
+|                   [R     _~~Factor           ______   ______                 |
+|                          _~~Other  R]        ______   ______                 |
+*------------------------------------------------------------------------------*
+|                          _~~Special~Exposure ______                          |
+*------------------------------------------------------------------------------*
+| Stories:  __             No Units: ___                                       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     begin
+        access cppgeneral_alias, set cppgeneral_alias:policy_no = g_policy_no,
+                                     cppgeneral:pol_year = g_year,
+                                     cppgeneral:end_sequence = g_end_sequence, generic
+
+        if cppgeneral_alias:policy_no = g_policy_no and
+           cppgeneral:pol_year = g_year and
+           cppgeneral:end_sequence = g_end_sequence and
+           cppgeneral:rating_territory = 0 then
+            begin
+            cppgeneral:rating_territory = cppgeneral_alias:rating_territory
+            cppgeneral:rating_territory_sub_code = cppgeneral_alias:rating_territory_sub_code
+            cppgeneral:rating_territory_group = cppgeneral_alias:rating_territory_group
+            end
+
+        l_eff_date = sfpname:eff_date
+        end
+        cppGENERAL:RATING_TERRITORY/default
+        hide if SFSCOMPANY:SPECIAL_TERRITORY_RATING not one of 1
+        hide if cppgeneral:state not one of 29
+        Access cpsRATINGTERR, Set cpsRATINGTERR:COMPANY_ID       = sfpname:COMPANY_ID,
+                                  cpsRATINGTERR:STATE            = cppGENERAL:STATE,
+                                  cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS,
+                                  cpsRATINGTERR:COUNTY           = cppGENERAL:COUNTY,
+                                  cpsRATINGTERR:TERRITORY        = cppGENERAL:RATING_TERRITORY, Generic
+
+        If cppGENERAL:RATING_TERRITORY <> cpsRATINGTERR:TERRITORY or
+           cppgeneral:rating_territory = 0 Then
+            Error 1206
+
+        cppGENERAL:RATING_TERRITORY_SUB_CODE = cpsRATINGTERR_ALIAS:SUB_CODE
+
+        Activehelp if (l_eff_date >= cpsratingterr_alias:eff_date and
+                      (l_eff_date <= cpsratingterr_alias:exp_date or
+                      cpsratingterr_alias:exp_date = 0)) then
+                       cpsRATINGTERR_ALIAS:TERRITORY
+                   else
+                       null,
+                   if (l_eff_date >= cpsratingterr_alias:eff_date and
+                      (l_eff_date <= cpsratingterr_alias:exp_date or
+                      cpsratingterr_alias:exp_date = 0)) then
+                       cpsRATINGTERR_ALIAS:DESCRIPTION
+                   else
+                       null ;
+
+402     Begin
+        Access cpsRATINGTERR, Set cpsRATINGTERR:COMPANY_ID       = sfpname:company_id,
+                                  cpsRATINGTERR:STATE            = cppGENERAL:STATE,
+                                  cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS,
+                                  cpsRATINGTERR:COUNTY           = cppGENERAL:COUNTY,
+                                  cpsRATINGTERR:TERRITORY        = cppGENERAL:RATING_TERRITORY, Generic
+
+        while cpsRATINGTERR:COMPANY_ID       = sfpname:company_id and
+              cpsRATINGTERR:STATE            = cppGENERAL:STATE and
+              cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS and
+              cpsRATINGTERR:COUNTY           = cppGENERAL:COUNTY and
+              cpsRATINGTERR:TERRITORY        = cppGENERAL:RATING_TERRITORY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    l_group_1 = cpsratingterr:group_1
+                    end
+
+                next cpsratingterr
+                end
+        End
+        L_GROUP_1/displayonly
+        hide if cppgeneral:state not one of 29
+        hide if sfsemail:agent_no <> 0 ;
+
+401     begin
+        if function one of "ADD", "NEW", "CHANGE" and
+           cppgeneral:rating_territory_group = 0 then
+            begin
+            cppgeneral:rating_territory_group = 1
+            end
+        end
+        cppGENERAL:RATING_TERRITORY_GROUP/values="1,2"/default
+        hide if cppgeneral:state not one of 29 ;
+
+402     Begin
+        Access cpsRATINGTERR, Set cpsRATINGTERR:COMPANY_ID = sfpname:company_id,
+                                  cpsRATINGTERR:STATE = cppGENERAL:STATE,
+                                  cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS,
+                                  cpsRATINGTERR:COUNTY = cppGENERAL:COUNTY,
+                                  cpsRATINGTERR:TERRITORY = cppGENERAL:RATING_TERRITORY, Generic
+
+        while cpsRATINGTERR:COMPANY_ID       = sfpname:company_id and
+              cpsRATINGTERR:STATE            = cppGENERAL:STATE and
+              cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS and
+              cpsRATINGTERR:COUNTY           = cppGENERAL:COUNTY and
+              cpsRATINGTERR:TERRITORY        = cppGENERAL:RATING_TERRITORY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    l_group_1 = cpsratingterr:group_1
+                    l_group_2 = cpsratingterr:group_2
+                    end
+
+                next cpsratingterr
+                end
+        End
+        L_GROUP_1/displayonly
+        hide if cppgeneral:state not one of 29
+        hide if sfsemail:agent_No <> 0
+        If cppGENERAL:RATING_TERRITORY_GROUP = 1 Then
+            cppGENERAL:RATING_TERRITORY_FACTOR = L_GROUP_1 ;
+
+501     cppGENERAL:RATING_TERRITORY_FACTOR
+        hide if cppgeneral:state not one of 29
+        Hide If cppGENERAL:RATING_TERRITORY_GROUP <> 2
+        hide if sfsemail:agent_No <> 0 ;
+
+
+-- PA LOGIC
+201     begin
+        l_eff_date = sfpname:eff_date
+        if cppgeneral_alias:policy_no = g_policy_no and
+           cppgeneral:pol_year = g_year and
+           cppgeneral:end_sequence = g_end_sequence and
+           cppgeneral:rating_territory = 0 then
+            cppgeneral:rating_territory = cppgeneral:territory
+        end
+        cppGENERAL:RATING_TERRITORY/displayonly
+        hide if SFSCOMPANY:SPECIAL_TERRITORY_RATING not one of 1
+        hide if cppgeneral:state one of 29 ;
+
+402     Begin
+        l_str_zipcode = str(sfplocation:zipcode[1,5]) + "0000"
+        l_zipcode = val(l_str_zipcode)
+        Access sfsterritory1, Set sfsterritory1:COMPANY_ID       = sfpname:COMPANY_ID,
+                                  sfsterritory1:STATE            = cppGENERAL:STATE,
+                                  sfsterritory1:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                  sfsterritory1:zipcode          = l_zipcode,
+                                  sfsterritory1:territory        = cppgeneral:territory, generic
+
+        while sfsterritory1:COMPANY_ID       = sfpname:COMPANY_ID and
+              sfsterritory1:STATE            = cppGENERAL:STATE and
+              sfsterritory1:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS and
+              sfsterritory1:zipcode          = l_zipcode and
+              sfsterritory1:territory        = cppgeneral:territory
+                begin
+                if l_eff_date >= sfsterritory1:eff_date then
+                    begin
+                    l_group_1 = sfsterritory1:factor[1]
+                    end
+
+                next sfsterritory1
+                end
+
+        access sfsterritory, set sfsterritory:company_id = sfpname:company_Id,
+                                 sfsterritory:state = cppgeneral:state,
+                                 sfsterritory:line_of_business = cppgeneral:rating_line_of_business,
+                                 sfsterritory:county = cppgeneral:county,
+                                 sfsterritory:territory = cppgeneral:territory, generic
+
+        l_territory = sfsterritory:territory_group[1]
+        Access sfsterrfactors, Set sfsterrfactors:COMPANY_ID       = sfpname:COMPANY_ID,
+                                   sfsterrfactors:STATE            = cppGENERAL:STATE,
+                                   sfsterrfactors:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                   sfsterrfactors:territory        = l_territory, generic
+
+        while sfsterrfactors:COMPANY_ID       = sfpname:COMPANY_ID and
+              sfsterrfactors:STATE            = cppGENERAL:STATE and
+              sfsterrfactors:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS and
+              sfsterrfactors:territory        = l_territory
+                begin
+                if l_eff_date >= sfsterrfactors:eff_date then
+                    begin
+                    l_group_1 = sfsterrfactors:factor[1]
+                    l_group_2 = sfsterrfactors:factor[2]
+                    end
+
+                next sfsterrfactors
+                end
+        End
+        L_GROUP_1/displayonly
+        hide if cppgeneral:state one of 29
+        hide if sfsemail:agent_no <> 0 ;
+
+403     begin
+        if function one of "ADD", "NEW", "CHG", "CHANGE" then
+            begin
+            if l_group_2 <> 0 then
+                cppgeneral:territory_factor_2[2] = l_group_2
+            else
+                cppgeneral:territory_factor_2[2] = l_group_1
+            end
+        end
+        l_group_2/displayonly
+        hide if cppgeneral:state one of 29
+        hide if sfsemail:agent_no <> 0 ;
+
+401     begin
+        if function one of "ADD", "NEW", "CHANGE" and
+           cppgeneral:rating_territory_group = 0 then
+            begin
+            cppgeneral:rating_territory_group = 1
+            end
+        end
+        cppGENERAL:RATING_TERRITORY_GROUP/values="1,2"/default
+        hide if cppgeneral:state one of 29 ;
+
+402     Begin
+        Access sfsterritory1, Set sfsterritory1:COMPANY_ID       = sfpname:COMPANY_ID,
+                                  sfsterritory1:STATE            = cppGENERAL:STATE,
+                                  sfsterritory1:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                  sfsterritory1:zipcode          = l_zipcode,
+                                  sfsterritory1:territory        = cppgeneral:territory, generic
+
+        while sfsterritory1:COMPANY_ID       = sfpname:COMPANY_ID and
+              sfsterritory1:STATE            = cppGENERAL:STATE and
+              sfsterritory1:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS and
+              sfsterritory1:zipcode          = l_zipcode and
+              sfsterritory1:territory        = cppgeneral:territory
+                begin
+                if l_eff_date >= sfsterritory1:eff_date then
+                    begin
+                    l_group_1 = sfsterritory1:factor[1]
+                    end
+
+                next sfsterritory1
+                end
+
+        access sfsterritory, set sfsterritory:company_id = sfpname:company_Id,
+                                 sfsterritory:state = cppgeneral:state,
+                                 sfsterritory:line_of_business = cppgeneral:rating_line_of_business,
+                                 sfsterritory:county = cppgeneral:county,
+                                 sfsterritory:territory = cppgeneral:territory, generic
+
+        l_territory = sfsterritory:territory_group[1]
+        Access sfsterrfactors, Set sfsterrfactors:COMPANY_ID       = sfpname:COMPANY_ID,
+                                   sfsterrfactors:STATE            = cppGENERAL:STATE,
+                                   sfsterrfactors:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                   sfsterrfactors:territory        = l_territory, generic
+
+        while sfsterrfactors:COMPANY_ID       = sfpname:COMPANY_ID and
+              sfsterrfactors:STATE            = cppGENERAL:STATE and
+              sfsterrfactors:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS and
+              sfsterrfactors:territory        = l_territory
+                begin
+                if l_eff_date >= sfsterrfactors:eff_date then
+                    begin
+                    l_group_1 = sfsterrfactors:factor[1]
+                    l_group_2 = sfsterrfactors:factor[2]
+                    end
+
+                next sfsterrfactors
+                end
+        End
+        L_GROUP_1/displayonly
+        hide if cppgeneral:state one of 29
+        hide if sfsemail:agent_No <> 0
+        If cppGENERAL:RATING_TERRITORY_GROUP = 1 Then
+            cppGENERAL:RATING_TERRITORY_FACTOR = L_GROUP_1 ;
+403     begin
+        if function one of "ADD", "NEW", "CHG", "CHANGE" then
+            begin
+            if l_group_2 <> 0 then
+                cppgeneral:territory_factor_2[2] = l_group_2
+            else
+                cppgeneral:territory_factor_2[2] = l_group_1
+            end
+        end
+        l_group_2/displayonly
+        hide if cppgeneral:state one of 29
+        hide if sfsemail:agent_no <> 0 ;
+
+501     cppGENERAL:RATING_TERRITORY_FACTOR
+        hide if cppgeneral:state one of 29
+        Hide If cppGENERAL:RATING_TERRITORY_GROUP <> 2
+        hide if sfsemail:agent_No <> 0 ;
+
+502     cppGENERAL:territory_factor_2[2]
+        hide if cppgeneral:state one of 29
+        Hide If cppGENERAL:RATING_TERRITORY_GROUP <> 2
+        hide if sfsemail:agent_No <> 0 ;
+
+701     begin
+        if sfpmaster:trans_code = 14 then
+            begin
+            l_distance_to_shore = sfplocation:distance_to_shore
+            l_state = cppgeneral:state
+            access sfsdistance, set sfsdistance:company_id        = sfpname:company_id,
+                                    sfsdistance:state             = l_state,
+                                    sfsdistance:line_of_business  = sfpname:line_of_business,
+                                    sfsdistance:distance_to_shore = l_distance_to_shore, generic
+
+            l_special_exposure_factor = 1.00
+            while sfsdistance:company_id        = sfpname:company_id and
+                  sfsdistance:state             = l_state and
+                  sfsdistance:line_of_business  = sfpname:line_of_business and
+                  sfsdistance:distance_to_shore = l_distance_to_shore
+                begin
+                if (sfpname:eff_date >= sfsdistance:EfF_date and
+                   (sfpname:eff_date <= sfsdistance:exp_date or
+                   sfsdistance:exp_date = 0)) then
+                    l_special_exposure_factor = sfsdistance:factor
+
+                next sfsdistance
+                end
+
+            if l_special_exposure_factor <> 1.00 then
+                cppgeneral:special_exposure = 1
+            else
+                cppgeneral:special_exposure = 0
+            cppgeneral:special_exposure_factor = l_special_exposure_factor
+            end
+        end
+        cppgeneral:special_exposure/checkbox/values="0,1"/default
+        hide if cppgeneral:state not one of 7, 29
+        if cppgeneral:special_exposure = 0 then
+            cppgeneral:special_exposure_factor = 1.00 ;
+702     /*begin
+        Access cpsRATINGTERR, Set cpsRATINGTERR:COMPANY_ID = sfpname:company_id,
+                                  cpsRATINGTERR:STATE = cppGENERAL:STATE,
+                                  cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS,
+                                  cpsRATINGTERR:COUNTY = cppGENERAL:COUNTY, generic
+
+        while cpsRATINGTERR:COMPANY_ID       = sfpname:company_id and
+              cpsRATINGTERR:STATE            = cppGENERAL:STATE and
+              cpsRATINGTERR:LINE_OF_BUSINESS = cppgeneral:RATING_LINE_OF_BUSINESS and
+              cpsRATINGTERR:COUNTY           = cppGENERAL:COUNTY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    if cpsratingterr:special_exposure = 1 then
+                        cppgeneral:special_exposure_factor = cpsratingterr:group_1
+                    end
+
+                next cpsratingterr
+                end
+        end*/
+        cppgeneral:special_exposure_factor/displayonly
+        hide if cppgeneral:special_exposure = 0 ;
+901     cppgeneral:stories ;
+902     cppgeneral:no_units ;
+}
+
+End

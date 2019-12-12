@@ -1,0 +1,115 @@
+%%
+Screen
+        Name            = "CPPMTMSO499" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPGLASS";
+        Windowtitle = "%a     %s Glass Final Rating   Ver 7.0  %m" ;
+        iconline        =0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Access CPPGLASS, Set CPPGLASS:POLICY_NO = G_POLICY_NO,
+                             CPPGLASS:POL_YEAR = G_YEAR,
+                             CPPGLASS:END_SEQUENCE  = G_END_SEQUENCE, Generic
+
+        Include "STDKEYS7.INC"
+--        !F8="Down"/function/icon="Spec" ;
+  --      !F9="Up"/function/icon="Opt" ;
+    --    !F11="G"/function/icon="Dev" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "Down" Display "cppmtmso497" ;
+        "Up"   Display "cppmtmso498" ;
+        "G"    Display "cppmtmso496" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPGLASS:POLICY_NO <> G_POLICY_NO Or
+   CPPGLASS:POL_YEAR <> G_YEAR Or
+   CPPGLASS:END_SEQUENCE  <> G_END_SEQUENCE  Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:      __ ____________________                                      |
+*------------------------------------------------------------------------------*
+|              No            Base         Adj         Total                    |
+|            Plates          Rate        Rate                                  |
+*------------------------------------------------------------------------------*
+|             ____         ________    _________      ______                   |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPGLASS:POLICY_NO/displayonly  ;
+302     CPPGLASS:POL_YEAR/displayonly;
+303     CPPGLASS:END_SEQUENCE/displayonly;
+401     CPPGLASS:PREM_NO/displayonly ;
+501     CPPGLASS:BUILD_NO/displayonly ;
+1101    CPPGLASS_ALIAS:NO_PLATES/displayonly;
+1102    CPPGLASS_ALIAS:GLASS_RATE/displayonly;
+1103    CPPGLASS_ALIAS:ADJ_RATE/displayonly;
+1104    CPPGLASS_ALIAS:GLASS_PREMIUM/displayonly;
+
+}
+
+}
+
+End

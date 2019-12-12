@@ -1,0 +1,158 @@
+%%
+Screen
+        Name            = "cppmtmso309" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Outdoor Antenna    Ver 7.00 %m" ;
+        Domain          = "cppENDORSE" ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4] ;
+        global unsigned ascii number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Limit:       __________                                                      |
+| Description: __________________________________________________              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppENDORSE:policy_NO/displayonly ;
+302     cppendorse:pol_year/displayonly ;
+303     cppendorse:end_sequence/displayonly ;
+401     cppENDORSE:PREM_NO/displayonly ;
+501     cppENDORSE:BUILD_NO/displayonly ;
+701     cppENDORSE:LIMIT[1];
+801     cppENDORSE:DESCRIPTION/freetextlines=10 ;
+
+}
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS, Set cppENDORSE_ALIAS:policy_NO = cppENDORSE:policy_NO ,
+                             cppendorse_alias:pol_Year = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             cppENDORSE_ALIAS:PREM_NO = cppENDORSE:PREM_NO,
+                             cppENDORSE_ALIAS:BUILD_NO = cppENDORSE:BUILD_NO,
+                             cppENDORSE_ALIAS:CODE = cppENDORSE:CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO = cppENDORSE:policy_NO And
+      cppendorse_alias:pol_year = cppendorse:pol_Year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      cppENDORSE_ALIAS:PREM_NO = cppENDORSE:PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO = cppENDORSE:BUILD_NO And
+      cppENDORSE_ALIAS:CODE = cppENDORSE:CODE
+        Begin
+
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

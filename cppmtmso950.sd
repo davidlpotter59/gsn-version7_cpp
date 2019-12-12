@@ -1,0 +1,505 @@
+%%
+Screen
+        Name = "cppmtmso950";
+        Type = "Multiline" ;
+        Repeat LINE_ITEMS, 10 Times ;
+        Screensize = "dynamic" ;
+        Highlight=Underscore ;
+        Padcharacter=Space ;
+        Domain="sfpEND" ;
+        Windowtitle = "%a    %s Optional Endorsements - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_SUB_CODE[4] ,
+                                     g_opt[2] ;
+
+        Global String G_CODE[7] ,
+                      g_company_id[10] ,
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2],
+                                    l_abort_program[1],
+                                    l_prem_no[4]=0001,
+                                    l_build_no[4]=0001,
+                                    L_LINE_OF_BUSINESS[4];
+
+        Local String L_SCREEN[11] ,
+                     L_CODE[7] ,
+                     l_username[15],
+                     l_system_id[15],
+                     l_commandline[15],
+                     L_COMPANY_ID[10] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access sfpEND, Set sfpEND:policy_NO = G_policy_NO,
+                           sfpend:pol_year = g_year,
+                           sfpend:end_sequence = g_end_sequence,
+                           sfpEND:PREM_NO = G_PREM_NO,
+                           sfpEND:BUILD_NO = G_BUILD_NO ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "redisplay" display/noreturn "cppmtmso950" ;
+
+        "add" sequence "new"  tagged add_fn ;
+         "new" continue begin
+                        if sfpend:policy_no <> g_policy_no then
+                            function = "addnew|append"
+                        else
+                            function = "append"
+                        end;
+        "addnew" add/autoupdate ;
+        append    tagged append_fn;
+
+--        "Chg" Sequence "amend|popup"         tagged change_fn ;
+        "change" Sequence "amend|popup"      tagged change_fn;
+        "amend" Change/hidden ;
+        "view"  sequence "popup"            tagged view_fn ;
+        "popup" Continue Begin
+                         L_CODE = sfpEND:CODE
+                         Do SETSCREEN
+                         G_CODE = sfpEND:CODE
+                         G_SUB_CODE = sfpEND:SUB_CODE
+                         FUNCTION = "disscn"
+                         End ;
+        "disscn" Display L_SCREEN ;
+        "func1"  display "" tagged notes_fn ;
+        "func2"  display "" tagged misc_fn ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7m.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Toolbar Tagged cpp_t Properties
+                                  {
+                                         Text     = "cpp"
+                                         FontName = "SansSerif"
+                                         Fontsize = 10
+                                  }
+                        {
+--separator
+                     ToolBarButton
+                                  Properties
+                                  {
+                                      iconname   = "magnif.bmp"
+                                      tooltip    = "View"
+                                  }
+                                  Events
+                                  {
+                                   Action = view_fn
+                               }
+
+
+}
+
+screen entry
+l_username      = username/spacefill
+l_system_id     = "plp"/spacefill
+
+include "rating_security.inc"
+
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+access sfssecurity_rating, set sfssecurity_rating:company_id = sfpname:company_id,
+                               sfssecurity_rating:user_id    = l_username,
+                               sfssecurity_rating:system_id  = l_system_id, generic
+
+if g_opt = 99 and
+   sfssecurity_rating:allow_to_change_in_inquiry = 0 then
+    begin
+    disable(add_fn)
+    disable(append_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+if g_opt not one of 99 then
+    disable(view_fn)
+
+Access Validation
+If SFPEND:POLICY_NO <> G_POLICY_NO Or
+   SFPEND:POL_YEAR <> G_YEAR Or
+   SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+   SFPEND:PREM_NO <> G_PREM_NO Or
+   SFPEND:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+Skip If sfpEND:LOB_END_CODE <> "U" ;
+skip if sfpend:form_edition = ""
+
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:  _________  ____  ____                                            |
+*------------------------------------------------------------------------------*
+|                 Form/Edition                        Description              |
+*------------------------------------------------------------------------------*
+|         ____________________________     _________________________________   |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" or
+           function = "ADDNEW" Then
+            Begin
+            sfpEND:policy_NO    = G_policy_NO
+            sfpend:pol_year     = g_year
+            sfpend:end_sequence = g_end_sequence
+            sfpEND:PREM_NO      = 1
+            sfpEND:BUILD_NO     = 1
+            end
+        End
+        sfpEND:policy_NO/displayonly ;
+302     sfpend:pol_year/displayonly ;
+303     sfpend:end_sequence/displayonly ;
+701     Begin
+        If FUNCTION one of "APPEND", "ADD", "NEW", "ADDNEW" Then
+            Begin
+            Do SUBCODE
+            sfpEND:LOB_END_CODE = "U"
+            sfpEND:SUB_CODE = L_SUB_CODE
+            End
+        L_EFF_DATE         = sfpNAME:EFF_DATE
+        L_COMPANY_ID       = sfpNAME:COMPANY_ID
+        L_LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS
+        L_STATE            = cppumbrella:STATE
+
+        Access SFSOPTEND_ALIAS, Set SFSOPTEND_ALIAS:COMPANY_ID = L_COMPANY_ID,
+                                    SFSOPTEND_ALIAS:STATE = L_STATE,
+                                    SFSOPTEND_ALIAS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        End
+        sfpEND:CODE/uppercase            tagged LINE_ITEMS
+        Do ACCESS_KEY
+        l_code = sfpend:code
+        If sfpEND:CODE <> SFSOPTEND:CODE Then
+            Error 1264
+
+        Activehelp If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE >= L_EFF_DATE) Or
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0) And
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "U") Then
+                       SFSOPTEND_ALIAS:CODE
+                   Else
+                       NULL/width=8 ,
+                   If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE >= L_EFF_DATE) Or
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0) And
+                      SFSOPTEND_ALIAS:END_LOB_CODE  = "U") Then
+                       SFSOPTEND_ALIAS:FORM_EDITION
+                   Else
+                       NULL/width=25 ,
+                   If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE >= L_EFF_DATE) Or
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0) And
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "U") Then
+                       SFSOPTEND_ALIAS:DESCRIPTION
+                   Else
+                       NULL/width=75 ;
+701     Begin
+        If FUNCTION one of "ADD", "APPEND", "NEW", "ADDNEW" Then
+            begin
+            Do ACCESS_ENDORSEMENT
+            end
+        If sfpEND:CODE = "" Then
+            begin
+            function = "redisplay"
+            Abort()
+            end
+        End
+        sfpEND:FORM_EDITION/displayonly              tagged LINE_ITEMS;
+702     Begin
+        if function one of "ADD", "APPEND", "NEW", "CHANGE", "ADDNEW" then
+            begin
+            sfpend:manual_premium = 0
+            sfpend:Premium = 0
+            end
+        If L_SCREEN <> "" Then
+            Begin
+            If FUNCTION = "ADD" Or
+               FUNCTION = "APPEND" Or
+               FUNCTION = "NEW" or
+               function = "ADDNEW" Then
+                Begin
+                G_CODE = sfpEND:CODE
+                G_SUB_CODE = sfpEND:SUB_CODE
+                Display Modal Screen L_SCREEN
+                End
+            End
+        End
+        sfpEND:DESCRIPTION/displayonly            tagged LINE_ITEMS;
+
+}
+
+update
+if abort = "YES" then
+    function = "redisplay"
+
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "DELETE" and
+       sfpend:code = "MCL719" then
+        begin
+        access cppendorse, set cppendorse:policy_no    = sfpend:policy_no,
+                               cppendorse:pol_year     = sfpend:pol_year,
+                               cppendorse:end_sequence = sfpend:end_sequence,
+                               cppendorse:prem_no      = sfpend:prem_no,
+                               cppendorse:build_no     = sfpend:build_no,
+                               cppendorse:code         = sfpend:code, generic
+
+        while cppendorse:policy_no    = sfpend:policy_no and
+              cppendorse:pol_year     = sfpend:pol_year and
+              cppendorse:end_sequence = sfpend:end_sequence and
+              cppendorse:prem_no      = sfpend:prem_no and
+              cppendorse:build_no     = sfpend:build_no and
+              cppendorse:code         = sfpend:code
+                begin
+                delete cppendorse
+
+                next cppendorse
+                end
+        end
+
+    if function one of "NEW", "ADD", "APPEND" and
+       sfpend:code one of "MCL761" then
+        begin
+        access cppumbrella, set cppumbrella:policy_no    = sfpend:policy_no,
+                                cppumbrella:pol_year     = sfpend:pol_year,
+                                cppumbrella:end_sequence = sfpend:end_sequence, generic
+
+        if cppumbrella:policy_no    = sfpend:policy_no and
+           cppumbrella:pol_year     = sfpend:pol_year and
+           cppumbrella:end_sequence = sfpend:end_sequence then
+            begin
+            change cppumbrella
+                begin
+                cppumbrella:remove_terrorism_form = 1
+                end
+            end
+        end
+
+    if function one of "NEW", "ADD", "APPEND" and
+       sfpend:code one of "MCL761" then
+        begin
+        l_commandline = str(g_policy_no,8) + g_code
+        proc("cli csbatch cppup997 %s",l_commandline)/noconsole
+        End
+
+    if function one of "NEW", "ADD", "APPEND" and
+       sfpEND:CODE = "MCL760" Then
+        Begin
+        access cppumbrella, set cppumbrella:policy_no    = sfpend:policy_no,
+                                cppumbrella:pol_year     = sfpend:pol_year,
+                                cppumbrella:end_sequence = sfpend:end_sequence, generic
+
+        if cppumbrella:policy_no    = sfpend:policy_no and
+           cppumbrella:pol_year     = sfpend:pol_year and
+           cppumbrella:end_sequence = sfpend:end_sequence then
+            begin
+            change cppumbrella
+                begin
+                cppumbrella:remove_terrorism_form = 0
+                end
+            end
+        end
+
+    if function one of "NEW", "ADD", "APPEND" and
+       sfpEND:CODE = "MCL760" Then
+        Begin
+        l_commandline = str(g_policy_no,8) + g_code
+        proc("cli csbatch cppup997 %s",l_commandline)/noconsole
+        End
+
+    if function = "DELETE" and
+       sfpend:code = "MCL760" then
+        begin
+        access cppumbrella, set cppumbrella:policy_no    = sfpend:policy_no,
+                                cppumbrella:pol_year     = sfpend:pol_year,
+                                cppumbrella:end_sequence = sfpend:end_sequence, generic
+
+        if cppumbrella:policy_no    = sfpend:policy_no and
+           cppumbrella:pol_year     = sfpend:pol_year and
+           cppumbrella:end_sequence = sfpend:end_sequence then
+            begin
+            change cppumbrella
+                begin
+                cppumbrella:remove_terrorism_form= 1
+                end
+            end
+        end
+
+    if function = "DELETE" and
+       sfpend:code one of "MCL761" then
+        begin
+        access cppumbrella, set cppumbrella:policy_no    = sfpend:policy_no,
+                                cppumbrella:pol_year     = sfpend:pol_year,
+                                cppumbrella:end_sequence = sfpend:end_sequence, generic
+
+        if cppumbrella:policy_no    = sfpend:policy_no and
+           cppumbrella:pol_year     = sfpend:pol_year and
+           cppumbrella:end_sequence = sfpend:end_sequence then
+            begin
+            change cppumbrella
+                begin
+                cppumbrella:remove_terrorism_form= 0
+                end
+            end
+        end
+
+    end
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access sfpEND_ALIAS, Set sfpEND_ALIAS:policy_NO    = G_policy_NO,
+                         sfpend_alias:pol_year     = g_year,
+                         sfpend_alias:end_sequence = g_end_sequence,
+                         sfpend_alias:prem_no      = l_prem_no,
+                         sfpend_alias:build_no     = l_build_no, approximate
+
+L_SUB_CODE = 0
+while sfpEND_ALIAS:policy_NO    = G_policy_NO and
+      sfpend_alias:pol_year     = g_year and
+      sfpend_alias:end_sequence = g_end_sequence and
+      sfpend_alias:prem_no      = l_prem_no and
+      sfpend_alias:build_no     = l_build_no
+        begin
+        L_SUB_CODE = sfpEND_ALIAS:SUB_CODE
+
+        Next sfpEND_ALIAS
+        End
+
+G_SUB_CODE = sfpEND:SUB_CODE
+l_sub_code = l_sub_code + 10
+End
+
+Procedure ACCESS_ENDORSEMENT
+Begin
+L_STATE = cppumbrella:STATE
+l_line_of_business = cppumbrella:line_of_business
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_CODE = sfpEND:CODE
+        G_CODE = sfpEND:CODE
+        sfpEND:FORM_EDITION = SFSOPTEND:FORM_EDITION/raw
+        sfpEND:DESCRIPTION = SFSOPTEND:DESCRIPTION/raw
+        L_SCREEN = SFSOPTEND:policy_SCREEN
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+Procedure SETSCREEN
+Begin
+L_STATE = cppumbrella:STATE
+l_line_of_business = cppumbrella:line_of_business
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = sfpEND:CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> sfpEND:CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_SCREEN = SFSOPTEND:policy_SCREEN
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+Procedure ACCESS_KEY
+Begin
+L_STATE = cppumbrella:STATE
+l_line_of_business = cppumbrella:line_of_business
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID ,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = sfpEND:CODE, Generic
+
+End
+
+End

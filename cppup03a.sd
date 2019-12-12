@@ -1,0 +1,1288 @@
+%%
+Program
+        Name = "cppup03a" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_quote_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_quote_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20],
+                     L_PAYROLL_CODE_1[7],
+                     L_PAYROLL_CODE_2[7],
+                     L_PAYROLL_CODE_3[7] ,
+                     l_code[7]="";
+
+        local signed ascii number l_deviation[5]=0/dec=3 ,
+                                  l_package_mod[5]=0/dec=3;
+
+        Local Unsigned Ascii Number L_BUS_AGREED_FACTOR[5]=0/decimals=3,
+                                    L_DEPENDENT_PROP_FACTOR_1[5]=0/decimals=3,
+                                    L_DEPENDENT_PROP_FACTOR_2[5]=0/decimals=3,
+                                    L_DEPENDENT_PROP_FACTOR_3[5]=0/decimals=3,
+                                    L_DEPENDENT_PROP_FACTOR_4[5]=0/decimals=3,
+                                    L_ELECTRONIC_FACTOR_1[5]=0/decimals=3,
+                                    L_ELECTRONIC_FACTOR_2[5]=0/decimals=3,
+                                    L_EXTENDED_FACTOR_1[5]=0/decimals=3,
+                                    L_EXTENDED_DAYS_1[4]=0,
+                                    L_EXTENDED_FACTOR_2[5]=0/decimals=3,
+                                    L_EXTENDED_DAYS_2[4]=0,
+                                    L_EXTENDED_FACTOR_3[5]=0/decimals=3,
+                                    L_EXTENDED_DAYS_3[4]=0,
+                                    L_EXTENDED_FACTOR_4[5]=0/decimals=3,
+                                    L_EXTENDED_DAYS_4[4]=0,
+                                    L_EXTENDED_FACTOR_5[5]=0/decimals=3,
+                                    L_EXTENDED_DAYS_5[4]=0,
+                                    L_HEAT_POWER_FACTOR[5]=0/decimals=3,
+                                    L_MAX_FACTOR_1[5]=0/decimals=3,
+                                    L_MAX_FACTOR_2[5]=0/decimals=3,
+                                    L_MAX_FACTOR_3[5]=0/decimals=3,
+                                    L_MAX_FACTOR_4[5]=0/decimals=3,
+                                    L_MAX_FACTOR_5[5]=0/decimals=3,
+                                    L_MAX_FACTOR_6[5]=0/decimals=3,
+                                    l_monthly_limit_1[5]=0/dec=4,
+                                    l_monthly_limit_2[5]=0/dec=4,
+                                    l_monthly_limit_3[5]=0/dec=4,
+                                    l_monthly_limit_4[5]=0/dec=4,
+                                    l_monthly_limit_5[5]=0/dec=4,
+                                    l_monthly_limit_6[5]=0/dec=4,
+                                    l_monthly_recovery_factor[5]=0/dec=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_1[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_2[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_3[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_4[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_5[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_6[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_7[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_8[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_9[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_10[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_11[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_12[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_13[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_14[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_15[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_16[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_17[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_FACTOR_18[5]=0/decimals=3,
+                                    L_MONTHLY_RECOVERY_LIMIT_1[5]=0/decimals=4,
+                                    L_MONTHLY_RECOVERY_LIMIT_2[5]=0/decimals=4,
+                                    L_MONTHLY_RECOVERY_LIMIT_3[5]=0/decimals=4,
+                                    L_MONTHLY_RECOVERY_LIMIT_4[5]=0/decimals=4,
+                                    L_MONTHLY_RECOVERY_LIMIT_5[5]=0/decimals=4,
+                                    L_MONTHLY_RECOVERY_LIMIT_6[5]=0/decimals=4,
+                                    l_loss_tuition_factor[5]=0/dec=3,
+                                    L_LOSS_TUITION_FACTOR_1[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_2[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_3[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_4[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_5[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_6[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_7[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_8[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_9[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_10[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_11[5]=0/decimals=3,
+                                    L_LOSS_TUITION_FACTOR_12[5]=0/decimals=3,
+                                    L_PAYROLL_FACTOR_1[5]=0/decimals=3,
+                                    L_PAYROLL_FACTOR_2[5]=0/decimals=3,
+                                    L_PAYROLL_FACTOR_3[5]=0/decimals=3,
+                                    L_SEASONAL_FACTOR_1[4]=0/decimals=3,
+                                    L_SEASONAL_FACTOR_2[4]=0/decimals=3,
+                                    L_BUILDING_LAW_FACTOR_1[5]=0/decimals=3,
+                                    L_BUILDING_LAW_FACTOR_2[5]=0/decimals=3,
+                                    L_BUILDING_LAW_FACTOR_3[5]=0/decimals=3,
+                                    L_BUILDING_LAW_FACTOR_4[5]=0/decimals=3,
+                                    L_BUILDING_LAW_FACTOR_5[5]=0/decimals=3,
+                                    L_BUILDING_LAW_FACTOR_6[5]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_1[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_2[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_3[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_4[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_5[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_6[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_7[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_8[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_9[4]=0/decimals=3,
+                                    L_OFF_PREM_FACTOR_10[4]=0/decimals=3,
+                                    L_CS[1],
+                                    L_PS_WS[1] ,
+                                    l_specific_minimum[4]=0/dec=3,
+                                    l_fire_new_rate[5]=0/dec=3,
+                                    l_line_of_business[4];
+
+        Include "cpsrate.var"
+
+Initialisation
+G_policy_NO    = Val(COMMANDLINE[1,9])
+g_year         = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+
+Do RATE_LOCATION
+
+Update
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+Access cppblanketbi_ALIAS, Set cppblanketbi_ALIAS:policy_NO    = G_policy_NO,
+                               cppblanketbi_alias:pol_year     = g_year,
+                               cppblanketbi_alias:end_sequence = g_end_sequence, Generic
+
+While cppblanketbi_ALIAS:policy_NO    = G_policy_NO and
+      cppblanketbi_alias:pol_year     = g_year and
+      cppblanketbi_alias:end_sequence = g_end_sequence
+    Begin
+    Access cppEXCLUSIONS, Set cppEXCLUSIONS:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                              cppexclusions:pol_year = cppblanketbi_alias:pol_year,
+                              cppexclusions:end_sequence = cppblanketbi_alias:end_sequence,
+                              cppEXCLUSIONS:PREM_NO  = cppblanketbi_ALIAS:PREM_NO,
+                              cppEXCLUSIONS:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+    access cppgeneral, set cppgeneral:policy_no = cppblanketbi_alias:policy_no,
+                           cppgeneral:pol_year = cppblanketbi_alias:pol_year,
+                           cppgeneral:end_sequence = cppblanketbi_alias:end_sequence, generic
+
+    Access sfpNAME, Set sfpNAME:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                        sfpname:pol_year = cppblanketbi_alias:pol_year,
+                        sfpname:end_sequence = cppblanketbi_alias:end_sequence, Generic
+
+    access sfsline, set sfsline:company_id = sfpname:company_id,
+                        sfsline:line_of_business = sfpname:line_of_business,
+                        sfsline:lob_subline = "00", generic
+
+    l_line_of_business = sfsline:rating_line_of_business
+
+    Access cppblanket, Set cppblanket:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                           cppblanket:pol_year = cppblanketbi_alias:pol_year,
+                           cppblanket:end_sequence = cppblanketbi_alias:end_sequence,
+                           cppblanket:PREM_NO  = cppblanketbi_ALIAS:PREM_NO,
+                           cppblanket:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+    do company_deviation
+    do package_mod
+
+    Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                            cppproperty:pol_year = cppblanketbi_alias:pol_year,
+                            cppproperty:end_sequence = cppblanketbi_alias:end_sequence,
+                            cppPROPERTY:PREM_NO  = cppblanketbi_ALIAS:PREM_NO,
+                            cppPROPERTY:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+    Access SFSCOMPANY, Set SFSCOMPANY:COMPANY_ID = sfpNAME:COMPANY_ID, Generic
+
+    l_specific_rate_adj = cppgeneral:specific_rate_adjustment[1]
+    if l_specific_rate_adj = 0 then
+        l_specific_rate_adj = 1.00
+
+    if cppblanket:specific_minimum[1] = 1 then
+        l_specific_minimum = cppgeneral:specific_rate_minimum
+    else
+        l_specific_minimum = 0
+
+    if cppgeneral:blanket = 1 and
+       cppgeneral:blanket_coverage = 2 then
+        begin
+        L_FIRE_BASE_RATE     = cppbusiness:Blanket_RATE[1]
+        l_fire_new_rate      = 0
+        l_fire_new_base_rate = cppbusiness:blanket_rate[1]
+        L_EC_BASE_RATE       = cppbusiness:Blanket_RATE[2]
+        L_VMM_BASE_RATE      = cppbusiness:Blanket_RATE[3]
+        L_aop_base_Rate      = cppbusiness:blanket_rate[4]
+        end
+    else
+        begin
+        L_FIRE_BASE_RATE     = cppgeneral:BASE_RATE[1]
+        l_fire_new_rate      = 0
+        l_fire_new_base_rate = cppgeneral:base_rate[1]
+        L_EC_BASE_RATE       = cppgeneral:BASE_RATE[2]
+        L_VMM_BASE_RATE      = cppgeneral:BASE_RATE[3]
+        L_SL_BASE_RATE       = cppgeneral:BASE_RATE[6]
+        end
+
+    If cppgeneral:form = 3 Or
+       cppgeneral:form = 5 Then
+        Do GET_BASE_RATE
+
+    If cppblanketbi_ALIAS:COVERAGE <> "D2" Then
+        Do GET_BI_FACTOR
+    Else
+        Do GET_EXTRA_EXPENSE_FACTOR
+
+    Do MISC_RATES
+    If cppblanketbi_ALIAS:AGREED_VALUE = 1 Then
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] = L_BUS_AGREED_FACTOR
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] = L_BUS_AGREED_FACTOR
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] = L_BUS_AGREED_FACTOR
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] = L_BUS_AGREED_FACTOR
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] = L_BUS_AGREED_FACTOR
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] = 1.00
+            End
+        End
+
+    If cppblanketbi_ALIAS:DEPENDENT_PROPERTY = 1 Then
+        Begin
+        If cppblanketbi_ALIAS:COVERAGE <> "D2" Then
+            Begin
+            Access cppBUSDEPENDPROP, Set cppBUSDEPENDPROP:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                                         cppbusdependprop:pol_year = cppblanketbi_alias:pol_year,
+                                         cppbusdependprop:end_sequence = cppblanketbi_alias:end_sequence,
+                                         cppBUSDEPENDPROP:PREM_NO = cppblanketbi_ALIAS:PREM_NO,
+                                         cppBUSDEPENDPROP:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+            Change cppblanketbi_ALIAS
+                Begin
+                If cppBUSDEPENDPROP:LIMITED = 1 And
+                   cppBUSDEPENDPROP:DEPENDENT_PROPERTY = 1 Then
+                    Begin
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] = L_DEPENDENT_PROP_FACTOR_1
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] = L_DEPENDENT_PROP_FACTOR_1
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] = L_DEPENDENT_PROP_FACTOR_1
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] = L_DEPENDENT_PROP_FACTOR_1
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] = L_DEPENDENT_PROP_FACTOR_1
+                    End
+                Else
+                If cppBUSDEPENDPROP:LIMITED = 0 And
+                   cppBUSDEPENDPROP:DEPENDENT_PROPERTY = 1 Then
+                    Begin
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] = L_DEPENDENT_PROP_FACTOR_2
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] = L_DEPENDENT_PROP_FACTOR_2
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] = L_DEPENDENT_PROP_FACTOR_2
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] = L_DEPENDENT_PROP_FACTOR_2
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] = L_DEPENDENT_PROP_FACTOR_2
+                    End
+                Else
+                If cppBUSDEPENDPROP:LIMITED = 1 And
+                   cppBUSDEPENDPROP:DEPENDENT_PROPERTY = 0 Then
+                    Begin
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] = L_DEPENDENT_PROP_FACTOR_3
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] = L_DEPENDENT_PROP_FACTOR_3
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] = L_DEPENDENT_PROP_FACTOR_3
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] = L_DEPENDENT_PROP_FACTOR_3
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] = L_DEPENDENT_PROP_FACTOR_3
+                    End
+                Else
+                If cppBUSDEPENDPROP:LIMITED = 0 And
+                   cppBUSDEPENDPROP:DEPENDENT_PROPERTY = 0 Then
+                    Begin
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] = L_DEPENDENT_PROP_FACTOR_4
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] = L_DEPENDENT_PROP_FACTOR_4
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] = L_DEPENDENT_PROP_FACTOR_4
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] = L_DEPENDENT_PROP_FACTOR_4
+                    cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] = L_DEPENDENT_PROP_FACTOR_4
+                    End
+                End
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] = 1.00
+            End
+        End
+
+    If cppblanketbi_ALIAS:ELECTRONIC_MEDIA = 1 Then
+        Begin
+        Access cppELECTMEDIA, Set cppELECTMEDIA:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                                  cppELECTMEDIA:Pol_year = cppblanketbi_ALIAS:pol_year,
+                                  cppELECTMEDIA:end_sequence = cppblanketbi_ALIAS:end_sequence,
+                                  cppELECTMEDIA:PREM_NO = cppblanketbi_ALIAS:PREM_NO,
+                                  cppELECTMEDIA:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+        Change cppblanketbi_ALIAS
+            Begin
+            If cppELECTMEDIA:NO_LIMIT = 1 Then
+                Begin
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] = L_ELECTRONIC_FACTOR_2
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] = L_ELECTRONIC_FACTOR_2
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] = L_ELECTRONIC_FACTOR_2
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] = L_ELECTRONIC_FACTOR_2
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] = L_ELECTRONIC_FACTOR_2
+                End
+            Else
+                Begin
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] = L_ELECTRONIC_FACTOR_1
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] = L_ELECTRONIC_FACTOR_1
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] = L_ELECTRONIC_FACTOR_1
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] = L_ELECTRONIC_FACTOR_1
+                cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] = L_ELECTRONIC_FACTOR_1
+                End
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] = 1.00
+            End
+        End
+
+    If cppblanketbi_ALIAS:EXTENDED_PERIOD_INDEMNITY = 1 Then
+        Begin
+        Access cppEXTPERIOD, Set cppEXTPERIOD:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                                 cppEXTPERIOD:pol_year = cppblanketbi_ALIAS:pol_Year,
+                                 cppEXTPERIOD:end_sequence = cppblanketbi_ALIAS:end_sequence,
+                                 cppEXTPERIOD:PREM_NO = cppblanketbi_ALIAS:PREM_NO,
+                                 cppEXTPERIOD:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+        Change cppblanketbi_ALIAS
+            Begin
+            If cppEXTPERIOD:NO_DAYS = L_EXTENDED_DAYS_1 Then
+                Begin
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] = L_EXTENDED_FACTOR_1
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] = L_EXTENDED_FACTOR_1
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] = L_EXTENDED_FACTOR_1
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] = L_EXTENDED_FACTOR_1
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] = L_EXTENDED_FACTOR_1
+                End
+            If cppEXTPERIOD:NO_DAYS = L_EXTENDED_DAYS_2 Then
+                Begin
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] = L_EXTENDED_FACTOR_2
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] = L_EXTENDED_FACTOR_2
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] = L_EXTENDED_FACTOR_2
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] = L_EXTENDED_FACTOR_2
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] = L_EXTENDED_FACTOR_2
+                End
+            If cppEXTPERIOD:NO_DAYS = L_EXTENDED_DAYS_3 Then
+                Begin
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] = L_EXTENDED_FACTOR_3
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] = L_EXTENDED_FACTOR_3
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] = L_EXTENDED_FACTOR_3
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] = L_EXTENDED_FACTOR_3
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] = L_EXTENDED_FACTOR_3
+                End
+            If cppEXTPERIOD:NO_DAYS = L_EXTENDED_DAYS_4 Then
+                Begin
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] = L_EXTENDED_FACTOR_4
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] = L_EXTENDED_FACTOR_4
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] = L_EXTENDED_FACTOR_4
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] = L_EXTENDED_FACTOR_4
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] = L_EXTENDED_FACTOR_4
+                End
+            If cppEXTPERIOD:NO_DAYS = L_EXTENDED_DAYS_5 Then
+                Begin
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] = L_EXTENDED_FACTOR_5
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] = L_EXTENDED_FACTOR_5
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] = L_EXTENDED_FACTOR_5
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] = L_EXTENDED_FACTOR_5
+                cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] = L_EXTENDED_FACTOR_5
+                End
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] = 1.00
+            End
+        End
+
+    If cppblanketbi_ALIAS:HEAT_POWER_REFRIG = 1 Then
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] = L_HEAT_POWER_FACTOR
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] = L_HEAT_POWER_FACTOR
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] = L_HEAT_POWER_FACTOR
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] = L_HEAT_POWER_FACTOR
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] = L_HEAT_POWER_FACTOR
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] = 1.00
+            End
+        End
+
+    If cppblanketbi_ALIAS:MAX_RECOVERY_PERIOD = 1 Then
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            Switch(cppblanketbi_ALIAS:COVERAGE)
+            Case "D1" : Switch(cppblanketbi_ALIAS:RISK_TYPE)
+                        Case "R" : Begin
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = L_MAX_FACTOR_1
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = L_MAX_FACTOR_1
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = L_MAX_FACTOR_1
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = L_MAX_FACTOR_1
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = L_MAX_FACTOR_1
+                                   End
+                        Case "M" : Begin
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = L_MAX_FACTOR_2
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = L_MAX_FACTOR_2
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = L_MAX_FACTOR_2
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = L_MAX_FACTOR_2
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = L_MAX_FACTOR_2
+                                   End
+                        Default  : Begin
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = L_MAX_FACTOR_3
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = L_MAX_FACTOR_3
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = L_MAX_FACTOR_3
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = L_MAX_FACTOR_3
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = L_MAX_FACTOR_3
+                                   End
+                        End
+            Default   : Switch(cppblanketbi_ALIAS:RISK_TYPE)
+                        Case "R" : Begin
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = L_MAX_FACTOR_4
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = L_MAX_FACTOR_4
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = L_MAX_FACTOR_4
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = L_MAX_FACTOR_4
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = L_MAX_FACTOR_4
+                                   End
+                        Case "M" : Begin
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = L_MAX_FACTOR_5
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = L_MAX_FACTOR_5
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = L_MAX_FACTOR_5
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = L_MAX_FACTOR_5
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = L_MAX_FACTOR_5
+                                   End
+                        Default  : Begin
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = L_MAX_FACTOR_6
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = L_MAX_FACTOR_6
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = L_MAX_FACTOR_6
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = L_MAX_FACTOR_6
+                                   cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = L_MAX_FACTOR_6
+                                   End
+                        End
+            End
+
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] = 1.00
+            End
+        End
+
+    If cppblanketbi_ALIAS:MONTHLY_RECOVERY_LIMITATION = 1 Then
+        Begin
+        l_code = "MCP349"
+        access cppendorse, set cppendorse:policy_no= cppblanketbi_alias:policy_no,
+                               cppendorse:pol_year = cppblanketbi_alias:pol_Year,
+                               cppendorse:end_sequence = cppblanketbi_alias:end_sequence,
+                               cppendorse:prem_no = cppblanketbi_alias:prem_no,
+                               cppendorse:build_no = cppblanketbi_alias:build_no,
+                               cppendorse:code = l_code, generic
+
+        Change cppblanketbi_ALIAS
+            Begin
+            switch(cppblanketbi_alias:coverage)
+              case "D1" : switch(cppblanketbi_alias:risk_type)
+                            case "R" : begin
+                                       if cppendorse:monthly_limit = l_monthly_limit_4 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_10
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_5 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_13
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_6 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_16
+                                       end
+                            case "M" : begin
+                                       if cppendorse:monthly_limit = l_monthly_limit_4 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_11
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_5 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_14
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_6 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_17
+                                       end
+                            default  : begin
+                                       if cppendorse:monthly_limit = l_monthly_limit_4 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_12
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_5 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_15
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_6 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_18
+                                       end
+                            end
+              default   : switch(cppblanketbi_alias:risk_type)
+                            case "R" : begin
+                                       if cppendorse:monthly_limit = l_monthly_limit_1 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_1
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_2 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_4
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_3 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_7
+                                       end
+                            case "M" : begin
+                                       if cppendorse:monthly_limit = l_monthly_limit_1 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_2
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_2 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_5
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_3 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_8
+                                       end
+                            default  : begin
+                                       if cppendorse:monthly_limit = l_monthly_limit_1 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_3
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_2 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_6
+                                       else
+                                       if cppendorse:monthly_limit = l_monthly_limit_3 then
+                                           l_monthly_recovery_factor = l_monthly_recovery_factor_9
+                                       end
+                            end
+              end
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[1] = L_MONTHLY_RECOVERY_FACTOR
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[2] = L_MONTHLY_RECOVERY_FACTOR
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[3] = L_MONTHLY_RECOVERY_FACTOR
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[4] = L_MONTHLY_RECOVERY_FACTOR
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[5] = L_MONTHLY_RECOVERY_FACTOR
+            End
+        End
+    Else
+        Begin
+        Change cppblanketbi_ALIAS
+            Begin
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[1] = 1.00
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[2] = 1.00
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[3] = 1.00
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[4] = 1.00
+            cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[5] = 1.00
+            End
+        End
+
+If cppblanketbi_ALIAS:LOSS_TUITION_FEES = 1 Then
+    Begin
+    switch(cppblanketbi_alias:coverage)
+      case "D1" : switch(cppblanketbi_alias:coinsurance)
+                    case 50  : l_loss_tuition_factor = l_loss_tuition_factor_7
+                    case 60  : l_loss_tuition_factor = l_loss_tuition_factor_8
+                    case 70  : l_loss_tuition_factor = l_loss_tuition_factor_9
+                    case 80  : l_loss_tuition_factor = l_loss_tuition_factor_10
+                    case 90  : l_loss_tuition_factor = l_loss_tuition_factor_11
+                    case 100 : l_loss_tuition_factor = l_loss_tuition_factor_12
+                    end
+      default   : switch(cppblanketbi_alias:coinsurance)
+                    case 50  : l_loss_tuition_factor = l_loss_tuition_factor_1
+                    case 60  : l_loss_tuition_factor = l_loss_tuition_factor_2
+                    case 70  : l_loss_tuition_factor = l_loss_tuition_factor_3
+                    case 80  : l_loss_tuition_factor = l_loss_tuition_factor_4
+                    case 90  : l_loss_tuition_factor = l_loss_tuition_factor_5
+                    case 100 : l_loss_tuition_factor = l_loss_tuition_factor_6
+                    end
+      end
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[1] = L_LOSS_TUITION_FACTOR
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[2] = L_LOSS_TUITION_FACTOR
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[3] = L_LOSS_TUITION_FACTOR
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[4] = L_LOSS_TUITION_FACTOR
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[5] = L_LOSS_TUITION_FACTOR
+        End
+    End
+Else
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[1] = 1.00
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[2] = 1.00
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[3] = 1.00
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[4] = 1.00
+        cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[5] = 1.00
+        End
+    End
+
+If cppblanketbi_ALIAS:PAYROLL_LIMITATION = 1 Then
+    Begin
+    Access cppBUSPAYROLL, Set cppBUSPAYROLL:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                              cppBUSPAYROLL:pol_year = cppblanketbi_ALIAS:pol_Year,
+                              cppBUSPAYROLL:end_sequence = cppblanketbi_ALIAS:end_sequence,
+                              cppBUSPAYROLL:PREM_NO = cppblanketbi_ALIAS:PREM_NO,
+                              cppBUSPAYROLL:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+    Change cppblanketbi_ALIAS
+        Begin
+        If cppBUSPAYROLL:FORM_TO_USE = L_PAYROLL_CODE_1 Then
+            Begin
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] = L_PAYROLL_FACTOR_1
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] = L_PAYROLL_FACTOR_1
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] = L_PAYROLL_FACTOR_1
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] = L_PAYROLL_FACTOR_1
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] = L_PAYROLL_FACTOR_1
+            End
+        Else
+        If cppBUSPAYROLL:FORM_TO_USE = L_PAYROLL_CODE_2 Then
+            Begin
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] = L_PAYROLL_FACTOR_2
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] = L_PAYROLL_FACTOR_2
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] = L_PAYROLL_FACTOR_2
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] = L_PAYROLL_FACTOR_2
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] = L_PAYROLL_FACTOR_2
+            End
+        Else
+        If cppBUSPAYROLL:FORM_TO_USE = L_PAYROLL_CODE_3 Then
+            Begin
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] = L_PAYROLL_FACTOR_3
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] = L_PAYROLL_FACTOR_3
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] = L_PAYROLL_FACTOR_3
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] = L_PAYROLL_FACTOR_3
+            cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] = L_PAYROLL_FACTOR_3
+            End
+        End
+    End
+Else
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] = 1.00
+        cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] = 1.00
+        cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] = 1.00
+        cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] = 1.00
+        cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] = 1.00
+        End
+    End
+
+If cppblanketbi_ALIAS:SEASONAL_LEASES = 1 Then
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        Switch(cppblanketbi_ALIAS:COVERAGE)
+          Case "D1" : Begin
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[1] = L_SEASONAL_FACTOR_2
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[2] = L_SEASONAL_FACTOR_2
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[3] = L_SEASONAL_FACTOR_2
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[4] = L_SEASONAL_FACTOR_2
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[5] = L_SEASONAL_FACTOR_2
+                      End
+          Default   : Begin
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[1] = L_SEASONAL_FACTOR_1
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[2] = L_SEASONAL_FACTOR_1
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[3] = L_SEASONAL_FACTOR_1
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[4] = L_SEASONAL_FACTOR_1
+                      cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[5] = L_SEASONAL_FACTOR_1
+                      End
+          End
+        End
+    End
+Else
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[1] = 1.00
+        cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[2] = 1.00
+        cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[3] = 1.00
+        cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[4] = 1.00
+        cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[5] = 1.00
+        End
+   End
+
+If cppblanketbi_ALIAS:BUILDING_LAW = 1 Then
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] = L_BUILDING_LAW_FACTOR_1
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] = L_BUILDING_LAW_FACTOR_2
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] = L_BUILDING_LAW_FACTOR_3
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] = L_BUILDING_LAW_FACTOR_4
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] = L_BUILDING_LAW_FACTOR_5
+        End
+    End
+Else
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] = 1.00
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] = 1.00
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] = 1.00
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] = 1.00
+        cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] = 1.00
+        End
+    End
+
+If cppblanketbi_ALIAS:OFF_PREMISES = 1 Then
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        Access cppBUSOFFPREM, Set cppBUSOFFPREM:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                                  cppBUSOFFPREM:pol_year = cppblanketbi_ALIAS:pol_year,
+                                  cppBUSOFFPREM:end_sequence = cppblanketbi_ALIAS:end_sequence,
+                                  cppBUSOFFPREM:PREM_NO = cppblanketbi_ALIAS:PREM_NO,
+                                  cppBUSOFFPREM:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+        If cppBUSOFFPREM:CS = 1 Then
+            Begin
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[1] = L_OFF_PREM_FACTOR_2
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[2] = L_OFF_PREM_FACTOR_4
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[3] = L_OFF_PREM_FACTOR_6
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[4] = L_OFF_PREM_FACTOR_8
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[5] = L_OFF_PREM_FACTOR_10
+            End
+        Else
+        If cppBUSOFFPREM:PS = 1 Then
+            Begin
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[1] = L_OFF_PREM_FACTOR_1
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[2] = L_OFF_PREM_FACTOR_3
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[3] = L_OFF_PREM_FACTOR_5
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[4] = L_OFF_PREM_FACTOR_7
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[5] = L_OFF_PREM_FACTOR_9
+            End
+        Else
+        If cppBUSOFFPREM:WS = 1 Then
+            Begin
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[1] = L_OFF_PREM_FACTOR_1
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[2] = L_OFF_PREM_FACTOR_3
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[3] = L_OFF_PREM_FACTOR_5
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[4] = L_OFF_PREM_FACTOR_7
+            cppblanketbi_ALIAS:OFF_PREM_FACTOR[5] = L_OFF_PREM_FACTOR_9
+            End
+        End
+    End
+Else
+    Begin
+    Change cppblanketbi_ALIAS
+        Begin
+        cppblanketbi_ALIAS:OFF_PREM_FACTOR[1] = 1.00
+        cppblanketbi_ALIAS:OFF_PREM_FACTOR[2] = 1.00
+        cppblanketbi_ALIAS:OFF_PREM_FACTOR[3] = 1.00
+        cppblanketbi_ALIAS:OFF_PREM_FACTOR[4] = 1.00
+        cppblanketbi_ALIAS:OFF_PREM_FACTOR[5] = 1.00
+        End
+    End
+
+Change cppblanketbi_ALIAS
+    Begin
+    cppblanketbi_ALIAS:BASE_RATE[1]             = L_FIRE_NEW_BASE_RATE
+    cppblanketbi_alias:new_rate                 = l_fire_new_rate
+    cppblanketbi_alias:specific_rate_minimum    = l_specific_minimum
+    cppblanketbi_ALIAS:BASE_RATE[2]             = L_EC_BASE_RATE
+    cppblanketbi_ALIAS:BASE_RATE[3]             = L_VMM_BASE_RATE
+    cppblanketbi_ALIAS:BASE_RATE[4]             = L_AOP_BASE_RATE
+    cppblanketbi_ALIAS:BASE_RATE[5]             = L_SL_BASE_RATE
+    cppblanketbi_alias:specific_rate_adjustment = l_specific_rate_adj
+    cppblanketbi_ALIAS:BI_FACTOR[1]             = L_BI_RATING_FACTOR
+    cppblanketbi_ALIAS:BI_FACTOR[2]             = L_BI_RATING_FACTOR
+    cppblanketbi_ALIAS:BI_FACTOR[3]             = L_BI_RATING_FACTOR
+    if sfscompany:boiler_rating = 2 then
+        cppblanketbi_alias:bi_factor[4]         = 1.00
+    else
+        cppblanketbi_ALIAS:BI_FACTOR[4]         = l_bi_rating_factor
+    cppblanketbi_ALIAS:BI_FACTOR[5]             = L_BI_RATING_FACTOR
+    End
+
+Change cppblanketbi_ALIAS
+    Begin
+    If cppblanketbi_ALIAS:MAX_RECOVERY_PERIOD = 1 Then
+        Begin
+        cppblanketbi_ALIAS:ADJ_RATE[1] = L_FIRE_BASE_RATE *
+                                         l_specific_rate_adj *
+                                         cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[1] *
+                                         l_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[1]
+        cppblanketbi_ALIAS:ADJ_RATE[2] = L_EC_BASE_RATE * cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[2]  *
+                                         l_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[2]
+        cppblanketbi_ALIAS:ADJ_RATE[3] = L_VMM_BASE_RATE * cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[3] *
+                                         l_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[3]
+        cppblanketbi_ALIAS:ADJ_RATE[4] = L_AOP_BASE_RATE * cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[4] *
+                                         l_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[4]
+        cppblanketbi_ALIAS:ADJ_RATE[5] = L_SL_BASE_RATE * cppblanketbi_ALIAS:MAX_RECOVERY_FACTOR[5] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[5]
+        End
+    Else
+    If cppblanketbi_ALIAS:MONTHLY_RECOVERY_LIMITATION = 1 Then
+        Begin
+        cppblanketbi_ALIAS:ADJ_RATE[1] = L_FIRE_BASE_RATE *
+                                         l_specific_rate_adj *
+                                         cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[1] *
+                                         l_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[1]
+        cppblanketbi_ALIAS:ADJ_RATE[2] = L_EC_BASE_RATE * cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[2] *
+                                         l_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[2]
+        cppblanketbi_ALIAS:ADJ_RATE[3] = L_VMM_BASE_RATE * cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[3] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[3]
+        cppblanketbi_ALIAS:ADJ_RATE[4] = L_AOP_BASE_RATE * cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[4] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[4]
+        cppblanketbi_ALIAS:ADJ_RATE[5] = L_SL_BASE_RATE * cppblanketbi_ALIAS:MONTHLY_RECOVERY_FACTOR[5] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[5]
+        End
+    Else
+    If cppblanketbi_ALIAS:LOSS_TUITION_FEES = 1 Then
+        Begin
+        cppblanketbi_ALIAS:ADJ_RATE[1] = L_FIRE_BASE_RATE *
+                                         l_specific_rate_adj *
+                                         cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[1] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[1]
+        cppblanketbi_ALIAS:ADJ_RATE[2] = L_EC_BASE_RATE * cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[2] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[2]
+        cppblanketbi_ALIAS:ADJ_RATE[3] = L_VMM_BASE_RATE * cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[3] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[3]
+        cppblanketbi_ALIAS:ADJ_RATE[4] = L_AOP_BASE_RATE * cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[4] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[4]
+        cppblanketbi_ALIAS:ADJ_RATE[5] = L_SL_BASE_RATE * cppblanketbi_ALIAS:LOSS_TUITION_FACTOR[5] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[5]
+        End
+    Else
+    If cppblanketbi_ALIAS:SEASONAL_LEASES = 1 Then
+        Begin
+        cppblanketbi_ALIAS:ADJ_RATE[1] = L_FIRE_BASE_RATE *
+                                         l_specific_rate_adj *
+                                         cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[1] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[1]
+        cppblanketbi_ALIAS:ADJ_RATE[2] = L_EC_BASE_RATE * cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[2] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[2]
+        cppblanketbi_ALIAS:ADJ_RATE[3] = L_VMM_BASE_RATE * cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[3] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[3]
+        cppblanketbi_ALIAS:ADJ_RATE[4] = L_AOP_BASE_RATE * cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[4] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[4]
+        cppblanketbi_ALIAS:ADJ_RATE[5] = L_SL_BASE_RATE * cppblanketbi_ALIAS:SEASONAL_LEASES_FACTOR[5] *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[5]
+        End
+    Else
+        Begin
+        if cppblanket:specific_minimum[1] = 1 then
+            cppblanketbi_ALIAS:ADJ_RATE[1] = cppblanketbi_alias:specific_rate_minimum *
+                                             L_BI_RATING_FACTOR *
+                                             L_DEVIATION *
+                                             cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                             cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] *
+                                             cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] *
+                                             cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] *
+                                             cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] *
+                                             cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] *
+                                             cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] *
+                                             cppblanketbi_ALIAS:OFF_PREM_FACTOR[1]
+        else
+            cppblanketbi_ALIAS:ADJ_RATE[1] = L_FIRE_BASE_RATE *
+                                             l_specific_rate_adj *
+                                             L_BI_RATING_FACTOR *
+                                             L_DEVIATION *
+                                             cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                             cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[1] *
+                                             cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[1] *
+                                             cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[1] *
+                                             cppblanketbi_ALIAS:HEAT_POWER_FACTOR[1] *
+                                             cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[1] *
+                                             cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[1] *
+                                             cppblanketbi_ALIAS:OFF_PREM_FACTOR[1]
+        cppblanketbi_ALIAS:ADJ_RATE[2] = L_EC_BASE_RATE * L_BI_RATING_FACTOR  *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[2] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[2] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[2] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[2] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[2] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[2] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[2]
+        cppblanketbi_ALIAS:ADJ_RATE[3] = L_VMM_BASE_RATE * L_BI_RATING_FACTOR *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[3] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[3] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[3] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[3] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[3] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[3] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[3]
+        if sfscompany:boiler_rating = 2 then
+            begin
+            -- dont use the bi_rating_factor for Flemington
+            cppblanketbi_ALIAS:ADJ_RATE[4] = L_AOP_BASE_RATE *
+                                             L_DEVIATION *
+                                             cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] *
+                                             cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] *
+                                             cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] *
+                                             cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] *
+                                             cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] *
+                                             cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] *
+                                             cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] *
+                                             cppblanketbi_ALIAS:OFF_PREM_FACTOR[4]
+            end
+        else
+            begin
+            cppblanketbi_ALIAS:ADJ_RATE[4] = L_AOP_BASE_RATE * L_BI_RATING_FACTOR *
+                                             L_DEVIATION *
+                                             cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[4] *
+                                             cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[4] *
+                                             cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[4] *
+                                             cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[4] *
+                                             cppblanketbi_ALIAS:HEAT_POWER_FACTOR[4] *
+                                             cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[4] *
+                                             cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[4] *
+                                             cppblanketbi_ALIAS:OFF_PREM_FACTOR[4]
+            end
+        cppblanketbi_ALIAS:ADJ_RATE[5] = L_SL_BASE_RATE * L_BI_RATING_FACTOR *
+                                         L_DEVIATION *
+                                         cppblanketbi_ALIAS:AGREED_VALUE_FACTOR[5] *
+                                         cppblanketbi_ALIAS:DEPENDENT_PROP_FACTOR[5] *
+                                         cppblanketbi_ALIAS:ELECTRONIC_MEDIA_FACTOR[5] *
+                                         cppblanketbi_ALIAS:EXTENDED_INDEMNITY_FACTOR[5] *
+                                         cppblanketbi_ALIAS:HEAT_POWER_FACTOR[5] *
+                                         cppblanketbi_ALIAS:PAYROLL_LIMITATION_FACTOR[5] *
+                                         cppblanketbi_ALIAS:BUILDING_LAW_FACTOR[5] *
+                                         cppblanketbi_ALIAS:OFF_PREM_FACTOR[5]
+        End
+
+
+    If SFSCOMPANY:SPECIAL_TERRITORY_RATING = 1 Then
+        cppblanketbi_ALIAS:RATING_TERRITORY_FACTOR = cppblanket:RATING_TERRITORY_FACTOR
+
+    cppblanketbi_ALIAS:ADJ_PREMIUM[1] = ((cppblanketbi_ALIAS:LIMIT Divide 100)
+                                        * cppblanketbi_ALIAS:ADJ_RATE[1] *
+                                        cppblanket:RATING_TERRITORY_FACTOR)
+    cppblanketbi_ALIAS:ADJ_PREMIUM[2] = ((cppblanketbi_ALIAS:LIMIT Divide 100)
+                                        * cppblanketbi_ALIAS:ADJ_RATE[2] *
+                                        cppblanket:RATING_TERRITORY_FACTOR)
+    cppblanketbi_ALIAS:ADJ_PREMIUM[3] = ((cppblanketbi_ALIAS:LIMIT Divide 100)
+                                        * cppblanketbi_ALIAS:ADJ_RATE[3] *
+                                        cppblanket:RATING_TERRITORY_FACTOR)
+    cppblanketbi_ALIAS:ADJ_PREMIUM[4] = ((cppblanketbi_ALIAS:LIMIT Divide 100)
+                                        * cppblanketbi_ALIAS:ADJ_RATE[4] *
+                                        cppblanket:RATING_TERRITORY_FACTOR)
+    cppblanketbi_ALIAS:ADJ_PREMIUM[5] = ((cppblanketbi_ALIAS:LIMIT Divide 100)
+                                        * cppblanketbi_ALIAS:ADJ_RATE[5] *
+                                        cppblanket:RATING_TERRITORY_FACTOR)
+
+    cppblanketbi_ALIAS:BI_PREMIUM[1] = cppblanketbi_ALIAS:ADJ_PREMIUM[1] *
+                                       L_PACKAGE_MOD
+    cppblanketbi_ALIAS:BI_PREMIUM[2] = cppblanketbi_ALIAS:ADJ_PREMIUM[2] *
+                                       L_PACKAGE_MOD
+    cppblanketbi_ALIAS:BI_PREMIUM[3] = cppblanketbi_ALIAS:ADJ_PREMIUM[3] *
+                                       l_PACKAGE_MOD
+    cppblanketbi_ALIAS:BI_PREMIUM[4] = cppblanketbi_ALIAS:ADJ_PREMIUM[4] *
+                                       l_PACKAGE_MOD
+    cppblanketbi_ALIAS:BI_PREMIUM[5] = cppblanketbi_ALIAS:ADJ_PREMIUM[5] *
+                                       l_PACKAGE_MOD
+
+    cppblanketbi_ALIAS:TOTAL_PREMIUM = cppblanketbi_ALIAS:BI_PREMIUM[1] +
+                                       cppblanketbi_ALIAS:BI_PREMIUM[2] +
+                                       cppblanketbi_ALIAS:BI_PREMIUM[3] +
+                                       cppblanketbi_ALIAS:BI_PREMIUM[4] +
+                                       cppblanketbi_ALIAS:BI_PREMIUM[5]
+    End
+
+    Next cppblanketbi_ALIAS
+    End
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+access sfpname, set sfpname:policy_no = cppblanketbi_alias:policy_no,
+                    sfpname:pol_year = cppblanketbi_alias:pol_year,
+                    sfpname:end_sequence = cppblanketbi_alias:end_sequence, generic
+
+access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                       cpsdefault:line_of_business = L_line_of_business, generic
+
+if cppgeneral:company_deviation[1] = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[1] <> 1.00 then
+        l_deviation = (1 + (cppgeneral:company_deviation[1] * 0.01))
+    else
+        l_deviation = cppgeneral:company_deviation[1]
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+if cppgeneral:package_mod[1] = 0 then
+    l_package_mod = 1.00
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:package_mod[1] <> 1.00 then
+        l_package_mod = (1 + (cppgeneral:package_mod[1] * 0.01))
+    else
+        l_package_mod = cppgeneral:package_mod[1]
+    end
+
+End
+
+Procedure GET_BASE_RATE
+Begin
+L_COMPANY_ID    = sfpNAME:COMPANY_ID
+L_STATE         = cppblanket:STATE
+L_EFF_DATE      = sfpNAME:EFF_DATE
+L_OPTION        = cppgeneral:form
+L_CONSTRUCTION  = cppblanket:CONSTRUCTION
+L_BI_COVERAGE   = cppblanketbi_ALIAS:COVERAGE
+L_APT_CONDO     = cppblanketbi_ALIAS:APARTMENT_CONDO
+L_EXCLUDE_THEFT = cppEXCLUSIONS:EXCLUDE_THEFT
+
+Include "cpsbibaserate.pro"
+
+End
+
+Procedure GET_BI_FACTOR
+Begin
+L_COMPANY_ID  = sfpNAME:COMPANY_ID
+L_STATE       = cppblanket:STATE
+L_EFF_DATE    = sfpNAME:EFF_DATE
+Switch(cppblanketbi_ALIAS:COVERAGE)
+  Case "D1" : L_OPTION = 1
+  Default   : L_OPTION = 0
+  End
+L_COINSURANCE = cppblanketbi_ALIAS:COINSURANCE
+L_RISK        = cppblanketbi_ALIAS:RISK_TYPE
+
+Include "cpsbifactor.pro"
+
+End
+
+Procedure GET_EXTRA_EXPENSE_FACTOR
+Begin
+L_COMPANY_ID   = sfpNAME:COMPANY_ID
+L_STATE        = cppblanket:STATE
+L_EFF_DATE     = sfpNAME:EFF_DATE
+L_RECOVERY_SET = cppblanketbi_ALIAS:RECOVERY_SET
+
+Include "cpsbiextra.pro"
+
+End
+
+Procedure MISC_RATES
+Begin
+L_COMPANY_ID  = sfpNAME:COMPANY_ID
+L_STATE       = cppblanket:STATE
+L_EFF_DATE    = sfpNAME:EFF_DATE
+L_RISK        = cppblanketbi_ALIAS:RISK_TYPE
+L_COINSURANCE = cppblanketbi_ALIAS:COINSURANCE
+Switch(cppblanketbi_ALIAS:COVERAGE)
+  Case "D1" : L_OPTION = 1
+  Default   : L_OPTION = 0
+  End
+Access cppBUSOFFPREM, Set cppBUSOFFPREM:policy_NO = cppblanketbi_ALIAS:policy_NO,
+                          cppBUSOFFPREM:pol_year  = cppblanketbi_ALIAS:pol_year,
+                          cppBUSOFFPREM:end_sequence  = cppblanketbi_ALIAS:end_sequence,
+                          cppBUSOFFPREM:PREM_NO  = cppblanketbi_ALIAS:PREM_NO,
+                          cppBUSOFFPREM:BUILD_NO = cppblanketbi_ALIAS:BUILD_NO, Generic
+
+If cppBUSOFFPREM:CS = 1 Then
+    L_CS = 1
+Else
+    L_CS = 0
+If cppBUSOFFPREM:PS = 1 Or
+   cppBUSOFFPREM:WS = 1 Then
+    L_PS_WS = 1
+Else
+    L_PS_WS = 0
+
+Include "cpsbusmiscrates.pro"
+
+End
+
+End

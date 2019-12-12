@@ -1,0 +1,157 @@
+%%
+Screen
+        Name = "CPPMT597" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppcrime1";
+        Windowtitle = "%a     %s Deviations - Ver 7.00   %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_POPUP[1] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_COMMANDLINE[16] ,
+                     l_type[2],
+                     L_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008 ;
+
+        local Unsigned ascii number L_PACKAGE_MOD[5]=0/decimals=3 ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access cppcrime1, Set cppcrime1:POLICY_NO    = G_POLICY_NO,
+                              cppcrime1:pol_year     = G_YEAR,
+                              cppcrime1:end_sequence = G_end_sequence,
+                              cppcrime1:PREM_NO      = G_PREM_NO,
+                              cppcrime1:BUILD_NO     = G_BUILD_NO, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppcrime1:POLICY_NO    <> G_POLICY_NO Or
+   cppcrime1:POL_YEAR     <> G_YEAR Or
+   cppcrime1:END_SEQUENCE <> G_END_SEQUENCE Or
+   cppcrime1:PREM_NO      <> G_PREM_NO Or
+   cppcrime1:BUILD_NO     <> G_BUILD_NO then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+|           PMF                        IRPM                                    |
+*------------------------------------------------------------------------------*
+|         ________                    ________                                 |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+0501    begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            do get_package_mod
+            cppcrime1:package_mod = l_package_mod
+            end
+        end
+        cppcrime1:package_mod/default
+        hide if sfpname:package = 0 ;
+0502    cppcrime1:company_deviation ;
+
+}
+
+update
+if updateok = "YES" and
+   abort    = "NO" then
+    begin
+    access cppcrime1_alias, set cppcrime1_alias:policy_no    = cppcrime1:policy_no,
+                                cppcrime1_alias:pol_year     = cppcrime1:pol_year,
+                                cppcrime1_alias:end_sequence = cppcrime1:end_sequence,
+                                cppcrime1_alias:prem_no      = cppcrime1:prem_no,
+                                cppcrime1_alias:build_no     = cppcrime1:build_no,
+                                cppcrime1_alias:sub_code     = cppcrime1:sub_code , generic
+
+    change cppcrime1_alias
+        begin
+        if cppcrime1_alias:package_mod = 0 then
+            cppcrime1_alias:package_mod = 1.00
+        if cppcrime1_alias:company_deviation = 0 then
+            cppcrime1_alias:company_deviation = 1.00
+        end
+    end
+
+procedure definition
+
+procedure get_package_mod
+begin
+l_type = cppgeneral:type
+access cpsisopackage, set cpsisopackage:company_id       = sfpname:company_id,
+                          cpsisopackage:state            = cppcrime1:state,
+                          cpsisopackage:line_of_business = cppcrime1:rating_line_of_business,
+                          cpsisopackage:type             = l_type, generic
+
+l_package_mod = 0
+while cpsisopackage:company_id       = sfpname:company_id and
+      cpsisopackage:state            = cppcrime1:state and
+      cpsisopackage:line_of_business = cppcrime1:rating_line_of_business and
+      cpsisopackage:type             = l_type
+        begin
+        if (sfpname:eff_date >= cpsisopackage:eff_date and
+           (sfpname:eff_date <= cpsisopackage:exp_date or
+           cpsisopackage:exp_date = 0)) then
+            begin
+            l_package_mod = cpsisopackage:package_mod[2]
+
+            end
+
+        next cpsisopackage
+        end
+
+end
+
+End

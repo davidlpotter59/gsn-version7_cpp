@@ -1,0 +1,349 @@
+%%
+/*
+Date Written: June 25, 2003
+
+Name: cppmcp031.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+06/25/2003            DWR    Initial Setup of form formating
+12/03/2003            DWR    Began final work on form
+===========================
+*/
+
+Program
+  Name = "cppmcp031";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcp031.cq";
+ String l_font,
+        l_company_id[10];
+ unsigned ascii number l_line_counter = 0;
+ unsigned ascii number l_max_lines = 60;
+ unsigned ascii number l_page_number =1;
+ unsigned ascii number l_first_time = 0;
+ Unsigned Ascii Number L_YEAR[4];
+ Unsigned Ascii number L_LINE_OF_BUSINESS[4];
+ Unsigned ascii number l_found[1];
+ Unsigned Ascii Number L_ITEM_COUNTER;
+ Unsigned Ascii Number L_STATE[2]=0;
+ Unsigned Ascii Number L_LOOP;
+ wdate L_EFF_DATE;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+   include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+   Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+   Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppendorse,
+   set cppendorse:policy_no    = sfpprint1:policy_no,
+       cppendorse:pol_year     = sfpprint1:pol_year,
+       cppendorse:end_sequence = sfpprint1:end_sequence, generic
+
+Access CPPgeneral,
+   set cppgeneral:policy_no    = sfpprint1:policy_no,
+       cppgeneral:pol_year     = sfpprint1:pol_year,
+       cppgeneral:end_sequence = sfpprint1:end_sequence, generic
+
+Access sfsline,
+   Set sfsline:line_of_business = sfpname:line_of_business,
+       sfsline:company_id       = sfpname:company_id,
+       sfsline:lob_subline      = "00", exact
+
+Access CPPGLASS,
+   set cppglass:policy_no    = sfpprint1:policy_no,
+       cppglass:pol_year     = sfpprint1:pol_year,
+       cppglass:end_sequence = sfpprint1:end_sequence, generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCP031"
+   Include "swsut200.inc"
+
+do insert_new_page
+l_line_counter = 0
+
+While cppglass:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      cppglass:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      cppglass:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+  {
+    If sfpmaster:state <> 0 then
+      {
+        L_STATE            = sfpmaster:STATE
+      }
+    else
+      {
+        l_state = cppgeneral:state
+      }
+    L_COMPANY_ID       = sfpname:COMPANY_ID
+
+    If sfpname:line_of_business <> 0 then
+      {
+        l_line_of_business = sfpname:line_of_business
+      }
+    else
+      {
+        L_LINE_OF_BUSINESS = sfsline:rating_LINE_OF_BUSINESS
+      }
+
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE, generic
+
+     While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+           SFSOPTEND:STATE            = L_STATE and
+           SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+           SFSOPTEND:CODE             = I_CODE
+
+     {  --start of sfsoptend check
+       If (sfpname:eff_date >= sfsoptend:eff_date and
+          (sfpname:eff_date < sfsoptend:exp_date or
+                              sfsoptend:exp_date = 0)) then
+         {
+           l_eff_date = sfsoptend:eff_date
+         }
+       next sfsoptend
+     }
+
+     Access SFSOPTEND,
+        Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+            SFSOPTEND:STATE            = L_STATE,
+            SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+            SFSOPTEND:CODE             = I_CODE,
+            SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+    if l_line_counter => l_max_lines - 5 then
+      {
+        do insert_new_page
+        l_line_counter = 0
+      }
+
+    Writefile(L_FILE_NAME,"%s",l_push)
+    Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+    Writefile(L_FILE_NAME,"%s","Location")
+    Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+    Writefile(L_FILE_NAME,"%n",cppglass:prem_no)
+    Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+    l_line_counter =l_line_counter + 2
+    Writefile(L_FILE_NAME,"%s","Building")
+    Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+    Writefile(L_FILE_NAME,"%n",cppglass:build_no)
+
+    Writefile(L_FILE_NAME,"%s",l_pop)
+    Writefile(L_FILE_NAME,"%s","<033>&a970h+120V")
+    Writefile(L_FILE_NAME,"%n",cppglass:no_plates)
+    Writefile(L_FILE_NAME,"%s","<033>&a1480h+0V")
+    Writefile(L_FILE_NAME,"%n",cppglass:length)
+    Writefile(L_FILE_NAME,"%s","<033>&a1800h+0V")
+    Writefile(L_FILE_NAME,"%n",cppglass:width)
+    Writefile(L_FILE_NAME,"%s","<033>&a2180h+0V")
+    Writefile(L_FILE_NAME,"%n",cppglass:square_feet)
+    l_line_counter =l_line_counter + 1
+
+    Writefile(L_FILE_NAME,"%s","<033>&a4000h+0V")
+    If cppglass:limit > 0 then
+      {
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppglass:limit,"ZZ,ZZZ,ZZZ"))
+      }
+
+    Writefile(L_FILE_NAME,"%s","<033>&a5150h+0V")
+    if cppglass:optional_loss_payment > 0 then
+      {
+        Writefile(L_FILE_NAME,"%s","$ ")
+        Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+        Writefile(L_FILE_NAME,"%s",str(cppglass:plate_limitation,"ZZZ,ZZZ"))
+      }
+
+    L_FONT             = l_arial_bold_9
+    L_V_POSITION       = "+0"
+    L_H_POSITION       = "2650"
+    L_CHARACTER_STRING = cppglass:description[1]
+    L_MAX_CHAR         = 20
+    include "line_spacing.inc"
+
+    L_FONT             = l_arial_bold_9
+    L_V_POSITION       = "+120"
+    L_H_POSITION       = "2650"
+    L_CHARACTER_STRING = cppglass:description[2]
+    L_MAX_CHAR         = 20
+    include "line_spacing.inc"
+    l_line_counter =l_line_counter + 1
+
+    next cppglass
+  } -- end of while
+
+  Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+  Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+  Writefile(L_FILE_NAME,"%s"," 1992 MSO, Inc.")
+  Writefile(L_FILE_NAME,"%s","<033>&a90h6000V")
+  Writefile(L_FILE_NAME,"%s","* Item No. or Location / Building Nos. as Shown in the Declarations.")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+
+Procedure definition
+
+Procedure insert_new_page
+
+Begin
+  if l_first_time = 1 then       --Skips it for the first call only
+    {
+      Writefile(L_FILE_NAME,"%s","<FF>")
+    }
+  l_first_time = 1
+/* Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+  Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+  Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+  Writefile(L_FILE_NAME,"%s"," ")
+  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+  Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+  l_line_counter =l_line_counter + 1*/
+  Writefile(L_FILE_NAME,"%s","<NL>")
+  l_line_counter =l_line_counter + 1
+
+  Writefile(L_FILE_NAME,"%s",l_arial_bold_14)
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0P") --Horizontal line
+  Writefile(L_FILE_NAME,"%s","<033>&a900h+160V")
+  l_line_counter =l_line_counter + 1.5
+  Writefile(L_FILE_NAME,"%s","GLASS SUPPLEMENTAL DECLARATIONS - MCP 031 ")
+  Writefile(L_FILE_NAME,"%s",l_arial_bold_12)
+  Writefile(L_FILE_NAME,"%s","07 92")
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+60V")
+  l_line_counter =l_line_counter + 0.5
+  Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0P") --Horizontal line
+  Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+160V")
+  l_line_counter =l_line_counter + 1.5
+  Writefile(L_FILE_NAME,"%s","MCP 031 is used with MCP 131 when providing glass coverage. Unless otherwise stated below, the glass is plain flat glass with")
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","all edges in frames.")
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+40V")
+  l_line_counter =l_line_counter + 0.4
+  Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0P") --Horizontal line
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","$ ")
+  Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+  Writefile(L_FILE_NAME,"%n",cppglass:deductible)
+  Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a1100h+0V")
+  Writefile(L_FILE_NAME,"%s","< Glass Deductible")
+  Writefile(L_FILE_NAME,"%s","<033>&a2700h+0V")
+  Writefile(L_FILE_NAME,"%s","$ ")
+  Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+  Writefile(L_FILE_NAME,"%n",cppglass:retention_amount)
+  Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+  Writefile(L_FILE_NAME,"%s","<033>&a4320h+0V")
+  Writefile(L_FILE_NAME,"%s","< 50 / 50 Retention Amount")
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+240V")
+  l_line_counter =l_line_counter + 2
+  Writefile(L_FILE_NAME,"%s","SCHEDULE OF PREMISES AND COVERAGES")
+  Writefile(L_FILE_NAME,"%s","<033>&a2900h+240V")
+  l_line_counter =l_line_counter + 2
+  Writefile(L_FILE_NAME,"%s","Description of")
+  Writefile(L_FILE_NAME,"%s","<033>&a2850h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","Glass, Lettering")
+  Writefile(L_FILE_NAME,"%s","<033>&a4900h+0V")
+  Writefile(L_FILE_NAME,"%s","Replacement")
+  Writefile(L_FILE_NAME,"%s","<033>&a870h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","Number")
+  Writefile(L_FILE_NAME,"%s","<033>&a1600h+0V")
+  Writefile(L_FILE_NAME,"%s","Dimensions")
+  Writefile(L_FILE_NAME,"%s","<033>&a2790h+0V")
+  Writefile(L_FILE_NAME,"%s","and Ornamentation")
+  Writefile(L_FILE_NAME,"%s","<033>&a4100h+0V")
+  Writefile(L_FILE_NAME,"%s","Limit of")
+  Writefile(L_FILE_NAME,"%s","<033>&a4990h+0V")
+  Writefile(L_FILE_NAME,"%s","Plates for")
+  Writefile(L_FILE_NAME,"%s","<033>&a980h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","of")
+  Writefile(L_FILE_NAME,"%s","<033>&a1460h+0V")
+  Writefile(L_FILE_NAME,"%s","(in inches) (Sq. Ft.)")
+  Writefile(L_FILE_NAME,"%s","<033>&a2970h+0V")
+  Writefile(L_FILE_NAME,"%s","Position in")
+  Writefile(L_FILE_NAME,"%s","<033>&a4100h+0V")
+  Writefile(L_FILE_NAME,"%s","Liability")
+  Writefile(L_FILE_NAME,"%s","<033>&a4920h+0V")
+  Writefile(L_FILE_NAME,"%s","Large Plates")
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+120V")
+  l_line_counter =l_line_counter + 1
+  Writefile(L_FILE_NAME,"%s","* Number")
+  Writefile(L_FILE_NAME,"%s","<033>&a870h+0V")
+  Writefile(L_FILE_NAME,"%s"," Plates  ")
+  Writefile(L_FILE_NAME,"%s","<033>&a1500h+0V")
+  Writefile(L_FILE_NAME,"%s","L")
+  Writefile(L_FILE_NAME,"%s","<033>&a1800h+0V")
+  Writefile(L_FILE_NAME,"%s","W")
+  Writefile(L_FILE_NAME,"%s","<033>&a2150h+0V")
+  Writefile(L_FILE_NAME,"%s","Area")
+  Writefile(L_FILE_NAME,"%s","<033>&a3030h+0V")
+  Writefile(L_FILE_NAME,"%s","Building")
+  Writefile(L_FILE_NAME,"%s","<033>&a4050h+0V")
+  Writefile(L_FILE_NAME,"%s","(Optional)")
+  Writefile(L_FILE_NAME,"%s","<033>&a4970h+0V")
+  Writefile(L_FILE_NAME,"%s","(Optional)")
+                    --***All Lines Start Here***
+  Writefile(L_FILE_NAME,"%s","<033>&a90h+90V")
+  l_line_counter =l_line_counter + 0.7
+  Writefile(L_FILE_NAME,"%s","<033>*c420h5v0P") --Horizontal line  *Number
+
+  Writefile(L_FILE_NAME,"%s","<033>&a840h+0V")
+  Writefile(L_FILE_NAME,"%s","<033>*c400h5v0P") --Horizontal line  Number of Plates
+
+  Writefile(L_FILE_NAME,"%s","<033>&a1440h+0V")
+  Writefile(L_FILE_NAME,"%s","<033>*c950h5v0P") --Horizontal line  Dimensions
+
+  Writefile(L_FILE_NAME,"%s","<033>&a2740h+0V")
+  Writefile(L_FILE_NAME,"%s","<033>*c920h5v0P") --Horizontal line  Description of Glass
+
+  Writefile(L_FILE_NAME,"%s","<033>&a4020h+0V")
+  Writefile(L_FILE_NAME,"%s","<033>*c500h5v0P") --Horizontal line  Limit of Liability
+
+  Writefile(L_FILE_NAME,"%s","<033>&a4900h+0V")
+  Writefile(L_FILE_NAME,"%s","<033>*c570h5v0P") --Horizontal line  Replacement Plates
+
+end
+
+
+end

@@ -1,0 +1,124 @@
+%%
+Screen
+        Name = "cppmt856" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Designated Construction Project(s)     Ver 5.00 %m" ;
+        Domain = "cppENDORSE" ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_Year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+Initialization
+disable(Search_fn)
+Access Validation
+Skip if cppendorse:code         <> g_code and
+        cppendorse:policy_no    <> g_policy_no and
+        cppendorse:pol_year     <> g_year and
+        cppendorse:end_sequence <> g_end_sequence
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Project(s):      __________________________________________________          |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_Sequence = g_end_sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE + 10
+            cppendorse:rating_line_of_business = sfpname:line_of_business
+            End
+        End
+     cppENDORSE:DESCRIPTION/freetextlines=10;
+}
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS,
+   Set cppENDORSE_ALIAS:policy_NO = G_policy_NO,
+       cppendorse_alias:pol_year = g_year,
+       cppendorse_alias:end_sequence = g_end_sequence,
+       cppENDORSE_ALIAS:PREM_NO = G_PREM_NO,
+       cppENDORSE_ALIAS:BUILD_NO = G_BUILD_NO,
+       cppENDORSE_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO = G_policy_NO And
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppENDORSE_ALIAS:PREM_NO = G_PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+End
+
+End

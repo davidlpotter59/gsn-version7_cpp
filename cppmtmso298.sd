@@ -1,0 +1,253 @@
+%%
+Screen
+        Name            = "cppMTMSO298" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppGENERAL";
+        Windowtitle = "%a     %s Miscellaneous Factors   Ver 7.0 %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ;
+
+        Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO,
+                               cppgeneral:pol_year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence,
+                               cppGENERAL:PREM_NO = G_PREM_NO,
+                               cppGENERAL:BUILD_NO = G_BUILD_NO,
+                               cppGENERAL:RATE_TYPE = G_RATE_TYPE, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppGENERAL:policy_NO <> G_policy_NO Or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence or
+   cppGENERAL:PREM_NO <> G_PREM_NO Or
+   cppGENERAL:BUILD_NO <> G_BUILD_NO Or
+   cppGENERAL:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:    __  ____________________                                       |
+*------------------------------------------------------------------------------*
+| Peril      Fire     Sprinklered   Security   Burglary   Agreed   Inflation   |
+|         Resistive                 Service     Alarm      Value    Factor     |
+*------------------------------------------------------------------------------*
+| FIRE: ______  ______  ______       _____      _____     ______    ______     |
+| EC:   ______  ______  ______       _____      _____     ______    ______     |
+| VMM:  ______  ______  ______       _____      _____     ______    ______     |
+| AOP:                  ______       _____      _____     ______    ______     |
+| SL:                   ______       _____      _____     ______    ______     |
+*------------------------------------------------------------------------------*
+| Peril       Vacancy     Debris          Water        Windstorm/              |
+|                         Removal      Damage Excl     Hail Excl               |
+*------------------------------------------------------------------------------*
+| FIRE:       _______      _____                        _____                  |
+| EC:         _______      _____                        _____                  |
+| VMM:        _______      _____                        _____                  |
+| AOP:        _______      _____     _____   _____      _____                  |
+| SL:         _______                                   _____                  |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppGENERAL:policy_NO/displayonly  ;
+302     cppgeneral:pol_year/displayonly ;
+303     cppgeneral:end_sequence/displayonly ;
+401     cppGENERAL:PREM_NO/displayonly ;
+501     cppGENERAL:BUILD_NO/displayonly ;
+601     cppGENERAL:RATE_TYPE/displayonly ;
+602     Begin
+        Switch(cppGENERAL:RATE_TYPE)
+          Case 1  : L_RATE_TYPE_DESC = "BUILDING"
+          Default : L_RATE_TYPE_DESC = "CONTENTS"
+          End
+        End
+        L_RATE_TYPE_DESC/displayonly ;
+
+-- Fire
+1101    cppGENERAL:FIRE_RESISTIVE_RATE[1]/displayonly ;
+1102    cppgeneral:fire_resistive_rate[4]/displayonly ;
+1103    cppGENERAL:SPRINKLERED_RATE[1]/displayonly ;
+1104    cppGENERAL:SECURITY_FACTOR[1]/displayonly ;
+1105    cppGENERAL:BURGLARY_FACTOR[1]/displayonly ;
+1106    cppGENERAL:AGREED_VALUE_FACTOR[1]/displayonly ;
+1107    cppGENERAL:INFLATION_FACTOR[1]/displayonly ;
+
+-- EC
+1201    cppGENERAL:FIRE_RESISTIVE_RATE[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+1202    cppGENERAL:FIRE_RESISTIVE_RATE[5]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+1203    cppGENERAL:SPRINKLERED_RATE[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+1204    cppGENERAL:SECURITY_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+1205    cppGENERAL:BURGLARY_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+1206    cppGENERAL:AGREED_VALUE_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+1207    cppGENERAL:INFLATION_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+
+-- VMM
+1301    cppGENERAL:FIRE_RESISTIVE_RATE[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1302    cppGENERAL:FIRE_RESISTIVE_RATE[6]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1303    cppGENERAL:SPRINKLERED_RATE[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1304    cppGENERAL:SECURITY_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1305    cppGENERAL:BURGLARY_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1306    cppGENERAL:AGREED_VALUE_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1307    cppGENERAL:INFLATION_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+
+-- AOP
+1401    cppGENERAL:SPRINKLERED_RATE[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+1402    cppGENERAL:SECURITY_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+1403    cppGENERAL:BURGLARY_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+1404    cppGENERAL:AGREED_VALUE_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+1405    cppGENERAL:INFLATION_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+
+-- Sprinkler Leakage
+1501    cppGENERAL:SPRINKLERED_RATE[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+1502    cppGENERAL:SECURITY_FACTOR[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+1503    cppGENERAL:BURGLARY_FACTOR[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+1504    cppGENERAL:AGREED_VALUE_FACTOR[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+1505    cppGENERAL:INFLATION_FACTOR[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+
+-- Fire
+2001    cppGENERAL:VACANCY_FACTOR[1]/displayonly ;
+2002    cppGENERAL:DEBRIS_FACTOR[1]/displayonly ;
+2003    cppGENERAL:WIND_EXCLUSION_FACTOR[1]/displayonly ;
+
+-- EC
+2101    cppGENERAL:VACANCY_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+2102    cppGENERAL:DEBRIS_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1 ;
+2103    cppGENERAL:WIND_EXCLUSION_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM = 1;
+
+-- VMM
+2201    cppGENERAL:VACANCY_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+2202    cppGENERAL:DEBRIS_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+2203    cppGENERAL:WIND_EXCLUSION_FACTOR[3]/displayonly
+        Hide If cppGENERAL:FORM = 1
+        Hide If cppEXCLUSIONS:EXCLUDE_VANDALISM = 1;
+
+-- AOP
+2301    cppGENERAL:VACANCY_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+2302    cppGENERAL:DEBRIS_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+2303    cppGENERAL:WATER_EXCLUSION_FACTOR[1]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+2304    cppGENERAL:WATER_EXCLUSION_FACTOR[2]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+2305    cppGENERAL:WIND_EXCLUSION_FACTOR[4]/displayonly
+        Hide If cppGENERAL:FORM < 3 ;
+
+-- Sprinkler Leakage
+2401    cppGENERAL:VACANCY_FACTOR[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+2402    cppGENERAL:WIND_EXCLUSION_FACTOR[6]/displayonly
+        Hide If cppGENERAL:SPRINKLER_LEAKAGE = 0 Or
+                cppGENERAL:FORM = 5 ;
+
+}
+
+}
+
+End

@@ -1,0 +1,139 @@
+%%
+Screen
+        Name = "cppmt714"
+        Type = "Detail" ;
+        Highlight = Underscore ;
+        Padcharacter = Space ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Trailer and Spare Parts Endorsement     Ver 1.00 %m" ;
+        Domain="cppendorse1" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9],
+                                     g_year[4],
+                                     g_end_Sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4],
+                                     g_state[2],
+                                     g_deductible[5] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppendorse1, Set cppendorse1:policy_NO    = G_policy_NO,
+                                cppendorse1:pol_year     = g_year,
+                                cppendorse1:end_sequence = g_end_sequence,
+                                cppendorse1:PREM_NO      = G_PREM_NO,
+                                cppendorse1:BUILD_NO     = G_BUILD_NO ,
+                                cppendorse1:CODE         = G_CODE, Generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppendorse1:policy_NO    <> G_policy_NO Or
+   cppendorse1:pol_year     <> g_year or
+   cppendorse1:end_sequence <> g_end_Sequence or
+   cppendorse1:PREM_NO      <> G_PREM_NO Or
+   cppendorse1:BUILD_NO     <> G_BUILD_NO Or
+   cppendorse1:CODE         <> G_CODE Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Construction Trailers                                                        |
+| - The most "we" pay for any one "construction trailer" and the               |
+| contents in the trailer is:                                     __________   |
+| The most "we" pay for any one loss for all "construction trailers"           |
+| and the contents in the trailer is:                             __________   |
+| Spare Parts and Fuel                                                         |
+| - The most "we" pay for loss to spare parts and accessories is: __________   |
+*------------------------------------------------------------------------------*
+| Deductible: _____                                                            |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+501     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse1:policy_NO    = G_policy_NO
+            cppendorse1:pol_year     = g_year
+            cppendorse1:end_sequence = g_end_sequence
+            cppendorse1:PREM_NO      = G_PREM_NO
+            cppendorse1:BUILD_NO     = G_BUILD_NO
+            cppendorse1:CODE         = G_CODE
+            cppendorse1:rating_line_of_business = 0008
+            Do SUBCODE
+            cppendorse1:SUB_CODE     = L_SUB_CODE
+            End
+        End
+        cppendorse1:LIMIT[1];
+701     cppendorse1:LIMIT[2];
+901     cppendorse1:LIMIT[3];
+1101    begin
+        if function one of "ADD", "CHANGE" then
+            cppendorse1:deductible[1] = g_deductible
+        end
+        cppendorse1:DEDUCTIBLE[1]/displayonly;
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppendorse1_ALIAS, Set cppendorse1_ALIAS:policy_NO    = G_policy_NO,
+                              cppendorse1_alias:pol_year     = g_year,
+                              cppendorse1_alias:end_sequence = g_end_sequence,
+                              cppendorse1_ALIAS:PREM_NO      = G_PREM_NO,
+                              cppendorse1_ALIAS:BUILD_NO     = G_BUILD_NO,
+                              cppendorse1_ALIAS:CODE         = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppendorse1_ALIAS:policy_NO = G_policy_NO And
+      cppendorse1_alias:pol_year = g_Year and
+      cppendorse1_alias:end_sequence = g_end_sequence and
+      cppendorse1_ALIAS:PREM_NO  = G_PREM_NO And
+      cppendorse1_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppendorse1_ALIAS:CODE     = G_CODE
+        Begin
+        L_SUB_CODE = cppendorse1_ALIAS:SUB_CODE
+
+        Next cppendorse1_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

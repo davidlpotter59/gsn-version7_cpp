@@ -1,0 +1,198 @@
+%%
+Screen
+        Name = "cppmtmso08e";
+        Type = "Detail" ;
+        Highlight=Underscore ;
+        Padcharacter=Space ;
+        Screensize="dynamic";
+        Windowtitle="%a     %s Territorial Rating     4.00 %m";
+        Domain="cppliability" ;
+--      resizeable = "yes" ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_STATE[2],
+                                     G_CLASS_CODE[5],
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     G_LOSS_INCOME_FACTOR[4]/decimals=3 ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number l_county[3],
+                                    l_state[2] ,
+                                    l_class_code[5],
+                                    l_form[1],
+                                    l_form_1[1],
+                                    l_sub[2],
+                                    l_territory_factor[5]=0/dec=3 ;
+
+        local string l_exposure_base[2] ;
+
+        Access cppliability, Set cppliability:policy_NO = G_policy_NO ,
+                                 cppliability:pol_year = g_year,
+                                 cppliability:end_sequence = g_end_sequence,
+                                 cppliability:PREM_NO = G_PREM_NO,
+                                 cppliability:BUILD_NO = G_BUILD_NO ,
+                                 cppliability:class_code = g_class_code, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppliability:policy_NO <> G_policy_NO Or
+   cppliability:pol_year <> g_year or
+   cppliability:end_sequence <> g_end_sequence or
+   cppliability:PREM_NO <> G_PREM_NO Or
+   cppliability:BUILD_NO <> G_BUILD_NO or
+   cppliability:class_code <> g_class_code Then
+    Error 1000 ;
+
+screen
+{
+%%
+*------------------------------------------------------------------------------*
+| Territory Factor:  ______                                                    |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     begin
+        if function one of "CHANGE" then
+            begin
+            do territory_factor
+            cppliability:territory_factor = l_territory_factor
+            end
+        end
+        cppliability:territory_factor/default ;
+
+}
+
+procedure definition
+
+Procedure TERRITORY_FACTOR
+Begin
+L_STATE = cppliability:STATE
+L_COUNTY = cppliability:COUNTY
+Access CPSLIABTERRCODE, Set CPSLIABTERRCODE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSLIABTERRCODE:STATE = L_STATE,
+                            CPSLIABTERRCODE:LINE_OF_BUSINESS = sfpname:line_of_business,
+                            CPSLIABTERRCODE:COUNTY = L_COUNTY, Generic
+
+While CPSLIABTERRCODE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABTERRCODE:STATE = L_STATE And
+      CPSLIABTERRCODE:LINE_OF_BUSINESS = sfpname:line_of_business And
+      CPSLIABTERRCODE:COUNTY = L_COUNTY
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABTERRCODE:EFF_DATE Then
+            Begin
+            L_FORM_1 = cppliability:FORM
+            L_SUB = 0
+            Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                       CPSLIABDEFAULT:STATE = L_STATE,
+                                       CPSLIABDEFAULT:LIABILITY_FORM = L_FORM_1, Generic
+
+            If CPSLIABDEFAULT:SPECIAL_TERRITORY_FACTORS = 1 Then
+                Begin
+                L_COUNTY = CPSLIABTERRCODE:COUNTY_CODE
+                L_SUB = 1
+                L_CLASS_CODE = 0
+                While L_SUB <= 20 And
+                      CPSLIABTERRCODE:CLASS_CODE[L_SUB] <> 0 And
+                      L_CLASS_CODE = 0
+                    Begin
+                    If cppliability:CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[L_SUB] Then
+                        Begin
+                        L_CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[L_SUB]
+                        L_SUB = 21
+                        End
+                    Else
+                    If CPSLIABTERRCODE:CLASS_CODE[L_SUB] = 99999 And
+                       L_CLASS_CODE = 0 Then
+                         Begin
+                         L_CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[L_SUB]
+                         L_SUB = 21
+                         End
+                    L_SUB = L_SUB + 1
+                    End
+                End
+            Else
+                Begin
+                L_COUNTY = CPSLIABTERRCODE:COUNTY_CODE
+                If CPSLIABTERRCODE:CLASS_CODE[1] <> 0 Then
+                    L_CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[1]
+                End
+            End
+        Next CPSLIABTERRCODE
+        End
+
+L_FORM = cppliability:FORM
+L_EXPOSURE_BASE = cppliability:EXPOSURE_BASE[1]
+L_STATE = cppliability:STATE
+L_COUNTY = cppliability:COUNTY
+Access CPSLIABTERRITORY, Set CPSLIABTERRITORY:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSLIABTERRITORY:STATE = L_STATE,
+                             CPSLIABTERRITORY:LINE_OF_BUSINESS = sfpname:line_of_business,
+                             CPSLIABTERRITORY:FORM = L_FORM,
+                             CPSLIABTERRITORY:EXPOSURE = L_EXPOSURE_BASE,
+                             CPSLIABTERRITORY:COUNTY = L_COUNTY,
+                             CPSLIABTERRITORY:CLASS_CODE = L_CLASS_CODE, Generic
+
+if l_state = 07 then
+    l_class_code = 99999
+While CPSLIABTERRITORY:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABTERRITORY:STATE = L_STATE And
+      CPSLIABTERRITORY:LINE_OF_BUSINESS = sfpname:line_of_business And
+      CPSLIABTERRITORY:FORM = L_FORM And
+      CPSLIABTERRITORY:EXPOSURE = L_EXPOSURE_BASE And
+      CPSLIABTERRITORY:COUNTY = L_COUNTY And
+      CPSLIABTERRITORY:CLASS_CODE = L_CLASS_CODE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABTERRITORY:EFF_DATE Then
+            Begin
+            Switch(cppliability:TERRITORY_TABLE)
+              Case "A" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[1]
+              Case "B" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[2]
+              Case "C" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[3]
+              Case "D" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[4]
+              Case "E" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[5]
+              Case "F" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[6]
+              Case "G" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[7]
+              Case "H" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[8]
+              Default  : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[1]
+              End
+            End
+        Next CPSLIABTERRITORY
+        End
+
+if l_territory_factor = 0 then
+    l_territory_factor = 1.00
+
+end
+
+End

@@ -1,0 +1,84 @@
+%%
+Screen
+        Name = "cppmt002c" ;
+        Type = "Detail" ;
+        Padcharacter=Space ;
+        Highlight=Underscore ;
+        Screensize="dynamic";
+        Windowtitle="%a     %s Multiple Residential Properties - Special Credits - Ver. 7.00    %m";
+        Domain="sfpmaster" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ,
+                                     g_opt[2] ;
+
+        local string l_username[15] ;
+
+        Access sfpmaster, Set sfpmaster:policy_NO = G_policy_NO ,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence, generic ;
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+        "update_totals" display/noreturn "cppmt002" ;
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+l_username = username
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if g_opt = 99 then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If sfpmaster:policy_NO <> G_policy_NO or
+   sfpmaster:pol_year <> g_year or
+   sfpmaster:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Location Credit:       _____                                                 |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     sfpmaster:irpm/mask="ZZ.99" ;
+
+}
+
+screen exit
+if function one of "EXIT", "BACK" then
+    function = "update_totals"
+
+End

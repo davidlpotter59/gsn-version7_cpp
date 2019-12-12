@@ -1,0 +1,124 @@
+%%
+Screen
+        Name            = "cppmtmso763a" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Installation Floater - Options     Ver 7.00 %m" ;
+        Domain          = "cppENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        global unsigned ascii number g_sub_code[4] ;
+
+        Global String G_CODE[7] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ,
+               cppendorse:sub_code = g_sub_code ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_Year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE or
+   cppendorse:sub_code <> g_sub_code Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Debris Removal                                                               |
+| ~~Factor:              _____                                                 |
+| ~~Limit:               _____                                                 |
+| Pollution Cleanup                                                            |
+| ~~Cost:                ______                                                |
+| ~~Deductible:          _____                                                 |
+| Property in Storage:   __________                                            |
+| Property in Transit:   __________                                            |
+*------------------------------------------------------------------------------*
+| Optional Coverages                                                           |
+| ~~Earthquake/Volcanic: __________                                            |
+| ~~Flood/Flooding:      __________                                            |
+*------------------------------------------------------------------------------*
+| Deductible                                                                   |
+| ~~Policy~Deductible:   _____                                                 |
+| ~~Earthquake:          _____                                                 |
+| ~~Flooding:            _____                                                 |
+| ~~Other:               _____  __________________________________________     |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+401     cppendorse:rate[2] ;
+501     cppendorse:limit[2] ;
+701     cppendorse:limit[3] ;
+801     cppendorse:deductible[2] ;
+901     cppendorse:limit[4] ;
+1001    cppendorse:limit[5] ;
+
+1301    cppendorse:limit[6] ;
+1401    cppendorse:limit[7] ;
+
+1701    cppendorse:deductible[3] ;
+1801    cppendorse:deductible[4] ;
+1901    cppendorse:deductible[5] ;
+2001    cppendorse:deductible[6] ;
+2002    cppendorse:address1[1] ;
+
+}
+
+}
+
+End

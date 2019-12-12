@@ -1,0 +1,296 @@
+%%
+Program
+/*
+Date Written: April 17, 2003
+
+Name: mso100_011983.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By
+-------------------------------------------
+04/17/2003             RMG
+
+-------------------------------------------
+*/
+  Name = "mso100_011983" ;
+  Type = "File" ;
+  Domain = "SFPPRINT1";
+  Padcharacter = Space ;
+
+  String L_FILE_NAME[16] = "mso100_011983.cq";
+  String L_STATE;
+  String L_AGENT_TEL;
+  String L_COMPANY[10]="";
+  string l_font[35]="";
+  String L_COPY_NAME[20];
+  String L_SFPNAME_ZIP = "";
+  String L_AGENT_ZIP;
+
+  String L_COMPANY_ZIP[10];
+  String L_POLICY_DECLARATION[100];
+  String L_LOB_CODE;
+  string l_code[7] ;
+
+  Unsigned Ascii Number L_LOOP;
+  Unsigned Ascii Number L_LINE_COUNTER;
+  Unsigned Ascii Number L_MAX_LINES;
+--
+  String L_CHARACTER_STRING[1000]                 = "";
+  String L_V_POSITION                       = "";
+  String L_H_POSITION                       = "";
+  String L_NEWPAGE_WORDING;
+  Unsigned Ascii Number L_START_PRINT[4]    = 0;   --point to start printing.
+  Unsigned Ascii Number L_END_PRINT[4]      = 0;
+  Unsigned Ascii Number L_LEN_STRING[4]     = 0;
+  Unsigned Ascii Number L_CHARACTER_BREAK   = 0;
+  Unsigned Ascii Number L_CHARACTER_COUNTER = 0;
+  Unsigned Ascii Number L_MAX_CHAR          = 0;
+--
+
+  Include "header.var"
+  Include "csfonts.inc"
+  Include "sfsrevname.var"
+  Include "swsut100.var"
+
+Initialisation
+  Deletefile(L_FILE_NAME);   --house cleaning making sure file is removed before each run
+
+  L_COPY_NAME = COMMANDLINE[1,20]
+  l_code = "MSO100"
+
+Update
+
+  Access SFPNAME,
+     Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO,
+         SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR,
+         SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,Exact
+
+  Access SFPLOCATION,
+     Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO,
+         SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR,
+         SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,Generic
+
+  Access SFSAGENT,
+     Set SFSAGENT:COMPANY_ID = SFPNAME:COMPANY_ID,
+         SFSAGENT:AGENT_NO   = SFPNAME:AGENT_NO, Exact
+
+  Access SFSCOMPANY,
+     Set SFSCOMPANY:COMPANY_ID = SFPNAME:COMPANY_ID , Exact
+
+  Access SFPMASTER,
+     Set SFPMASTER:POLICY_NO    = SFPPRINT1:POLICY_NO,
+         SFPMASTER:POL_YEAR     = SFPPRINT1:POL_YEAR,
+         SFPMASTER:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Exact
+
+  Access SFSLINE,
+     Set SFSLINE:COMPANY_ID       = SFPNAME:COMPANY_ID,
+         SFSLINE:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS, Generic
+
+  Access sfpend_alias,
+     Set sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO,
+         sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR,
+         sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, generic
+
+  L_LOB_CODE = SFSLINE:LOB_CODE
+
+  Include "swsut100.inc"
+
+  Access SCIPSCONTROL,
+     Set SCIPSCONTROL:COMPANY_ID = SFPNAME:COMPANY_ID,
+         SCIPSCONTROL:STATE      = I_STATE,
+         SCIPSCONTROL:LOB_CODE   = L_LOB_CODE, Approximate
+
+While sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO and
+      sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR and
+      sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+  {
+    If sfpend_alias:code = l_code then
+      {
+        Access SFPLOCATION,
+           Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO,
+               SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR,
+               SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+               sfplocation:prem_no      = sfpend_alias:prem_no,
+               sfplocation:build_no     = sfpend_alias:build_no, Generic
+
+        L_SFPNAME_ZIP = If (Val(SFPNAME:ZIPCODE_1_4) = 0) Then
+                            SFPNAME:ZIPCODE_5_9
+                        Else
+                            SFPNAME:ZIPCODE_5_9 + "-" + SFPNAME:ZIPCODE_1_4
+
+        L_AGENT_ZIP =   If (Val(SFSAGENT:STR_ZIPCODE[6,9]) = 0) Then
+                            SFSAGENT:STR_ZIPCODE[1,5]
+                        Else
+                            SFSAGENT:STR_ZIPCODE[1,5] + "-" + SFSAGENT:STR_ZIPCODE[6,9]
+
+        L_COMPANY_ZIP = If (Val(SFSCOMPANY:STR_ZIPCODE[6,9]) = 0) Then
+                            SFSCOMPANY:STR_ZIPCODE[1,5]
+                        Else
+                            SFSCOMPANY:STR_ZIPCODE[1,5] + "-" +
+                            SFSCOMPANY:STR_ZIPCODE[6,9]
+
+        L_AGENT_TEL = SFSAGENT:TELEPHONE[1]
+
+        Access cppendorse,
+           Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO,
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR,
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, generic
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4200h7250V")
+        Writefile(L_FILE_NAME,"%s","Date Printed: ")
+        Writefile(L_FILE_NAME,"%s",Str(TODAYSDATE,"mm/dd/yyyy"))
+        Writefile(L_FILE_NAME,"%s","<033>&a2400h+0V")
+        Writefile(L_FILE_NAME,"%s",L_COPY_NAME)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_8)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+        Writefile(L_FILE_NAME,"%s","M.S.O. No. 100 PSB (1-83)")
+
+        Include "header.inc"
+
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+        Writefile(L_FILE_NAME,"%s","Policy Number : ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_14)
+        Writefile(L_FILE_NAME,"%s",Trun(SFSLINE:ALPHA))
+        Writefile(L_FILE_NAME,"%n",SFPNAME:POLICY_NO)
+
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&f0S")
+
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+        Writefile(L_FILE_NAME,"%s","<033>&a190h+0V")
+        Writefile(L_FILE_NAME,"%s","Named Insured and Mailing Address")
+        Writefile(L_FILE_NAME,"%s","<033>&a3000h+0V")
+        Writefile(L_FILE_NAME,"%s","Agent -")
+        Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+        Writefile(L_FILE_NAME,"%n",SFSAGENT:AGENT_NO)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&f0S")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL)
+
+        For L_LOOP = 1 To 3
+          {
+            I_NAME=SFPNAME:NAME[L_LOOP,1,40]
+            Include "sfsrevname7.pro"
+            If SFPNAME:NAME[L_LOOP] <> "" Then
+              {
+                 l_max_lines        = 60
+                 L_FONT             = l_arial_bold_9
+                 L_V_POSITION       = "+0"
+                 L_H_POSITION       = "194"
+                 L_CHARACTER_STRING = I_REV_NAME
+                 L_MAX_CHAR         = 40
+                 include "line_spacing.inc"
+              }
+          }
+
+        For L_LOOP = 1 To 3
+          {
+            If (SFPNAME:ADDRESS[L_LOOP,1,40] <> "") Then
+              {
+                 Writefile(L_FILE_NAME,"%s","<033>&a194h+0V")
+                 Writefile(L_FILE_NAME,"%s",SFPNAME:ADDRESS[L_LOOP])
+                 Writefile(L_FILE_NAME,"%s","<NL>")
+             }
+          }
+
+        Writefile(L_FILE_NAME,"%s","<033>&a194h+0V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFPNAME:CITY))
+        Writefile(L_FILE_NAME,"%s",", ")
+        Writefile(L_FILE_NAME,"%s",SFPNAME:STR_STATE)
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_SFPNAME_ZIP)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&f1S")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL)
+
+        For L_LOOP = 1 To 3
+          {
+            If SFSAGENT:NAME[L_LOOP] <> "" Then
+              {
+                Writefile(L_FILE_NAME,"%s","<033>&a3000h+0V")
+                Writefile(L_FILE_NAME,"%s",SFSAGENT:NAME[L_LOOP])
+                Writefile(L_FILE_NAME,"%s","<NL>")
+              }
+          }
+        For L_LOOP = 1 To 3
+          {
+            If SFSAGENT:ADDRESS[L_LOOP] <> "" Then
+              {
+                Writefile(L_FILE_NAME,"%s","<033>&a3000h+0V")
+                Writefile(L_FILE_NAME,"%s",SFSAGENT:ADDRESS[L_LOOP])
+                Writefile(L_FILE_NAME,"%s","<NL>")
+              }
+          }
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3000h+0V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFSAGENT:CITY))
+        Writefile(L_FILE_NAME,"%s",", ")
+        Writefile(L_FILE_NAME,"%s",SFSAGENT:STR_STATE)
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_AGENT_ZIP)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD)
+        Writefile(L_FILE_NAME,"%s","<033>&a193h3200V")
+        Writefile(L_FILE_NAME,"%s","2.  Policy Term: ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL)
+        Writefile(L_FILE_NAME,"%s","12:01 A.M.  Standard Time From ")
+        Writefile(L_FILE_NAME,"%d",SFPNAME:EFF_DATE)
+        Writefile(L_FILE_NAME,"%s"," to ")
+        Writefile(L_FILE_NAME,"%d",SFPNAME:EXP_DATE)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+        Writefile(L_FILE_NAME,"%s","Policy Changes")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Access cppendorse,
+           Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+               cppendorse:prem_no      = sfpend_alias:prem_no,
+               cppendorse:build_no     = sfpend_alias:build_no,
+               cppendorse:code         = l_code, Generic
+
+         While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+               cppendorse:prem_no      = sfpend_alias:prem_no and
+               cppendorse:build_no     = sfpend_alias:build_no and
+               cppendorse:code         = l_code
+           {
+             l_max_lines        = 60
+             L_FONT             = l_arial_bold_9
+             L_V_POSITION       = "+0"
+             L_H_POSITION       = "200"
+             L_CHARACTER_STRING = cppendorse:description
+             L_MAX_CHAR         = 57
+             include "line_spacing.inc"
+             next cppendorse
+           }
+
+      }
+    next sfpend_alias
+  }
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

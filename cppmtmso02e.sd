@@ -1,0 +1,106 @@
+%%
+Screen
+        Name            = "cppmtmso02e" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle= "%a     %s Blanket     Ver 7.00 %m" ;
+        Domain          = "cppgeneral" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ,
+                                     g_prem_no[4],
+                                     g_build_no[4],
+                                     g_rate_type[2] ;
+
+        Access cppgeneral,
+           Set cppgeneral:policy_NO = G_policy_NO ,
+               cppgeneral:pol_year = g_year,
+               cppgeneral:end_sequence = g_end_sequence ,
+               cppgeneral:prem_no = g_prem_no,
+               cppgeneral:build_no = g_build_no,
+               cppgeneral:rate_type = g_rate_type ;
+
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppgeneral:policy_NO <> G_policy_NO or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No:      _________  ____  ____                                        |
+| Location No:    ____                                                         |
+| Building No:    ____                                                         |
+| Rate Type:      __                                                           |
+*------------------------------------------------------------------------------*
+| Description:    _____________________________________________                |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            begin
+            cppgeneral:policy_NO = G_policy_NO
+            cppgeneral:pol_Year = g_year
+            cppgeneral:end_sequence = g_end_sequence
+            end
+        End
+        cppgeneral:policy_NO/displayonly ;
+302     cppgeneral:pol_year/displayonly ;
+303     cppgeneral:end_sequence/displayonly;
+401     cppgeneral:prem_no/displayonly ;
+501     cppgeneral:build_no/displayonly ;
+601     cppgeneral:rate_type/displayonly ;
+801     cppgeneral:blanket_description ;
+
+}
+
+}
+
+End

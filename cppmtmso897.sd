@@ -1,0 +1,128 @@
+%%
+Screen
+        Name            = "cppMTMSO897" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppLIABILITY";
+        Windowtitle = "%a     %s Miscellaneous Factors   Ver 7.00 %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_quote_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_quote_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ;
+
+        Access cppLIABILITY, Set cppLIABILITY:policy_NO = G_policy_NO,
+                                 cppliability:pol_year = g_year,
+                                 cppliability:end_sequence = g_end_sequence,
+                                 cppLIABILITY:PREM_NO = G_PREM_NO,
+                                 cppLIABILITY:BUILD_NO = G_BUILD_NO,Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppLIABILITY:policy_NO <> G_policy_NO or
+   cppliability:pol_year <> g_year or
+   cppliability:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Location No:    ____                                                         |
+| Building No:    ____                                                         |
+*------------------------------------------------------------------------------*
+|            Territory  MCL030  Inc Limits   No Agg.   Deductible  Fire Legal  |
+| Prem/Ops:   ______    _____    ______      _______     ______      _______   |
+| Products:    N/A       N/A     ______      _______     ______        N/A     |
+*------------------------------------------------------------------------------*
+|            Med Pay  Escalator  Mechanical  Ski Lift  Pools/Beach   Inspect   |
+| Prem/Ops:   ______   ______    ______      ______       ______     ______    |
+| Products:    N/A      N/A      N/A          N/A          N/A        N/A      |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppLIABILITY:policy_NO/displayonly  ;
+302     cppliability:pol_year/displayonly ;
+303     cppliability:end_sequence/displayonly ;
+401     cppLIABILITY:PREM_NO/displayonly ;
+501     cppLIABILITY:BUILD_NO/displayonly ;
+801     cppLIABILITY:TERRITORY_FACTOR/displayonly ;
+802     cppLIABILITY:MCL030_DISCOUNT/displayonly ;
+803     cppLIABILITY:INCREASE_LIMITS_FACTOR[1]/displayonly ;
+804     cppLIABILITY:AGGREGATE_SURCHARGE[1]/displayonly ;
+805     cppLIABILITY:DEDUCTIBLE_FACTOR[1]/displayonly;
+806     cppliability:fire_legal_premium/displayonly ;
+901     cppLIABILITY:INCREASE_LIMITS_FACTOR[2]/displayonly ;
+902     cppLIABILITY:AGGREGATE_SURCHARGE[2]/displayonly ;
+903     cppLIABILITY:DEDUCTIBLE_FACTOR[2]/displayonly;
+
+1201    cppliability:medical_payment_surcharge/displayonly ;
+1202    cppliability:escalators_premium[1] + cppliability:escalators_premium[2]/displayonly ;
+1203    cppliability:mechanical_devices_premium/displayonly ;
+1204    cppliability:ski_lifts_premium/displayonly ;
+1205    cppliability:pools_beaches_premium[1] +
+        cppliability:pools_beaches_premium[2]/displayonly ;
+1206    cppliability:elevator_inspection_premium/displayonly ;
+
+}
+
+}
+
+
+End

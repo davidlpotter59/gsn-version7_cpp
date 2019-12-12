@@ -1,0 +1,440 @@
+%%
+/*
+Date Written: June 17, 2003
+
+Name: cppmcl324.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+06/17/2003            DWR
+11/16/2005            DWR       Added MSO 2005 Edition Changes
+===========================
+*/
+
+Program
+  Name = "cppmcl324";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcl324.cq";
+ String L_COMPANY_ID[10];
+
+ Unsigned ascii number l_max_lines;
+ Unsigned Ascii Number L_YEAR[4];
+ Unsigned Ascii number L_LINE_OF_BUSINESS[4];
+ Unsigned ascii number l_found[1];
+ Unsigned Ascii Number L_ITEM_COUNTER;
+ String L_SFPLOCATION_ZIP;
+ Unsigned Ascii Number L_STATE[2]=0;
+ Unsigned Ascii Number L_LOOP;
+ wdate L_EFF_DATE;
+ Unsigned Ascii Number L_LINE_COUNTER;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppliability,
+   Set cppliability:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppliability:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppliability:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+   Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access sfpend_alias,
+   Set sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access sfsline,
+   Set sfsline:line_of_business = sfpname:line_of_business,
+       sfsline:company_id       = sfpname:company_id,
+       sfsline:lob_subline      = "00", exact
+
+Access sfpmaster,
+   Set sfpmaster:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpmaster:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpmaster:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCL324"
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+While sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+{
+  If sfpend_alias:CODE = I_CODE Then
+    {
+      If cppliability:state <> 0 then
+        {
+          l_state = cppliability:state
+        }
+      else
+        {
+          L_STATE            = sfpmaster:STATE
+        }
+      L_COMPANY_ID       = sfpname:COMPANY_ID
+      L_LINE_OF_BUSINESS = sfsline:rating_LINE_OF_BUSINESS
+
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE, generic
+
+     While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+           SFSOPTEND:STATE            = L_STATE and
+           SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+           SFSOPTEND:CODE             = I_CODE
+
+       {  --start of sfsoptend check
+         If (sfsoptend:eff_date <= sfpname:eff_date) then
+           {
+             L_YEAR = SFSOPTEND:YEAR
+             l_eff_date = sfsoptend:eff_date
+           }
+         next sfsoptend
+       }
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE,
+           SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+    Access CPPENDORSE,
+       Set CPPENDORSE:POLICY_NO    = SFPPRINT1:POLICY_NO,
+           CPPENDORSE:POL_YEAR     = SFPPRINT1:POL_YEAR,
+           CPPENDORSE:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+           CPPENDORSE:PREM_NO      = sfpend_alias:PREM_NO,
+           CPPENDORSE:BUILD_NO     = sfpend_alias:BUILD_NO,
+           CPPENDORSE:CODE         = I_CODE, Generic
+
+        If L_YEAR <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s%s%s%s%n%s",L_ARIAL_9,"<033>&a420h7200V",
+            L_COPYRIGHT_8,L_ARIAL_9,sfsoptend:year," MSO, Inc.")
+
+            While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+                  cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+                  cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+                  cppendorse:prem_no      = sfpend_alias:prem_no and
+                  cppendorse:build_no     = sfpend_alias:build_no and
+                  cppendorse:code         = I_CODE
+              {
+
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+                Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+                Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+                Writefile(L_FILE_NAME,"%s"," ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+                Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+                Writefile(L_FILE_NAME,"%s","<NL>")
+
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                Writefile(L_FILE_NAME,"%s","ADDITIONAL ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                Writefile(L_FILE_NAME,"%s","INSURED ")
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%s","- LESSOR OF EQUIPMENT ")
+                Writefile(L_FILE_NAME,"%s","<033>&a+0h+20V")
+                Writefile(L_FILE_NAME,"%s",l_bullet_6)
+                Writefile(L_FILE_NAME,"%s","<033>&a+0h-20V")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+                Writefile(L_FILE_NAME,"%s"," PART II")
+
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                Writefile(L_FILE_NAME,"%s","This endorsement extends the definition of insureds to include the designated person or organization. The required information")
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                Writefile(L_FILE_NAME,"%s","may be shown below or elsewhere in this policy.")
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+                Writefile(L_FILE_NAME,"%s","The provisions of this endorsement apply only when the endorsement number is listed in the Declarations.")
+
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+                Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+200V")
+                Writefile(L_FILE_NAME,"%s","Policy # ")
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%n",sfpprint1:policy_no)
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+200V")
+                Writefile(L_FILE_NAME,"%s","SCHEDULE")
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+360V")
+                Writefile(L_FILE_NAME,"%s","DESIGNATED PERSON OR ORGANIZATION:")
+
+                For l_loop = 1 to 3
+                  {
+                    If cppendorse:name[l_loop] <> "" then
+                      {
+                        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                        Writefile(L_FILE_NAME,"%s",cppendorse:name[l_loop])
+                      }
+                  }
+
+                Writefile(L_FILE_NAME,"%s","<033>&a200h3500V")
+                Writefile(L_FILE_NAME,"%s","PERSONS INSURED EXTENSION")
+                Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                Writefile(L_FILE_NAME,"%s","Lessor of Equipment")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s","The definition of ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                Writefile(L_FILE_NAME,"%s","insured ")
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%s","in the Glossary is amended to include the following as an additional ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s","insured ")
+                Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                Writefile(L_FILE_NAME,"%s","under this policy.")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+180V")
+                Writefile(L_FILE_NAME,"%s","Insured ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","includes the designated person or organization but only with respect to liability for ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","bodily ")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","injury, property damage, advertising injury, ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","or ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","personal injury ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","caused, in whole or in part, by ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","your ")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","maintenance, operation or use of equipment leased to ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","you ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","by such person or organization.")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+180V")
+                Writefile(L_FILE_NAME,"%s","However, this insurance does not apply to:")
+                Writefile(L_FILE_NAME,"%s","<033>&a1170h+120V")
+                Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+                Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+                Writefile(L_FILE_NAME,"%s","Any ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","occurrence ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","that takes place after ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","you ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","cease to lease the equipment; or")
+                Writefile(L_FILE_NAME,"%s","<033>&a1170h+160V")
+                Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+                Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+                Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+                Writefile(L_FILE_NAME,"%s","Bodily injury ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","or ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","property damage ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","arising out of the sole negligence of such person or")
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+                Writefile(L_FILE_NAME,"%s","organization.")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+200V")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","This insurance is excess over any other valid and collectible insurance whether such other insurance is")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","stated to be primary, contributing, excess, contingent or otherwise.  This includes any liability policy")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","maintained by the additional ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","insured ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","where the additional ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","insured ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","is a named ")
+                Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                Writefile(L_FILE_NAME,"%s","insured. ")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","This insurance ")
+                Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                Writefile(L_FILE_NAME,"%s",l_arial_9)
+                Writefile(L_FILE_NAME,"%s","is excess to any self-insured retension or liability deductible.")
+                Writefile(L_FILE_NAME,"%s","<FF>")
+                next cppendorse
+              }--while for cppendorse
+          }
+        Else
+          {
+            While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+                  cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+                  cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+                  cppendorse:prem_no      = sfpend_alias:prem_no and
+                  cppendorse:build_no     = sfpend_alias:build_no and
+                  cppendorse:code         = I_CODE
+               {
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a420h6880V")
+                 Writefile(L_FILE_NAME,"%s","Ed. 1.1")
+                 Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+                 Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+                 Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                 Writefile(L_FILE_NAME,"%s"," 1991 MSO, Inc.")
+                 Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+                 Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+                 Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+                 Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+                 Writefile(L_FILE_NAME,"%s"," ")
+                 Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+                 Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+                 Writefile(L_FILE_NAME,"%s","<NL>")
+
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","ADDITIONAL ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                 Writefile(L_FILE_NAME,"%s","INSURED ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                 Writefile(L_FILE_NAME,"%s","- LESSOR OF EQUIPMENT")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","This endorsement extends the definition of ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                 Writefile(L_FILE_NAME,"%s","insureds ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","to include the designated person or organization. The required information")
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","may be shown below or elsewhere in this policy.")
+                 Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+                 Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+                 Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+                 Writefile(L_FILE_NAME,"%s","")
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+                 Writefile(L_FILE_NAME,"%s","PERSONS INSURED EXTENSION")
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","Lessor of Equipment")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                 Writefile(L_FILE_NAME,"%s","The definition of ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                 Writefile(L_FILE_NAME,"%s","insured ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                 Writefile(L_FILE_NAME,"%s","in the Glossary is amended to include the following as an")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+                 Writefile(L_FILE_NAME,"%s"," insured ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                 Writefile(L_FILE_NAME,"%s","here.")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a1200h+60V")
+                 Writefile(L_FILE_NAME,"%s","Insured ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","includes the designated person or organization but only with respect to liability arising out of")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","your ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","maintenance, operation or use of equipment leased to ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","you ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","by such person or organization.")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1200h+180V")
+                 Writefile(L_FILE_NAME,"%s","However, this insurance does not apply to:")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1170h+120V")
+                 Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+                 Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+
+                 Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+                 Writefile(L_FILE_NAME,"%s","Any ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","occurrence ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","that takes place after ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","you ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","cease to lease the equipment; or")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1170h+160V")
+                 Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+                 Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+                 Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+                 Writefile(L_FILE_NAME,"%s","Bodily injury ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","or ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+                 Writefile(L_FILE_NAME,"%s","property damage ")
+                 Writefile(L_FILE_NAME,"%s",l_arial_9)
+                 Writefile(L_FILE_NAME,"%s","arising out of the sole negligence of such person or")
+                 Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+                 Writefile(L_FILE_NAME,"%s","organization.")
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","")
+                 Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","DESIGNATED PERSON OR ORGANIZATION:")
+
+                For l_loop = 1 to 3
+                  {
+                    If cppendorse:name[l_loop] <> "" then
+                      {
+                        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                        Writefile(L_FILE_NAME,"%s",cppendorse:name[l_loop])
+                      }
+                  }
+
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","")
+                 Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+                 Writefile(L_FILE_NAME,"%s","")
+                 Writefile(L_FILE_NAME,"%s","<FF>")
+                 next cppendorse
+               }--while for cppendorse
+
+           }
+         }
+       Next sfpend_alias
+     }
+     Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

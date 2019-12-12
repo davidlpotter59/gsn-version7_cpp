@@ -1,0 +1,274 @@
+%%
+Program
+        Name = "cppup011d" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "Flat" ;
+
+        Global Unsigned Ascii Number G_policy_no[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_prem_no[4],
+                                     g_build_no[4] ;
+
+        local unsigned ascii number l_tier[2],
+                                    l_tier_1[2],
+                                    l_line_of_business[4],
+                                    l_hurricane_deductible[5] ,
+                                    l_wind_deductible[5],
+                                    l_sub_code[4],
+                                    l_val_zipcode[9];
+
+        local string l_add_endorsement[1],
+                     l_hurricane_code[7],
+                     l_company_id[10],
+                     l_code[7],
+                     l_form_edition[25],
+                     l_description[75],
+                     l_str_zipcode[9] ;
+
+Initialisation
+g_policy_no    = val(commandline[1,9])
+g_year         = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+g_prem_no      = val(commandline[18,21])
+g_build_no     = val(commandline[22,25])
+
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access cppfarm, set cppfarm:policy_no  = g_policy_no,
+                    cppfarm:pol_year = g_year,
+                    cppfarm:end_sequence = g_end_sequence,
+                    cppfarm:prem_no   = g_prem_no,
+                    cppfarm:build_no  = g_build_no, generic
+
+access sfplocation, set sfplocation:policy_no = g_policy_no,
+                        sfplocation:pol_year = g_year,
+                        sfplocation:end_sequence = g_end_sequence,
+                        sfplocation:prem_no  = g_prem_no,
+                        sfplocation:build_no = g_build_no, generic
+
+access sfsline, set sfsline:company_id       = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline      = "00", generic
+
+l_val_zipcode      = sfplocation:zipcode
+l_str_zipcode      = sfplocation:str_zipcode[1,5] + "0000"
+l_line_of_business = sfsline:rating_line_of_business
+l_company_id       = sfpname:company_id
+access sfszipcode, set sfszipcode:company_id       = l_company_id,
+                       sfszipcode:state            = cppfarm:state,
+                       sfszipcode:line_of_business = l_line_of_business,
+                       sfszipcode:str_zipcode      = l_str_zipcode, generic
+
+l_tier = 0
+while sfszipcode:company_Id       = l_company_id and
+      sfszipcode:state            = cppfarm:state and
+      sfszipcode:line_of_business = l_line_of_business and
+      sfszipcode:str_zipcode      = l_str_zipcode
+        begin
+        if (sfpname:eff_date >= sfszipcode:eff_date and
+           (sfpname:eff_date <= sfszipcode:exp_date or
+           sfszipcode:exp_date = 0)) then
+            begin
+            l_tier            = sfszipcode:tier
+            end
+
+        next sfszipcode
+        end
+
+l_tier_1 = l_tier
+if l_tier_1 = 0 then
+    l_tier_1 = 3
+access sfstier, set sfstier:company_id       = l_company_id,
+                    sfstier:state            = cppfarm:state,
+                    sfstier:line_of_business = l_line_of_business,
+                    sfstier:tier             = l_tier_1, generic
+
+l_hurricane_deductible = 0
+l_hurricane_code       = ""
+while sfstier:company_Id       = l_company_id and
+      sfstier:state            = cppfarm:state and
+      sfstier:line_of_business = l_line_of_business and
+      sfstier:tier             = l_tier_1
+        begin
+        if (sfpname:eff_date >= sfstier:eff_date and
+           (sfpname:eff_date <= sfstier:exp_date or
+           sfstier:exp_date = 0)) then
+            begin
+            l_hurricane_deductible = sfstier:hurricane_deductible
+            l_hurricane_code       = sfstier:hurricane_code
+            l_wind_deductible      = sfstier:wind_deductible
+            end
+
+        next sfstier
+        end
+
+if l_hurricane_code <> "" and
+   l_company_id = "FLEMINGTON" and
+   cppfarm:hurricane_changed = 0 then
+    begin
+    l_code = l_hurricane_code
+    do access_sfpend
+    if l_add_endorsement = "Y" and
+       l_hurricane_deductible <> 0 then
+        do add_sfpend
+    else
+    if l_add_endorsement = "N" and
+       l_hurricane_deductible = 0 then
+        do delete_sfpend
+    end
+else
+if l_hurricane_code = "" and
+   l_company_id = "FLEMINGTON" then
+    do access_sfpend
+
+access cppfarm_alias, set cppfarm_alias:policy_no = cppfarm:policy_no,
+                          cppfarm_alias:pol_year = cppfarm:pol_year,
+                          cppfarm_alias:end_sequence = cppfarm:end_sequence,
+                          cppfarm_alias:prem_no  = cppfarm:prem_no,
+                          cppfarm_alias:build_no = cppfarm:build_no, generic
+
+if cppfarm_alias:policy_no = cppfarm:policy_no and
+   cppfarm_alias:pol_year = cppfarm:pol_year and
+   cppfarm_alias:end_sequence = cppfarm:end_sequence and
+   cppfarm_alias:prem_no  = cppfarm:prem_no and
+   cppfarm_alias:build_no = cppfarm:build_no then
+    begin
+    change cppfarm_alias
+        begin
+        if l_wind_deductible <> 0 then
+            cppfarm_alias:wind_deductible  = l_wind_deductible
+        cppfarm_alias:tier                 = l_tier_1
+        cppfarm_alias:hurricane_deductible = l_hurricane_deductible
+        if cppfarm_alias:hurricane_changed = 0 then
+            cppfarm_alias:override_hurricane_deductible = l_hurricane_deductible
+        end
+    end
+
+update
+
+procedure definition
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_no = g_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+while sfpEND:policy_no = g_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    if l_code = "FCL20" and
+       sfpend:code = "FCL21" then
+        delete sfpend
+
+    if l_code = "FCL21" and
+       sfpend:code = "FCL20" then
+        delete sfpend
+
+    if l_code = "" and
+       sfpend:code one of "FCL20", "FCL21" then
+        delete sfpend
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_no = g_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+L_SUB_CODE = 0
+while sfpEND:policy_no = g_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = cppgeneral:company_id,
+                      SFSOPTEND:STATE            = cppgeneral:STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+while SFSOPTEND:COMPANY_ID       = cppgeneral:company_id and
+      SFSOPTEND:STATE            = cppgeneral:STATE and
+      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business and
+      SFSOPTEND:CODE             = L_CODE
+    begin
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+if l_form_edition <> "" then
+    begin
+    Add sfpEND
+        Begin
+        sfpEND:policy_no            =       g_policy_no
+        sfpend:pol_year             =       g_year
+        sfpend:end_sequence         =       g_end_sequence
+        sfpEND:PREM_NO              =       g_prem_no
+        sfpEND:BUILD_NO             =       g_build_no
+        sfpEND:SUB_CODE             =       L_SUB_CODE
+        sfpEND:CODE                 =       L_CODE
+        sfpEND:FORM_EDITION         =       L_FORM_EDITION
+        sfpEND:DESCRIPTION          =       L_DESCRIPTION
+        sfpEND:PREMIUM              =       0
+        sfpend:lob_end_code         =       "F"
+        end
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_no = g_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+while sfpEND:policy_no = g_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

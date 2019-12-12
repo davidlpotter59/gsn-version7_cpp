@@ -1,0 +1,174 @@
+%%
+Screen
+        Name            = "cppmtmso275" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Directors' and Officers' Liability - Ver 7.00     %m" ;
+        Domain          = "cppendorse" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        local signed ascii number l_credit[4] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO = G_PREM_NO ,
+               cppendorse:BUILD_NO = G_BUILD_NO ,
+               cppendorse:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+access validation
+if cppendorse:policy_no <> g_policy_no or
+   cppendorse:pol_Year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:prem_no <> g_prem_no or
+   cppendorse:build_no <> g_build_no or
+   cppendorse:code <> g_code then
+    error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| General Coverage Limit:     ___________                                      |
+| Aggregate/Total Limit:      ___________                                      |
+| Retroactive Date:            __________                                      |
+*------------------------------------------------------------------------------*
+| No Units:                           ___                                      |
+*------------------------------------------------------------------------------*
+| Experience of Board:                ___                                      |
+| Financial Condition of Association: ___                                      |
+| Management of Premises:             ___                                      |
+| Loss Experience:                    ___                                      |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:PREM_NO = G_PREM_NO
+            cppendorse:BUILD_NO = G_BUILD_NO
+            cppendorse:CODE = G_CODE
+            End
+        End
+        cppendorse:limit[1] ;
+401     begin
+            cppendorse:limit[2] = cppendorse:limit[1]
+        end
+        cppendorse:limit[2]/displayonly ;
+501     cppendorse:eff_date ;
+701     cppendorse:no_units ;
+901     cppendorse:experience_schedule[1]
+        if ((cppendorse:experience_schedule[1] > 10 or
+           cppendorse:experience_schedule[1] < -10) and
+           cppendorse:experience_schedule[1] <> 0) then
+            error "Maximum credit or debit not to exceed 10%" ;
+1001    cppendorse:experience_schedule[2]
+        if ((cppendorse:experience_schedule[2] > 10 or
+           cppendorse:experience_schedule[2] < -10) and
+           cppendorse:experience_schedule[2] <> 0) then
+            error "Maximum credit or debit not to exceed 10%" ;
+1101    cppendorse:experience_schedule[3]
+        if ((cppendorse:experience_schedule[3] > 10 or
+           cppendorse:experience_schedule[3] < -10) and
+           cppendorse:experience_schedule[3] <> 0) then
+            error "Maximum credit or debit not to exceed 10%" ;
+1201    cppendorse:experience_schedule[4]
+        if ((cppendorse:experience_schedule[4] > 10 or
+           cppendorse:experience_schedule[4] < -10) and
+           cppendorse:experience_schedule[4] <> 0) then
+            error "Maximum credit or debit not to exceed 10%"
+
+        l_credit = cppendorse:experience_schedule[1] +
+                   cppendorse:experience_schedule[2] +
+                   cppendorse:experience_schedule[3] +
+                   cppendorse:experience_schedule[4]
+
+        if l_credit > 25 or
+           l_credit < -25 then
+            Error "Maximum credit or debit not to exceed 25%" ;
+
+}
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppendorse_ALIAS, Set cppendorse_ALIAS:policy_NO = G_policy_NO,
+                             cppendorse_alias:pol_year = g_year,
+                             cppendorse_alias:end_sequence = g_end_sequence,
+                             cppendorse_ALIAS:PREM_NO = G_PREM_NO,
+                             cppendorse_ALIAS:BUILD_NO = G_BUILD_NO,
+                             cppendorse_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppendorse_ALIAS:policy_NO = G_policy_NO And
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppendorse_ALIAS:PREM_NO = G_PREM_NO And
+      cppendorse_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppendorse_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppendorse_ALIAS:SUB_CODE
+
+        Next cppendorse_ALIAS
+        End
+
+End
+
+End

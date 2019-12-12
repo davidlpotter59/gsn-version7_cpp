@@ -1,0 +1,168 @@
+%%
+Screen
+        Name            = "cppmtmso209" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Deductible Factor     Ver 7.00 %m" ;
+        Domain          = "cppGENERAL" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4];
+        global unsigned ascii number g_end_sequence[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_RATE_TYPE[2] ;
+
+        Local Unsigned Ascii Number L_LIMIT[8],
+                                    l_limit_1[8],
+                                    L_RATE_1[6]=0/decimals=4,
+                                    L_RATE_2[6]=0/decimals=4 ,
+                                    l_line_of_business[4];
+
+        Access cppGENERAL,
+           Set cppGENERAL:policy_NO = G_policy_NO ,
+               cppgeneral:pol_year = g_year,
+               cppgeneral:end_sequence = g_end_sequence,
+               cppGENERAL:PREM_NO = G_PREM_NO ,
+               cppGENERAL:BUILD_NO = G_BUILD_NO ,
+               cppGENERAL:RATE_TYPE = G_RATE_TYPE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppGENERAL:policy_NO <> G_policy_NO Or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence or
+   cppGENERAL:PREM_NO <> G_PREM_NO Or
+   cppGENERAL:BUILD_NO <> G_BUILD_NO Or
+   cppGENERAL:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+| Rate Type:   __                                                              |
+*------------------------------------------------------------------------------*
+| Deductible Factor:  ______                                                   |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:Rating_line_of_business
+        If FUNCTION = "ADD" Then
+            Begin
+            cppGENERAL:policy_NO = G_policy_NO
+            cppgeneral:pol_year = g_year
+            cppgeneral:end_sequence = g_end_sequence
+            cppGENERAL:PREM_NO = G_PREM_NO
+            cppGENERAL:BUILD_NO = G_BUILD_NO
+            cppGENERAL:RATE_TYPE = G_RATE_TYPE
+            End
+        End
+        cppGENERAL:policy_NO/displayonly ;
+302     cppgeneral:pol_year/displayonly ;
+303     cppgeneral:end_sequence/displayonly ;
+401     cppGENERAL:PREM_NO/displayonly ;
+501     cppGENERAL:BUILD_NO/displayonly ;
+601     cppGENERAL:RATE_TYPE/displayonly ;
+801     Begin
+        L_LIMIT = cppGENERAL:LIMIT[1]
+        Access SFSDEDUCTIBLE_ALT, Set SFSDEDUCTIBLE_ALT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                      SFSDEDUCTIBLE_ALT:STATE = cppGENERAL:STATE,
+                                      SFSDEDUCTIBLE_ALT:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                      SFSDEDUCTIBLE_ALT:DEDUCTIBLE = cppGENERAL:DEDUCTIBLE,
+                                      SFSDEDUCTIBLE_ALT:LIMIT = L_LIMIT, Approximate
+
+        L_RATE_1 = SFSDEDUCTIBLE_ALT:RATE_1
+        L_RATE_2 = SFSDEDUCTIBLE_ALT:RATE_2
+        l_limit_1 = sfsdeductible_alt:limit
+        Access SFSDEDUCTIBLE_ALT1, Set SFSDEDUCTIBLE_ALT1:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                      SFSDEDUCTIBLE_ALT1:STATE = cppGENERAL:STATE,
+                                      SFSDEDUCTIBLE_ALT1:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                      SFSDEDUCTIBLE_ALT1:DEDUCTIBLE = cppGENERAL:DEDUCTIBLE, Generic
+
+        End
+        cppGENERAL:DEDUCTIBLE_FACTOR[1]
+/*        If ((cppGENERAL:DEDUCTIBLE_FACTOR[1] > L_RATE_1 Or
+           cppGENERAL:DEDUCTIBLE_FACTOR[1] < L_RATE_2) and
+           sfscompany:boiler_rating <> 4) Then
+            Error "You are not within the allowable rates"*/
+
+        cppGENERAL:DEDUCTIBLE_FACTOR[2] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:DEDUCTIBLE_FACTOR[3] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:DEDUCTIBLE_FACTOR[4] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:DEDUCTIBLE_FACTOR[5] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:DEDUCTIBLE_FACTOR[6] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:CONTENTS_DEDUCT_FACTOR[1] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:CONTENTS_DEDUCT_FACTOR[2] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:CONTENTS_DEDUCT_FACTOR[3] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:CONTENTS_DEDUCT_FACTOR[4] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:CONTENTS_DEDUCT_FACTOR[5] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+        cppGENERAL:CONTENTS_DEDUCT_FACTOR[6] = cppGENERAL:DEDUCTIBLE_FACTOR[1]
+
+        Activehelp if sfsdeductible_alt1:limit = l_limit_1 then
+                       L_RATE_1
+                   else
+                       null/heading="Maximum"/width=7,
+                   if sfsdeductible_alt1:limit = l_limit_1 then
+                       L_RATE_2
+                   else
+                       null/heading="Minimum"/width=7,
+                   if sfsdeductible_alt1:limit = l_limit_1 then
+                       SFSDEDUCTIBLE_ALT1:DEDUCTIBLE
+                   else
+                       null ;
+
+}
+
+}
+
+End

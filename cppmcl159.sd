@@ -1,0 +1,370 @@
+%%
+/*
+Date Written: June 17, 2003
+
+Name: cppmcl159.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+06/17/2003            DWR
+11/08/2005            DWR           Added MSO 2005 changes
+===========================
+*/
+
+Program
+  Name = "cppmcl159";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcl159.cq";
+ String L_COMPANY_ID[10];
+ unsigned ascii number l_max_lines;
+ unsigned ascii number l_line_counter;
+
+ Unsigned Ascii Number L_YEAR[4];
+ Unsigned Ascii number L_LINE_OF_BUSINESS[4];
+ Unsigned ascii number l_found[1];
+ Unsigned Ascii Number L_ITEM_COUNTER;
+ String L_SFPLOCATION_ZIP;
+ string l_font ;
+ Unsigned Ascii Number L_STATE[2]=0;
+ wdate L_EFF_DATE;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+   Include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access sfpmaster,
+   Set sfpmaster:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpmaster:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpmaster:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCL159"
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_max_lines = 60
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+  {
+    L_STATE            = sfpmaster:STATE
+    L_COMPANY_ID       = sfpname:COMPANY_ID
+    L_LINE_OF_BUSINESS = sfsline:RATING_LINE_OF_BUSINESS
+    i_code             = sfpend:code
+
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE, generic
+
+     While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+           SFSOPTEND:STATE            = L_STATE and
+           SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+           SFSOPTEND:CODE             = I_CODE
+       {  --start of sfsoptend check
+         If (sfsoptend:eff_date <= sfpname:eff_date) then
+           {
+             L_YEAR = SFSOPTEND:YEAR
+             l_eff_date = sfsoptend:eff_date
+           }
+         next sfsoptend
+       }
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE,
+           SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+    Access cppendorse,
+       Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+           cppendorse:prem_no      = sfpend:prem_no,
+           cppendorse:build_no     = sfpend:build_no,
+           cppendorse:code         = sfpend:code, Generic
+
+  If SFPEND:CODE = "MCL159" Then
+    {
+      If L_YEAR <> 0 then
+        {
+          Writefile(L_FILE_NAME,"%s%s%s%s%n%s",L_ARIAL_9,"<033>&a420h7200V",
+          L_COPYRIGHT_8,L_ARIAL_9,sfsoptend:year," MSO, Inc.")
+
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+          Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+          Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+          Writefile(L_FILE_NAME,"%s"," ")
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+          Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+          Writefile(L_FILE_NAME,"%s","<NL>")
+
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+          Writefile(L_FILE_NAME,"%s","DESIGNATED PREMISES LIMITATION ")
+          Writefile(L_FILE_NAME,"%s","<033>&a+0h+20V")
+          Writefile(L_FILE_NAME,"%s",l_bullet_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+0h-20V")
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+          Writefile(L_FILE_NAME,"%s"," PART II")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+          Writefile(L_FILE_NAME,"%s","This endorsement limits insurance to the designated premises and business / operations associated with the designated premises.")
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+          Writefile(L_FILE_NAME,"%s","The provisions of this endorsement apply only when the endorsement number is listed in the Declarations.")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+          Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+          Writefile(L_FILE_NAME,"%s","Policy # ")
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%n",sfpprint1:policy_no)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+          Writefile(L_FILE_NAME,"%s","SCHEDULE")
+
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+          Writefile(L_FILE_NAME,"%s","DESIGNATED PREMISES")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","Description / Location of Subject Premises:")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+
+          l_max_lines        = 60
+          L_FONT             = l_arial_bold_9
+          L_V_POSITION       = "+120"
+          L_H_POSITION       = "300"
+          L_CHARACTER_STRING = cppendorse:description
+          L_MAX_CHAR         = 80
+          include "line_spacing.inc"
+
+          Writefile(L_FILE_NAME,"%s","<033>&a300h-120V")
+          Writefile(L_FILE_NAME,"%s",trun(cppendorse:location[1]) + " " + trun(cppendorse:location[2]))
+
+          Writefile(L_FILE_NAME,"%s","<033>&a200h3000V")
+          Writefile(L_FILE_NAME,"%s","ADDITIONAL LIMITATION - DESIGNATED PREMISES")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+          Writefile(L_FILE_NAME,"%s","We ")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","insure ")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","bodily injury, property damage, personal injury ")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","or ")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","advertising injury ")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","arising out of only the")
+          Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+          Writefile(L_FILE_NAME,"%s","following:")
+          Writefile(L_FILE_NAME,"%s","<033>&a1170h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+          Writefile(L_FILE_NAME,"%s","The ownership, maintenance, or use of the designated premises or any property located on the")
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+          Writefile(L_FILE_NAME,"%s","premises.")
+          Writefile(L_FILE_NAME,"%s","<033>&a1170h+140V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+          Writefile(L_FILE_NAME,"%s","Operations on such premises (or elsewhere) which are necessary / related to the ownership,")
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+          Writefile(L_FILE_NAME,"%s","maintenance, or use of such premises; and")
+          Writefile(L_FILE_NAME,"%s","<033>&a1170h+140V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+          Writefile(L_FILE_NAME,"%s","Goods or products manufactured at or distributed from such premises.")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+        }
+      Else
+        {
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a420h6880V")
+          Writefile(L_FILE_NAME,"%s","Ed. 1.1")
+          Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+          Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+          Writefile(L_FILE_NAME,"%s"," 1994 MSO, Inc.")
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+          Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+          Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+          Writefile(L_FILE_NAME,"%s"," ")
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+          Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+          Writefile(L_FILE_NAME,"%s","<NL>")
+          l_line_counter = l_line_counter + 1
+
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","DESIGNATED PREMISES LIMITATION")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","This endorsement limits insurance to the designated premises and business / operations associated with the designated premises.")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+          Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+          l_line_counter = l_line_counter + 1.16
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+          Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+          l_line_counter = l_line_counter + 0.33
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+60V")
+          Writefile(L_FILE_NAME,"%s","ADDITIONAL LIMITATION - DESIGNATED PREMISES")
+          l_line_counter = l_line_counter + 1.5
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+          Writefile(L_FILE_NAME,"%s","We ")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","insure ")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","bodily injury, property damage, personal injury ")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","or ")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","advertising injury ")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","arising out of only")
+          Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+          Writefile(L_FILE_NAME,"%s","the following:")
+          Writefile(L_FILE_NAME,"%s","<033>&a1170h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+          Writefile(L_FILE_NAME,"%s","The ownership, maintenance, or use of the designated premises or any property located on the")
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+          Writefile(L_FILE_NAME,"%s","premises.")
+          Writefile(L_FILE_NAME,"%s","<033>&a1170h+120V")
+          l_line_counter = l_line_counter + 2
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+          Writefile(L_FILE_NAME,"%s","Operations on such premises (or elsewhere) which are necessary / related to the ownership,")
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+          Writefile(L_FILE_NAME,"%s","maintenance, or use of such premises; and")
+          Writefile(L_FILE_NAME,"%s","<033>&a1170h+120V")
+          l_line_counter = l_line_counter + 2
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s",l_arial_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a1400h+0V")
+          Writefile(L_FILE_NAME,"%s","Goods or products manufactured at or distributed from such premises.")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s","DESIGNATED PREMISES")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","Description / Location of Subject Premises:")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          l_line_counter = l_line_counter + 1
+          While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO And
+                cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR And
+                cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+             {
+               if l_line_counter > l_max_lines -5  then
+                 {
+                   Writefile(L_FILE_NAME,"%s","<FF>")
+                   l_line_counter = 1
+                   Writefile(L_FILE_NAME,"%s",l_arial_9)
+                   Writefile(L_FILE_NAME,"%s","<033>&a420h6880V")
+                   Writefile(L_FILE_NAME,"%s","Ed. 1.1")
+                   Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+                   Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+                   Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                   Writefile(L_FILE_NAME,"%s"," 1994 MSO, Inc.")
+                   Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+                   Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+                   Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+                   Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+                   Writefile(L_FILE_NAME,"%s"," ")
+                   Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+                   Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+                 }
+               l_max_lines        = 55
+               L_FONT             = l_arial_bold_9
+               L_V_POSITION       = "+100"
+               L_H_POSITION       = "300"
+               L_CHARACTER_STRING = cppendorse:description
+               L_MAX_CHAR         = 80
+               include "line_spacing.inc"
+               l_line_counter = l_line_counter + 1
+               Writefile(L_FILE_NAME,"%s","<033>&a300h+0V")
+               Writefile(L_FILE_NAME,"%s",trun(cppendorse:location[1]) + " " + trun(cppendorse:location[2]))
+
+               Writefile(L_FILE_NAME,"%s","<033>&a300h+160V")
+               l_line_counter = l_line_counter + 1.33
+               next cppendorse
+             }
+       }
+    }
+  Next SFPEND
+}
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

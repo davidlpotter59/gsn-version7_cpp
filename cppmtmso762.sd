@@ -1,0 +1,426 @@
+%%
+Screen
+        Name            = "cppmtmso762" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Garagekeepers    Ver 7.0 %m" ;
+        Domain          = "cppENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7] ;
+
+        local unsigned ascii number l_sub_code[4] ,
+                                    l_limit[8] ,
+                                    l_line_of_business[4]=0008,
+                                    l_deductible[5],
+                                    l_state[2] ;
+
+        local string l_code[7],
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_add_endorsement[1],
+                     l_form_edition[18],
+                     l_description[55] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_Year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_Year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Comprehensive: __________  Minus _____  Deductible for each covered auto.    |
+| Collision:     __________  Minus _____  Deductible for each covered auto.    |
+*------------------------------------------------------------------------------*
+| Direct Primary: _                                                            |
+| Direct Excess:  _                                                            |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function one of "ADD" then
+            begin
+            cppendorse:policy_no = g_policy_no
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:prem_no = g_prem_no
+            cppendorse:build_no = g_build_no
+            cppendorse:code = g_code
+            do subcode
+            cppendorse:sub_code = l_sub_code
+            end
+        Access cppliability, Set cppliability:policy_NO = G_policy_NO,
+                                 cppliability:pol_Year = g_Year,
+                                 cppliability:end_sequence = g_End_sequence,
+                                 cppliability:PREM_NO = g_PREM_NO,
+                                 cppliability:BUILD_NO = g_BUILD_NO, Generic
+
+        l_state = cppliability:state
+        access cpsgaragelimit_alias, set cpsgaragelimit_alias:company_id = sfpname:company_id,
+                                         cpsgaragelimit_alias:state = l_state,
+                                         cpsgaragelimit_alias:line_of_business = l_line_of_business, generic
+        end
+        cppENDORSE:LIMIT[1]
+        l_limit = cppendorse:limit[1]
+        access cpsgaragelimit, set cpsgaragelimit:company_id = sfpname:company_id,
+                                   cpsgaragelimit:state = l_state,
+                                   cpsgaragelimit:line_of_business = l_line_of_business,
+                                   cpsgaragelimit:limit = l_limit, generic
+
+        if cppendorse:limit[1] <> cpsgaragelimit:limit then
+            error 1238
+
+        activehelp cpsgaragelimit_alias:limit ;
+302     begin
+        Access cppliability, Set cppliability:policy_NO = G_policy_NO,
+                                 cppliability:pol_Year = g_Year,
+                                 cppliability:end_sequence = g_End_sequence,
+                                 cppliability:PREM_NO = g_PREM_NO,
+                                 cppliability:BUILD_NO = g_BUILD_NO, Generic
+
+        l_state = cppliability:state
+        access cpsgaragededuct_alias, set cpsgaragededuct_alias:company_id = sfpname:company_id,
+                                          cpsgaragededuct_alias:state = l_state,
+                                          cpsgaragededuct_alias:line_of_business = l_line_of_business, generic
+        end
+        cppendorse:deductible[1]
+        l_deductible = cppendorse:deductible[1]
+        access cpsgaragededuct, set cpsgaragededuct:company_id = sfpname:company_id,
+                                    cpsgaragededuct:state = l_state,
+                                    cpsgaragededuct:line_of_business = l_line_of_business,
+                                    cpsgaragededuct:deductible = l_deductible, generic
+
+        if cppendorse:deductible[1] <> cpsgaragededuct:deductible then
+            error 1207
+
+        activehelp cpsgaragededuct_alias:deductible ;
+401     begin
+        if function one of "ADD" then
+            begin
+            cppendorse:limit[2] = cppendorse:limit[1]
+            cppendorse:deductible[2] = cppendorse:deductible[2]
+            end
+
+        Access cppliability, Set cppliability:policy_NO = G_policy_NO,
+                                 cppliability:pol_Year = g_Year,
+                                 cppliability:end_sequence = g_End_sequence,
+                                 cppliability:PREM_NO = g_PREM_NO,
+                                 cppliability:BUILD_NO = g_BUILD_NO, Generic
+
+        l_state = cppliability:state
+        access cpsgaragelimit_alias, set cpsgaragelimit_alias:company_id = sfpname:company_id,
+                                         cpsgaragelimit_alias:state = l_state,
+                                         cpsgaragelimit_alias:line_of_business = l_line_of_business, generic
+        end
+        cppENDORSE:LIMIT[2]/default
+        l_limit = cppendorse:limit[2]
+        access cpsgaragelimit, set cpsgaragelimit:company_id = sfpname:company_id,
+                                   cpsgaragelimit:state = l_state,
+                                   cpsgaragelimit:line_of_business = l_line_of_business,
+                                   cpsgaragelimit:limit = l_limit, generic
+
+        if cppendorse:limit[1] <> cpsgaragelimit:limit then
+            error 1238
+
+        activehelp cpsgaragelimit_alias:limit ;
+402     begin
+        Access cppliability, Set cppliability:policy_NO = G_policy_NO,
+                                 cppliability:pol_Year = g_Year,
+                                 cppliability:end_sequence = g_End_sequence,
+                                 cppliability:PREM_NO = g_PREM_NO,
+                                 cppliability:BUILD_NO = g_BUILD_NO, Generic
+
+        l_state = cppliability:state
+        access cpsgaragededuct_alias, set cpsgaragededuct_alias:company_id = sfpname:company_id,
+                                          cpsgaragededuct_alias:state = l_state,
+                                          cpsgaragededuct_alias:line_of_business = l_line_of_business, generic
+        end
+        cppendorse:deductible[2]/default
+        l_deductible = cppendorse:deductible[2]
+        access cpsgaragededuct, set cpsgaragededuct:company_id = sfpname:company_id,
+                                    cpsgaragededuct:state = l_state,
+                                    cpsgaragededuct:line_of_business = l_line_of_business,
+                                    cpsgaragededuct:deductible = l_deductible, generic
+
+        if cppendorse:deductible[2] <> cpsgaragededuct:deductible then
+            error 1207
+
+        activehelp cpsgaragededuct_alias:deductible ;
+601     cppendorse:direct_primary/checkbox/values="0,1" ;
+701     cppendorse:direct_excess/checkbox/values="0,1" ;
+
+}
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    l_limit = cppendorse:limit[1]
+    Access cppliability, Set cppliability:policy_NO = G_policy_NO,
+                             cppliability:pol_Year = g_Year,
+                             cppliability:end_sequence = g_End_sequence,
+                             cppliability:PREM_NO = g_PREM_NO,
+                             cppliability:BUILD_NO = g_BUILD_NO, Generic
+
+    l_state = cppliability:state
+    Access cpsgaragekeepers, Set cpsgaragekeepers:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 cpsgaragekeepers:STATE = l_STATE,
+                                 cpsgaragekeepers:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                                 cpsgaragekeepers:limit = l_limit, Generic
+
+    While cpsgaragekeepers:COMPANY_ID = sfpNAME:COMPANY_ID And
+          cpsgaragekeepers:STATE = L_STATE And
+          cpsgaragekeepers:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+          cpsgaragekeepers:limit = l_limit
+            Begin
+            If sfpNAME:EFF_DATE >= cpsgaragekeepers:rate_DATE Then
+                Begin
+                L_CODE_1 = cpsgaragekeepers:CODE[1] -- mgk502
+                L_CODE_2 = cpsgaragekeepers:CODE[2] -- mgk501
+                L_CODE_3 = cpsgaragekeepers:code_1  -- mgk010
+                End
+
+            Next cpsgaragekeepers
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppendorse:direct_primary = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppendorse:direct_primary = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppendorse:direct_excess = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppendorse:direct_excess = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" Then
+            Do ADD_sfpEND
+        End
+
+    end
+
+Procedure Definition
+
+procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> g_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppliability, Set cppliability:policy_NO = G_policy_NO,
+                         cppliability:pol_Year = g_Year,
+                         cppliability:end_sequence = g_End_sequence,
+                         cppliability:PREM_NO = g_PREM_NO,
+                         cppliability:BUILD_NO = g_BUILD_NO, Generic
+
+L_STATE = cppliability:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_Year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       g_PREM_NO
+    sfpEND:BUILD_NO             =       g_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "L"
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "L"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = g_PREM_NO,
+                   sfpEND:BUILD_NO = g_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> g_PREM_NO Or
+            sfpEND:BUILD_NO <> g_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure SUBCODE
+Begin
+Access cppendorse_alias, Set cppendorse_alias:policy_NO = G_policy_NO,
+                             cppendorse_alias:pol_year = g_year,
+                             cppendorse_alias:end_sequence = g_End_sequence,
+                             cppendorse_alias:PREM_NO = G_PREM_NO,
+                             cppendorse_alias:BUILD_NO = G_BUILD_NO,
+                             cppendorse_alias:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppendorse_alias:policy_NO = G_policy_NO And
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppendorse_alias:PREM_NO = G_PREM_NO And
+      cppendorse_alias:BUILD_NO = G_BUILD_NO And
+      cppendorse_alias:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppendorse_alias:SUB_CODE
+
+        Next cppendorse_alias
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

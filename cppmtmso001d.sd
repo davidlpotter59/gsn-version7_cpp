@@ -1,0 +1,100 @@
+%%
+Screen
+        Name            = "cppmtmso001d" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s IRPM    Ver 7.0 %m";
+        Domain          = "sfpMASTER" ;
+        iconline        = 0;
+
+/*
+
+        Date Written: 08/18/2000
+
+        Copyright 2000, SCIPS.com, Inc.
+
+        Modify
+        Date            By            Comment
+        ---------------------------------------------------------------------
+        08/18/2000      jmm           added scips print and include files.
+        10/31/2000      dap           changed the look of the screen, so it can
+                                      use sfpmt001, also changed rate file names
+                                      to new names allowing for MSO as well as
+                                      ISO rates.
+        =====================================================================
+*/
+
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO ,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+
+Access Validation
+If sfpMASTER:policy_NO <> G_policy_NO or
+   sfpmaster:pol_year <> g_year or
+   sfpmaster:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| State: __  _______________                                                   |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     sfpMASTER:STATE
+        include "statehlp.inc"
+302     sfsstate:description ;
+
+}
+
+}
+
+
+End

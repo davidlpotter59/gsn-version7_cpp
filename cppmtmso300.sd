@@ -1,0 +1,286 @@
+%%
+Screen
+        Name            = "cppmtmso300" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Business Income Agreed Value     Ver 7.00 %m" ;
+        Domain          = "CPPENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_END_SCREEN[1] ,
+                      G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_line_of_business[4];
+
+        Local String L_CODE[7],
+                     L_CODE_1[7] ,
+                     L_ADD_ENDORSEMENT[1],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access CPPENDORSE,
+           Set CPPENDORSE:POLICY_NO = G_POLICY_NO ,
+               CPPENDORSE:POL_YEAR = G_YEAR ,
+               CPPENDORSE:END_SEQUENCE = G_END_SEQUENCE ,
+               CPPENDORSE:PREM_NO = G_PREM_NO ,
+               CPPENDORSE:BUILD_NO = G_BUILD_NO ,
+               CPPENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+
+Access Validation
+If CPPENDORSE:POLICY_NO <> G_POLICY_NO Or
+   CPPENDORSE:POL_YEAR <> G_YEAR Or
+   CPPENDORSE:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPENDORSE:PREM_NO <> G_PREM_NO Or
+   CPPENDORSE:BUILD_NO <> G_BUILD_NO Or
+   CPPENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:      _________  ____  ____                                        |
+| Location No:    ____                                                         |
+| Building No:    ____                                                         |
+*------------------------------------------------------------------------------*
+| Effective Date: __________                                                   |
+| Agreed Amount:  ________                                                     |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPENDORSE:POLICY_NO = G_POLICY_NO
+            CPPENDORSE:POL_YEAR = G_YEAR
+            CPPENDORSE:END_SEQUENCE = G_END_SEQUENCE
+            CPPENDORSE:PREM_NO = G_PREM_NO
+            CPPENDORSE:BUILD_NO = G_BUILD_NO
+            CPPENDORSE:CODE = G_CODE
+            Do SUBCODE
+            CPPENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        CPPENDORSE:POLICY_NO/displayonly ;
+302     CPPENDORSE:POL_YEAR/displayonly;
+303     CPPENDORSE:END_SEQUENCE/displayonly;
+401     CPPENDORSE:PREM_NO/displayonly ;
+501     CPPENDORSE:BUILD_NO/displayonly ;
+701     Begin
+        If FUNCTION = "ADD" Then
+            CPPENDORSE:EFF_DATE = SFPNAME:EXP_DATE
+        End
+        CPPENDORSE:EFF_DATE/default ;
+801     CPPENDORSE:LIMIT[1];
+
+}
+
+}
+
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" And
+   G_END_SCREEN Not One Of "Y" Then
+    Begin
+    L_STATE = CPPGENERAL:STATE
+    Access CPSBUSMISCRATES, Set CPSBUSMISCRATES:COMPANY_ID = SFPNAME:COMPANY_ID,
+                                CPSBUSMISCRATES:STATE = L_STATE,
+                                CPSBUSMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSBUSMISCRATES:COMPANY_ID = SFPNAME:COMPANY_ID And
+          CPSBUSMISCRATES:STATE = L_STATE And
+          CPSBUSMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If SFPNAME:EFF_DATE >= CPSBUSMISCRATES:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSBUSMISCRATES:AGREED_VALUE_CODE
+                End
+            Next CPSBUSMISCRATES
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_SFPEND
+        If L_ADD_ENDORSEMENT = "Y" Then
+            Do ADD_SFPEND
+        End
+
+    End
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access CPPENDORSE_ALIAS, Set CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPENDORSE_ALIAS:POL_YEAR = G_YEAR,
+                             CPPENDORSE_ALIAS:END_SEQUENCE = G_END_SEQUENCE,
+                             CPPENDORSE_ALIAS:PREM_NO = G_PREM_NO,
+                             CPPENDORSE_ALIAS:BUILD_NO = G_BUILD_NO,
+                             CPPENDORSE_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO And
+      CPPENDORSE_ALIAS:POL_YEAR = G_YEAR And
+      CPPENDORSE_ALIAS:END_SEQUENCE = G_END_SEQUENCE And
+      CPPENDORSE_ALIAS:PREM_NO = G_PREM_NO And
+      CPPENDORSE_ALIAS:BUILD_NO = G_BUILD_NO And
+      CPPENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = CPPENDORSE_ALIAS:SUB_CODE
+
+        Next CPPENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+Procedure ACCESS_SFPEND
+Begin
+Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO ,
+                   SFPEND:POL_YEAR = G_YEAR,
+                   SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                   SFPEND:PREM_NO = G_PREM_NO,
+                   SFPEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If SFPEND:POLICY_NO <> G_POLICY_NO Or
+            SFPEND:POL_YEAR <> G_YEAR Or
+            SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+            SFPEND:PREM_NO <> G_PREM_NO Or
+            SFPEND:BUILD_NO <> G_BUILD_NO
+
+    If SFPEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next SFPEND
+    End
+
+End
+
+Procedure ADD_SFPEND
+Begin
+Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO ,
+                   SFPEND:POL_YEAR = G_YEAR,
+                   SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                   SFPEND:PREM_NO = G_PREM_NO,
+                   SFPEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If SFPEND:POLICY_NO <> G_POLICY_NO Or
+            SFPEND:POL_YEAR <> G_YEAR Or
+            SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+            SFPEND:PREM_NO <> G_PREM_NO Or
+            SFPEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = SFPEND:SUB_CODE
+
+    Next SFPEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access CPPGENERAL_ALIAS, Set CPPGENERAL_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPGENERAL_ALIAS:POL_YEAR = G_YEAR,
+                             CPPGENERAL_ALIAS:END_SEQUENCE = G_END_SEQUENCE,
+                             CPPGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             CPPGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = CPPGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = SFPNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> SFPNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If SFPNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add SFPEND
+    Begin
+    SFPEND:POLICY_NO            =       G_POLICY_NO
+    SFPEND:POL_YEAR             =       G_YEAR
+    SFPEND:END_SEQUENCE         =       G_END_SEQUENCE
+    SFPEND:PREM_NO              =       G_PREM_NO
+    SFPEND:BUILD_NO             =       G_BUILD_NO
+    SFPEND:SUB_CODE             =       L_SUB_CODE
+    SFPEND:CODE                 =       L_CODE
+    SFPEND:FORM_EDITION         =       L_FORM_EDITION
+    SFPEND:DESCRIPTION          =       L_DESCRIPTION
+    SFPEND:PREMIUM              =       0
+    SFPEND:LOB_END_CODE         =       "B"
+    End
+
+End
+
+End

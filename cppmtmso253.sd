@@ -1,0 +1,230 @@
+%%
+Screen
+        Name            = "cppmtmso253" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Earthquake Coverage      Ver 7.00 %m" ;
+        Domain          = "cppEARTHQUAKE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4] ;
+        global unsigned ascii number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_RATE_TYPE[2] ;
+        Global Unsigned Ascii Number G_STATE[2] ;
+        Global Unsigned Ascii Number G_EARTHQUAKE_RATE_CLASS[2] ;
+        global unsigned ascii number g_rate_group[2] ;
+
+        Local Unsigned Ascii Number L_DEDUCTIBLE[5]=0 ,
+                                    L_DEDUCTIBLE_MAX[3]=0 ,
+                                    l_line_of_business[4],
+                                    l_state[2]=0,
+                                    L_SUB[2]=0 ,
+                                    L_MISC_RATE_CLASS[1]=0 ;
+
+        Local String L_RATE_CLASS[1]="N" ;
+
+        Access cppEARTHQUAKE,
+           Set cppEARTHQUAKE:policy_NO = G_policy_NO ,
+               cppearthquake:pol_year = g_year,
+               cppearthquake:end_sequence = g_end_sequence ,
+               cppEARTHQUAKE:PREM_NO = G_PREM_NO ,
+               cppEARTHQUAKE:BUILD_NO = G_BUILD_NO ,
+               cppEARTHQUAKE:RATE_TYPE = G_RATE_TYPE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppEARTHQUAKE:policy_NO <> G_policy_NO Or
+   cppearthquake:pol_year <> g_year or
+   cppearthquake:end_sequence <> g_end_sequence or
+   cppEARTHQUAKE:PREM_NO <> G_PREM_NO Or
+   cppEARTHQUAKE:BUILD_NO <> G_BUILD_NO Or
+   cppEARTHQUAKE:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:    __                                                             |
+*------------------------------------------------------------------------------*
+| Construction: _                    Deductible:           _____               |
+| RG-CMP No:    __                   Sprinkler Leakage:        _               |
+| Rate Class:   __                                                             |
+*------------------------------------------------------------------------------*
+| _~Rate~Class~1                                                               |
+| _~Antiques~and~Objects~of~Art                                                |
+| _~Bottled~goods~(not~in~cartons)                                             |
+| _~Drugs~(Retail)                                                             |
+| _~Florists                                                                   |
+| _~Gift~Shops                                                                 |
+| _~Glassware                                                                  |
+| _~Optical~goods~(not~in~cartons)                                             |
+| _~Porcelain,~pottery,~and~other~chinaware                                    |
+| _~Show~cases                                                                 |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        access cppgeneral, set cppgeneral:policy_no = g_policy_no,
+                               cppgeneral:pol_year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence,
+                               cppgeneral:prem_no = g_prem_no,
+                               cppgeneral:build_no = g_build_no,
+                               cppgeneral:rate_Type = g_rate_type, generic
+
+        If FUNCTION = "ADD" Then
+            Begin
+            cppEARTHQUAKE:policy_NO = G_policy_NO
+            cppearthquake:pol_year = g_year
+            cppearthquake:end_sequence = g_end_sequence
+            cppEARTHQUAKE:PREM_NO = G_PREM_NO
+            cppEARTHQUAKE:BUILD_NO = G_BUILD_NO
+            cppEARTHQUAKE:RATE_TYPE = G_RATE_TYPE
+            cppEARTHQUAKE:STATE = cppgeneral:STATE
+            cppearthquake:group_no = cppgeneral:rate_group
+            cppEARTHQUAKE:rate_class = cppgeneral:EARTHQUAKE_RATE_CLASS
+            End
+        End
+        cppEARTHQUAKE:policy_NO/displayonly ;
+302     cppearthquake:pol_year/displayonly ;
+303     cppearthquake:end_sequence/displayonly ;
+401     cppEARTHQUAKE:PREM_NO/displayonly ;
+501     cppEARTHQUAKE:BUILD_NO/displayonly ;
+601     cppEARTHQUAKE:RATE_TYPE/displayonly ;
+801     begin
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        if g_state <> 0 then
+            l_state = g_state
+        else
+            l_state = cppearthquake:state
+        l_line_of_business = sfsline:rating_line_of_business
+        access cpseqconstruct_alias, set cpseqconstruct_alias:company_id = sfpname:company_id,
+                                         cpseqconstruct_alias:state = l_state,
+                                         cpseqconstruct_alias:line_of_business = l_line_of_business, generic
+        end
+        cppEARTHQUAKE:CONSTRUCTION
+        l_state = cppearthquake:state
+        access cpseqconstruct, set cpseqconstruct:company_id = sfpname:company_id,
+                                   cpseqconstruct:state = l_state,
+                                   cpseqconstruct:line_of_business = l_line_of_business,
+                                   cpseqconstruct:construction = cppearthquake:construction, generic
+
+        If cppEARTHQUAKE:CONSTRUCTION <> CPSEQCONSTRUCT:CONSTRUCTION Then
+            Error 1203
+
+        Activehelp CPSEQCONSTRUCT_ALIAS:CONSTRUCTION,
+                   CPSEQCONSTRUCT_ALIAS:DESCRIPTION/width=200 ;
+802     Begin
+        Do GET_DEFAULTS
+        If FUNCTION = "ADD" Then
+            Begin
+            cppEARTHQUAKE:DEDUCTIBLE = L_DEDUCTIBLE
+            End
+        End
+        cppEARTHQUAKE:DEDUCTIBLE/default
+        If cppEARTHQUAKE:DEDUCTIBLE > L_DEDUCTIBLE_MAX Then
+            Error "You have increased the deductible more than the maximum" ;
+901     cppEARTHQUAKE:GROUP_NO/displayonly ;
+902     cppEARTHQUAKE:SPRINKLER_LEAKAGE/checkbox/values="0,1"/default ;
+1001    cppearthquake:rate_class/displayonly ;
+1201    cppEARTHQUAKE:MISC_ITEMS[1]/checkbox/values="0,1" ;
+1301    cppEARTHQUAKE:MISC_ITEMS[2]/checkbox/values="0,1" ;
+1401    cppEARTHQUAKE:MISC_ITEMS[3]/checkbox/values="0,1" ;
+1501    cppEARTHQUAKE:MISC_ITEMS[4]/checkbox/values="0,1" ;
+1601    cppEARTHQUAKE:MISC_ITEMS[5]/checkbox/values="0,1";
+1701    cppEARTHQUAKE:MISC_ITEMS[6]/checkbox/values="0,1";
+1801    cppEARTHQUAKE:MISC_ITEMS[7]/checkbox/values="0,1";
+1901    cppEARTHQUAKE:MISC_ITEMS[8]/checkbox/values="0,1";
+2001    cppEARTHQUAKE:MISC_ITEMS[9]/checkbox/values="0,1";
+2101    cppearthquake:misc_items[10]/checkbox/values="0,1" ;
+1001    Begin
+        L_RATE_CLASS = "N"
+        L_SUB = 1
+        While L_SUB < 11
+            Begin
+            If cppEARTHQUAKE:MISC_ITEMS[L_SUB] = 1 Then
+                L_RATE_CLASS = "Y"
+            L_SUB = L_SUB + 1
+            End
+        If L_RATE_CLASS = "Y" Then
+            cppEARTHQUAKE:RATE_class = L_MISC_RATE_CLASS
+        End
+        cppEARTHQUAKE:RATE_class/displayonly ;
+
+}
+
+}
+
+
+Procedure Definition
+
+Procedure GET_DEFAULTS
+Begin
+Access CPSEARTHQUAKE, Set CPSEARTHQUAKE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                          CPSEARTHQUAKE:STATE = cppEARTHQUAKE:STATE,
+                          CPSEARTHQUAKE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                          CPSEARTHQUAKE:BUILDING_TYPE = cppEARTHQUAKE:CONSTRUCTION, Generic
+
+While CPSEARTHQUAKE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSEARTHQUAKE:STATE = cppEARTHQUAKE:STATE And
+      CPSEARTHQUAKE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSEARTHQUAKE:BUILDING_TYPE = cppEARTHQUAKE:CONSTRUCTION
+        Begin
+        L_DEDUCTIBLE = CPSEARTHQUAKE:DEDUCTIBLE_PERCENT
+        L_DEDUCTIBLE_MAX = CPSEARTHQUAKE:DEDUCTIBLE_INCREASE
+        L_MISC_RATE_CLASS = CPSEARTHQUAKE:RATE_CLASS
+
+        Next CPSEARTHQUAKE
+        End
+
+End
+
+End

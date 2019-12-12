@@ -1,0 +1,246 @@
+%%
+Screen
+        Name            = "cppMTMSO898" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppdeviation";
+        Windowtitle = "%a     %s Deviations  Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_POPUP[1] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_COMPANY_ID[10] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Local Unsigned Ascii Number L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4];
+
+        Local Signed Ascii Number L_PACKAGE_MOD[4]=0/decimals=2 ;
+
+        Access cppdeviation, Set cppdeviation:policy_NO = G_policy_NO,
+                                 cppdeviation:pol_year = g_year,
+                                 cppdeviation:end_sequence = g_end_sequence, generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+screen entry
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+if sfscompany:boiler_rating <> 4 then
+    hide(irpm_fn)
+
+Access Validation
+If cppdeviation:policy_NO <> G_policy_NO or
+   cppdeviation:pol_year <> g_year or
+   cppdeviation:end_sequence <> g_end_sequence then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+|                        Company               PMA                             |
+|                        Deviation                                             |
+*------------------------------------------------------------------------------*
+|                        ________            ________                          |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function one of "ADD" then
+            begin
+            cppdeviation:policy_no = g_policy_no
+            cppdeviation:pol_year = g_year
+            cppdeviation:end_sequence = g_end_sequence
+            end
+        end
+        cppdeviation:policy_NO/displayonly  ;
+302     cppdeviation:pol_year/displayonly ;
+303     cppdeviation:end_sequence/displayonly ;
+801     Begin
+        access sfsline, set sfsline:company_id       = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline      = "00", generic
+
+        access cpsliabdefault, set cpsliabdefault:company_id = sfpname:company_id,
+                                   cpsliabdefault:state      = g_state, generic
+
+        if function one of "ADD", "CHANGE" and
+           sfscompany:boiler_Rating = 4 then
+            cppdeviation:company_deviation = cpsliabdefault:company_deviation
+
+        if function one of "ADD", "CHANGE" and
+           sfscompany:boiler_rating <> 4  and
+           cppdeviation:company_deviation = 0 then
+            begin
+            if cpsliabdefault:company_deviation <> 0 and
+               g_class_code <> 5991 then
+                cppdeviation:company_deviation = cpsliabdefault:company_deviation
+            else
+            if cpsliabdefault:company_deviation = 0 or
+               g_class_code = 5991 then
+                cppdeviation:company_deviation = 1.00
+            end
+
+        If function one of "ADD", "CHANGE" and
+           sfscompany:boiler_rating <> 4 then
+            begin
+            if cppdeviation:company_deviation = 0 then
+                cppdeviation:COMPANY_DEVIATION = 1.00
+            end
+        End
+        cppdeviation:COMPANY_DEVIATION/default ;
+802     Begin
+        If function one of "ADD", "CHANGE" or
+           cppdeviation:package_mod = 0 Then
+            begin
+            if cppdeviation:package_mod = 0 then
+                begin
+                Do PACKAGE_MOD
+                if l_package_mod <> 0 and
+                   sfsline:lob_code one of "SMP" then
+                    cppdeviation:package_mod = l_package_mod
+                else
+                    cppdeviation:package_mod = 1.00
+                end
+            end
+        End
+        cppdeviation:PACKAGE_MOD/default ;
+
+}
+
+CardDialog GUI at 1,90
+
+{
+Panel tagged irpm_fn
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "IRPM"
+        }
+{
+
+%%
+*---------------------------------------------------------------------------------*
+| IRPM:              ________                                                     |
+| Experience Factor: ________                                                     |
+*---------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     begin
+        access cppgeneral, set cppgeneral:policy_no = cppdeviation:policy_no,
+                               cppgeneral:pol_year = cppdeviation:pol_year,
+                               cppgeneral:end_sequence = cppdeviation:end_sequence, generic
+
+        if function one of "ADD", "CHANGE" then
+            begin
+            cppdeviation:irpm_deviation = cppgeneral:company_deviation[2]
+            if cppdeviation:irpm_deviation = 0 then
+                cppdeviation:irpm_deviation = 1.00
+            end
+        end
+        cppdeviation:irpm_deviation/default ;
+301     begin
+        access cppgeneral, set cppgeneral:policy_no = cppdeviation:policy_no,
+                               cppgeneral:pol_year = cppdeviation:pol_year,
+                               cppgeneral:end_sequence = cppdeviation:end_sequence, generic
+
+        if function one of "ADD", "CHANGE" then
+            begin
+            cppdeviation:exp_factor = cppgeneral:company_deviation[3]
+            if cppdeviation:exp_factor = 0 then
+                cppdeviation:exp_factor = 1.00
+            end
+        end
+        cppdeviation:exp_factor/default ;
+
+}
+
+}
+
+}
+
+Procedure Definition
+
+Procedure PACKAGE_MOD
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = G_STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "sfspackage.pro"
+
+End
+
+End

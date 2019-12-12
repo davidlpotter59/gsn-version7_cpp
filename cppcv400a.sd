@@ -1,0 +1,105 @@
+%%
+Program
+        Name = "CPPCV400a" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+    Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                 G_YEAR[4] ,
+                                 G_END_SEQUENCE[4] ,
+                                 g_prem_no[4],
+                                 g_build_no[4] ;
+
+    Local String L_PROCEDURE[50] ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_prem_no = val(commandline[21,24])
+g_build_no = val(commandline[26,29])
+
+L_PROCEDURE = "cppartisan FILE UPDATE"
+
+Access CPPartisan, Set CPPartisan:POLICY_NO = G_POLICY_NO,
+                         CPPartisan:POL_YEAR = G_YEAR,
+                         CPPartisan:END_SEQUENCE = G_END_SEQUENCE,
+                         cppartisan:prem_no = g_prem_no,
+                         cppartisan:build_no = g_build_no, Generic
+
+Repeat Begin
+    Exit If CPPartisan:POLICY_NO <> G_POLICY_NO Or
+            CPPartisan:POL_YEAR <> G_YEAR Or
+            CPPartisan:END_SEQUENCE <> G_END_SEQUENCE or
+            cppartisan:prem_no <> g_prem_no or
+            cppartisan:build_no <> g_build_no
+
+    Delete CPPartisan
+
+    Next CPPartisan
+    End
+
+L_PROCEDURE = "cppisocrime FILE UPDATE"
+
+Access CPPisocrime, Set CPPisocrime:POLICY_NO = G_POLICY_NO,
+                         CPPisocrime:POL_YEAR = G_YEAR,
+                         CPPisocrime:END_SEQUENCE = G_END_SEQUENCE,
+                         cppisocrime:prem_no = g_prem_no,
+                         cppisocrime:build_no = g_build_no, Generic
+
+Repeat Begin
+    Exit If CPPisocrime:POLICY_NO <> G_POLICY_NO Or
+            CPPisocrime:POL_YEAR <> G_YEAR Or
+            CPPisocrime:END_SEQUENCE <> G_END_SEQUENCE or
+            cppisocrime:prem_no <> g_prem_no or
+            cppisocrime:build_no <> g_build_no
+
+    Delete CPPisocrime
+
+    Next CPPisocrime
+    End
+
+L_PROCEDURE = "cppisoblanket FILE UPDATE"
+
+Access CPPisoblanket, Set CPPisoblanket:POLICY_NO = G_POLICY_NO,
+                          CPPisoblanket:POL_YEAR = G_YEAR,
+                          CPPisoblanket:END_SEQUENCE = G_END_SEQUENCE,
+                          cppisoblanket:prem_no = g_prem_no,
+                          cppisoblanket:build_no = g_build_no, Generic
+
+Repeat Begin
+    Exit If CPPisoblanket:POLICY_NO <> G_POLICY_NO Or
+            CPPisoblanket:POL_YEAR <> G_YEAR Or
+            CPPisoblanket:END_SEQUENCE <> G_END_SEQUENCE or
+            cppisoblanket:prem_no <> g_prem_no or
+            cppisoblanket:build_no <> g_build_no
+
+    Delete CPPisoblanket
+
+    Next CPPisoblanket
+    End
+
+L_PROCEDURE = "cppgeneral1 FILE UPDATE"
+
+Access CPPgeneral1, Set CPPgeneral1:POLICY_NO = G_POLICY_NO,
+                        CPPgeneral1:POL_YEAR = G_YEAR,
+                        CPPgeneral1:END_SEQUENCE = G_END_SEQUENCE,
+                        cppgeneral1:prem_no = g_prem_no,
+                        cppgeneral1:build_no = g_build_no, Generic
+
+Repeat Begin
+    Exit If CPPgeneral1:POLICY_NO <> G_POLICY_NO Or
+            CPPgeneral1:POL_YEAR <> G_YEAR Or
+            CPPgeneral1:END_SEQUENCE <> G_END_SEQUENCE or
+            cppgeneral1:prem_no <> g_prem_no or
+            cppgeneral1:build_no <> g_build_no
+
+    Delete CPPgeneral1
+
+    Next CPPgeneral1
+    End
+
+Update
+
+End

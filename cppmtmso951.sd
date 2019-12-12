@@ -1,0 +1,160 @@
+%%
+Screen
+        Name = "cppmtmso951"
+        Type = "Detail" ;
+        Highlight = Underscore ;
+        Padcharacter = Space ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Miscellaneous - Ver. 7.00     %m" ;
+        Domain="cppENDORSE" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9],
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4];
+
+        Global String G_CODE[7] ,
+                      g_company_id[10],
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    l_abort_program[1] ;
+
+        Local String L_COVERAGE[1]="O" ,
+                     l_username[15],
+                     l_system_id[15] ;
+
+        Access cppENDORSE, Set cppENDORSE:policy_NO    = G_policy_NO,
+                               cppendorse:pol_year     = g_year,
+                               cppendorse:end_sequence = g_end_sequence,
+                               cppENDORSE:PREM_NO      = G_PREM_NO,
+                               cppENDORSE:BUILD_NO     = G_BUILD_NO ,
+                               cppENDORSE:CODE         = G_CODE, Generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        "func1" display "" tagged misc_fn ;
+        "func2" display "" tagged notes_fn ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+if g_company_id = "" then
+    g_company_id = sfsdefault:company_id
+l_system_id = "cup"/spacefill
+include "rating_security.inc"
+
+if g_inquiry = "Y" and
+   sfssecurity_rating:allow_to_change_in_inquiry = 0 then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                 _____________________________________________                |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE
+            End
+        End
+        cppENDORSE:description/freetextlines=10 ;
+
+}
+
+Assignments
+If FUNCTION = "ADD" Then
+    Begin
+    cppENDORSE:policy_NO    = G_policy_NO
+    cppendorse:pol_Year     = g_year
+    cppendorse:end_sequence = g_End_sequence
+    cppENDORSE:PREM_NO      = G_PREM_NO
+    cppENDORSE:BUILD_NO     = G_BUILD_NO
+    cppENDORSE:CODE         = G_CODE
+    End
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS, Set cppENDORSE_ALIAS:policy_NO    = G_policy_NO,
+                             cppendorse_alias:pol_year     = g_year,
+                             cppendorse_alias:end_sequence = g_end_sequence,
+                             cppENDORSE_ALIAS:PREM_NO      = G_PREM_NO,
+                             cppENDORSE_ALIAS:BUILD_NO     = G_BUILD_NO,
+                             cppENDORSE_ALIAS:CODE         = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO    = G_policy_NO And
+      cppendorse_alias:pol_year     = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppENDORSE_ALIAS:PREM_NO      = G_PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO     = G_BUILD_NO And
+      cppENDORSE_ALIAS:CODE         = G_CODE
+        Begin
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

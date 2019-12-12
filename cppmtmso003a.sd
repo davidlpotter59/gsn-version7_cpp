@@ -1,0 +1,501 @@
+%%
+Screen
+        Name            = "cppmtmso003a" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Business Income - Blanket    Ver 7.00 %m" ;
+        Domain          = "cppblanketbi" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        global string g_code[7] ;
+
+        Global String G_POPUP[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2] ,
+                                    l_lob[4],
+                                    l_limit[8]=0,
+                                    L_DEPENDENT_PROP[1],
+                                    L_AGREED_VALUE[1] ,
+                                    L_ELECTRONIC_MEDIA[1],
+                                    L_EXTENDED_PERIOD[1],
+                                    L_MONTHLY_RECOVERY[1],
+                                    l_line_of_business[4] ,
+                                    L_LOSS_TUITION[1],
+                                    L_PAYROLL[1],
+                                    L_OFF_PREM[1],
+                                    L_SEASONAL_LEASES[1],
+                                    L_ANTENNA_EXT[1] ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     l_company_id[10],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     l_code_6[7],
+                     l_antenna_exists[1]="N",
+                     l_antenna_code[7]="",
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ,
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_SCREEN[11] ;
+
+        Access cppblanketbi,
+           Set cppblanketbi:policy_NO    = G_policy_NO ,
+               cppblanketbi:pol_year     = g_year,
+               cppblanketbi:end_sequence = g_end_sequence, generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "func1" display "" tagged blanket_fn ;
+        "func2" display "" tagged blnkrate_fn ;
+
+        Include "STDFUNC7.INC"
+
+        include "cppmsobifunc7.inc"
+
+        "popup" display l_screen ;
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        include "cppmsobimenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+
+access validation
+if cppblanketbi:policy_no    <> g_policy_no or
+   cppblanketbi:pol_year     <> g_year or
+   cppblanketbi:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            access sfpname, set sfpname:policy_no = g_policy_no,
+                                sfpname:pol_year = g_year,
+                                sfpname:end_sequence = g_end_sequence, generic
+
+            access cppgeneral, set cppgeneral:policy_no = g_policy_no,
+                                   cppgeneral:pol_year = g_year,
+                                   cppgeneral:end_sequence = g_end_sequence, generic
+
+            cppblanketbi:policy_NO    = G_policy_NO
+            cppblanketbi:pol_year     = g_year
+            cppblanketbi:end_sequence = g_end_sequence
+            cppblanketbi:PREM_NO      = G_PREM_NO
+            cppblanketbi:BUILD_NO     = G_BUILD_NO
+            cppblanketbi:STATE        = cppGENERAL:STATE
+            l_state                   = cppgeneral:state
+            cppblanketbi:rating_line_of_business = sfsline:rating_line_of_business
+            l_lob = sfsline:rating_line_of_business
+            End
+        else
+            begin
+            l_lob = sfsline:rating_line_of_business
+            end
+        End
+        cppblanketbi:policy_NO/displayonly ;
+302     cppblanketbi:pol_year/displayonly ;
+303     cppblanketbi:end_sequence/displayonly ;
+401     cppblanketbi:PREM_NO/default ;
+501     cppblanketbi:BUILD_NO/default ;
+
+} -- end of header
+
+CardDialog GUI at 1,90
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Limit"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Coverage:    ___   ________________________________________                  |
+| Limit:       __________                                                      |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+
+201     Begin
+        if cppblanketbi:prem_no  = 1 and
+           cppblanketbi:build_no = 1 then
+            begin
+            access cppbusiness, set cppbusiness:policy_no    = cppblanketbi:policy_no,
+                                    cppbusiness:pol_year     = cppblanketbi:pol_year,
+                                    cppbusiness:end_sequence = cppblanketbi:end_sequence, generic
+
+            If FUNCTION = "ADD" Then
+                Begin
+                cppblanketbi:COVERAGE                    = cppbusiness:coverage
+                cppblanketbi:limit                       = cppbusiness:limit
+                cppblanketbi:RECOVERY_PERIOD             = cppbusiness:recovery_period
+                cppblanketbi:RECOVERY_SET                = cppbusiness:recovery_set
+                cppblanketbi:RISK_TYPE                   = cppbusiness:risk_type
+                cppblanketbi:COINSURANCE                 = cppbusiness:coinsurance
+                cppblanketbi:APARTMENT_CONDO             = cppbusiness:apartment_condo
+                cppblanketbi:DEPENDENT_PROPERTY          = cppbusiness:DEPENDENT_PROPERTY
+                cppblanketbi:AGREED_VALUE                = cppbusiness:AGREED_VALUE
+                cppblanketbi:ELECTRONIC_MEDIA            = cppbusiness:ELECTRONIC_MEDIA
+                cppblanketbi:EXTENDED_PERIOD_INDEMNITY   = cppbusiness:EXTENDED_PERIOD_INDEMNITY
+                cppblanketbi:HEAT_POWER_REFRIG           = cppbusiness:HEAT_POWER_REFRIG
+                cppblanketbi:MAX_RECOVERY_PERIOD         = cppbusiness:MAX_RECOVERY_PERIOD
+                cppblanketbi:MONTHLY_RECOVERY_LIMITATION = cppbusiness:MONTHLY_RECOVERY_LIMITATION
+                cppblanketbi:LOSS_TUITION_FEES           = cppbusiness:LOSS_TUITION_FEES
+                cppblanketbi:PAYROLL_LIMITATION          = cppbusiness:PAYROLL_LIMITATION
+                cppblanketbi:SEASONAL_LEASES             = cppbusiness:SEASONAL_LEASES
+                cppblanketbi:ANTENNA_EXTENSION           = cppbusiness:ANTENNA_EXTENSION
+                cppblanketbi:BUILDING_LAW                = cppbusiness:BUILDING_LAW
+                cppblanketbi:OFF_PREMISES                = cppbusiness:OFF_PREMISES
+                end
+            end
+        else
+            begin
+            Access cppblanketbi_ALIAS, Set cppblanketbi_ALIAS:policy_NO    = cppblanketbi:policy_NO,
+                                           cppblanketbi_alias:pol_year     = cppblanketbi:pol_year,
+                                           cppblanketbi_alias:end_sequence = cppblanketbi:end_sequence, Generic
+
+            If FUNCTION = "ADD" Then
+                Begin
+                cppblanketbi:COVERAGE                    = cppblanketbi_alias:coverage
+                cppblanketbi:limit                       = cppblanketbi_alias:limit
+                cppblanketbi:RECOVERY_PERIOD             = cppblanketbi_alias:recovery_period
+                cppblanketbi:RECOVERY_SET                = cppblanketbi_alias:recovery_set
+                cppblanketbi:RISK_TYPE                   = cppblanketbi_alias:risk_type
+                cppblanketbi:COINSURANCE                 = cppblanketbi_alias:coinsurance
+                cppblanketbi:APARTMENT_CONDO             = cppblanketbi_alias:apartment_condo
+                cppblanketbi:DEPENDENT_PROPERTY          = cppblanketbi_alias:DEPENDENT_PROPERTY
+                cppblanketbi:AGREED_VALUE                = cppblanketbi_alias:AGREED_VALUE
+                cppblanketbi:ELECTRONIC_MEDIA            = cppblanketbi_alias:ELECTRONIC_MEDIA
+                cppblanketbi:EXTENDED_PERIOD_INDEMNITY   = cppblanketbi_alias:EXTENDED_PERIOD_INDEMNITY
+                cppblanketbi:HEAT_POWER_REFRIG           = cppblanketbi_alias:HEAT_POWER_REFRIG
+                cppblanketbi:MAX_RECOVERY_PERIOD         = cppblanketbi_alias:MAX_RECOVERY_PERIOD
+                cppblanketbi:MONTHLY_RECOVERY_LIMITATION = cppblanketbi_alias:MONTHLY_RECOVERY_LIMITATION
+                cppblanketbi:LOSS_TUITION_FEES           = cppblanketbi_alias:LOSS_TUITION_FEES
+                cppblanketbi:PAYROLL_LIMITATION          = cppblanketbi_alias:PAYROLL_LIMITATION
+                cppblanketbi:SEASONAL_LEASES             = cppblanketbi_alias:SEASONAL_LEASES
+                cppblanketbi:ANTENNA_EXTENSION           = cppblanketbi_alias:ANTENNA_EXTENSION
+                cppblanketbi:BUILDING_LAW                = cppblanketbi_alias:BUILDING_LAW
+                cppblanketbi:OFF_PREMISES                = cppblanketbi_alias:OFF_PREMISES
+                End
+            end
+        End
+        cppblanketbi:COVERAGE/default/uppercase
+
+        access cpsbuscovtypes, set cpsbuscovtypes:company_id = sfpname:company_id,
+                                   cpsbuscovtypes:state = cppblanketbi:state,
+                                   cpsbuscovtypes:line_of_business = l_lob,
+                                   cpsbuscovtypes:coverage = cppblanketbi:coverage, generic
+
+        If cppblanketbi:COVERAGE <> CPSBUSCOVTYPES:COVERAGE Then
+            Error 1232
+
+
+        Activehelp CPSBUSCOVTYPES_ALIAS:COVERAGE,
+                   CPSBUSCOVTYPES_ALIAS:DESCRIPTION ;
+
+202     CPSBUSCOVTYPES:DESCRIPTION;
+301     Begin
+        If cppblanketbi:COVERAGE <> "D2" Then
+            Begin
+            cppblanketbi:RECOVERY_PERIOD = 0
+            cppblanketbi:RECOVERY_SET = 0
+            End
+        Else
+            Begin
+            cppblanketbi:RISK_TYPE = ""
+            cppblanketbi:COINSURANCE = 0
+            cppblanketbi:APARTMENT_CONDO = 0
+            End
+        End
+        cppblanketbi:LIMIT/default;
+} -- end of limit
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Risk"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Risk Type:   __    ______________________________   Apartment/Condo:     _   |
+| Coinsurance: ___                                                             |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201    cppblanketbi:RISK_TYPE/default/uppercase
+        Hide If cppblanketbi:COVERAGE = "D2"
+
+        access cpsbusrisktypes, set cpsbusrisktypes:company_id = sfpname:company_id,
+                                cpsbusrisktypes:state = cppblanketbi:state,
+                                cpsbusrisktypes:line_of_business = l_lob,
+                                cpsbusrisktypes:risk_type = cppblanketbi:risk_type, generic
+
+        If cppblanketbi:RISK_TYPE <> CPSBUSRISKTYPES:RISK_TYPE Then
+            Error "Invalid risk types"
+
+        Activehelp CPSBUSRISKTYPES_ALIAS:RISK_TYPE,
+                   CPSBUSRISKTYPES_ALIAS:DESCRIPTION ;
+
+202    CPSBUSRISKTYPES:DESCRIPTION
+        Hide If cppblanketbi:COVERAGE = "D2" ;
+203    cppblanketbi:APARTMENT_CONDO/checkbox/values="0,1"/default
+        Hide If cppblanketbi:COVERAGE = "D2" ;
+301    cppblanketbi:COINSURANCE/default
+        Hide If cppblanketbi:COVERAGE = "D2"
+
+        access cpsbuscoinsurance, set cpsbuscoinsurance:company_id = sfpname:company_id,
+                                  cpsbuscoinsurance:state = cppblanketbi:state,
+                                  cpsbuscoinsurance:line_of_business = l_lob,
+                                  cpsbuscoinsurance:coinsurance = cppblanketbi:coinsurance, generic
+
+        If cppblanketbi:COINSURANCE <> CPSBUSCOINSURANCE:COINSURANCE Then
+            Error 1208
+
+
+        Activehelp CPSBUSCOINSURANCE_ALIAS:COINSURANCE ;
+
+} -- end of  risk
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Recovery"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Recovery Period: _   ______________________________                          |
+| Recovery Set:    _   ______________________________                          |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+
+201    cppblanketbi:RECOVERY_PERIOD/default
+        Hide If cppblanketbi:COVERAGE <> "D2"
+
+        access cpsbusperiod, set cpsbusperiod:company_id = sfpname:company_id,
+                             cpsbusperiod:state = cppblanketbi:state,
+                             cpsbusperiod:line_of_business = l_lob,
+                             cpsbusperiod:recovery_period = cppblanketbi:recovery_period, generic
+
+        If cppblanketbi:RECOVERY_PERIOD <> CPSBUSPERIOD:RECOVERY_PERIOD Then
+            Error "Invalid Recovery Period"
+
+        If cppblanketbi:RECOVERY_PERIOD = 0 Then
+            cppblanketbi:RECOVERY_SET = 0
+
+        Activehelp CPSBUSPERIOD_ALIAS:RECOVERY_PERIOD ,
+                   CPSBUSPERIOD_ALIAS:DESCRIPTION ;
+
+202    CPSBUSPERIOD:DESCRIPTION;
+301    cppblanketbi:RECOVERY_SET/default
+        Hide If cppblanketbi:COVERAGE <> "D2" Or
+                cppblanketbi:RECOVERY_PERIOD = 0
+
+        access cpsbusrecoveryset, set cpsbusrecoveryset:company_id = sfpname:company_id,
+                                  cpsbusrecoveryset:state = cppblanketbi:state,
+                                  cpsbusrecoveryset:line_of_business = l_lob,
+                                  cpsbusrecoveryset:recovery_set = cppblanketbi:recovery_set, generic
+
+        If cppblanketbi:RECOVERY_SET <> CPSBUSRECOVERYSET:RECOVERY_SET Then
+            Error "Invalid recovery set"
+
+        Activehelp CPSBUSRECOVERYSET_ALIAS:RECOVERY_SET,
+                   CPSBUSRECOVERYSET_ALIAS:DESCRIPTION ;
+
+302    CPSBUSRECOVERYSET:DESCRIPTION;
+} -- end of recovery
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Misc"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Dependent Property:          _           Loss Tuition Fees:   _              |
+| Agreed Value:                _           Payroll Limitation:  _              |
+| Electronic Media:            _           Seasonal Leases:     _              |
+| Extended Period Indemnity:   _           Antenna Extension:   _              |
+| Heat/Power/Refrigeration:    _           Building Law:        _              |
+| Maximum Recovery Period:     _           Off Premises:        _              |
+| Monthly Recovery Limitation: _                                               |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201    cppblanketbi:DEPENDENT_PROPERTY/checkbox/values="0,1"/default ;
+301    cppblanketbi:AGREED_VALUE/checkbox/values="0,1"/default
+        Hide If cppblanketbi:DEPENDENT_PROPERTY = 1 ;
+401    cppblanketbi:ELECTRONIC_MEDIA/checkbox/values="0,1"/default
+        Hide If cppblanketbi:MAX_RECOVERY_PERIOD = 1 ;
+501    cppblanketbi:EXTENDED_PERIOD_INDEMNITY/checkbox/values="0,1"/default
+        Hide If cppblanketbi:MAX_RECOVERY_PERIOD = 1 Or
+                cppblanketbi:COVERAGE = "D2" ;
+601    cppblanketbi:HEAT_POWER_REFRIG/checkbox/values="0,1"/default
+        Hide If cppblanketbi:RISK_TYPE <> "M" Or
+                cppblanketbi:COVERAGE = "D2" ;
+701    cppblanketbi:MAX_RECOVERY_PERIOD/checkbox/values="0,1"/default
+        Hide If cppblanketbi:COVERAGE = "D2" ;
+801    cppblanketbi:MONTHLY_RECOVERY_LIMITATION/checkbox/values="0,1"/default
+        Hide If cppblanketbi:COVERAGE = "D2" ;
+
+202    cppblanketbi:LOSS_TUITION_FEES/checkbox/values="0,1"/default
+        Hide If cppblanketbi:COVERAGE = "D2" ;
+302    cppblanketbi:PAYROLL_LIMITATION/checkbox/values="0,1"/default
+        Hide If cppblanketbi:COVERAGE = "D2" ;
+402    cppblanketbi:SEASONAL_LEASES/checkbox/values="0,1"/default
+        Hide If cppblanketbi:RISK_TYPE <> "R" Or
+                cppblanketbi:COVERAGE = "D2" ;
+502    cppblanketbi:ANTENNA_EXTENSION/checkbox/values="0,1"/default
+        hide if l_antenna_exists = "N" ;
+602    cppblanketbi:BUILDING_LAW/checkbox/values="0,1"/default ;
+702    cppblanketbi:OFF_PREMISES/checkbox/values="0,1"/default  ;
+
+} -- end of misc
+
+}
+
+}
+
+
+screen exit
+do update_cppbusiness ;
+
+Procedure Definition
+
+procedure update_cppbusiness
+begin
+Access cppblanketbi_ALIAS, Set cppblanketbi_ALIAS:policy_NO    = cppblanketbi:policy_NO,
+                               cppblanketbi_alias:pol_year     = cppblanketbi:pol_Year,
+                               cppblanketbi_alias:end_sequence = cppblanketbi:end_sequence, Generic
+
+l_limit = 0
+while cppblanketbi_alias:policy_no    = cppblanketbi:policy_no and
+      cppblanketbi_alias:pol_year     = cppblanketbi:pol_Year and
+      cppblanketbi_alias:end_sequence = cppblanketbi:end_sequence
+    begin
+    l_limit = cppblanketbi_alias:limit +
+              l_limit
+
+    next cppblanketbi_alias
+    end
+
+Access cppblanketbi_ALIAS, Set cppblanketbi_ALIAS:policy_NO = cppblanketbi:policy_NO,
+                               cppblanketbi_alias:pol_year     = cppblanketbi:pol_Year,
+                               cppblanketbi_alias:end_sequence = cppblanketbi:end_sequence, Generic
+
+access cppbusiness, set cppbusiness:policy_no    = cppblanketbi:policy_no,
+                        cppbusiness:pol_Year     = cppblanketbi:pol_year,
+                        cppbusiness:end_sequence = cppblanketbi:end_sequence, generic
+
+if cppbusiness:policy_no    = cppblanketbi:policy_no and
+   cppbusiness:pol_year     = cppblanketbi:pol_year and
+   cppbusiness:end_sequence = cppblanketbi:end_sequence then
+    begin
+    change cppbusiness
+        begin
+        cppbusiness:COVERAGE                    = cppblanketbi_alias:coverage
+        cppbusiness:limit                       = cppblanketbi_alias:limit
+        cppbusiness:RECOVERY_PERIOD             = cppblanketbi_alias:recovery_period
+        cppbusiness:RECOVERY_SET                = cppblanketbi_alias:recovery_set
+        cppbusiness:RISK_TYPE                   = cppblanketbi_alias:risk_type
+        cppbusiness:COINSURANCE                 = cppblanketbi_alias:coinsurance
+        cppbusiness:APARTMENT_CONDO             = cppblanketbi_alias:apartment_condo
+        cppbusiness:DEPENDENT_PROPERTY          = cppblanketbi_alias:DEPENDENT_PROPERTY
+        cppbusiness:AGREED_VALUE                = cppblanketbi_alias:AGREED_VALUE
+        cppbusiness:ELECTRONIC_MEDIA            = cppblanketbi_alias:ELECTRONIC_MEDIA
+        cppbusiness:EXTENDED_PERIOD_INDEMNITY   = cppblanketbi_alias:EXTENDED_PERIOD_INDEMNITY
+        cppbusiness:HEAT_POWER_REFRIG           = cppblanketbi_alias:HEAT_POWER_REFRIG
+        cppbusiness:MAX_RECOVERY_PERIOD         = cppblanketbi_alias:MAX_RECOVERY_PERIOD
+        cppbusiness:MONTHLY_RECOVERY_LIMITATION = cppblanketbi_alias:MONTHLY_RECOVERY_LIMITATION
+        cppbusiness:LOSS_TUITION_FEES           = cppblanketbi_alias:LOSS_TUITION_FEES
+        cppbusiness:PAYROLL_LIMITATION          = cppblanketbi_alias:PAYROLL_LIMITATION
+        cppbusiness:SEASONAL_LEASES             = cppblanketbi_alias:SEASONAL_LEASES
+        cppbusiness:ANTENNA_EXTENSION           = cppblanketbi_alias:ANTENNA_EXTENSION
+        cppbusiness:BUILDING_LAW                = cppblanketbi_alias:BUILDING_LAW
+        cppbusiness:OFF_PREMISES                = cppblanketbi_alias:OFF_PREMISES
+        cppbusiness:limit                       = l_limit
+        end
+    end
+
+end
+
+End

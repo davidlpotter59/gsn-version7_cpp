@@ -1,0 +1,99 @@
+%%
+Screen
+        Name            = "cppmtmso999a" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Transaction Effective Date    Ver 7.00  %m";
+        Domain          = "SFPMASTER" ;
+        iconline        = 0;
+
+/*
+
+        Date Written: 08/18/2000
+
+        Copyright 2000, SCIPS.com, Inc.
+
+        Modify
+        Date            By            Comment
+        ---------------------------------------------------------------------
+        08/18/2000      jmm           added scips print and include files.
+        10/31/2000      dap           changed the look of the screen, so it can
+                                      use sfpmt001, also changed rate file names
+                                      to new names allowing for MSO as well as
+                                      ISO rates.
+        =====================================================================
+*/
+
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4] ;
+
+        Global String G_DEC_PAGE[1]  ;
+
+        Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO ,
+                              SFPMASTER:POL_YEAR = G_YEAR,
+                              SFPMASTER:END_SEQUENCE = G_END_SEQUENCE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                        Transaction Eff Date: __________                      |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     SFPMASTER:TRANS_EFF
+        Hide If SFPMASTER:TRANS_CODE = 16
+        if sfpmaster:trans_eff < sfpname:eff_date then
+            error 1295
+        if sfpmaster:trans_eff > sfpname:exp_date then
+            error 1294 ;
+301     SFPMASTER:TRANS_EFF/displayonly ;
+
+}
+
+}
+
+
+End

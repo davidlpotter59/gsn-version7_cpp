@@ -1,0 +1,154 @@
+%%
+Screen
+        Name = "cppmtmso996" ;
+        Type = "detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Change Endorsement - Ver. 7.00     %m" ;
+        Domain = "cppdesc" ;
+--      resizeable = yes;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+        Global Unsigned Ascii Number G_OPT[2] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Local string l_username[15],
+                     l_system_id[15] ;
+
+        Access cppdesc,
+           Set cppdesc:policy_NO = G_policy_NO ,
+               cppdesc:pol_year = g_year,
+               cppdesc:end_sequence = g_end_sequence,
+               cppdesc:PREM_NO  = G_PREM_NO ,
+               cppdesc:BUILD_NO = G_BUILD_NO ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+l_username      = username/spacefill
+l_system_id     = "bop"/spacefill
+
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfssecurity_rating, set sfssecurity_rating:company_id = sfpname:company_id,
+                               sfssecurity_rating:user_id    = l_username,
+                               sfssecurity_rating:system_id  = l_system_id, generic
+
+if g_opt = 99 and
+   sfssecurity_rating:allow_to_change_in_inquiry = 0 then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+--    disable(append_fn)
+    end
+
+Access Validation
+If cppdesc:policy_NO <> G_policy_NO Or
+   cppdesc:pol_year <> g_year or
+   cppdesc:end_sequence <> g_end_sequence or
+   cppdesc:PREM_NO  <> G_PREM_NO Or
+   cppdesc:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+skip if cppdesc:code <> "MSO100"
+
+screen
+{
+%%
+                                                        _______________
+*----------------------------------------------------*
+| __________________________________________________ |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+|                                                    |
+*----------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION one of "ADD", "NEW", "APPEND" Then
+            Begin
+            cppdesc:policy_NO = G_policy_NO
+            cppdesc:pol_year = g_year
+            cppdesc:end_sequence = g_End_sequence
+            cppdesc:PREM_NO  = G_PREM_NO
+            cppdesc:BUILD_NO = G_BUILD_NO
+            cppdesc:code     ="MSO100"
+            Do SUBCODE
+            cppdesc:SUB_CODE = L_SUB_CODE
+            End
+        End
+        cppdesc:description/freetext=15;
+301     Begin
+        If cppdesc:description = "" Then
+            Abort()
+        End
+        cppdesc:description/displayonly/freetext=15;
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppdesc_ALIAS, Set cppdesc_ALIAS:policy_NO = cppdesc:policy_NO,
+                            cppdesc_alias:pol_year = cppdesc:pol_year,
+                            cppdesc_alias:end_sequence = cppdesc:end_sequence,
+                            cppdesc_ALIAS:PREM_NO  = cppdesc:PREM_NO,
+                            cppdesc_ALIAS:BUILD_NO = cppdesc:BUILD_NO, Generic
+
+while cppdesc_ALIAS:policy_NO = cppdesc:policy_NO and
+      cppdesc_alias:pol_year  = cppdesc:pol_year and
+      cppdesc_alias:end_sequence = cppdesc:end_sequence and
+      cppdesc_ALIAS:PREM_NO  = cppdesc:PREM_NO and
+      cppdesc_ALIAS:BUILD_NO = cppdesc:BUILD_NO
+    begin
+    L_SUB_CODE = cppdesc_ALIAS:SUB_CODE
+
+    Next cppdesc_ALIAS
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

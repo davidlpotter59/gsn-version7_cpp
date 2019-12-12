@@ -1,0 +1,262 @@
+%%
+/*
+Date Written: January 23, 2003
+
+Name: cppmim121.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+09/24/2003             RMG
+
+===========================
+*/
+
+Program
+  Name = "cppmim121";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmim121.cq";
+ Unsigned Ascii Number L_LOOP;
+ Unsigned Ascii Number L_LINE_COUNTER;
+ Unsigned Ascii Number L_PAGE_NO[2]=0;
+ Unsigned Ascii Number L_MAX_LINES = 43;
+ Unsigned Ascii Number L_PAGE_NUMBER;
+
+ String L_SFPLOCATION_ZIP;
+ string l_font ;
+-- String L_V_POSITION;
+-- String L_H_POSITION;
+  String L_STRING[100];
+-- String L_FONT[35];
+ String L_VERTICAL_POS;
+ String L_HORIZONTAL_POS;
+
+ Unsigned Ascii Number L_PITCH_HALF/decimals=1;
+ Unsigned Ascii Number L_PITCH_FULL;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+   Include "swsut300.var"
+--   Include "center2.var"
+   Include "line_spacing.var"
+
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppinland,
+       Set cppinland:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           cppinland:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           cppinland:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MIM121"
+   Include "swsut200.inc"
+   Include "swsut300.inc"
+
+L_MAX_LINES = 50
+
+
+While cppinland:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      cppinland:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      cppinland:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+
+  {
+    If cppinland:CODE = "MIM121" Then
+      {
+
+        Access cppendorse,
+           Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+               cppendorse:prem_no      = cppinland:prem_no,
+               cppendorse:build_no     = cppinland:build_no,
+               cppendorse:code         = cppinland:code, Generic
+
+         While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+               cppendorse:prem_no      = cppinland:prem_no and
+               cppendorse:build_no     = cppinland:build_no and
+               cppendorse:code         = cppinland:code
+
+           {
+
+             Writefile(L_FILE_NAME,"%s",l_arial_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a400h6880V")
+             Writefile(L_FILE_NAME,"%s","Ed 1.1.")
+
+             Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+             Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%s"," 1998 MSO, Inc.")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+             Writefile(L_FILE_NAME,"%s","<033>&a200h200V")
+             Writefile(L_FILE_NAME,"%s","<033>*c5100h10v0P") --Horizontal line
+
+             L_STRING = "CONTRACTORS' TOOL FLOATER"
+             L_FONT = L_ARIAL_BOLD_12
+             L_PITCH_HALF = 6
+             L_PITCH_FULL = 12
+             L_VERTICAL_POS = "+160"
+             Include "center2.pro"
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             L_STRING = "SUPPLEMENTAL DECLARATIONS - MIM 121 01 98"
+             L_FONT = L_ARIAL_BOLD_12
+             L_PITCH_HALF = 6
+             L_PITCH_FULL = 12
+             L_VERTICAL_POS = "+40"
+             Include "center2.pro"
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s","<033>&a200h-60V")
+             Writefile(L_FILE_NAME,"%s","<033>*c5100h10v0P") --Horizontal line
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+             Writefile(L_FILE_NAME,"%s","MIM 121 is used with the Contractors' Tools Floater Coverage Form (MIM 120) when providing contractors' tool coverage.  The ")
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+             Writefile(L_FILE_NAME,"%s","required information may be shown below or elsewhere in this policy.")
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+             Writefile(L_FILE_NAME,"%s","<033>*c5100h10v0P") --Horizontal line
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+             Writefile(L_FILE_NAME,"%s","Policy #: ")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%n",SFPPRINT1:POLICY_NO)
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+             Writefile(L_FILE_NAME,"%s","A.")
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+             Writefile(L_FILE_NAME,"%s","Limits for Unscheduled Tools")
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+180V")
+             Writefile(L_FILE_NAME,"%s","Deductible (per occurrence):")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+             Writefile(L_FILE_NAME,"%s","$")
+             Writefile(L_FILE_NAME,"%s",L_LETTER_GOTHIC_BOLD_10)
+             Writefile(L_FILE_NAME,"%s",Str(cppENDORSE:DEDUCTIBLE[1],"ZZ,ZZZ,ZZZ"))
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+200V")
+             Writefile(L_FILE_NAME,"%s","Total Limit Per Occurrence:")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+             Writefile(L_FILE_NAME,"%s","$")
+             Writefile(L_FILE_NAME,"%s",L_LETTER_GOTHIC_BOLD_10)
+             Writefile(L_FILE_NAME,"%s",Str(cppENDORSE:LIMIT[1],"ZZ,ZZZ,ZZZ"))
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+200V")
+             Writefile(L_FILE_NAME,"%s","Limit Per Each Item:")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+             Writefile(L_FILE_NAME,"%s","$")
+             Writefile(L_FILE_NAME,"%s",L_LETTER_GOTHIC_BOLD_10)
+             Writefile(L_FILE_NAME,"%s",Str(cppENDORSE:LIMIT[2],"ZZ,ZZZ,ZZZ"))
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+                 --***Start of Section B Scheduled Tools***
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a200h+200V")
+             Writefile(L_FILE_NAME,"%s","B.")
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+             Writefile(L_FILE_NAME,"%s","Scheduled Tools")
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+200V")
+             Writefile(L_FILE_NAME,"%s","Deductible (per occurrence):")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+             Writefile(L_FILE_NAME,"%s","$")
+             Writefile(L_FILE_NAME,"%s",L_LETTER_GOTHIC_BOLD_10)
+             Writefile(L_FILE_NAME,"%s",Str(cppENDORSE:DEDUCTIBLE[2],"ZZ,ZZZ,ZZZ"))
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+             Writefile(L_FILE_NAME,"%s","<033>&a4300h+240V")
+             Writefile(L_FILE_NAME,"%s","Limits")
+             Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+             Writefile(L_FILE_NAME,"%s","Description of Tools:")
+             Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+             L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+             Access cppdesc,
+                Set cppdesc:POLICY_NO    = sfpprint1:POLICY_NO ,
+                    cppdesc:POL_YEAR     = sfpprint1:POL_YEAR ,
+                    cppdesc:END_SEQUENCE = sfpprint1:END_SEQUENCE,
+                    cppdesc:prem_no      = cppendorse:prem_no,
+                    cppdesc:build_no     = cppendorse:build_no,
+                    cppdesc:code         = "MIM121", generic
+
+              While cppdesc:POLICY_NO    = SFPPRINT1:POLICY_NO and
+                    cppdesc:POL_YEAR     = SFPPRINT1:POL_YEAR and
+                    cppdesc:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+                    cppdesc:prem_no      = cppendorse:prem_no and
+                    cppdesc:build_no     = cppendorse:build_no and
+                    cppdesc:code         = "MIM121"
+
+                {
+                  Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+                  Writefile(L_FILE_NAME,"%s","<033>&a4300h+120V")
+                  Writefile(L_FILE_NAME,"%s","$")
+                  Writefile(L_FILE_NAME,"%s",L_LETTER_GOTHIC_BOLD_10)
+                  Writefile(L_FILE_NAME,"%s",Str(cppDESC:LIMIT,"ZZ,ZZZ,ZZZ"))
+
+                  l_max_lines        = 46
+                  L_FONT             = l_arial_bold_9
+                  L_V_POSITION       = "+0"
+                  L_H_POSITION       = "400"
+                  L_CHARACTER_STRING = cppdesc:description
+                  L_MAX_CHAR         = 60
+                  include "line_spacing.inc"
+                  Next cppdesc
+                  L_LINE_COUNTER = L_LINE_COUNTER + 1
+
+                  If L_LINE_COUNTER > L_MAX_LINES Then
+                    {
+                      Writefile(L_FILE_NAME,"%s","<FF>")
+                      L_PAGE_NUMBER = L_PAGE_NUMBER + 1
+                      L_LINE_COUNTER = 0
+                    }
+                }
+                L_LINE_COUNTER = 0
+                Writefile(L_FILE_NAME,"%s","<FF>")
+
+       Next cppendorse
+       }--while cppendorse
+    }
+  Next cppinland
+}
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

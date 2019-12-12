@@ -1,0 +1,405 @@
+%%
+Program
+        Name = "cppcv100d" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4] ,
+                                     G_END_SEQUENCE[4] ,
+                                     G_YEAR_1[4],
+                                     G_END_SEQUENCE_1[4] ,
+                                     G_TRANS_CODE[4] ;
+
+        Local String L_PROCEDURE[50],
+                     l_company_id[10] ,
+                     l_lob_end_code[1] ,
+                     l_code[7],
+                     l_type[2],
+                     l_coverage[1],
+                     l_enter[1],
+                     l_form_edition[25],
+                     l_description[75];
+
+        local date l_terror_eff_date[8] ;
+
+        local unsigned ascii number l_add_back[1],
+                                    l_state[2] ,
+                                    l_line_of_business[4]=0008,
+                                    l_rating_line_of_business[4],
+                                    l_package_mod[5]=0/dec=3,
+                                    l_group_1[5]=0/dec=3,
+                                    l_group_2[5]=0/dec=3 ;
+
+        local wdate l_eff_date ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_YEAR_1 = Val(COMMANDLINE[21,24])
+G_END_SEQUENCE_1 = Val(COMMANDLINE[26,29])
+G_TRANS_CODE = Val(COMMANDLINE[31,34])
+
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                      sfpmaster:pol_year     = g_year_1,
+                      sfpmaster:end_sequence = g_end_sequence_1, generic
+
+L_PROCEDURE = "cppinland FILE UPDATE"
+
+if g_trans_code one of 10, 14 then
+    begin
+    l_state = sfpmaster:state
+    do access_terrorism
+    end
+
+Access cppinland_ALIAS, Set cppinland_ALIAS:POLICY_NO = G_POLICY_NO,
+                            cppinland_ALIAS:POL_YEAR = G_YEAR,
+                            cppinland_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If cppinland_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            cppinland_ALIAS:POL_YEAR <> G_YEAR Or
+            cppinland_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    access cppgeneral, set cppgeneral:policy_no    = cppinland_alias:policy_no,
+                           cppgeneral:pol_year     = cppinland_alias:pol_year,
+                           cppgeneral:end_sequence = cppinland_alias:end_sequence,
+                           cppgeneral:prem_no      = cppinland_alias:prem_no,
+                           cppgeneral:build_no     = cppinland_alias:build_no, generic
+
+    l_type = cppgeneral:type
+    l_coverage = "P"
+    l_state = cppinland_alias:state
+    l_line_of_business = cppinland_alias:rating_line_of_business
+    access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                          sfpmaster:pol_year     = g_year_1,
+                          sfpmaster:end_sequence = g_end_sequence_1, generic
+
+    if sfpmaster:trans_code one of 10, 14 then
+        begin
+        do get_package_mod
+        end
+
+    l_code = cppinland_alias:code
+
+    Add cppinland
+        Begin
+        cppinland:POLICY_NO               = G_POLICY_NO
+        cppinland:POL_YEAR                = G_YEAR_1
+        cppinland:END_SEQUENCE            = G_END_SEQUENCE_1
+        cppinland:PREM_NO                 = cppinland_ALIAS:PREM_NO
+        cppinland:BUILD_NO                = cppinland_ALIAS:BUILD_NO
+        cppinland:SUB_CODE                = cppinland_ALIAS:SUB_CODE
+        cppinland:RECORD_RDF              = cppinland_ALIAS:RECORD_RDF/raw
+        if g_trans_code one of 10, 14 and
+           l_package_mod <> 0 then
+            cppinland:package_mod         = l_package_mod
+        if g_trans_code one of 14 then
+            begin
+            do access_sfsoptend
+            cppinland:form_edition    =       l_form_edition/raw
+            cppinland:description     =       l_description/raw
+            end
+        else
+            begin
+            cppinland:form_edition    =       cppinland_alias:form_edition/raw
+            cppinland:description     =       cppinland_alias:description/raw
+            end
+
+        End
+
+    Next cppinland_ALIAS
+    End
+
+Access cppinland_ALIAS, Set cppinland_ALIAS:POLICY_NO = G_POLICY_NO,
+                            cppinland_ALIAS:POL_YEAR = G_YEAR_1,
+                            cppinland_ALIAS:END_SEQUENCE = G_END_SEQUENCE_1, generic
+
+Repeat Begin
+    Exit If cppinland_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            cppinland_ALIAS:POL_YEAR <> G_YEAR_1 Or
+            cppinland_ALIAS:END_SEQUENCE <> G_END_SEQUENCE_1
+
+    if l_add_back = 1 and
+       g_trans_code one of 14 then
+        begin
+        change cppinland_alias
+            begin
+            cppinland_alias:remove_terrorism_form = 0
+            end
+        end
+
+    next cppinland_alias
+    end
+
+L_PROCEDURE = "cppimcov FILE UPDATE"
+
+Access cppimcov_ALIAS, Set cppimcov_ALIAS:POLICY_NO = G_POLICY_NO,
+                            cppimcov_ALIAS:POL_YEAR = G_YEAR,
+                            cppimcov_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If cppimcov_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            cppimcov_ALIAS:POL_YEAR <> G_YEAR Or
+            cppimcov_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add cppimcov
+        Begin
+        cppimcov:POLICY_NO               = G_POLICY_NO
+        cppimcov:POL_YEAR                = G_YEAR_1
+        cppimcov:END_SEQUENCE            = G_END_SEQUENCE_1
+        cppimcov:SUB_CODE                = cppimcov_ALIAS:SUB_CODE
+        cppimcov:RECORD_RDF              = cppimcov_ALIAS:RECORD_RDF/raw
+        End
+
+    Next cppimcov_ALIAS
+    End
+
+L_PROCEDURE = "cppcrime1 FILE UPDATE"
+
+Access CPPcrime1_ALIAS, Set CPPcrime1_ALIAS:POLICY_NO = G_POLICY_NO,
+                            CPPcrime1_ALIAS:POL_YEAR = G_YEAR,
+                            CPPcrime1_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPcrime1_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPcrime1_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPcrime1_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    access cppgeneral, set cppgeneral:policy_no    = cppcrime1_alias:policy_no,
+                           cppgeneral:pol_year     = cppcrime1_alias:pol_year,
+                           cppgeneral:end_sequence = cppcrime1_alias:end_sequence,
+                           cppgeneral:prem_no      = cppcrime1_alias:prem_no,
+                           cppgeneral:build_no     = cppcrime1_alias:build_no, generic
+
+    l_type = cppgeneral:type
+    l_coverage = "P"
+    l_state = cppcrime1_alias:state
+    l_line_of_business = cppcrime1_alias:rating_line_of_business
+    access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                          sfpmaster:pol_year     = g_year_1,
+                          sfpmaster:end_sequence = g_end_sequence_1, generic
+
+    if sfpmaster:trans_code one of 10, 14 then
+        begin
+        do get_package_mod
+        end
+
+    l_code = cppcrime1_alias:code
+    if g_trans_code one of 14 then
+        do access_sfsoptend
+
+    Add CPPcrime1
+        Begin
+        CPPcrime1:POLICY_NO               = G_POLICY_NO
+        CPPcrime1:POL_YEAR                = G_YEAR_1
+        CPPcrime1:END_SEQUENCE            = G_END_SEQUENCE_1
+        CPPcrime1:PREM_NO                 = CPPcrime1_ALIAS:PREM_NO
+        CPPcrime1:BUILD_NO                = CPPcrime1_ALIAS:BUILD_NO
+        CPPcrime1:SUB_CODE                = CPPcrime1_ALIAS:SUB_CODE
+        CPPcrime1:RECORD_RDF              = CPPcrime1_ALIAS:RECORD_RDF/raw
+        if g_trans_code one of 14 then
+            begin
+            cppcrime1:form_edition    =       l_form_edition/raw
+            cppcrime1:description     =       l_description/raw
+            end
+        else
+            begin
+            cppcrime1:form_edition    =       cppcrime1_alias:form_edition/raw
+            cppcrime1:description     =       cppcrime1_alias:description/raw
+            end
+        if g_trans_code one of 10, 14 and
+           l_package_mod <> 0 then
+            cppcrime1:package_mod         = l_package_mod
+        End
+
+    Next CPPcrime1_ALIAS
+    End
+
+Update
+
+Errors
+Writefile("cppcv100d.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv100d.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv100d.err","%s<nl>",L_PROCEDURE)
+
+procedure definition
+
+procedure get_package_mod
+begin
+l_company_id = sfpname:company_id
+access cpsisopackage, set cpsisopackage:company_id       = l_company_id,
+                          cpsisopackage:state            = l_state,
+                          cpsisopackage:line_of_business = l_line_of_business,
+                          cpsisopackage:type             = l_type, generic
+
+l_package_mod = 0
+while cpsisopackage:company_id       = l_company_id and
+      cpsisopackage:state            = l_state and
+      cpsisopackage:line_of_business = l_line_of_business and
+      cpsisopackage:type             = l_type
+        begin
+        if (sfpname:eff_date >= cpsisopackage:eff_date and
+           (sfpname:eff_date <= cpsisopackage:exp_date or
+           cpsisopackage:exp_date = 0)) then
+            begin
+            switch(l_coverage)
+              case "P" : l_package_mod = cpsisopackage:package_mod[2]
+              default  : l_package_mod = cpsisopackage:package_mod[3]
+              end
+
+            end
+
+        next cpsisopackage
+        end
+
+end
+
+procedure access_sfsoptend
+begin
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                      sfpmaster:pol_year     = g_year_1,
+                      sfpmaster:end_sequence = g_end_sequence_1, generic
+
+access sfsline, set sfsline:company_id       = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline      = "00", generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    do access_sfsoptend1
+else
+    begin
+    l_state = sfpmaster:state
+    l_line_of_business = 8
+    do read_sfsoptend
+    end
+
+end
+
+procedure read_sfsoptend
+begin
+access sfsoptend, set sfsoptend:company_id       = sfpname:company_id,
+                      sfsoptend:state            = l_state,
+                      sfsoptend:line_of_business = l_line_of_business,
+                      sfsoptend:code             = l_code, generic
+
+l_form_edition = ""
+l_description  = ""
+while sfsoptend:company_id       = sfpname:company_id and
+      sfsoptend:state            = l_state and
+      sfsoptend:line_of_business = l_line_of_business and
+      sfsoptend:code             = l_code
+   begin
+   if (sfpname:eff_date >= sfsoptend:eff_date and
+      (sfpname:eff_date <= sfsoptend:exp_date or
+      sfsoptend:exp_date = 0)) then
+       begin
+       l_form_edition = sfsoptend:form_edition
+       l_description  = sfsoptend:description
+       end
+
+   next sfsoptend
+   end
+
+end
+
+procedure access_sfsoptend1
+begin
+access sfpamt, set sfpamt:policy_no = g_policy_no,
+                   sfpamt:pol_year = g_year ,
+                   sfpamt:end_sequence = g_end_sequence, generic
+
+if l_lob_end_code one of "A", "P", "L", "I", "C", "B" then
+    begin
+    l_line_of_business = 8
+    access sfpmaster, set sfpmaster:policy_no = g_policy_no,
+                          sfpmaster:pol_year = g_year,
+                          sfpmaster:end_sequence = g_end_sequence, generic
+
+    l_state = sfpmaster:state
+    end
+
+if l_lob_end_code one of "X" then
+    begin
+    l_line_of_business = sfpamt:line_of_business[5]
+    access bopgeneral, set bopgeneral:policy_no = g_policy_no,
+                           bopgeneral:pol_year = g_year,
+                           bopgeneral:end_sequence = g_end_sequence, generic
+
+    l_state = bopgeneral:state
+    end
+
+if l_lob_end_code one of "Z" then
+    begin
+    l_line_of_business = sfpamt:line_of_business[3]
+    access wcpgeneral, set wcpgeneral:policy_no = g_policy_no,
+                           wcpgeneral:pol_year = g_year,
+                           wcpgeneral:end_sequence = g_end_sequence, generic
+
+    l_state = wcpgeneral:state
+    end
+
+if l_lob_end_code one of "U" then
+    begin
+    l_line_of_business = sfpamt:line_of_business[4]
+    access cppumbrella, set cppumbrella:policy_no = g_policy_no,
+                            cppumbrella:pol_year = g_year,
+                            cppumbrella:end_sequence = g_end_sequence, generic
+
+    l_state = cppumbrella:state
+    end
+
+if l_lob_end_code one of "T" then
+    begin
+    l_line_of_business = sfpamt:line_of_business[1]
+    access capvehicle, set capvehicle:policy_no = g_policy_no,
+                           capvehicle:pol_year = g_year,
+                           capvehicle:end_sequence = g_end_sequence, generic
+
+    l_state = capvehicle:state
+    end
+
+do read_sfsoptend
+
+end
+
+procedure access_terrorism
+begin
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access sfsmsoterror, set sfsmsoterror:company_id       = sfpname:company_id,
+                         sfsmsoterror:state            = l_state,
+                         sfsmsoterror:line_of_business = sfpname:line_of_business, generic
+
+l_add_back = 0
+l_terror_eff_date = 0
+while sfsmsoterror:company_id       = sfpname:company_id and
+      sfsmsoterror:state            = l_state and
+      sfsmsoterror:line_of_business = sfpname:line_of_business
+        begin
+        if (sfpname:eff_date >= sfsmsoterror:eff_date and
+           (l_terror_eff_date < sfsmsoterror:eff_date or
+           l_terror_eff_date = 0)) then
+            begin
+            l_terror_eff_date = sfsmsoterror:eff_date
+            l_add_back        = sfsmsoterror:add_terror_back_on_renewal
+            end
+
+        next sfsmsoterror
+        end
+
+end
+
+End

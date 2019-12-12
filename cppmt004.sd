@@ -1,0 +1,120 @@
+%%
+Screen
+        Name         = "cppmt004";
+        Type         = "Detail" ;
+        Screensize   = "dynamic" ;
+        Highlight    = Underscore ;
+        Padcharacter = Space ;
+        Domain       = "cppendorse" ;
+        Windowtitle  = "%a    %s Windstorm or Hail Percentage Deductible - Ver 7.00     %m" ;
+--      resizeable   = yes ;
+        iconline     = 0 ;
+
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_build_no[4];
+
+        Global String g_code[7];
+
+        Unsigned Ascii number L_sub_code[4]=0;
+
+--        Local Date L_EFF_DATE[8] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO    = G_policy_NO,
+               cppendorse:pol_year     = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO      = G_PREM_NO,
+               cppendorse:BUILD_NO     = G_BUILD_NO, Generic ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppendorse:policy_NO <> G_policy_NO or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence Then
+    Error 1000;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Windstorm or Hail Deductible Percentage:                                     |
+| [R  _~~1%    _~~2%    _~~5% R]                                               |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+401     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPENDORSE:POLICY_NO = G_POLICY_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            CPPENDORSE:PREM_NO = G_PREM_NO
+            CPPENDORSE:BUILD_NO = G_BUILD_NO
+            CPPENDORSE:CODE = G_CODE
+            Do SUBCODE
+            CPPENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = 0008
+            End
+        End
+        cppendorse:option[1]/values="1,2,5" ;
+}
+screen exit
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access CPPENDORSE_ALIAS, Set CPPENDORSE_ALIAS:POLICY_NO = CPPENDORSE:POLICY_NO,
+                             cppendorse_alias:pol_year = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             CPPENDORSE_ALIAS:PREM_NO = CPPENDORSE:PREM_NO,
+                             CPPENDORSE_ALIAS:BUILD_NO = CPPENDORSE:BUILD_NO,
+                             CPPENDORSE_ALIAS:CODE = CPPENDORSE:CODE, Generic
+
+L_SUB_CODE = 0
+While CPPENDORSE_ALIAS:POLICY_NO = CPPENDORSE:POLICY_NO And
+      cppendorse_alias:pol_year = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      CPPENDORSE_ALIAS:PREM_NO = CPPENDORSE:PREM_NO And
+      CPPENDORSE_ALIAS:BUILD_NO = CPPENDORSE:BUILD_NO And
+      CPPENDORSE_ALIAS:CODE = CPPENDORSE:CODE
+        Begin
+        L_SUB_CODE = CPPENDORSE_ALIAS:SUB_CODE
+
+        Next CPPENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

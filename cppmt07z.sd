@@ -1,0 +1,148 @@
+%%
+Screen
+        Name = "cppmt07z" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Descriptions - Ver 7.00     %m" ;
+        Domain = "cppdesc" ;
+--        resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7] ,
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    l_limit[8] ;
+
+        Access cppdesc,
+           Set cppdesc:policy_NO    = G_policy_NO ,
+               cppdesc:pol_Year     = g_year,
+               cppdesc:end_sequence = g_end_sequence,
+               cppdesc:PREM_NO      = G_PREM_NO ,
+               cppdesc:BUILD_NO     = G_BUILD_NO , generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = username, generic
+
+if (sfpname:policy_no <> 0 or
+   (sfpname:released_by_underwriter <> "" and
+   sfsemail:agent_no <> 0) or
+   g_inquiry = "Y") then
+    begin
+    disable(add_fn)
+    disable(delete_fn)
+    disable(change_fn)
+    end
+
+Access Validation
+If cppdesc:policy_NO    <> G_policy_NO Or
+   cppdesc:pol_year     <> g_year or
+   cppdesc:end_sequence <> g_end_sequence or
+   cppdesc:PREM_NO      <> G_PREM_NO Or
+   cppdesc:BUILD_NO     <> G_BUILD_NO then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Limit:   __________                                                          |
+|                                                                              |
+|                               Description                                    |
+|                                                                              |
+| ___________________________________________________________________________  |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppdesc:policy_NO    = G_policy_NO
+            cppdesc:pol_Year     = g_year
+            cppdesc:end_sequence = g_end_sequence
+            cppdesc:PREM_NO      = G_PREM_NO
+            cppdesc:BUILD_NO     = G_BUILD_NO
+            cppdesc:CODE         = G_CODE
+            Do SUBCODE
+            End
+        End
+        cppdesc:LIMIT;
+701     cppdesc:DESCRIPTION/freetextlines=10 ;
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppdesc_ALIAS, Set cppdesc_ALIAS:policy_NO    = G_policy_NO,
+                          cppdesc_alias:pol_year     = g_year,
+                          cppdesc_alias:end_sequence = g_end_sequence,
+                          cppdesc_ALIAS:PREM_NO      = G_PREM_NO,
+                          cppdesc_ALIAS:BUILD_NO     = G_BUILD_NO,
+                          cppdesc_ALIAS:CODE         = G_CODE, generic
+
+L_SUB_CODE = 0
+while cppdesc_ALIAS:policy_NO    = G_policy_NO and
+      cppdesc_alias:pol_year     = g_year and
+      cppdesc_alias:end_sequence = g_end_sequence and
+      cppdesc_ALIAS:PREM_NO      = G_PREM_NO and
+      cppdesc_ALIAS:BUILD_NO     = G_BUILD_NO and
+      cppdesc_ALIAS:CODE         = G_CODE
+        begin
+        L_SUB_CODE = cppdesc_ALIAS:SUB_CODE
+
+        Next cppdesc_ALIAS
+        End
+
+cppdesc:SUB_CODE = L_SUB_CODE + 10
+
+End
+
+End

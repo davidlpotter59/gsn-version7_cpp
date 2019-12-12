@@ -1,0 +1,496 @@
+%%
+/*
+Date Written: January 05, 2004
+
+Name: cppfm101.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+01/05/2004            DWR   Converted SCS to CPP to make this an Inland
+                            Marine form for Flemington's use
+===========================
+*/
+
+Program
+  Name = "cppfm101";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[11] = "cppfm101.cq";
+ Unsigned Ascii Number L_YEAR[4];
+ Unsigned Ascii number L_LINE_OF_BUSINESS[4];
+ Unsigned ascii number l_found[1];
+ Unsigned Ascii Number L_ITEM_COUNTER=0;
+ Unsigned Ascii Number L_STATE[2]=0;
+ Unsigned Ascii Number L_LOOP;
+ wdate L_EFF_DATE;
+ Unsigned Ascii Number L_LINE_COUNTER;
+ unsigned ascii number l_max_lines=60;
+ String L_COMPANY_ID[10];
+ String L_LOB_CODE[10],
+        l_font;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+   Include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access sfpend_alias,
+   Set sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppendorse,
+   Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppinland,
+   Set cppinland:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppinland:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppinland:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "FM101"
+   Include "swsut200.inc"
+   Include "swsut300.inc"
+
+l_max_lines= 55
+
+While cppinland:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      cppinland:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      cppinland:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+{
+  If cppinland:CODE = I_CODE Then
+    {
+      l_state            = cppinland:state
+      L_COMPANY_ID       = sfpname:COMPANY_ID
+      L_LINE_OF_BUSINESS = sfsline:rating_LINE_OF_BUSINESS
+
+      Access SFSOPTEND,
+         Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+             SFSOPTEND:STATE            = L_STATE,
+             SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+             SFSOPTEND:CODE             = I_CODE, generic
+
+       While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+             SFSOPTEND:STATE            = L_STATE and
+             SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+             SFSOPTEND:CODE             = I_CODE
+
+         {  --start of sfsoptend check
+           If (sfpname:eff_date >= sfsoptend:eff_date and
+              (sfpname:eff_date < sfsoptend:exp_date or
+               sfsoptend:exp_date = 0)) then
+             {
+               l_eff_date = sfsoptend:eff_date
+             }
+           next sfsoptend
+         }
+
+      Access SFSOPTEND,
+         Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+             SFSOPTEND:STATE            = L_STATE,
+             SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+             SFSOPTEND:CODE             = I_CODE,
+             SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+      If sfsoptend:edition <> 0 then
+        {
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a420h7080V")
+          Writefile(L_FILE_NAME,"%s","Ed. ")
+          Writefile(L_FILE_NAME,"%n",sfsoptend:edition)
+        }
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a420h7200V")
+      Writefile(L_FILE_NAME,"%s",l_copyright_6)
+      Writefile(L_FILE_NAME,"%s"," ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s",sfsoptend:COPYRIGHT)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+      Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+      Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+      Writefile(L_FILE_NAME,"%s"," ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+
+      Writefile(L_FILE_NAME,"%s",l_arial_bold_14)
+      Writefile(L_FILE_NAME,"%s","<033>&a1800h+120V")
+      Writefile(L_FILE_NAME,"%s","EQUIPMENT   FLOATER   FORM")
+      Writefile(L_FILE_NAME,"%s",l_arial_bold_8)
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+120V")
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","This policy covers only with respect to such and so many of the following classes of property as are indicated by a specific amount of")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","Insurance applicable thereto, and a premium therefor, which property is owned by or in the custody or control of the insured and members:")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+120V")
+      l_line_counter = l_line_counter + 4.83
+
+      Writefile(L_FILE_NAME,"%s",l_arial_bold_8)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h820V")
+      Writefile(L_FILE_NAME,"%s","Class of Property")
+      Writefile(L_FILE_NAME,"%s","<033>&a3020h+0V")
+      Writefile(L_FILE_NAME,"%s","Amount of Insurance")
+      Writefile(L_FILE_NAME,"%s","<033>&a4300h+0V")
+      Writefile(L_FILE_NAME,"%s","Rate")
+      Writefile(L_FILE_NAME,"%s","<033>&a4920h+0V")
+      Writefile(L_FILE_NAME,"%s","Premium")
+      Writefile(L_FILE_NAME,"%s","<033>&a3020h+120V")
+
+      Access cppENDORSE,
+         Set cppENDORSE:POLICY_NO    = cppinland:POLICY_NO,
+             cppENDORSE:POL_YEAR     = cppinland:POL_YEAR,
+             cppENDORSE:END_SEQUENCE = cppinland:END_SEQUENCE,
+             cppENDORSE:PREM_NO      = cppinland:PREM_NO,
+             cppENDORSE:BUILD_NO     = cppinland:BUILD_NO,
+             cppENDORSE:code         = I_CODE , generic
+
+      While  cppENDORSE:POLICY_NO    = cppinland:POLICY_NO and
+             cppENDORSE:POL_YEAR     = cppinland:POL_YEAR and
+             cppENDORSE:END_SEQUENCE = cppinland:END_SEQUENCE and
+             cppENDORSE:PREM_NO      = cppinland:PREM_NO and
+             cppENDORSE:BUILD_NO     = cppinland:BUILD_NO and
+             cppENDORSE:code         = I_CODE
+        {
+          Writefile(L_FILE_NAME,"%s","<033>&a3020h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          l_line_counter = l_line_counter + 1
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppendorse:limit[1],"ZZ,ZZZ,ZZZ"))
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_8)
+          Writefile(L_FILE_NAME,"%s","<033>&a4300h+0V")
+          Writefile(L_FILE_NAME,"%n",cppendorse:rate[1])
+          Writefile(L_FILE_NAME,"%s","<033>&a4920h+0V")
+          Writefile(L_FILE_NAME,"%s","$ ")
+          Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+          Writefile(L_FILE_NAME,"%s",str(cppendorse:premium[1],"ZZZ,ZZZ,ZZZ"))
+
+          Writefile(L_FILE_NAME,"%s","<033>&a220h+0V")
+          L_FONT             = l_arial_bold_9
+          L_V_POSITION       = "+0"
+          L_H_POSITION       = "200"
+          L_CHARACTER_STRING = cppendorse:description
+          L_MAX_CHAR         = 60
+          include "line_spacing.inc"
+          Next cppendorse
+       }
+
+      Writefile(L_FILE_NAME,"%s",l_arial_bold_8)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","The terms and conditions of this endorsement shall apply only to the property covered hereunder and none of the terms and conditions of")
+      l_line_counter = l_line_counter + 1
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","the policy or any other endorsement which maybe attached thereto, except the cancellation provision, shall apply to the insurance hereunder")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+      Writefile(L_FILE_NAME,"%s","If any of the property covered by this endorsement is also covered under any other provisions of the policy to which this endorsement is")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","attached, those provisions are hereby amended to exclude such property, the intent being that the coverage under this endorsement is the")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","sole coverage on such property")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a2370h+220V")
+      Writefile(L_FILE_NAME,"%s","TERRITORIAL LIMITS")
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+      Writefile(L_FILE_NAME,"%s","Unless otherwise provided hereinafter or endorsed hereon this insurance covers wherever the property may be located.")
+      Writefile(L_FILE_NAME,"%s","<033>&a2170h+220V")
+      Writefile(L_FILE_NAME,"%s","THIS POLICY INSURES AGAINST:")
+      l_line_counter = l_line_counter + 5
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+      Writefile(L_FILE_NAME,"%s","Loss or damage by fire, lightning, windstorm, hail, smoke, explosion, riot, riot attending a strike, civil commotion, aircraft. vehicles,")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","vandalism and malicious mischief, and,")
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+      Writefile(L_FILE_NAME,"%s","loss by theft, except of property while unattended away from the premises in or on any automobile, motorcycle or trailer, other than a public")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","conveyance, unless the loss is the result of forcible entry either into such vehicle while all doors and windows thereof are closed and locked")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","or into a fully enclosed and locked luggage compartment, of which entry there are visible marks upon the exterior of said vehicle. Mysterious")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","disappearance shall not be construed to be theft.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a2230h+240V")
+      Writefile(L_FILE_NAME,"%s"," DEDUCTIBLE CLAUSE:")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+240V")
+      Writefile(L_FILE_NAME,"%s","Each claim for loss or damage (separately occurring) to unscheduled property shall be adjusted separately and from the amount of each such")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      Writefile(L_FILE_NAME,"%s","adjusted claim or the applicable limit of liability, whichever is less, the sum of ")
+      Access cppENDORSE,
+         Set cppENDORSE:POLICY_NO    = cppinland:POLICY_NO,
+             cppENDORSE:POL_YEAR     = cppinland:POL_YEAR,
+             cppENDORSE:END_SEQUENCE = cppinland:END_SEQUENCE,
+             cppENDORSE:PREM_NO      = cppinland:PREM_NO,
+             cppENDORSE:BUILD_NO     = cppinland:BUILD_NO,
+             cppENDORSE:code         = I_CODE , generic
+
+      writefile(l_file_name,"%s",str(cppendorse:deductible[1],"$$$$$"))
+      l_line_counter = l_line_counter + 10
+
+      writefile(l_file_name,"%s"," shall be deducted. Such deductible shall not apply,")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","however, to:")
+      Writefile(L_FILE_NAME,"%s","<033>&a2170h+120V")
+      Writefile(L_FILE_NAME,"%s","THIS POLICY DOES NOT INSURE:")
+      l_line_counter = l_line_counter + 1
+      Writefile(L_FILE_NAME,"%s","<033>&a500h+180V")
+      Writefile(L_FILE_NAME,"%s","(a)")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+0V")
+      Writefile(L_FILE_NAME,"%s","Against loss or damage-caused by wear and tear, gradual deterioration, moths, vermin, or inherent vice;")
+      Writefile(L_FILE_NAME,"%s","<033>&a500h+180V")
+      Writefile(L_FILE_NAME,"%s","(b)")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+0V")
+      Writefile(L_FILE_NAME,"%s","Against loss by nuclear reaction or nuclear radiation or radioactive contamination, all whether controlled or uncontrolled, and")
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+100V")
+      Writefile(L_FILE_NAME,"%s","whether such loss be direct or indirect, proximate or remote, or be in whole or in part caused by, contributed to or aggravated")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+100V")
+      Writefile(L_FILE_NAME,"%s","by the peril(s) insured against in this policy or endorsements however, subject to the foregoing and all provisions of this")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+100V")
+      Writefile(L_FILE_NAME,"%s","endorsement or policy, direct loss by fire resulting from nuclear reaction or nuclear radiation or radioactive contamination is")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+100V")
+      Writefile(L_FILE_NAME,"%s","insured against by this policy;")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a500h+180V")
+      Writefile(L_FILE_NAME,"%s","(c)")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a670h+0V")
+      Writefile(L_FILE_NAME,"%s","Against loss or damage caused by or resulting from:")
+      Writefile(L_FILE_NAME,"%s","<033>&a700h+180V")
+      Writefile(L_FILE_NAME,"%s","(1)")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+0V")
+      Writefile(L_FILE_NAME,"%s","hostile or warlike action in time of peace or war, Including action in hindering, combating or defending against an")
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+100V")
+      Writefile(L_FILE_NAME,"%s","actual, impending or expected attack, (a) by any government or sovereign power (de jure or do facto), or by any")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+100V")
+      Writefile(L_FILE_NAME,"%s","authority maintaining or using military, naval or air forces; or b) by military, naval or air forces; or (c) by an agent of any")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+100V")
+      Writefile(L_FILE_NAME,"%s","such government, power, authority or forces,")
+      l_line_counter = l_line_counter + 0.83
+      Writefile(L_FILE_NAME,"%s","<033>&a700h+180V")
+      Writefile(L_FILE_NAME,"%s","(2)")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+0V")
+      Writefile(L_FILE_NAME,"%s","any weapon of war employing atomic fission or radioactive force whether in time of peace or war;")
+      Writefile(L_FILE_NAME,"%s","<033>&a700h+180V")
+      Writefile(L_FILE_NAME,"%s","(3)")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+0V")
+      Writefile(L_FILE_NAME,"%s","insurrection, rebellion, revolution, civil war, usurped power, or action taken by governmental authority in hindering,")
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+100V")
+      Writefile(L_FILE_NAME,"%s","combating or defending against such an occurrence, seizure or destruction under quarantine or customs regulations,")
+      Writefile(L_FILE_NAME,"%s","<033>&a870h+100V")
+      Writefile(L_FILE_NAME,"%s","confiscation by order of any government or public authority, or risks of contraband or illegal transportation or trade.")
+      Writefile(L_FILE_NAME,"%s","<033>&a120h+100V")
+      l_line_counter = l_line_counter + 2.5
+
+      Writefile(L_FILE_NAME,"%s","<FF>")
+
+                                        --Start of page 2")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a2300h+0V")
+      Writefile(L_FILE_NAME,"%s","SPECIAL CONDITIONS")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+180V")
+      Writefile(L_FILE_NAME,"%s","1.")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Packing. It is agreed by the Insured that the property insured hereunder be packed and unpacked by competent packers.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+180V")
+      Writefile(L_FILE_NAME,"%s","2.")
+      l_line_counter = l_line_counter + 1.5
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Valuation. The Company shall not be liable for more than the amount set opposite the respective articles covered hereunder, which")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","amounts are agreed to be the values of said articles for the purpose of this insurance.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+140V")
+      Writefile(L_FILE_NAME,"%s","3.")
+      l_line_counter = l_line_counter + 2
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Other Insurance. If at the time of happening of any loss there is any other similar or identical insurance on the properly insured")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","hereunder, whether prior or subsequent in date or simultaneous with this Insurance, then this Company shall not be liable under this policy for")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","a greater proportion of any loss of or damage to the property insured hereunder than the amount hereby insured shall bear to the whole")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","insurance effected, whether valid or not.")
+      Writefile(L_FILE_NAME,"%s","<033>&a2460h+180V")
+      Writefile(L_FILE_NAME,"%s","CONDITIONS")
+      l_line_counter = l_line_counter + 4
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","1.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Misrepresentation and Fraud. This entire endorsement shall be void if, whether before or after a loss, the insured has concealed or")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","misrepresented any material fact or circumstance concerning this insurance or the subject thereof, or the interest of the insured, therein, or in")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","case of any fraud or false swearing by the insured relating thereto.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","2.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Notice of Loss. The insured shall as soon as practicable report in writing to the Company or its agent every loss, damage or occurrence")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","which may give rise to a claim under this endorsement and shall also file with the Company or its agent within ninety (90) days from date of")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","discovery of such loss, damage or occurrence, a detailed sworn proof of loss.")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","3.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Examination Under Oath. The Insured, as often as may be reasonably required, shall exhibit to any person designated by the Company")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","all that remains of any properly herein described, and shall submit. and in so far as is within his or their power cause his or their employees,")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","members of the household and others to submit to examinations under oath by any person named by the Company and subscribe the same;")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","and, as often as may be reasonably required, shall produce for examination all writings, books of account, bills, invoices and other vouchers,")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","or certified copies thereof if originals be lost, at such reasonable time and place as may be designated by the Company or its representative and")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","shall permit extracts and copies thereof to be made. No such examination under oath, or examination of books or documents, nor any act of the")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","Company or any of its employees or representatives in connection with the investigation of any loss or claim hereunder, shall be deemed a")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","waiver of any defense which the Company might otherwise have with respect to any loss or claim, but all such examinations and acts shall be")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","deemed to have been made or done without prejudice to the Company's liability.")
+      l_line_counter = l_line_counter + 5
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","4.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Settlement of Loss. All adjusted claims shall be paid or made good to the insured within sixty (60) days after presentation and")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","acceptance of satisfactory proof of interest and loss at the office of the Company. No loss shall be paid or made good if the insured has collected")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","the same from others.")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","5.")
+      l_line_counter = l_line_counter + 1.33
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","No Benefit to Bailee. This insurance shall in no wise insure directly or indirectly to the benefit of any carrier or other bailee.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","6.")
+      l_line_counter = l_line_counter + 1.33
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Subrogation or Loan. If in the event of loss or damage the insured shall acquire any right or action against any individual, firm or")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","corporation for loss of, or damage to, properly covered hereunder, the insured will, if requested by the Company, assign and transfer such claim")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","or right of action to the Company or, at the Company's option, execute and deliver to the Company the customary form of loan receipt upon")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","receiving an advance of funds in respect of the loss or damages; and will subrogate the Company to, or will hold in trust for the Company, all")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","such rights of action to the extent of the amount paid or advanced, and will permit suit to be brought in the insured name under the direction")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","of and at the expense of the Company")
+      l_line_counter = l_line_counter + 4.16
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","7.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Protection of Properly. In case of loss, it shall be lawful and necessary for the insured, his or their factors; servants and assigns, to sue,")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","labor, and travel for, in and about the defense, safeguard and recovery of the property insured hereunder, or any part thereof, without prejudice")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","to this insurance, nor shall the acts of the insured or the Company, in recovering, saving and preserving the property insured in case of loss be")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","considered a waiver or an acceptance of abandonment. The expenses so incurred shall be borne by the insured and the Company")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","proportionately to the extent of their respective interests.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","8.")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Suits. No suit, action or proceeding for the recovery of any claim under this endorsement shall be sustainable in any court of law or")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","equity unless the sane be commenced within twelve (12) months next after discovery by the Insured of the occurrence which gives rise to the")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","claim, provided however, that if by the laws of the State within which this endorsement is issued such limitation is invalid, then any such claims")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","shall be void unless such action, suit or proceeding be commenced within the shortest limit of time permitted by the laws of such State.")
+      l_line_counter = l_line_counter + 2.5
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","9.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Appraisal. If the insured and the Company fail to agree as to the amount of loss, each shall, on the written demand of either made within")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","(60) days after receipt of proof of loss by the Company, select a competent and disinterested appraiser, and the appraisal shall be made at a")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","reasonable time and place. The appraisers shall first select a competent and disinterested umpire, and failing for fifteen (15) days to agree upon")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","such umpire, then, on the request of the insured or the Company, such umpire shall be selected by a judge of a court of record in the State in")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","which such appraisal is pending. The appraisers shall then appraise the loss, stating separately the actual cash value at the time of loss and")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","the amount of loss, and failing to agree shall submit their differences to the umpire. An award in writing of any two shall determine the amount")
+      l_line_counter = l_line_counter + 2.5
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","of loss. The insured and the Company shall each pay, his or its chosen appraiser anc shall bear equally the other expenses of the appraisal and")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","umpire. The Company shall not be held to have waived any of its rights by any act relating to appraisal.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","10.")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Civil Authority. Properly covered under this endorsement against the peril of fire is also covered against the risk of damage or")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","destruction by civil authority during a conflagration and for the purpose of retarding the same; provided that neither such conflagration nor, such")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","damage or destruction is caused or contributed to by a peril otherwise excluded herein.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","11.")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Conformity to Statute. Terms of this endorsement which are in conflict with the statutes of the State wherein this endorsement is issued")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","are hereby amended to conform to such statutes.")
+      Writefile(L_FILE_NAME,"%s","<033>&a220h+160V")
+      Writefile(L_FILE_NAME,"%s","12.")
+      Writefile(L_FILE_NAME,"%s","<033>&a370h+0V")
+      Writefile(L_FILE_NAME,"%s","Changes. Notice to any agent or knowledge possessed by any agent or by any other person shall not affect a waiver or a change in any")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","part of the endorsement or stop the Company from asserting any right under the terms of this endorsement, nor shall the terms of this")
+      l_line_counter = l_line_counter + 3
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+100V")
+      Writefile(L_FILE_NAME,"%s","endorsement be waived or changed, except by endorsement issued to form a part of this endorsement.")
+      Writefile(L_FILE_NAME,"%s","<033>&a100h+180V")
+      Writefile(L_FILE_NAME,"%s","FM1O1")
+      l_line_counter = l_line_counter + 2.33
+      Writefile(L_FILE_NAME,"%s","<FF>")
+    }
+  Next cppinland
+}
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

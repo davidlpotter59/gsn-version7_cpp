@@ -1,0 +1,161 @@
+%%
+Screen
+        Name            = "cppmt204" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppENDORSE" ;
+        Windowtitle = "%a     %s Condominium Commercial Unit - Owners Optional Coverages   Ver (7.0)     %m" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_line_of_business[4]=0008 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+*------------------------------------------------------------------------------*
+|        Loss Assessment                       Miscellaneous                   |
+*------------------------------------------------------------------------------*
+| Additional Premium: ________        Additional Premium: ________             |
+| Limit:              ________        Limit:              ________             |
+| Deductible:         ________        Deductible:         ________             |
+*------------------------------------------------------------------------------*
+%%
+
+Components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = 0008
+            End
+        End
+        cppENDORSE:policy_NO/displayonly ;
+302     cppendorse:pol_year/displayonly ;
+303     cppendorse:end_sequence/displayonly ;
+401     cppENDORSE:PREM_NO/displayonly ;
+501     cppENDORSE:BUILD_NO/displayonly ;
+901     cppendorse:premium[1] ;
+1001    cppENDORSE:limit[1] ;
+1101    cppendorse:deductible[1] ;
+902     cppendorse:premium[2] ;
+1002    cppENDORSE:limit[2] ;
+1102    cppendorse:deductible[2] ;
+
+
+}
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS, Set cppENDORSE_ALIAS:policy_NO = cppENDORSE:policy_NO,
+                             cppendorse_alias:Pol_year = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             cppENDORSE_ALIAS:PREM_NO = cppENDORSE:PREM_NO,
+                             cppENDORSE_ALIAS:BUILD_NO = cppENDORSE:BUILD_NO,
+                             cppENDORSE_ALIAS:CODE = cppENDORSE:CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO = cppENDORSE:policy_NO And
+      cppendorse_alias:Pol_year = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      cppENDORSE_ALIAS:PREM_NO = cppENDORSE:PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO = cppENDORSE:BUILD_NO AND
+      cppENDORSE_ALIAS:CODE = cppENDORSE:CODE
+        Begin
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

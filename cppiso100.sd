@@ -1,0 +1,1655 @@
+%%
+program
+        name = "cppiso100" ;
+        type = "file" ;
+        padcharacter = space ;
+        domain="flat" ;
+
+        local string l_macro[15],
+                     l_macroa[15],
+                     l_dec[15],
+                     l_file_name[15],
+                     l_dec_pdf[15] ,
+                     l_business_income[1]="N",
+                     l_property[1]="N",
+                     l_csexec_application[25] ,
+                     l_lob_code[10] ,
+                     l_code[7],
+                     l_fob[25] ,
+                     l_package[1] ,
+                     l_coverage[2],
+                     l_company_rate[3],
+                     l_company_rate_1[3],
+                     l_risk_type[1],
+                     l_base_rate[7],
+                     l_alpha_look[50],
+                     l_crime_form[1] ;
+
+        local unsigned ascii number l_csexec_number[12] ,
+                                    l_state[2] ,
+                                    l_loop[2] ,
+                                    l_county[3],
+                                    l_minimum_premium[6]=0,
+                                    l_recovery_set[1],
+                                    l_class_code[5],
+                                    l_receptacles[2],
+                                    l_duplicate_records[1] ,
+                                    l_lob[4],
+                                    l_rate_type[2],
+                                    l_form[2],
+                                    l_construction[1],
+                                    l_policy_no[9] ,
+                                    l_pol_year[4],
+                                    l_end_sequence[999],
+                                    l_liability_terror_premium[8]=0,
+                                    l_artisan_terror_premium[8]=0,
+                                    l_premium_1[8]=0,
+                                    l_total[8] ,
+                                    l_total_1[8],
+                                    l_total_2[8],
+                                    l_total_3[8],
+                                    l_total_4[8],
+                                    l_total_5[8],
+                                    l_total_6[8],
+                                    l_total_15[8],
+                                    l_total_18[8],
+                                    l_other_totals_4[8],
+                                    l_terrorism_premium[8],
+                                    l_surcharge[8],
+                                    l_item_number,
+                                    l_line_counter,
+                                    l_max_lines,
+                                    l_crime_limit,
+                                    l_total_limit,
+                                    l_counter;
+
+        include "sfscsexec.var"
+        include "line_spacing.var"
+        include "csfonts.inc"
+
+        include "sfsrevname7.var"
+
+initialisation
+l_policy_no    = 0
+
+access sfpprint8,
+   set sfpprint8:policy_no    = l_policy_no,approximate
+
+
+access sfpname,
+   set sfpname:policy_no    = sfpprint8:policy_no,
+       sfpname:pol_year     = sfpprint8:pol_year,
+       sfpname:end_sequence = sfpprint8:end_sequence, generic
+
+access sfpmaster,
+   set sfpmaster:policy_no    = sfpprint8:policy_no,
+       sfpmaster:pol_year     = sfpprint8:pol_year,
+       sfpmaster:end_sequence = sfpprint8:end_sequence, generic
+
+access sfpamt,
+   set sfpamt:policy_no    = sfpprint8:policy_no,
+       sfpamt:pol_year     = sfpprint8:pol_year,
+       sfpamt:end_sequence = sfpprint8:end_sequence, generic
+
+l_lob = sfpamt:line_of_business[2]
+
+access sfpmastsupp,
+   set sfpmastsupp:policy_no        = sfpprint8:policy_no,
+       sfpmastsupp:pol_year         = sfpprint8:pol_year,
+       sfpmastsupp:end_sequence     = sfpprint8:end_sequence,
+       sfpmastsupp:line_of_business = l_lob, generic
+
+access sfscompany,
+   set sfscompany:company_id = sfpname:company_id, generic
+
+access sfsagent,
+   set sfsagent:company_id = sfpname:company_id,
+       sfsagent:agent_no   = sfpname:agent_no, generic
+
+access sfsline,
+   set sfsline:company_id       = sfpname:company_id,
+       sfsline:line_of_business = sfpname:line_of_business,
+       sfsline:lob_subline      = "00", generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    l_state = sfpmastsupp:state
+else
+    l_state    = sfpmaster:state
+l_lob_code = sfsline:lob_code
+
+access scipscontrol,
+   set scipscontrol:company_id = sfpname:company_id,
+       scipscontrol:state      = l_state,
+       scipscontrol:lob_code   = l_lob_code, generic
+
+L_CSEXEC_APPLICATION = "PRINT"/raw
+
+Access SFSCSEXEC,
+   Set SFSCSEXEC:APPLICATION = L_CSEXEC_APPLICATION, Exact
+
+If SFSCSEXEC:APPLICATION_NUMBER = 0 Then
+  Begin
+    L_CSEXEC_NUMBER = 99999
+  End
+Else
+  Begin
+    L_CSEXEC_NUMBER = SFSCSEXEC:APPLICATION_NUMBER + 1
+
+    Change SFSCSEXEC
+      Begin
+        SFSCSEXEC:APPLICATION_NUMBER = L_CSEXEC_NUMBER
+      End
+  End
+
+l_dec = "cppiso100.cq"
+l_file_name = l_dec
+deletefile(l_dec)
+
+do create_header
+access cppgeneral,
+   set cppgeneral:policy_no    = sfpprint8:policy_no,
+       cppgeneral:pol_year     = sfpprint8:pol_year,
+       cppgeneral:end_sequence = sfpprint8:end_sequence, generic
+
+if cppgeneral:policy_no    = sfpprint8:policy_no and
+   cppgeneral:pol_year     = sfpprint8:pol_year and
+   cppgeneral:end_sequence = sfpprint8:end_sequence then
+  begin
+    include "cppiso100a.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+  end
+
+access cppliability,
+   set cppliability:policy_no    = sfpprint8:policy_no,
+       cppliability:pol_year     = sfpprint8:pol_year,
+       cppliability:end_sequence = sfpprint8:end_sequence, generic
+
+if cppliability:policy_no    = sfpprint8:policy_no and
+   cppliability:pol_year     = sfpprint8:pol_year and
+   cppliability:end_sequence = sfpprint8:end_sequence then
+  begin
+    include "cppiso100b.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+  end
+
+access cppartisan,
+   set cppartisan:policy_no    = sfpprint8:policy_no,
+       cppartisan:pol_year     = sfpprint8:pol_year,
+       cppartisan:end_sequence = sfpprint8:end_sequence, generic
+
+if cppartisan:policy_no    = sfpprint8:policy_no and
+   cppartisan:pol_year     = sfpprint8:pol_year and
+   cppartisan:end_sequence = sfpprint8:end_sequence then
+  begin
+    include "cppiso100c.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+  end
+
+access cppinland,
+   set cppinland:policy_no    = sfpprint8:policy_no,
+       cppinland:pol_year     = sfpprint8:pol_year,
+       cppinland:end_sequence = sfpprint8:end_sequence, generic
+
+if cppinland:policy_no    = sfpprint8:policy_no and
+   cppinland:pol_year     = sfpprint8:pol_year and
+   cppinland:end_sequence = sfpprint8:end_sequence then
+  begin
+    include "cppiso100d.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+  end
+
+access cppcrime1,
+   set cppcrime1:policy_no    = sfpprint8:policy_no,
+       cppcrime1:pol_year     = sfpprint8:pol_year,
+       cppcrime1:end_sequence = sfpprint8:end_sequence, generic
+
+if cppcrime1:policy_no    = sfpprint8:policy_no and
+   cppcrime1:pol_year     = sfpprint8:pol_year and
+   cppcrime1:end_sequence = sfpprint8:end_sequence then
+  begin
+    include "cppiso100e.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+  end
+
+access sfpend,
+   set sfpend:policy_no    = sfpprint8:policy_no,
+       sfpend:pol_year     = sfpprint8:pol_year,
+       sfpend:end_sequence = sfpprint8:end_sequence,
+       sfpend:prem_no      = 0,
+       sfpend:build_no     = 0, generic
+
+if sfpend:policy_no    = sfpprint8:policy_no and
+   sfpend:pol_year     = sfpprint8:pol_year and
+   sfpend:end_sequence = sfpprint8:end_sequence and
+   sfpend:prem_no      = 0 and
+   sfpend:build_no     = 0 then
+  begin
+    writefile(l_dec,"%s",l_arial)
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s","POLICY WIDE ENDORSEMENTS")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s","FORM EDITION")
+    writefile(l_dec,"%s","<033>&a1500h+0V")
+    writefile(l_dec,"%s","DESCRIPTION")
+    writefile(l_dec,"%s","<033>&a4000h+0V")
+    writefile(l_dec,"%s","PREMIUM")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+  end
+
+while sfpend:policy_no    = sfpprint8:policy_no and
+      sfpend:pol_year     = sfpprint8:pol_year and
+      sfpend:end_sequence = sfpprint8:end_sequence and
+      sfpend:prem_no      = 0 and
+      sfpend:build_no     = 0
+  begin
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s",l_arial)
+    writefile(l_dec,"%s",sfpend:form_edition)
+    writefile(l_dec,"%s","<033>&a1500h+0V")
+    writefile(l_dec,"%s",sfpend:description)
+    if sfpend:premium <> 0 then
+      begin
+        writefile(l_dec,"%s","<033>&a4000h+0V")
+        writefile(l_dec,"%s",str(sfpend:premium,"ZZZ,ZZZ.99-"))
+      end
+    else
+      if sfpend:manual_premium <> 0 then
+        begin
+          writefile(l_dec,"%s","<033>&a4000h+0V")
+          writefile(l_dec,"%s",str(sfpend:manual_premium,"ZZZ,ZZZ.99-"))
+        end
+    writefile(l_dec,"%s","<NL>")
+
+    next sfpend
+  end
+
+closefile(l_macro)
+
+update
+
+procedure definition
+
+procedure create_header
+begin
+  Writefile(l_dec,"%s",l_arial)
+  Writefile(l_dec,"%s","<033>&a1500h+0V")
+  Writefile(l_dec,"%s",Trun(SFSCOMPANY:NAME[1]))
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s%s%s%s%s","Policy No:  ",str(sfpname:policy_no)," ",
+                         str(sfpname:pol_year,"ZZZZ")," ",
+                         str(sfpname:end_sequence,"ZZZZ"))
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%s%s%s%s","Agent:  ",trun(sfsagent:name[1])," - ",str(sfpname:agent_no))
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  i_name = sfpname:name[1]
+  include "sfsrevname7.pro"
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s",i_rev_name)
+  writefile(l_dec,"%s","<NL>")
+  i_name = sfpname:name[2]
+  include "sfsrevname7.pro"
+  if i_rev_name <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a300h+0V")
+      writefile(l_dec,"%s",i_rev_name)
+      writefile(l_dec,"%s","<NL>")
+    end
+  i_name = sfpname:name[3]
+  include "sfsrevname7.pro"
+  if i_rev_name <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a300h+0V")
+      writefile(l_dec,"%s",i_rev_name)
+      writefile(l_dec,"%s","<NL>")
+    end
+  if sfpname:address[1] <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a300h+0V")
+      writefile(l_dec,"%s",sfpname:address[1])
+      writefile(l_dec,"%s","<NL>")
+    end
+  if sfpname:address[2] <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a300h+0V")
+      writefile(l_dec,"%s",sfpname:address[2])
+      writefile(l_dec,"%s","<NL>")
+    end
+  if sfpname:address[3] <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a300h+0V")
+      writefile(l_dec,"%s",sfpname:address[3])
+      writefile(l_dec,"%s","<NL>")
+    end
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s%s%s%s",trun(sfpname:city),", ",sfpname:str_state," ",str(sfpname:zipcode,"99999-9999"))
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%d","Effective Date:  ",sfpname:eff_date)
+  writefile(l_dec,"%s","<033>&a2700h+0V")
+  writefile(l_dec,"%s%d","Expiration Date  ",sfpname:exp_date)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  switch(sfpmaster:form_of_business)
+    case "C" : l_fob = "Corporation"
+    case "I" : l_fob = "Individual"
+    case "J" : l_fob = "Joint Venture"
+    case "O" : l_fob = "Organization"
+    case "P" : l_fob = "Partnership"
+    default  : l_fob = sfpmaster:fob_description
+  end
+  writefile(l_dec,"%s%s","Form of Business:  ",l_fob)
+
+  writefile(l_dec,"%s","<033>&a2700h+0V")
+  writefile(l_dec,"%s%s","Special Commission:  ",str(sfpname:spec_comm_rate,"Z9.99"))
+  writefile(l_dec,"%s","<NL>")
+
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  switch(sfpname:package)
+    case 1  : l_package = "Y"
+    default : l_package = "N"
+  end
+  writefile(l_dec,"%s%s","Package Policy:  ",l_package)
+
+  writefile(l_dec,"%s","<033>&a2700h+0V")
+  writefile(l_dec,"%s%s","Previous Policy:  ",str(sfpname:previous_policy_no,"ZZZZZZZZZ"))
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+      l_total_1           = sfpmastsupp:total[1]
+      l_total_2           = sfpmastsupp:total[2]
+      l_total_3           = sfpmastsupp:total[3]
+      l_total_4           = sfpmastsupp:total[4]
+      l_total_5           = sfpmastsupp:total[5]
+      l_total_6           = sfpmastsupp:total[6]
+      l_total_15          = sfpmastsupp:total[15]
+      l_total_18          = sfpmastsupp:total[18]
+      l_other_totals_4    = sfpmastsupp:other_totals[4]
+      l_terrorism_premium = sfpmastsupp:terrorism_premium
+      l_surcharge         = sfpmastsupp:surcharge
+    end
+  else
+    begin
+      l_total_1           = sfpmaster:total[1]
+      l_total_2           = sfpmaster:total[2]
+      l_total_3           = sfpmaster:total[3]
+      l_total_4           = sfpmaster:total[4]
+      l_total_5           = sfpmaster:total[5]
+      l_total_6           = sfpmaster:total[6]
+      l_total_15          = sfpmaster:total[15]
+      l_total_18          = sfpmaster:total[18]
+      l_other_totals_4    = sfpmaster:other_totals[4]
+      l_terrorism_premium = sfpmaster:terrorism_premium
+      l_surcharge         = sfpmaster:surcharge
+    end
+
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Property Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_1 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_1,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Boiler & Machinery")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_other_totals_4 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_other_totals_4,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Business Income Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_2 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_2,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Glass Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_3 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_3,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Crime Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_4 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_4,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Liability Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_5 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_5,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Artisan Liability Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_15 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_15,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Inland Marine Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_6 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_6,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Terrorism Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_terrorism_premium <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_terrorism_premium,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Total Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_total_18 <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_total_18 --+
+  --                             l_other_totals_4 +
+  --                             l_total_2 +
+  --                             l_total_3 +
+  --                             l_total_4 +
+  --                             l_total_5 +
+  --                             l_total_15 +
+  --                             l_total_6 +
+  --                             l_terrorism_premium
+                                  ,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a750h+0V")
+  writefile(l_dec,"%s","Surcharge Premium")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+  if l_surcharge <> 0 then
+    {
+      writefile(l_dec,"%s",str(l_surcharge,"ZZZ,ZZZ,ZZZ.99"))
+    }
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  Writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%d","Trans Date: ",sfpname:trans_date)
+  writefile(l_dec,"%s","<033>&a2000h+0V")
+  writefile(l_dec,"%s%s","Rater: ",sfpname:user_id)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+end
+
+Procedure print_crime_location_header
+begin
+  l_state  = cppcrime1:state
+  l_county = cppcrime1:county
+  l_lob    = cppcrime1:rating_line_of_business
+
+  access cppisocrime,
+     set cppisocrime:policy_no    = cppcrime1:policy_no,
+         cppisocrime:pol_year     = cppcrime1:pol_year,
+         cppisocrime:end_sequence = cppcrime1:end_sequence,
+         cppisocrime:prem_no      = cppcrime1:prem_no,
+         cppisocrime:build_no     = cppcrime1:build_no,
+         cppisocrime:crime_form   = l_crime_form, generic
+
+  access sfsstate,
+     set sfsstate:company_id = sfpname:company_id,
+         sfsstate:state      = l_state,
+         sfsstate:county     = "00", generic
+
+  access sfsstate_alias,
+     set sfsstate_alias:company_id = sfpname:company_id,
+         sfsstate_alias:state      = l_state,
+         sfsstate_alias:county     = l_county, generic
+
+  access cpsratetype,
+     set cpsratetype:company_id       = sfpname:company_id,
+         cpsratetype:state            = l_state,
+         cpsratetype:line_of_business = l_lob,
+         cpsratetype:rate_type        = l_rate_type, generic
+
+  access sfsconstruction,
+     set sfsconstruction:company_id       = sfpname:company_id,
+         sfsconstruction:state            = l_state,
+         sfsconstruction:line_of_business = l_lob,
+         sfsconstruction:construction     = l_construction, generic
+
+  access sfsform,
+     set sfsform:company_id       = sfpname:company_id,
+         sfsform:state            = l_state,
+         sfsform:line_of_business = l_lob,
+         sfsform:policy_form      = l_form, generic
+
+  access cpsclass,
+     set cpsclass:company_id       = sfpname:company_id,
+         cpsclass:state            = l_state,
+         cpsclass:line_of_business = l_lob,
+         cpsclass:alpha_look       = l_alpha_look, generic
+
+  access sfplocation,
+     Set sfplocation:policy_no    = cppisocrime:policy_no,
+         sfplocation:pol_year     = cppisocrime:pol_year,
+         sfplocation:end_sequence = cppisocrime:end_sequence,
+         sfplocation:prem_no      = cppisocrime:prem_no,
+         sfplocation:build_no     = cppisocrime:build_no, generic
+
+  Writefile(l_dec,"%s",l_arial_bold)
+  writefile(l_dec,"%s","<033>&a2000h+0V")
+  writefile(l_dec,"%s","CRIME")
+
+  writefile(l_dec,"%s",l_arial)
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s%s","Location:  ",str(cppcrime1:prem_no,"ZZZZ"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s%s","Building:  ",str(cppcrime1:build_no,"ZZZZ"))
+
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",trun(sfplocation:address))
+  writefile(l_dec,"%s","<NL>")
+  if sfplocation:address1[1] <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a2300h+0V")
+      writefile(l_dec,"%s",trun(sfplocation:address1[1]))
+      writefile(l_dec,"%s","<NL>")
+    end
+  if sfplocation:address1[2] <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a2300h+0V")
+      writefile(l_dec,"%s",trun(sfplocation:address1[2]))
+      writefile(l_dec,"%s","<NL>")
+    end
+  if sfplocation:address1[3] <> "" then
+    begin
+      writefile(l_dec,"%s","<033>&a2300h+0V")
+      writefile(l_dec,"%s",trun(sfplocation:address1[3]))
+      writefile(l_dec,"%s","<NL>")
+    end
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s%s%s%s%s",trun(sfplocation:city),
+                               ", ",
+                               sfplocation:str_state,
+                               " ",
+                               str(sfplocation:zipcode,"99999-9999"))
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s%s%s","State:  ",str(cppcrime1:state)," ",trun(sfsstate:description))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s%s%s%s","County:  ",str(cppcrime1:county)," ",trun(sfsstate_alias:description))
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%n","Territory:  ",cppcrime1:terr)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+end --print_crime_location_header
+
+Procedure print_coverage_form_c
+Begin
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s","Crime Form:  ",l_crime_form)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Deductible:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:DEDUCTIBLE)
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Rate Group:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:RATE_GROUP)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Plan:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:PLAN)
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Safe/Vault Class:")
+  writefile(l_dec,"%s","<033>&a3900h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:SAFE_CLASS)
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","Coverage Inside Premises")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Coverage")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s","Actual Exposure")
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s","Factor")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Multiplier")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Money:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:money_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[1],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Securities:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:securities_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[2],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[2],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Checks:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:checks_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[3],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[3],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Payroll Checks:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:payroll_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[4],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[4],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Bank Securities:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:bank_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[5],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[5],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Add'l Charge:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[6],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_multiplier[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Gross Premium:")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZ,ZZZ,ZZZ.99"))
+
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Total")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Disc")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","1.00")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:territory_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[1],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[1],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[1],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[1],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[1],"ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Safe Burglary")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","No of Watchpersons:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_WATCHPERSONS)
+  writefile(l_dec,"%s","<033>&a3000h+0V")
+  writefile(l_dec,"%s","Watchperson Code:")
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:code)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","No of Guard Service:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_GUARDS_SERVICE)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premises/Safe With Key:")
+  if cppisocrime:key[1] one of 1 then
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","Yes")
+    }
+  else
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","No")
+    }
+  writefile(l_dec,"%s","<033>&a3000h+0V")
+  writefile(l_dec,"%s","Premises/Safe-NO Keys:")
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:ALARM_SERVICE_NO)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Safe/Vaults With Key:")
+  if cppisocrime:key[2] one of 1 then
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","Yes")
+    }
+  else
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","No")
+    }
+  writefile(l_dec,"%s","<033>&a3000h+0V")
+  writefile(l_dec,"%s","Safe/Vaults-NO Keys:")
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:SAFE_VAULT)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Holdup Alarms:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:HOLDUP)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Bullet Resisting:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:BULLET_code)
+  writefile(l_dec,"%s","<033>&a300h+200V")
+  writefile(l_dec,"%s","Amendments")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Decrease Limit of Insurance while Not Open for Business:")
+  writefile(l_dec,"%s","<033>&a3800h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:business_code)
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a4800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:closed_for_business_limit,"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a300h+140V")
+  writefile(l_dec,"%s","Extend Definition to Entire Plot Of Ground:")
+  writefile(l_dec,"%s","<033>&a3800h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:Entire_plot)
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","Outside Coverage Premises")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","No of Messengers:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_MESSENGERS)
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%s","No of Guards:")
+  writefile(l_dec,"%s","<033>&a3300h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_GUARDS)
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a4800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[3],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Conveyance Safeguards:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:conveyance_code)
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%s","Conveyed by Armored Vehicle:")
+  if cppisocrime:Armored_motor_vehicle one of 1 then
+    {
+      writefile(l_dec,"%s","<033>&a4800h+0V")
+      writefile(l_dec,"%s","Yes")
+    }
+  else
+    {
+      writefile(l_dec,"%s","<033>&a4800h+0V")
+      writefile(l_dec,"%s","No")
+    }
+
+  writefile(l_dec,"%s","<033>&a300h+200V")
+  writefile(l_dec,"%s","Coverage")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s","Actual Exposure")
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s","Factor")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Multiplier")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Money:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:money_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[1],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total_1[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Securities:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:securities_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[2],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total_1[2],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Checks:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:checks_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[3],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total_1[3],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Payroll Checks:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:payroll_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[4],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total_1[4],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Add'l Charge:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[5],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_multiplier[2],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Gross Premium:")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[2],"ZZ,ZZZ,ZZZ.99"))
+
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Total")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Disc")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[2],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","1.00")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:mess_terr_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[2],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[2],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[2],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[2],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[2],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[2],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[2],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<FF>")
+
+end --print_coverage_form_c
+
+Procedure print_coverage_form_d
+Begin
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s","Crime Form:  ",l_crime_form)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Deductible:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:DEDUCTIBLE)
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Rate Group:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:RATE_GROUP)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Plan:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:PLAN)
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Safe/Vault Class:")
+  writefile(l_dec,"%s","<033>&a3900h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:SAFE_CLASS)
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","Coverage Form: ")
+  writefile(l_dec,"%s","<033>&a1200h+0V")
+  writefile(l_dec,"%n",cppisocrime:holdup_alarms)
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Coverage")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s","Actual Exposure")
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s","Factor")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Multiplier")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Basic:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:money_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[1],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Add'l:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[2],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[2],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Gross Premium:")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a970h+0V")
+  writefile(l_dec,"%s","Total")
+  writefile(l_dec,"%s","<033>&a1400h+0V")
+  writefile(l_dec,"%s","Form")
+  writefile(l_dec,"%s","<033>&a1850h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a970h+0V")
+  writefile(l_dec,"%s","Disc")
+  writefile(l_dec,"%s","<033>&a1400h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a1850h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","1.00")
+  writefile(l_dec,"%s","<033>&a1370h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:base_factor_inside[4],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a1800h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:territory_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[1],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[1],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[1],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[1],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[1],"ZZZ,ZZZ.99"))
+
+  --
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Safe Burglary")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Coverage")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s","Actual Exposure")
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s","Factor")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Multiplier")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Basic:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:securities_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[3],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[3],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Add'l:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:checks_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[3],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[4],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Gross Premium:")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[2],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a970h+0V")
+  writefile(l_dec,"%s","Total")
+  writefile(l_dec,"%s","<033>&a1400h+0V")
+  writefile(l_dec,"%s","Form")
+  writefile(l_dec,"%s","<033>&a1850h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a970h+0V")
+  writefile(l_dec,"%s","Disc")
+  writefile(l_dec,"%s","<033>&a1400h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a1850h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[2],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","1.00")
+  writefile(l_dec,"%s","<033>&a1370h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:base_factor_inside[5],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a1800h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:burglary_terr_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[2],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[2],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[2],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[1],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[2],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[2],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[2],"ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","Safe Burglary")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","No of Watchpersons:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_WATCHPERSONS)
+  writefile(l_dec,"%s","<033>&a3000h+0V")
+  writefile(l_dec,"%s","Watchperson Code:")
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:code)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","No of Guard Service:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_GUARDS_SERVICE)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premises/Safe With Key:")
+  if cppisocrime:key[1] one of 1 then
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","Yes")
+    }
+  else
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","No")
+    }
+  writefile(l_dec,"%s","<033>&a3000h+0V")
+  writefile(l_dec,"%s","Premises/Safe-NO Keys:")
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:ALARM_SERVICE_NO)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Safe/Vaults With Key:")
+  if cppisocrime:key[2] one of 1 then
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","Yes")
+    }
+  else
+    {
+      writefile(l_dec,"%s","<033>&a1500h+0V")
+      writefile(l_dec,"%s","No")
+    }
+  writefile(l_dec,"%s","<033>&a3000h+0V")
+  writefile(l_dec,"%s","Safe/Vaults-NO Keys:")
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:SAFE_VAULT)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Holdup Alarms:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:HOLDUP)
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Bullet Resisting:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:BULLET_code)
+
+  writefile(l_dec,"%s","<033>&a300h+200V")
+  writefile(l_dec,"%s","Amendments")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Decrease Limit of Insurance while Not Open for Business:")
+  writefile(l_dec,"%s","<033>&a3800h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:business_code)
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a4800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:closed_for_business_limit,"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a300h+140V")
+  writefile(l_dec,"%s","Extend Definition to Entire Plot Of Ground:")
+  writefile(l_dec,"%s","<033>&a3800h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:Entire_plot)
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s","Outside Coverage Premises")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","No of Messengers:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_MESSENGERS)
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%s","No of Guards:")
+  writefile(l_dec,"%s","<033>&a3300h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:NO_GUARDS)
+  writefile(l_dec,"%s","<033>&a4200h+0V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a4800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[3],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Conveyance Safeguards:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",cppISOCRIME:conveyance_code)
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%s","Conveyed by Armored Vehicle:")
+  if cppisocrime:Armored_motor_vehicle one of 1 then
+    {
+      writefile(l_dec,"%s","<033>&a4800h+0V")
+      writefile(l_dec,"%s","Yes")
+    }
+  else
+    {
+      writefile(l_dec,"%s","<033>&a4800h+0V")
+      writefile(l_dec,"%s","No")
+    }
+
+  writefile(l_dec,"%s","<FF>")
+  writefile(l_dec,"%s","<033>&a300h+200V")
+  writefile(l_dec,"%s","Coverage")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s","Actual Exposure")
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s","Factor")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Multiplier")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Basic:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:money_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[1],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total_1[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Add'l:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_exposure[2],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_outside[2],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_multiplier[2],"Z,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Gross Premium:")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[3],"ZZ,ZZZ,ZZZ.99"))
+
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Total")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Disc")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[3],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","1.00")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:mess_terr_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[3],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[3],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[3],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[1],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[3],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[3],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[3],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<FF>")
+End--print_coverage_form_d
+
+Procedure print_coverage_form_e
+Begin
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s","Crime Form:  ",l_crime_form)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Deductible:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:DEDUCTIBLE)
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Rate Group:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:RATE_GROUP)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Coverages Inside Premises")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Plan:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:PLAN)
+
+  writefile(l_dec,"%s","<033>&a300h+200V")
+  writefile(l_dec,"%s","Coverage")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s","Actual Exposure")
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s","Factor")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Multiplier")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Basic:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:money_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[1],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:crime_total[1],"ZZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Add'l:")
+  writefile(l_dec,"%s","<033>&a1500h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_exposure[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a2800h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:base_factor_inside[6],"ZZ,ZZZ.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:excess_multiplier[1],"Z,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Gross Premium:")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Total")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","Disc")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Mult")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1000h+0V")
+  writefile(l_dec,"%s","1.00")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:territory_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[1],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[1],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[1],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[1],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[1],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<FF>")
+
+End--print_coverage_form_e
+
+Procedure print_coverage_form_4
+Begin
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s%s","Crime Form:  ",l_crime_form)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Deductible:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:DEDUCTIBLE)
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Rate Group:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:RATE_GROUP)
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<NL>")
+  writefile(l_dec,"%s","<033>&a300h+0V")
+  writefile(l_dec,"%s","Coverages Inside Premises")
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Limit:")
+  writefile(l_dec,"%s","<033>&a900h+0V")
+  writefile(l_dec,"%s",str(cppISOCRIME:LIMIT[1],"ZZ,ZZZ,ZZZ"))
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Plan:")
+  writefile(l_dec,"%s","<033>&a2500h+0V")
+  writefile(l_dec,"%n",cppISOCRIME:PLAN)
+
+  writefile(l_dec,"%s","<033>&a330h+240V")
+  writefile(l_dec,"%s","Gross")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Terr")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Net")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Deductible")
+  writefile(l_dec,"%s","<033>&a3700h+0V")
+  writefile(l_dec,"%s","Adj")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Final")
+
+  writefile(l_dec,"%s","<033>&a300h+120V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s","Mutl")
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s","Credit")
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s","Premium")
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s","RMF")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s","Premium")
+
+  writefile(l_dec,"%s","<033>&a300h+240V")
+  writefile(l_dec,"%s",str(cppISOCRIME:gross_premium[1],"ZZ,ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a1600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:territory_factor,"Z9.999"))
+  writefile(l_dec,"%s","<033>&a2300h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:net_premium[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a2900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:deductible_premium[2],"ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a3600h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:adjusted_rate[1],"ZZ,ZZ9.999"))
+  writefile(l_dec,"%s","<033>&a4400h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:rmf_total[1],"Z9.999"))
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:total_premium[1],"ZZ,ZZZ,ZZZ.99"))
+
+  writefile(l_dec,"%s","<033>&a3000h+160V")
+  writefile(l_dec,"%s","Balance to Meet Minimum:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:minimum_premium[1],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<033>&a3000h+120V")
+  writefile(l_dec,"%s","Total Premium:")
+  writefile(l_dec,"%s","<033>&a4900h+0V")
+  writefile(l_dec,"%s",str(cppisocrime:final_premium[1],"ZZZ,ZZZ.99"))
+  writefile(l_dec,"%s","<FF>")
+
+End--print_coverage_form_4
+
+END --END OF PROGRAM

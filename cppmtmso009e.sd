@@ -1,0 +1,95 @@
+%%
+Screen
+        Name            = "cppmtmso009e";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s FOB Description    Ver 7.0 %m";
+        Domain          = "sfpMASTER" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries boqisolib boqmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_STATE[2],
+                                     G_LINE_OF_BUSINESS[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      g_fob_description[75] ;
+
+        Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO,
+                              sfpmaster:pol_Year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        add/update="NO" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Description:                                                                 |
+| ___________________________________________________________________________  |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+401     G_FOB_DESCRIPTION/default ;
+
+}
+
+}
+
+End
+/* end of file */

@@ -1,0 +1,166 @@
+%%
+Screen
+        Name            = "cppmtmso001e" ;
+        Type            = "Detail" ;
+        padcharacter    = space ;
+        highlight       = underscore ;
+        screensize      = "dynamic" ;
+        windowtitle = "%a     %s Detail Reinsurance     Ver 7.00 %m" ;
+        domain          = "sfpreins1" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        local unsigned ascii number l_total_1[8]=0 ,
+                                    l_total_2[8]=0 ,
+                                    l_total_3[8]=0 ,
+                                    l_limit_total[8]=0 ;
+
+        Access sfpREINS1,
+           Set sfpREINS1:policy_NO = G_policy_NO ,
+               sfpreins1:pol_year = g_year,
+               sfpreins1:end_sequence = g_end_sequence, generic
+
+        Include "INQKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        include "inqfunc7.inc"
+
+
+menu definition
+
+--        include "stdmenu7.inc"
+
+--}
+
+toolbar definition
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+access validation
+if sfpreins1:policy_no <> g_policy_no or
+   sfpreins1:pol_year <> g_year or
+   sfpreins1:end_Sequence <> g_end_sequence then
+    error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _________________
+*------------------------------------------------------------------------------*
+| Policy No:        _________  ____  ____                                      |
+| Location No:      ____                                                       |
+| Building No:      ____                                                       |
+*------------------------------------------------------------------------------*
+|                       Fire          EC            VMM          Other         |
+| Property:         ___________   ___________   ___________   ___________      |
+| Business Income:  ___________   ___________   ___________   ___________      |
+*------------------------------------------------------------------------------*
+|                     Premium                                     Limit        |
+*------------------------------------------------------------------------------*
+| Property:         ___________                                 __________     |
+| Business Income:  ___________                                 __________     |
+| Optional Cov:     ___________                                 __________     |
+| Crime:            ___________                                 __________     |
+| Glass:            ___________                                 __________     |
+| Inland Marine:    ___________                                 __________     |
+| Irpm:             ___________                                 ______         |
+*------------------------------------------------------------------------------*
+| Total:            ___________                                 __________     |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     sfpREINS1:policy_NO/displayonly                      Mandatory;
+302     sfpreins1:pol_year/displayonly ;
+303     sfpreins1:end_sequence/displayonly ;
+401     sfpREINS1:PREM_NO/displayonly                       Mandatory;
+501     sfpREINS1:BUILD_NO/displayonly                      Mandatory;
+801     sfpREINS1:PROPERTY_FIRE_TOTAL/displayonly;
+802     sfpREINS1:PROPERTY_EC_TOTAL/displayonly;
+803     sfpREINS1:PROPERTY_VMM_TOTAL/displayonly;
+804     sfpREINS1:PROPERTY_OTHER_TOTAL/displayonly;
+901     sfpREINS1:BI_FIRE_TOTAL/displayonly;
+902     sfpREINS1:BI_EC_TOTAL/displayonly;
+903     sfpREINS1:BI_VMM_TOTAL/displayonly;
+904     sfpREINS1:BI_OTHER_TOTAL/displayonly;
+
+1301     begin
+            l_total_1 = sfpreins1:property_fire_total +
+                        sfpreins1:property_ec_total +
+                        sfpreins1:property_vmm_total +
+                        sfpreins1:property_other_total
+        end
+        l_total_1/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+1302    sfpREINS1:PROPERTY_LIMIT/displayonly;
+1401    begin
+            l_total_2 = sfpreins1:bi_fire_total +
+                        sfpreins1:bi_ec_total +
+                        sfpreins1:bi_vmm_total +
+                        sfpreins1:bi_other_total
+        end
+        l_total_2/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+1402    sfpREINS1:BI_LIMIT/displayonly;
+1501    sfpreins1:property_opt_coverages/displayonly ;
+1502    sfpreins1:opt_coverages_limit/displayonly ;
+1601    sfpREINS1:CRIME_TOTAL/displayonly;
+1602    sfpREINS1:CRIME_LIMIT/displayonly;
+1701    sfpREINS1:GLASS_TOTAL/displayonly;
+1702    sfpREINS1:GLASS_LIMIT/displayonly;
+1801    sfpREINS1:INLAND_MARINE_TOTAL/displayonly;
+1802    sfpREINS1:INLAND_MARINE_LIMIT/displayonly;
+1901    sfpREINS1:IRPM_TOTAL/displayonly;
+1902    sfpREINS1:IRPM/displayonly;
+
+2101    begin
+            l_total_3 = l_total_1 +
+                        l_total_2 +
+                        sfpreins1:crime_total +
+                        sfpreins1:glass_total +
+                        sfpreins1:inland_marine_total +
+                        sfpreins1:irpm_total +
+                        sfpreins1:property_opt_coverages
+        end
+        l_total_3/displayonly/mask="Z,ZZZ,ZZZ.99-" ;
+2102    begin
+            l_limit_total = sfpreins1:property_limit +
+                            sfpreins1:bi_limit +
+                            sfpreins1:crime_limit +
+                            sfpreins1:glass_limit +
+                            sfpreins1:inland_marine_limit +
+                            sfpreins1:opt_coverages_limit
+        end
+        l_limit_total/displayonly/mask="ZZ,ZZZ,ZZZ" ;
+
+}
+
+}
+
+
+End

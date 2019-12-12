@@ -1,0 +1,419 @@
+%%
+/*
+Date Written: October 28, 2003
+
+Name: cppmcn883.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+10/28/2003            DWR
+
+===========================
+*/
+
+Program
+  Name = "cppmcn883";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcn883.cq";
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppendorse,
+       Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = ""
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+{
+  If SFPEND:CODE = "MCN883 " Then
+    {
+       Access cppendorse,
+          Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+              cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+              cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+              cppendorse:prem_no      = sfpend:prem_no,
+              cppendorse:build_no     = sfpend:build_no,
+              cppendorse:code         = sfpend:code, Generic
+
+
+Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+Writefile(L_FILE_NAME,"%s",sfsoptend:copyright)
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+Writefile(L_FILE_NAME,"%s"," ")
+Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+Writefile(L_FILE_NAME,"%s","<NL>")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_14)
+Writefile(L_FILE_NAME,"%s","<033>&a1850h+0V")
+Writefile(L_FILE_NAME,"%s","NOTICE TO POLICYHOLDERS")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+60V")
+Writefile(L_FILE_NAME,"%s","Under the Liability Coverage, your policy includes a limit for all liability for damages caused by or resulting from fungi/mold. An")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","explanation of this coverage is found below. The basic limit is an aggregate limit of $50,000. Higher limits are available up to")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","$100,000 upon request. This limit is part of your aggregate limit and not an additional amount of insurance.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+Writefile(L_FILE_NAME,"%s","No coverage is provided by this notice nor can it be construed to replace any provision of your policy. You should read your")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","policy and any related endorsements (including this endorsement MCN 883) and review your Declarations page for complete")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","information on the coverages you are provided. If there is any conflict between the policy and this notice, the provisions of the")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","policy shall prevail.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+Writefile(L_FILE_NAME,"%s","Contact your agent if you have any questions.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+Writefile(L_FILE_NAME,"%s","<033>*c5200h2v0p") --Horizontal line
+Writefile(L_FILE_NAME,"%s",l_arial_bold_12)
+Writefile(L_FILE_NAME,"%s","<033>&a4650h+180V")
+Writefile(L_FILE_NAME,"%s","MCN 883 ")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","08 02")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","FUNGI ")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s"," / MOLD LIMITATIONS - LIABILITY")
+Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","PART II - NEW JERSEY")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","This endorsement extends the exclusions to any occurrence or injury arising out of fungi or mold as described, but provides a")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","limited coverage for injury arising out of fungi or mold.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+Writefile(L_FILE_NAME,"%s","The provisions of this endorsement apply only when the endorsement number is listed in the Declarations.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+Writefile(L_FILE_NAME,"%s","<033>*c5200h5v0p") --Horizontal line
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+Writefile(L_FILE_NAME,"%s","Policy # ")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%n",sfpprint1:policy_no)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+Writefile(L_FILE_NAME,"%s","SCHEDULE")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+Writefile(L_FILE_NAME,"%s","Limit of Liability")
+Writefile(L_FILE_NAME,"%s","<033>&a1200h+240V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","$ ")
+Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+if cppendorse:limit[1] = 0 then
+    Writefile(L_FILE_NAME,"%s",str(sfsoptend:limit[1],"ZZ,ZZZ,ZZZ"))
+else
+    Writefile(L_FILE_NAME,"%s",str(cppendorse:limit[1],"ZZ,ZZZ,ZZZ"))
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+Writefile(L_FILE_NAME,"%s","General Aggregate / Total Limit")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+200V")
+Writefile(L_FILE_NAME,"%s","1.")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+Writefile(L_FILE_NAME,"%s","FUNGI ")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","/ MOLD SUPPLEMENTAL COVERAGE")
+Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+Writefile(L_FILE_NAME,"%s","A.")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+Writefile(L_FILE_NAME,"%s","Coverage")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","We ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","pay for the benefit of ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insureds")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s",", up to the limit of")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","liability shown in the Schedule of this endorsement,")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","those sums that ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","insureds ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","become legally liable to pay")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","as damages because of ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","bodily injury, property")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","damage, advertising injury ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","personal injury")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","resulting from or caused by the actual, alleged, or")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","threatened absorption of, contact with, existence of,")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","exposure to, inhalation of, ingestion of, or presence")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","of any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","fungi.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a400h+180V")
+Writefile(L_FILE_NAME,"%s","B.")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+Writefile(L_FILE_NAME,"%s","Aggregate / Total Limits")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","Our ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","aggregate / total maximum limit of liability")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","payable under this coverage for all damages for all")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","occurrences ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or offenses is the General Aggregate /")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","Total Limit shown in the Schedule. This limit does")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","not increase any limit of liability provided in this")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","policy. If the policy provides an aggregate limit, this")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","coverage limit does not increase, but is subject to,")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","that limit.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+Writefile(L_FILE_NAME,"%s","2.")
+Writefile(L_FILE_NAME,"%s","<033>&a400h+0V")
+Writefile(L_FILE_NAME,"%s","ADDITIONAL EXCLUSION - ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+Writefile(L_FILE_NAME,"%s","FUNGI")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s"," / MOLD")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+Writefile(L_FILE_NAME,"%s","Part II C is extended to include the following:")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+Writefile(L_FILE_NAME,"%s","A.")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a600h+0V")
+Writefile(L_FILE_NAME,"%s","Except as provided in ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","Fungi ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","/ Mold Supplemental")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","Coverage (Item 1 above), ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","we ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","do not cover ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","bodily")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","injury, property damage, advertising injury, personal")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","injury, ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or medical payments resulting from or caused")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","by the actual, alleged, or threatened absorption of,")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","contact with, existence of, exposure to, inhalation of,")
+Writefile(L_FILE_NAME,"%s","<033>&a600h+120V")
+Writefile(L_FILE_NAME,"%s","ingestion of, or presence of any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","fungi.")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h3185V")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","B.")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+0V")
+Writefile(L_FILE_NAME,"%s","We ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","do not insure any cost, expense, liability or loss")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","arising out of any of the following:")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","1.")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+0V")
+Writefile(L_FILE_NAME,"%s","Any demand, directive, order, or request that any")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","insured ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","or others clean up, contain, detoxify,")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","monitor, neutralize, remove, test for, or treat, or")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","in any way assess the effects of or respond to ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","fungi.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+160V")
+Writefile(L_FILE_NAME,"%s","2.")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+0V")
+Writefile(L_FILE_NAME,"%s","Any claim or suit by, or on behalf of, any")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","governmental authority for damages or")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","reimbursement because of cleaning up,")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","containing, detoxifying, monitoring,")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","neutralizing, removing, testing for, treating, or in ")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s","any way assessing the effects of or responding to ")
+Writefile(L_FILE_NAME,"%s","<033>&a3200h+120V")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","fungi.")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","However, these exclusions do not apply to ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","bodily injury")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","resulting from the ingestion of foods, goods or")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","products intended for human consumption.")
+Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+Writefile(L_FILE_NAME,"%s","<033>&a2800h+220V")
+Writefile(L_FILE_NAME,"%s","3.")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+0V")
+Writefile(L_FILE_NAME,"%s","ADDITIONAL DEFINITIONS")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","The following special definitions apply:")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","Fungi ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","means any type or form of fungus, mold, mildew,")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","spores, algae, smut, protists, rusts or ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","rot and decay")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","organisms, ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","and any similar or related organisms and any")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","mycotoxin, substance, compounds, chemicals, mist or")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","vapor produced by any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","fungi ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","in any form, or any by-")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","products or waste produced by ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","fungi, ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","but does not include")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","any ")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","fungi ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","intended to be edible.")
+Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+160V")
+Writefile(L_FILE_NAME,"%s","Rot and decay organisms ")
+Writefile(L_FILE_NAME,"%s",l_arial_9)
+Writefile(L_FILE_NAME,"%s","means any living organism that")
+Writefile(L_FILE_NAME,"%s","<033>&a3000h+120V")
+Writefile(L_FILE_NAME,"%s","causes decomposition of physical property.")
+
+
+
+/*
+Scipt Lines: Copy and Paste Section:
+
+Full Line:
+Writefile(L_FILE_NAME,"%s","<033>&a90h-60V")
+Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+
+Large Dash:
+Writefile(L_FILE_NAME,"%s","<033>&a+30h-30V")
+Writefile(L_FILE_NAME,"%s",<033>*c200h3v0P")
+Writefile(L_FILE_NAME,"%s","<033>&a+130h+30V")
+
+Medium Dash:
+Writefile(L_FILE_NAME,"%s","<033>&a+30h-30V")
+Writefile(L_FILE_NAME,"%s",<033>*c75h3v0P")
+Writefile(L_FILE_NAME,"%s","<033>&a+105h+30V")
+
+Raised Bullet:
+Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+
+*/
+    }
+  Next SFPEND
+}
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

@@ -1,0 +1,121 @@
+%%
+Screen
+        Name = "cppmt303" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Extended Period of Indemnity - Ver 7.00    %m" ;
+        Domain = "cppEXTPERIOD" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_END_SCREEN[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_line_of_business[4]=0008 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access cppEXTPERIOD,
+           Set cppEXTPERIOD:policy_NO    = G_policy_NO ,
+               cppextperiod:pol_year     = g_year,
+               cppextperiod:end_sequence = g_end_sequence,
+               cppEXTPERIOD:PREM_NO      = G_PREM_NO ,
+               cppEXTPERIOD:BUILD_NO     = G_BUILD_NO ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppEXTPERIOD:policy_NO <> G_policy_NO Or
+   cppextperiod:pol_year <> g_year or
+   cppextperiod:end_sequence <> g_end_sequence or
+   cppEXTPERIOD:PREM_NO <> G_PREM_NO Or
+   cppEXTPERIOD:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+*------------------------------------------------------------------------------*
+| No Days:         ____                                                        |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppEXTPERIOD:policy_NO = G_policy_NO
+            cppextperiod:pol_year = g_year
+            cppextperiod:end_sequence = g_end_sequence
+            cppEXTPERIOD:PREM_NO = G_PREM_NO
+            cppEXTPERIOD:BUILD_NO = G_BUILD_NO
+            cppEXTPERIOD:STATE = cppGENERAL:STATE
+            End
+        End
+        cppEXTPERIOD:policy_NO/displayonly ;
+302     cppextperiod:pol_year/displayonly ;
+303     cppextperiod:end_sequence/displayonly ;
+401     cppEXTPERIOD:PREM_NO/displayonly ;
+501     cppEXTPERIOD:BUILD_NO/displayonly ;
+701     begin
+        l_state = cppgeneral:state
+        access cpsextenddays_alias, set cpsextenddays_alias:company_id       = sfpname:company_id,
+                                        cpsextenddays_alias:state            = l_state,
+                                        cpsextenddays_alias:line_of_business = l_line_of_business, generic
+        end
+        cppEXTPERIOD:NO_DAYS
+        access cpsextenddays, set cpsextenddays:company_id       = sfpname:company_id,
+                                  cpsextenddays:state            = l_state,
+                                  cpsextenddays:line_of_business = l_line_of_business,
+                                  cpsextenddays:no_days          = cppextperiod:no_days, generic
+        If cppEXTPERIOD:NO_DAYS <> CPSEXTENDDAYS:NO_DAYS Then
+            Error "Invalid days selected"
+
+        Activehelp CPSEXTENDDAYS_ALIAS:NO_DAYS ;
+
+}
+
+End

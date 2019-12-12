@@ -1,0 +1,217 @@
+%%
+/*
+Date Written: September 16, 2003
+
+Name: mcl414_062005.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+09/16/2003            DWR
+12/02/2005            DWR     Added MSO 2005 Edition Changes
+===========================
+*/
+
+Program
+  Name = "mcl414_062005";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[16] = "mcl414_062005.cq";
+ String L_FONT[35];
+ String l_company_id[10];
+ String L_SFPLOCATION_ZIP;
+
+ Unsigned ascii number l_max_lines;
+ Unsigned Ascii Number L_YEAR[4];
+ Unsigned Ascii number L_LINE_OF_BUSINESS[4];
+ Unsigned ascii number l_found[1];
+ Unsigned Ascii Number L_ITEM_COUNTER;
+ Unsigned Ascii Number L_STATE[2]=0;
+ Unsigned Ascii Number L_LOOP;
+ Unsigned Ascii Number L_LINE_COUNTER;
+ Unsigned Ascii Number L_PAGE_NUMBER;
+ wdate L_EFF_DATE;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+   Include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access sfpmaster,
+   Set sfpmaster:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpmaster:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpmaster:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCL414"
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+  {
+    L_STATE            = sfpmaster:STATE
+    L_COMPANY_ID       = sfpname:COMPANY_ID
+    L_LINE_OF_BUSINESS = 0008
+
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE, generic
+
+     While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+           SFSOPTEND:STATE            = L_STATE and
+           SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+           SFSOPTEND:CODE             = I_CODE
+
+      {  --start of sfsoptend check
+        If (sfpname:eff_date >= sfsoptend:eff_date and
+           (sfpname:eff_date < sfsoptend:exp_date or
+            sfsoptend:exp_date = 0)) then
+          {
+            l_eff_date = sfsoptend:eff_date
+          }
+        next sfsoptend
+      }
+    If SFPEND:CODE = I_CODE Then
+      {
+    Access SFSOPTEND,
+       Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+           SFSOPTEND:STATE            = L_STATE,
+           SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+           SFSOPTEND:CODE             = I_CODE,
+           SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+    Access CPPENDORSE,
+       Set CPPENDORSE:POLICY_NO    = SFPPRINT1:POLICY_NO,
+           CPPENDORSE:POL_YEAR     = SFPPRINT1:POL_YEAR,
+           CPPENDORSE:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+           CPPENDORSE:PREM_NO      = SFPEND:PREM_NO,
+           CPPENDORSE:BUILD_NO     = SFPEND:BUILD_NO,
+           CPPENDORSE:CODE         = I_CODE, Generic
+
+        If sfsoptend:edition <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a420h7080V")
+            Writefile(L_FILE_NAME,"%s","Ed. ")
+            Writefile(L_FILE_NAME,"%n",sfsoptend:edition)
+          }
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a420h7200V")
+        Writefile(L_FILE_NAME,"%s",l_copyright_6)
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s",sfsoptend:COPYRIGHT)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+        Writefile(L_FILE_NAME,"%s","LIQUOR LIABILITY - DESIGNATED ACTIVITIES ")
+        Writefile(L_FILE_NAME,"%s","<033>&a+0h+20V")
+        Writefile(L_FILE_NAME,"%s",l_bullet_6)
+        Writefile(L_FILE_NAME,"%s","<033>&a+0h-20V")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s"," PART II")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+        Writefile(L_FILE_NAME,"%s","This endorsement extends liability coverage for the designated activities. The required information may be shown below or ")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","elsewhere in this policy.")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+        Writefile(L_FILE_NAME,"%s","The provisions of this endorsement apply only when the endorsement number is listed in the Declarations.")
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+        Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+200V")
+        Writefile(L_FILE_NAME,"%s","Policy # ")
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%n",sfpprint1:policy_no)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+200V")
+        Writefile(L_FILE_NAME,"%s","SCHEDULE")
+
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+320V")
+        Writefile(L_FILE_NAME,"%s","DESCRIPTION OF ACTIVITY:")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","")
+
+        l_max_lines        = 60
+        L_FONT             = l_arial_bold_9
+        L_V_POSITION       = "+0"
+        L_H_POSITION       = "200"
+        L_CHARACTER_STRING = cppendorse:description
+        L_MAX_CHAR         = 100
+        include "line_spacing.inc"
+
+        Writefile(L_FILE_NAME,"%s","")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h3000V")
+        Writefile(L_FILE_NAME,"%s","COVERAGE EXTENSION")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+        Writefile(L_FILE_NAME,"%s","The Incidental Alcoholic Beverage Coverage in Part II B is extended to apply to ")
+        Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+        Writefile(L_FILE_NAME,"%s","bodily injury ")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","and")
+        Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+        Writefile(L_FILE_NAME,"%s","property damage ")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","if liability for such is imposed on ")
+        Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+        Writefile(L_FILE_NAME,"%s","you ")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","by reason of the furnishing, gift, sale, serving ")
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+        Writefile(L_FILE_NAME,"%s","or use of alcoholic beverages at or during the designated activity.")
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","")
+
+        Writefile(L_FILE_NAME,"%s","<FF>")
+        next cppendorse
+
+      }--If sfpend
+    Next SFPEND
+  }
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

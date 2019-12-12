@@ -1,0 +1,78 @@
+%%
+Screen
+        Name         = "cppmt006";
+        Type         = "Detail" ;
+        Screensize   = "dynamic" ;
+        Highlight    = Underscore ;
+        Padcharacter = Space ;
+        Domain       = "CPPgeneral" ;
+        Windowtitle  = "%a    %s Distilled Spirits and Wines Market Value - Ver 7.00     %m" ;
+--      resizeable   = yes ;
+        iconline     = 0 ;
+
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_build_no[4];
+
+--        Local Date L_EFF_DATE[8] ;
+
+        Access cppgeneral,
+           Set cppgeneral:policy_NO    = G_policy_NO,
+               cppgeneral:pol_year     = g_year,
+               cppgeneral:end_sequence = g_end_sequence,
+               cppgeneral:PREM_NO      = G_PREM_NO,
+               cppgeneral:BUILD_NO     = G_BUILD_NO, Approximate ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppgeneral:policy_NO <> G_policy_NO or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence Then
+    Error 1000;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Distilled Spirits: _                                                         |
+| Wines:             _                                                         |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     cppgeneral:specific_minimum[1]/checkbox/values="0,1" ;
+401     cppgeneral:specific_minimum[2]/checkbox/values="0,1" ;
+
+
+}
+screen exit
+
+End

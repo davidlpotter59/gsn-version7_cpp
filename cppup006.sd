@@ -1,0 +1,610 @@
+%%
+Program
+        Name = "cppUP006" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_Sequence[4] ;
+
+        Local String L_MISC[1]="N",
+                     L_CODE[7] ;
+
+        Local Signed Ascii Number L_END_PREMIUM[8]=0 ,
+                                  L_UPDATE_SFPEND_PREMIUM[6]=0,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  L_DEVIATION[5]=0/dec=3,
+                                  L_PACKAGE_MOD[5]=0/dec=3,
+                                  L_OPTIONAL_COVERAGES[8]=0,
+                                  L_SUPPLEMENTAL_PREMIUM[8]=0;
+
+        local unsigned ascii number l_line_of_business[4];
+
+        Include "cpsfarmrate.var"
+
+Initialisation
+G_policy_NO = Val(COMMANDLINE[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+
+Do RATE_LOCATION
+
+Update
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+Access cppFARM_ALIAS, Set cppFARM_ALIAS:policy_NO = G_policy_NO,
+                          cppfarm_alias:pol_year = g_year,
+                          cppfarm_alias:end_sequence = g_end_sequence, Generic
+
+While cppFARM_ALIAS:policy_NO = G_policy_NO and
+      cppfarm_alias:pol_year = g_year and
+      cppfarm_alias:end_sequence = g_End_sequence
+        Begin
+        Access sfpNAME, Set sfpNAME:policy_NO = cppFARM_ALIAS:policy_NO,
+                            sfpname:pol_year = cppfarm_alias:pol_year,
+                            sfpname:end_Sequence = cppfarm_alias:end_sequence, Generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+
+        access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+        change cppfarm_alias
+            begin
+            if cppfarm_alias:rating_Territory_Factor = 0 then
+                cppfarm_alias:rating_territory_factor = 1.00
+            end
+
+        Do COMPANY_DEVIATION
+        Do PACKAGE_MOD
+
+        If cppFARM_ALIAS:COVERAGE_A_LIMIT <> 0 Then
+            Begin
+            Do COVERAGE_A -- dwelling
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_A_PREMIUM = L_PREMIUM *
+                                                   cppfarm_alias:rating_territory_factor *
+                                                   l_deviation *
+                                                   l_package_mod
+                End
+            end
+        else
+            begin
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_A_PREMIUM = 0
+                End
+            End
+        If cppFARM_ALIAS:COVERAGE_B_LIMIT <> 0 Then
+            Begin
+            Do COVERAGE_B -- unscheduled household personal property
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_B_PREMIUM = L_PREMIUM *
+                                                   cppfarm_alias:rating_territory_factor *
+                                                   l_deviation *
+                                                   l_package_mod
+                End
+            End
+        else
+            begin
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_B_PREMIUM = 0
+                End
+            End
+
+        If cppFARM_ALIAS:COVERAGE_C_LIMIT <> 0 Then
+            Begin
+            Do COVERAGE_C -- farm buildings/structures
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_C_PREMIUM = L_PREMIUM *
+                                                   cppfarm_alias:rating_territory_factor *
+                                                   l_deviation *
+                                                   l_package_mod
+                End
+
+            End
+        else
+            begin
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_C_PREMIUM = 0
+                End
+            End
+
+        If cppFARM_ALIAS:COVERAGE_D_LIMIT <> 0 Then
+            Begin
+            Do COVERAGE_D -- scheduled farm personal property
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_D_PREMIUM = L_PREMIUM *
+                                                   cppfarm_alias:rating_territory_factor *
+                                                   l_deviation *
+                                                   l_package_mod
+                End
+            End
+        else
+            begin
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_D_PREMIUM = 0
+                End
+            End
+
+        If cppFARM_ALIAS:COVERAGE_E_LIMIT <> 0 Then
+            Begin
+            Do COVERAGE_E -- unscheduled farm personal property
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_E_PREMIUM = L_PREMIUM *
+                                                   cppfarm_alias:rating_territory_factor *
+                                                   l_deviation *
+                                                   l_package_mod
+                End
+            End
+        else
+            begin
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:COVERAGE_E_PREMIUM = 0
+                End
+            End
+
+        If cppFARM_ALIAS:MISC_LIMIT <> 0 Then
+            Begin
+            Do MISC_PREMIUM -- unscheduled farm personal property
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:MISC_PREMIUM = L_PREMIUM *
+                                             cppfarm_alias:rating_territory_factor *
+                                             l_deviation *
+                                             l_package_mod
+                End
+            End
+        else
+            begin
+            Change cppFARM_ALIAS
+                Begin
+                cppFARM_ALIAS:MISC_PREMIUM = 0
+                End
+            End
+
+        Access cppFARMSUPP, Set cppFARMSUPP:policy_NO = cppFARM_ALIAS:policy_NO,
+                                cppfarmsupp:pol_year = cppfarm_alias:pol_year,
+                                cppfarmsupp:end_sequence = cppfarm_alias:end_sequence,
+                                cppFARMSUPP:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                                cppFARMSUPP:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+        If cppFARMSUPP:BOILER = 1 Then
+            Begin
+            Do RATE_BOILERS
+
+            Change cppFARMSUPP
+                Begin
+                cppFARMSUPP:BOILER_PREMIUM = L_BOILER_PREMIUM
+                End
+            End
+        Else
+            Begin
+            Change cppFARMSUPP
+                Begin
+                cppFARMSUPP:BOILER_PREMIUM = 0
+                End
+
+            End
+
+        Do RATE_BUILDING_CODE
+
+        Access sfpEND, Set sfpEND:policy_NO = cppFARM_ALIAS:policy_NO,
+                           sfpend:pol_Year = cppfarm_alias:pol_year,
+                           sfpend:end_sequence = cppfarm_alias:end_sequence,
+                           sfpEND:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                           sfpEND:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+        L_END_PREMIUM = 0
+        L_UPDATE_SFPEND_PREMIUM = 0
+        While sfpEND:policy_NO = cppFARM_ALIAS:policy_NO And
+              sfpend:pol_year = cppfarm_alias:pol_year and
+              sfpend:end_sequence = cppfarm_alias:end_sequence and
+              sfpEND:PREM_NO = cppFARM_ALIAS:PREM_NO And
+              sfpEND:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+                Begin
+                If sfpEND:LOB_END_CODE = "F" Then
+                    Begin
+                    L_UPDATE_SFPEND_PREMIUM = 0
+                    L_CODE = sfpEND:CODE
+                    If sfpEND:MANUAL_PREMIUM = 0 Then
+                        Begin
+                        Change sfpEND
+                            Begin
+                            sfpEND:PREMIUM = L_UPDATE_SFPEND_PREMIUM
+                            End
+                        End
+                    Else
+                        L_UPDATE_SFPEND_PREMIUM = sfpEND:MANUAL_PREMIUM
+
+                    L_END_PREMIUM = L_END_PREMIUM + L_UPDATE_SFPEND_PREMIUM
+                    End
+
+                Next sfpEND
+                End
+
+        Access sfpMISC, Set sfpMISC:policy_NO = G_policy_NO,
+                            sfpmisc:pol_year = g_Year,
+                            sfpmisc:end_sequence = g_end_sequence, Generic
+
+        L_MISC_PREMIUM = 0
+        If L_MISC <> "Y" Then
+            Begin
+            While sfpMISC:policy_NO = G_policy_NO and
+                  sfpmisc:pol_year = g_year and
+                  sfpmisc:end_sequence = g_End_sequence
+                Begin
+                If sfpMISC:LOB_END_CODE = "F" Then
+                    Begin
+                    L_MISC_PREMIUM = L_MISC_PREMIUM + sfpMISC:PREMIUM
+                    L_MISC = "Y"
+
+                    L_END_PREMIUM = L_END_PREMIUM + L_MISC_PREMIUM
+                    End
+
+                Next sfpMISC
+                End
+            End
+
+        Access cppFARMSUPP, Set cppFARMSUPP:policy_NO = cppFARM_ALIAS:policy_NO,
+                                cppfarmsupp:pol_year = cppfarm_alias:pol_year,
+                                cppfarmsupp:end_sequence = cppfarm_alias:end_sequence,
+                                cppFARMSUPP:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                                cppFARMSUPP:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+        L_OPTIONAL_COVERAGES = cppFARMSUPP:AGRIC_EQUIP_PREMIUM +
+                               cppFARMSUPP:BUILDING_CODE_PREMIUM +
+                               cppFARMSUPP:LOSS_UTILITY_PREMIUM +
+                               cppFARMSUPP:MECHANICAL_PREMIUM +
+                               cppFARMSUPP:CREDIT_CARD_PREMIUM +
+                               cppFARMSUPP:DEBRIS_PREMIUM +
+                               cppFARMSUPP:LOSS_USE_PREMIUM +
+                               cppFARMSUPP:EXTRA_EXP_PREMIUM +
+                               cppFARMSUPP:OPERATIONS_PREMIUM +
+                               cppFARMSUPP:POLLUTION_PREMIUM +
+                               cppFARMSUPP:LIGHT_POWER_PREMIUM +
+                               cppFARMSUPP:CONTRACT_CARRIER_PREMIUM +
+                               cppFARMSUPP:CAMPERS_PREMIUM +
+                               cppFARMSUPP:FURS_PREMIUM +
+                               cppFARMSUPP:GRAVE_MARKERS_PREMIUM +
+                               cppFARMSUPP:GUNS_PREMIUM +
+                               cppFARMSUPP:JEWELRY_PREMIUM +
+                               cppFARMSUPP:MONEY_PREMIUM +
+                               cppFARMSUPP:BUS_PROP_PREMIUM +
+                               cppFARMSUPP:RENTAL_PROP_PREMIUM +
+                               cppFARMSUPP:SECURITIES_PREMIUM +
+                               cppFARMSUPP:SILVERWARE_PREMIUM +
+                               cppFARMSUPP:WATERCRAFT_PREMIUM +
+                               cppFARMSUPP:PEAK_SEASON_PREMIUM[1] +
+                               cppFARMSUPP:PEAK_SEASON_PREMIUM[2] +
+                               cppFARMSUPP:INFLATION_GUARD_PREMIUM[1] +
+                               cppFARMSUPP:INFLATION_GUARD_PREMIUM[2] +
+                               cppFARMSUPP:INFLATION_GUARD_PREMIUM[3] +
+                               cppFARMSUPP:INFLATION_GUARD_PREMIUM[4] +
+                               cppFARMSUPP:INFLATION_GUARD_PREMIUM[5] +
+                               cppFARMSUPP:WATER_DAMAGE_PREMIUM
+
+        Change cppFARM_ALIAS
+            Begin
+            cppfarm_alias:endorsement_total = l_end_premium
+            cppFARM_ALIAS:TOTAL_PREMIUM = cppFARM_ALIAS:COVERAGE_A_PREMIUM +
+                                          cppFARM_ALIAS:COVERAGE_B_PREMIUM +
+                                          cppFARM_ALIAS:COVERAGE_C_PREMIUM +
+                                          cppFARM_ALIAS:COVERAGE_D_PREMIUM +
+                                          cppFARM_ALIAS:COVERAGE_E_PREMIUM +
+                                          cppfarm_alias:misc_premium +
+                                          cppFARMSUPP:BOILER_PREMIUM +
+                                          L_END_PREMIUM +
+                                          L_OPTIONAL_COVERAGES +
+                                          L_SUPPLEMENTAL_PREMIUM
+            End
+
+        Next cppFARM_ALIAS
+        End
+
+End
+
+Procedure COVERAGE_A
+Begin
+Access cppFARMcova, Set cppFARMcova:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmcova:pol_year = cppfarm_alias:pol_year,
+                        cppfarmcova:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMcova:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMcova:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+L_PREMIUM = 0
+While cppFARMcova:policy_NO = cppFARM_ALIAS:policy_NO And
+      cppfarmcova:pol_year = cppfarm_alias:pol_year and
+      cppfarmcova:end_sequence = cppfarm_alias:end_sequence and
+      cppFARMcova:PREM_NO = cppFARM_ALIAS:PREM_NO And
+      cppFARMcova:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+        Begin
+        L_PREMIUM = L_PREMIUM + cppFARMcova:PREMIUM
+
+        Next cppFARMcova
+        End
+
+End
+
+Procedure COVERAGE_B
+Begin
+Access cppFARMcovb, Set cppFARMcovb:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmcovb:pol_year = cppfarm_alias:pol_year,
+                        cppfarmcovb:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMcovb:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMcovb:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+L_PREMIUM = 0
+While cppFARMcovb:policy_NO = cppFARM_ALIAS:policy_NO And
+      cppfarmcovb:pol_year = cppfarm_alias:pol_year and
+      cppfarmcovb:end_sequence = cppfarm_alias:end_sequence and
+      cppFARMcovb:PREM_NO = cppFARM_ALIAS:PREM_NO And
+      cppFARMcovb:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+        Begin
+        L_PREMIUM = L_PREMIUM + cppFARMcovb:PREMIUM
+
+        Next cppFARMcovb
+        End
+
+End
+
+Procedure COVERAGE_C
+Begin
+Access cppFARMCOVC, Set cppFARMCOVC:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmcovc:pol_year = cppfarm_alias:pol_year,
+                        cppfarmcovc:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMCOVC:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMCOVC:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+L_PREMIUM = 0
+While cppFARMCOVC:policy_NO = cppFARM_ALIAS:policy_NO And
+      cppfarmcovc:pol_year = cppfarm_alias:pol_year and
+      cppfarmcovc:end_sequence = cppfarm_alias:end_sequence and
+      cppFARMCOVC:PREM_NO = cppFARM_ALIAS:PREM_NO And
+      cppFARMCOVC:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+        Begin
+        L_PREMIUM = L_PREMIUM + cppFARMCOVC:PREMIUM
+
+        Next cppFARMCOVC
+        End
+
+End
+
+Procedure COVERAGE_D
+Begin
+Access cppFARMCOVD, Set cppFARMCOVD:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmcovd:pol_year = cppfarm_alias:pol_year,
+                        cppfarmcovd:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMCOVD:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMCOVD:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+L_PREMIUM = 0
+While cppFARMCOVD:policy_NO = cppFARM_ALIAS:policy_NO And
+      cppfarmcovd:pol_year = cppfarm_alias:pol_year and
+      cppfarmcovd:end_sequence = cppfarm_alias:end_sequence and
+      cppFARMCOVD:PREM_NO = cppFARM_ALIAS:PREM_NO And
+      cppFARMCOVD:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+        Begin
+        L_PREMIUM = L_PREMIUM + cppFARMCOVD:PREMIUM
+
+        Next cppFARMCOVD
+        End
+
+End
+
+Procedure COVERAGE_E
+Begin
+Access cppFARMcove, Set cppFARMcove:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmcove:pol_year = cppfarm_alias:pol_year,
+                        cppfarmcove:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMcove:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMcove:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+L_PREMIUM = 0
+While cppFARMcove:policy_NO = cppFARM_ALIAS:policy_NO And
+      cppfarmcove:pol_year = cppfarm_alias:pol_year and
+      cppfarmcove:end_sequence = cppfarm_alias:end_sequence and
+      cppFARMcove:PREM_NO = cppFARM_ALIAS:PREM_NO And
+      cppFARMcove:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+        Begin
+        L_PREMIUM = L_PREMIUM + cppFARMcove:PREMIUM
+
+        Next cppFARMcove
+        End
+
+End
+
+Procedure misc_premium
+Begin
+Access cppFARMmisc, Set cppFARMmisc:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmmisc:pol_year = cppfarm_alias:pol_year,
+                        cppfarmmisc:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMmisc:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMmisc:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+L_PREMIUM = 0
+While cppFARMmisc:policy_NO = cppFARM_ALIAS:policy_NO And
+      cppfarmmisc:pol_year = cppfarm_alias:pol_year and
+      cppfarmmisc:end_sequence = cppfarm_alias:end_sequence and
+      cppFARMmisc:PREM_NO = cppFARM_ALIAS:PREM_NO And
+      cppFARMmisc:BUILD_NO = cppFARM_ALIAS:BUILD_NO
+        Begin
+        L_PREMIUM = L_PREMIUM + cppFARMmisc:PREMIUM
+
+        Next cppFARMmisc
+        End
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+If cppFARM_ALIAS:COMPANY_DEVIATION = 0 Then
+    L_DEVIATION = 1.00
+Else
+    If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 and
+       cppfarm_alias:company_deviation <> 1.00 Then
+        L_DEVIATION = (1 + (cppFARM_ALIAS:COMPANY_DEVIATION * 0.01))
+    Else
+        L_DEVIATION = cppFARM_ALIAS:COMPANY_DEVIATION
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+If cppFARM_ALIAS:PACKAGE_MOD = 0 Then
+    Begin
+    L_PACKAGE_MOD = 1.00
+    End
+Else
+    Begin
+    If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 and
+       cppfarm_alias:company_deviation <> 1.00 Then
+        L_PACKAGE_MOD = (1 + (cppFARM_ALIAS:PACKAGE_MOD * 0.01))
+    Else
+        L_PACKAGE_MOD = cppFARM_ALIAS:PACKAGE_MOD
+    End
+
+End
+
+Procedure RATE_BOILERS
+Begin
+L_STATE = cppFARM_ALIAS:STATE
+Access CPSFARMMISCRATES, Set CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSFARMMISCRATES:STATE = L_STATE,
+                             CPSFARMMISCRATES:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSFARMMISCRATES:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSFARMMISCRATES:STATE <> L_STATE Or
+            CPSFARMMISCRATES:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSFARMMISCRATES:EFF_DATE Then
+        Begin
+        L_BOILER_FACTOR = CPSFARMMISCRATES:BOILER_FACTOR
+        L_BOILER_LIMIT = CPSFARMMISCRATES:BOILER_PER
+        L_BOILER_BI_LIMIT = CPSFARMMISCRATES:BOILER_BI_LIMIT
+        L_BOILER_MINIMUM = CPSFARMMISCRATES:BOILER_MINIMUM
+        End
+
+    Next CPSFARMMISCRATES
+    End
+
+    If SFSCOMPANY:BOILER_RATING = 1 Then  -- Salem
+        Begin
+        L_LIMIT = cppFARM_ALIAS:COVERAGE_A_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_B_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_C_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_D_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_E_LIMIT +
+                  cppfarm_alias:misc_limit
+        L_BOILER_PREMIUM = ((L_LIMIT
+                           Divide L_BOILER_LIMIT)
+                           * L_BOILER_FACTOR)
+        End
+    If SFSCOMPANY:BOILER_RATING = 2 Then -- Flemington
+        Begin
+        Access cppFARM_ALT, Set cppFARM_ALT:policy_NO = cppFARM_ALIAS:policy_NO,
+                                cppfarm_alt:pol_year = cppfarm_alias:pol_year,
+                                cppfarm_alt:end_sequence = cppfarm_alias:end_sequence,
+                                cppFARM_ALT:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                                cppFARM_ALT:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+        L_LIMIT = cppFARM_ALIAS:COVERAGE_A_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_B_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_C_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_D_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_E_LIMIT +
+                  cppfarm_alias:misc_limit +
+                  cppFARMSUPP:LOSS_UTILITY_LIMIT +
+                  cppFARMSUPP:MECHANICAL_LIMIT
+
+        L_BOILER_PREMIUM = ((L_LIMIT
+                           Divide L_BOILER_LIMIT)
+                           * L_BOILER_FACTOR *
+                           cppFARM_ALT:RATING_TERRITORY_FACTOR *
+                           cppFARM_ALT:COMPANY_DEVIATION *
+                           cppFARM_ALT:PACKAGE_MOD)
+        End
+    If SFSCOMPANY:BOILER_RATING = 3 Then -- whitehall
+        Begin
+        L_LIMIT = cppFARM_ALIAS:COVERAGE_A_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_B_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_C_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_D_LIMIT +
+                  cppFARM_ALIAS:COVERAGE_E_LIMIT +
+                  cppfarm_alias:misc_limit +
+                  cppFARMSUPP:LOSS_UTILITY_LIMIT +
+                  cppFARMSUPP:MECHANICAL_LIMIT
+
+       L_BOILER_PREMIUM = ((L_LIMIT
+                           Divide L_BOILER_LIMIT)
+                           * L_BOILER_FACTOR)
+        End
+
+End
+
+Procedure RATE_BUILDING_CODE
+Begin
+L_STATE = cppFARM_ALIAS:STATE
+Access CPSFARMMISCRATES, Set CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSFARMMISCRATES:STATE = L_STATE,
+                             CPSFARMMISCRATES:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSFARMMISCRATES:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSFARMMISCRATES:STATE <> L_STATE Or
+            CPSFARMMISCRATES:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSFARMMISCRATES:EFF_DATE Then
+        Begin
+        L_FACTOR = CPSFARMMISCRATES:BUILDING_CODE_FACTOR
+        L_LIMIT = CPSFARMMISCRATES:BUILDING_CODE_PERCENT
+        L_PER = CPSFARMMISCRATES:BUILDING_CODE_INCREASE
+        End
+
+    Next CPSFARMMISCRATES
+    End
+
+Access cppFARMSUPP, Set cppFARMSUPP:policy_NO = cppFARM_ALIAS:policy_NO,
+                        cppfarmsupp:pol_Year = cppfarm_alias:pol_year,
+                        cppfarmsupp:end_sequence = cppfarm_alias:end_sequence,
+                        cppFARMSUPP:PREM_NO = cppFARM_ALIAS:PREM_NO,
+                        cppFARMSUPP:BUILD_NO = cppFARM_ALIAS:BUILD_NO, Generic
+
+If cppFARMSUPP:policy_NO = cppFARM_ALIAS:policy_NO And
+   cppfarmsupp:pol_Year = cppfarm_alias:pol_Year and
+   cppfarmsupp:end_sequence = cppfarm_alias:end_sequence and
+   cppFARMSUPP:PREM_NO = cppFARM_ALIAS:PREM_NO And
+   cppFARMSUPP:BUILD_NO = cppFARM_ALIAS:BUILD_NO Then
+    Change cppFARMSUPP
+        Begin
+        L_BUILDING_CODE_FACTOR = ((((cppFARMSUPP:BUILDING_CODE_PERCENT -
+                                  L_LIMIT) Divide L_PER) * L_FACTOR) + 1)
+        L_BUILDING_CODE_PREM = ((cppFARM_ALIAS:COVERAGE_A_PREMIUM +
+                               cppFARM_ALIAS:COVERAGE_C_PREMIUM) *
+                               L_BUILDING_CODE_FACTOR)
+        cppFARMSUPP:BUILDING_CODE_PREMIUM = (L_BUILDING_CODE_PREM -
+                                            (cppFARM_ALIAS:COVERAGE_A_PREMIUM +
+                                            cppFARM_ALIAS:COVERAGE_C_PREMIUM))
+        End
+
+End
+
+End

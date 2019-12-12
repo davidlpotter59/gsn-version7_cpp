@@ -1,0 +1,422 @@
+%%
+Screen
+        Name = "cppmt708" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Computer Coverage - Ver 7.00     %m" ;
+        Domain = "cppendorse1" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_sub_code[4] ;
+        global unsigned ascii number g_state[2] ;
+        global unsigned ascii number g_deductible[5] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0 ,
+                                    l_coinsurance[3]=0 ;
+
+        Access cppendorse1, Set cppendorse1:policy_NO    = G_policy_NO ,
+                                cppendorse1:pol_Year     = g_year,
+                                cppendorse1:end_sequence = g_end_sequence,
+                                cppendorse1:PREM_NO      = G_PREM_NO ,
+                                cppendorse1:BUILD_NO     = G_BUILD_NO ,
+                                cppendorse1:CODE         = G_CODE ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppendorse1:policy_NO    <> G_policy_NO Or
+   cppendorse1:pol_year     <> g_year or
+   cppendorse1:end_Sequence <> g_end_sequence or
+   cppendorse1:PREM_NO      <> G_PREM_NO Or
+   cppendorse1:BUILD_NO     <> G_BUILD_NO Or
+   cppendorse1:CODE         <> G_CODE Then
+    Error 1000 ;
+
+screen at 2,1 to 45, 120
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Hardware:                            __________                              |
+| Programs and Applications and Media: __________                              |
+| Income Coverage:                     __________                              |
+| Income Coverage Options:                                                     |
+| [R Earnings and Extra Expense:       _                                       |
+|    Extra Expense Only:               _                                       |
+|    Income Coverage Not Provided:     _ R]                                    |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse1:policy_NO    = G_policy_NO
+            cppendorse1:pol_year     = g_Year
+            cppendorse1:end_sequence = g_End_sequence
+            cppendorse1:PREM_NO      = G_PREM_NO
+            cppendorse1:BUILD_NO     = G_BUILD_NO
+            cppendorse1:CODE         = G_CODE
+            Do SUBCODE
+            cppendorse1:state        = g_state
+            cppendorse1:SUB_CODE     = L_SUB_CODE
+            cppendorse1:rating_line_of_business = 0008
+            g_sub_code               = cppendorse1:sub_code
+            End
+        End
+        cppendorse1:limit[1] ;
+401     cppendorse1:limit[2] ;
+501     cppendorse1:limit[3] ;
+701     cppendorse1:option[1]/values="1,2,3" ;
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Coverage Extensions"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Additional Debris Removal Expenses:              __________                  |
+| Emergency Removal:                               ___ days                    |
+| Emergency Removal Expenses:                      __________                  |
+| Electrical and Power Supply Disturbance:         __________                  |
+| - 500 Feet Limitation (check one)                                            |
+| [R _~Not Waived                                                              |
+|    _~Waived R]                                                               |
+| Fraud and Deceit:                                __________                  |
+| Mechanical Breakdown Coverage:                   __________                  |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     cppendorse1:limit[4] ;
+301     cppendorse1:days[1] ;
+401     cppendorse1:limit[5] ;
+501     cppendorse1:limit[6] ;
+701     cppendorse1:option[2]/values="1,2" ;
+901     cppendorse1:limit[7] ;
+1001    cppendorse1:limit[8] ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Supplemental Coverages"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Acquired Locations:                           __________                     |
+| Earthquake Coverage (check one)                                              |
+| [R - Coverage Provided:                       _                              |
+|    - Coverage Not Provided:                   _                              |
+|    - Refer to Earthquake, Flood and                                          |
+|        Sewer Backup Endorsement:              _ R]                           |
+| Flood Coverage (check one)                                                   |
+| [R - Coverage Provided                        _                              |
+|    - Coverage Not Provided:                   _                              |
+|    - Refer to Earthquake, Flood and                                          |
+|        Sewer Backup Endorsement:              _ R]                           |
+| Newly Purchased or Leased Hardware:           __________                     |
+| Off-site Computers:                           __________                     |
+| Pollutant Cleanup and Removal:                __________                     |
+| Property in Transit:                          __________                     |
+| Proprietary Programs and Data Records:        __________                     |
+| Rewards:                                      __________                     |
+| Sewer Backup (check one)                                                     |
+| [R - Coverage Provided:                       _                              |
+|    - Coverage Not Provided:                   _                              |
+|    - Refer to Earthquake, Flood and                                          |
+|        Sewer Backup Endorsement:              _ R]                           |
+| Software Storage:                             __________                     |
+| Virus and Hacking Coverage                                                   |
+| - Limit Any One Occurrence:                   __________                     |
+| - Limit Each Separate 12 Month Period:        __________                     |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     cppendorse1:limit[9] ;
+401     cppendorse1:option[3]/values="1,2,3" ;
+901     cppendorse1:option[4]/values="1,2,3" ;
+1301    cppendorse1:limit[10] ;
+1401    cppendorse1:limit[11] ;
+1501    cppendorse1:limit[12] ;
+1601    cppendorse1:limit[13] ;
+1701    cppendorse1:limit[14] ;
+1801    cppendorse1:limit[15] ;
+2001    cppendorse1:option[5]/values="1,2,3" ;
+2401    cppendorse1:limit[16] ;
+2601    cppendorse1:limit[17] ;
+2701    cppendorse1:limit[18] ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Income Coverage Extensions"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Interruption by Civil Authority:                     ___ days                |
+| Period of Loss Extension:                            ___ days                |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     cppendorse1:days[2] ;
+301     cppendorse1:days[3] ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Supplemental Income Coverages"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Acquired Locations:                           __________                     |
+| Earthquake Coverage (check one)                                              |
+| [R - Coverage Provided:                       _                              |
+|    - Coverage Not Provided:                   _                              |
+|    - Refer to Earthquake, Flood and                                          |
+|        Sewer Backup Endorsement:              _ R]                           |
+| Flood Coverage (check one)                                                   |
+| [R - Coverage Provided                        _                              |
+|    - Coverage Not Provided:                   _                              |
+|    - Refer to Earthquake, Flood and                                          |
+|        Sewer Backup Endorsement:              _ R]                           |
+| Off Premises Utility Service Interruption                                    |
+|    Limit:                                     __________                     |
+|    Overhead Transmission Lines Excluded:      _                              |
+|    Waiting Period:                            ______ hours                   |
+| Property in Transit:                          __________                     |
+| Sewer Backup (check one)                                                     |
+| [R - Coverage Provided:                       _                              |
+|    - Coverage Not Provided:                   _                              |
+|    - Refer to Earthquake, Flood and                                          |
+|        Sewer Backup Endorsement:              _ R]                           |
+| Virus and Hacking Coverage                                                   |
+| - Limit Any One Occurrence:                   __________                     |
+| - Limit Each Separate 12 Month Period:        __________                     |
+| - Waiting Period:                             ______                         |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     cppendorse1:limit[19] ;
+401     cppendorse1:option[6]/values="1,2,3" ;
+901     cppendorse1:option[7]/values="1,2,3" ;
+1401    cppendorse1:limit[20] ;
+1501    cppendorse1:option[8]/checkbox/values="0,1" ;
+1601    cppendorse1:hours[1] ;
+1701    cppendorse1:limit[21] ;
+1901    cppendorse1:option[9]/values="1,2,3" ;
+2401    cppendorse1:limit[22] ;
+2501    cppendorse1:limit[23] ;
+2601    cppendorse1:hours[2] ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Deductible/Coinsurance/Coverage Option"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| For all covered perils unless a different deductible is          _____       |
+|   indicated below                                                            |
+| Earthquake and Volcanic Eruption:                                _____       |
+| Flood:                                                           _____       |
+| Mechanical Breakdown, Electrical Disturbance and                 _____       |
+|   Power Supply Disturbance:                                                  |
+*-----------------------------------------------*------------------------------*
+| Hardware, Media and Programs and Applications | Income Coverage              |
+|   Not Applicable:  _                          |    Not Applicable:  _        |
+|   Coinsurance:     ___                        |    Coinsurance:     ___      |
+*----------------------------*------------------*------------------------------*
+| Valuation (check one)      |     Income Coverage Waiting Period              |
+| [R _~Actual Cash Value     |     [R _~Not Applicable                         |
+|    _~Replacement Cost R]   |        _~Waiting Period R]  ______ hours        |
+*----------------------------*-------------------------------------------------*
+
+%%
+
+components
+
+Fields
+201     begin
+        if function one of "ADD", "CHANGE" then
+            cppendorse1:deductible[1] = g_deductible
+        end
+        cppendorse1:deductible[1]/displayonly ;
+401     cppendorse1:deductible[2] ;
+501     cppendorse1:deductible[3] ;
+601     cppendorse1:deductible[4] ;
+1001    cppendorse1:option[10]/checkbox/values="0,1" ;
+1101    begin
+          access sfpname,
+             set sfpname:policy_no         = g_policy_no,
+                 sfpname:pol_year          = g_year,
+                 sfpname:end_sequence      = g_end_sequence, exact
+
+        access cpsimcoins_alias,
+           set cpsimcoins_alias:company_id       = sfpname:company_id,
+               cpsimcoins_alias:state            = cppendorse1:state,
+               cpsimcoins_alias:line_of_business = cppendorse1:rating_line_of_business, generic
+
+        end
+        cppendorse1:coinsurance[1]/default
+        l_coinsurance = cppendorse1:coinsurance[1]
+        access cpsimcoins,
+           set cpsimcoins:company_id       = sfpname:company_id,
+               cpsimcoins:state            = cppendorse1:state,
+               cpsimcoins:line_of_business = cppendorse1:rating_line_of_business,
+               cpsimcoins:coinsurance      = l_coinsurance, generic
+
+        if l_coinsurance <> cpsimcoins:coinsurance then
+            error "Invalid coinsurance entered"
+
+        activehelp cpsimcoins_alias:coinsurance ;
+1002    cppendorse1:option[11]/checkbox/values="0,1" ;
+1102    begin
+          access sfpname,
+             set sfpname:policy_no         = g_policy_no,
+                 sfpname:pol_year          = g_year,
+                 sfpname:end_sequence      = g_end_sequence, exact
+        access cpsimcoins_alias,
+           set cpsimcoins_alias:company_id       = sfpname:company_id,
+               cpsimcoins_alias:state            = cppendorse1:state,
+               cpsimcoins_alias:line_of_business = cppendorse1:rating_line_of_business, generic
+
+        end
+        cppendorse1:coinsurance[2]/default
+        l_coinsurance = cppendorse1:coinsurance[2]
+        access cpsimcoins,
+           set cpsimcoins:company_id       = sfpname:company_id,
+               cpsimcoins:state            = cppendorse1:state,
+               cpsimcoins:line_of_business = cppendorse1:rating_line_of_business,
+               cpsimcoins:coinsurance      = l_coinsurance, generic
+
+        if l_coinsurance <> cpsimcoins:coinsurance then
+            error "Invalid coinsurance entered"
+
+        activehelp cpsimcoins_alias:coinsurance ;
+1401    cppendorse1:option[12]/values="1,2" ;
+1402    cppendorse1:option[13]/values="1,2" ;
+1501    cppendorse1:hours[3] ;
+
+}
+
+}
+
+}
+
+screen exit
+g_sub_code = cppendorse1:sub_code ;
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppendorse1_ALIAS, Set cppendorse1_ALIAS:policy_NO    = G_policy_NO,
+                              cppendorse1_alias:pol_year     = g_year,
+                              cppendorse1_alias:end_sequence = g_end_sequence,
+                              cppendorse1_ALIAS:PREM_NO      = G_PREM_NO,
+                              cppendorse1_ALIAS:BUILD_NO     = G_BUILD_NO,
+                              cppendorse1_ALIAS:CODE         = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppendorse1_ALIAS:policy_NO    = G_policy_NO And
+      cppendorse1_alias:pol_year     = g_year and
+      cppendorse1_alias:end_sequence = g_End_sequence and
+      cppendorse1_ALIAS:PREM_NO      = G_PREM_NO And
+      cppendorse1_ALIAS:BUILD_NO     = G_BUILD_NO And
+      cppendorse1_ALIAS:CODE         = G_CODE
+        Begin
+        L_SUB_CODE = cppendorse1_ALIAS:SUB_CODE
+
+        Next cppendorse1_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

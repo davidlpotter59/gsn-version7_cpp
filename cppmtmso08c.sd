@@ -1,0 +1,127 @@
+%%
+Screen
+        Name            = "cppmtmso08c";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Premises Premium     7.00 %m";
+        Domain          = "sfpmaster" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries cppisolib cppmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4] ,
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_STATE[2],
+                                     G_RATE_TYPE[2] ,
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     G_LOSS_INCOME_FACTOR[4]/decimals=3 ,
+                                     g_premium[9] ,
+                                     g_class_code[5];
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_RATING_TERRITORY[3]=0 ;
+
+        Access sfpmaster, Set sfpmaster:policy_NO = G_policy_NO,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence, generic
+
+        Include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                          Premium: ___________                                |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        g_premium = 0
+        access cppliability, set cppliability:policy_no = g_policy_no,
+                                 cppliability:pol_year = g_year,
+                                 cppliability:end_sequence = g_end_sequence,
+                                 cppliability:prem_no = g_prem_no,
+                                 cppliability:build_no = g_build_no,
+                                 cppliability:class_code = g_class_code, generic
+
+        g_premium = cppliability:premium[1]
+        End
+        g_premium/default
+        access cppliability, set cppliability:policy_no = g_policy_no,
+                                 cppliability:pol_year = g_year,
+                                 cppliability:end_sequence = g_end_sequence,
+                                 cppliability:prem_no = g_prem_no,
+                                 cppliability:build_no = g_build_no,
+                                 cppliability:class_code = g_class_code,generic
+
+        if cppliability:policy_no = g_policy_no and
+           cppliability:pol_Year = g_year and
+           cppliability:end_sequence = g_end_Sequence and
+           cppliability:prem_no = g_prem_no and
+           cppliability:build_no = g_build_no and
+           cppliability:class_code = g_class_code then
+            change cppliability
+                begin
+                cppliability:premium[1] = g_premium
+                end ;
+
+}
+
+}
+
+End
+/* end of file */

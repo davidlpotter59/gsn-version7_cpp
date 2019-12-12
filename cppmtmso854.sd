@@ -1,0 +1,317 @@
+%%
+Screen
+        Name            = "cppmtmso854" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Deductible     Ver 7.00 %m" ;
+        Domain          = "cppLIABDEDUCT" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        local unsigned ascii number l_state[2] ,
+                                    l_sub_code[4] ,
+                                    l_prem_no[4]=0,
+                                    l_line_of_business[4]=0008,
+                                    l_build_no[4]=0;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     L_CODE_6[7],
+                     L_CODE_7[7],
+                     L_CODE_8[7],
+                     L_CODE_9[7] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1]="N" ;
+
+        Access cppLIABDEDUCT,
+           Set cppLIABDEDUCT:policy_NO = G_policy_NO ,
+               cppliabdeduct:pol_year = g_year,
+               cppliabdeduct:end_sequence = g_end_sequence, generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+access validation
+if cppliabdeduct:policy_no <> g_policy_no or
+   cppliabdeduct:pol_year <> g_year or
+   cppliabdeduct:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Bodily Injury Liability          $ _____ Per Claimant                        |
+|                                  $ _____ Per Occurrence                      |
+|                                                                              |
+| Property Damage Liability        $ _____ Per Claimant                        |
+|                                  $ _____ Per Occurrence                      |
+|                                                                              |
+| Bodily Injury and Property       $ _____ Per Claimant                        |
+| Damage Liability Combined        $ _____ Per Occurrence                      |
+*------------------------------------------------------------------------------*
+| Description:  __________________________________________________             |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+| MCL 180:~_           MCL181:~_          MCL182:~_                            |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppLIABDEDUCT:policy_NO = G_policy_NO
+            cppliabdeduct:pol_year = g_year
+            cppliabdeduct:end_sequence = g_end_sequence
+            End
+        End
+        cppLIABDEDUCT:DEDUCTIBLE[1];
+401     cppLIABDEDUCT:DEDUCTIBLE[2];
+601     cppLIABDEDUCT:DEDUCTIBLE[3]/default ;
+701     cppLIABDEDUCT:DEDUCTIBLE[4];
+901     cppLIABDEDUCT:DEDUCTIBLE[5];
+1001    cppLIABDEDUCT:DEDUCTIBLE[6];
+1201    cppLIABDEDUCT:DESCRIPTION/freetextlines=10;
+2301    cppLIABDEDUCT:MCL180/checkbox/values="0,1";
+2302    cppLIABDEDUCT:MCL181/checkbox/values="0,1";
+2303    cppLIABDEDUCT:MCL182/checkbox/values="0,1";
+
+}
+
+}
+
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    access cppliability, set cppliability:policy_no = g_policy_no,
+                             cppliability:pol_year = g_year,
+                             cppliability:end_sequence = g_end_sequence, generic
+
+    l_state = cppliability:state
+    Access CPSLIABTRIGGER, Set CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSLIABTRIGGER:STATE = L_STATE,
+                               CPSLIABTRIGGER:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+    While CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSLIABTRIGGER:STATE = L_STATE And
+          CPSLIABTRIGGER:LINE_OF_BUSINESS = l_line_of_business
+            Begin
+            If sfpNAME:EFF_DATE >= CPSLIABTRIGGER:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[10]
+                L_CODE_2 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[11]
+                L_CODE_3 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[12]
+                End
+            Next CPSLIABTRIGGER
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppliabdeduct:mcl180 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppliabdeduct:mcl180 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppliabdeduct:mcl181 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppliabdeduct:mcl181 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppliabdeduct:mcl182 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppliabdeduct:mcl182 = 0 Then
+            Do DELETE_sfpEND
+        End
+    end
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:Pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_Sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:Pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_Sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppliability:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       L_PREM_NO
+    sfpEND:BUILD_NO             =       L_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "L"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:Pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_Sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+end
+
+End

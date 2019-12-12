@@ -1,0 +1,127 @@
+%%
+Screen
+        Name            = "cppMTMSO201" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPEXCLUSIONS";
+        Windowtitle = "%a     %s Option 5 Exclusions   Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_POLICY_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_DESC[40] ;
+
+        Access CPPEXCLUSIONS, Set CPPEXCLUSIONS:POLICY_NO = G_POLICY_NO,
+                                  CPPEXCLUSIONS:POL_YEAR = G_YEAR,
+                                  CPPEXCLUSIONS:END_SEQUENCE = G_END_SEQUENCE,
+                                  CPPEXCLUSIONS:PREM_NO = G_PREM_NO,
+                                  CPPEXCLUSIONS:BUILD_NO = G_BUILD_NO,
+                                  CPPEXCLUSIONS:RATE_TYPE = G_RATE_TYPE, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPEXCLUSIONS:POLICY_NO <> G_POLICY_NO Or
+   CPPEXCLUSIONS:POL_YEAR <> G_YEAR Or
+   CPPEXCLUSIONS:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPEXCLUSIONS:PREM_NO <> G_PREM_NO Or
+   CPPEXCLUSIONS:BUILD_NO <> G_BUILD_NO Or
+   CPPEXCLUSIONS:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+| Coverage:    __                                                              |
+*------------------------------------------------------------------------------*
+|                      Exclude Theft:           _                              |
+|                      Exclude Vandalism:       _                              |
+|                      Exclude Water Damage:    _                              |
+|                      Exclude Windstorm/Hail:  _                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPEXCLUSIONS:POLICY_NO = G_POLICY_NO
+            CPPEXCLUSIONS:POL_YEAR = G_YEAR
+            CPPEXCLUSIONS:END_SEQUENCE = G_END_SEQUENCE
+            CPPEXCLUSIONS:PREM_NO = G_PREM_NO
+            CPPEXCLUSIONS:BUILD_NO = G_BUILD_NO
+            CPPEXCLUSIONS:RATE_TYPE = G_RATE_TYPE
+            End
+        End
+        CPPEXCLUSIONS:POLICY_NO/displayonly ;
+302     CPPEXCLUSIONS:POL_YEAR/displayonly;
+303     CPPEXCLUSIONS:END_SEQUENCE/displayonly;
+401     CPPEXCLUSIONS:PREM_NO/displayonly ;
+501     CPPEXCLUSIONS:BUILD_NO/displayonly ;
+601     CPPEXCLUSIONS:RATE_TYPE/displayonly ;
+801     CPPEXCLUSIONS:EXCLUDE_THEFT/checkbox/values="0,1" ;
+901     CPPEXCLUSIONS:EXCLUDE_VANDALISM/checkbox/values="0,1";
+1001    CPPEXCLUSIONS:EXCLUDE_WATER_DAMAGE/checkbox/values="0,1";
+1101    CPPEXCLUSIONS:EXCLUDE_WIND_HAIL/checkbox/values="0,1";
+
+}
+
+}
+
+End

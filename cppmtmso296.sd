@@ -1,0 +1,326 @@
+%%
+Screen
+        Name            = "cppMTMSO296" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppGENERAL";
+        Windowtitle = "%a     %s Deviations  Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_POPUP[1] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_COMMANDLINE[16] ,
+                     L_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4] ;
+
+        local signed ascii number L_PACKAGE_MOD[5]=0/decimals=3 ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO,
+                               cppgeneral:pol_year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence,
+                               cppGENERAL:PREM_NO = G_PREM_NO,
+                               cppGENERAL:BUILD_NO = G_BUILD_NO, generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        include "stdfunc7.inc"
+
+--        Include "cppmsofunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+if sfscompany:boiler_rating <> 4 then
+    hide(irpm_fn)
+
+Access Validation
+If cppGENERAL:policy_NO <> G_policy_NO Or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence or
+   cppGENERAL:PREM_NO <> G_PREM_NO Or
+   cppGENERAL:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle      = raised
+        scrollbarpolicy  = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:    __  ____________________                                       |
+*------------------------------------------------------------------------------*
+|                        Company               PMA                             |
+|                        Deviation                                             |
+*------------------------------------------------------------------------------*
+|                        ________            ________                          |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppGENERAL:policy_NO/displayonly  ;
+302     cppgeneral:pol_year/displayonly ;
+303     cppgeneral:end_sequence/displayonly ;
+401     cppGENERAL:PREM_NO/displayonly ;
+501     cppGENERAL:BUILD_NO/displayonly ;
+601     cppGENERAL:RATE_TYPE/displayonly ;
+602     Begin
+        access sfsline, set sfsline:company_id       = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline      = "00", generic
+
+        access cpsdefault, set cpsdefault:company_id       = sfpname:company_id,
+                               cpsdefault:line_of_business = cppgeneral:rating_line_of_business, generic
+
+        Switch(cppGENERAL:RATE_TYPE)
+          Case 1  : L_RATE_TYPE_DESC = "BUILDING"
+          Default : L_RATE_TYPE_DESC = "CONTENTS"
+          End
+        End
+        L_RATE_TYPE_DESC/displayonly ;
+1101    Begin
+        If G_POPUP = "Y" Then
+            Do COMPANY_DEVIATION
+        End
+        cppGENERAL:COMPANY_DEVIATION[1]/default
+        if sfscompany:boiler_rating <> 4 then
+            begin
+            cppGENERAL:COMPANY_DEVIATION[2] = cppGENERAL:COMPANY_DEVIATION[1]
+            cppGENERAL:COMPANY_DEVIATION[3] = cppGENERAL:COMPANY_DEVIATION[1]
+            cppGENERAL:COMPANY_DEVIATION[4] = cppGENERAL:COMPANY_DEVIATION[1]
+            cppGENERAL:COMPANY_DEVIATION[5] = cppGENERAL:COMPANY_DEVIATION[1]
+            cppGENERAL:COMPANY_DEVIATION[6] = cppGENERAL:COMPANY_DEVIATION[1]
+            end;
+1102    Begin
+        If G_POPUP = "Y" And
+           cppGENERAL:PACKAGE_MOD[1] one of 0, 1.00 Then
+            Do PACKAGE_MOD
+        End
+        cppGENERAL:PACKAGE_MOD[1]/default
+        cppGENERAL:PACKAGE_MOD[2] = cppGENERAL:PACKAGE_MOD[1]
+        cppGENERAL:PACKAGE_MOD[3] = cppGENERAL:PACKAGE_MOD[1]
+        cppGENERAL:PACKAGE_MOD[4] = cppGENERAL:PACKAGE_MOD[1]
+        cppGENERAL:PACKAGE_MOD[5] = cppGENERAL:PACKAGE_MOD[1]
+        cppGENERAL:PACKAGE_MOD[6] = cppGENERAL:PACKAGE_MOD[1] ;
+
+
+}
+
+CardDialog GUI at 1,90
+
+{
+Panel tagged irpm_fn
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "IRPM"
+        }
+{
+
+%%
+*------------------------------------------------------------------------------*
+| IRPM:              ________                                                  |
+| Experience Factor: ________                                                  |
+*------------------------------------------------------------------------------*
+| Multi Location Risk Dispersal                                                |
+| Factor:  ________                                                            |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+fields
+0201    begin
+        if cppgeneral:company_deviation[2] = 0  then
+            cppgeneral:company_deviation[2] = 1.00
+        end
+        cppgeneral:company_deviation[2]/default ;
+0301    begin
+        if cppgeneral:company_deviation[3] = 0  then
+            cppgeneral:company_deviation[3] = 1.00
+        end
+        cppgeneral:company_deviation[3]/default ;
+0601    begin
+        if cppgeneral:multi_location_credit = 0  then
+            cppgeneral:multi_location_credit = 1.00
+        end
+        cppgeneral:multi_location_credit/default
+
+        activehelp cpsmultiloc:factor,
+                   cpsmultiloc:percent_of_values ;
+
+}
+
+}
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    access cppgeneral_alias, set cppgeneral_alias:policy_no = g_policy_no,
+                                 cppgeneral_alias:pol_year = g_year,
+                                 cppgeneral_alias:end_sequence = g_end_sequence, generic
+
+    while cppgeneral_alias:policy_no = g_policy_no and
+          cppgeneral_alias:pol_year = g_year and
+          cppgeneral_alias:end_sequence = g_end_sequence
+        begin
+        change cppgeneral_alias
+            begin
+            cppgeneral_alias:company_deviation[1]  = cppgeneral:company_deviation[1]
+            cppgeneral_alias:company_deviation[2]  = cppgeneral:company_deviation[2]
+            cppgeneral_alias:company_deviation[3]  = cppgeneral:company_deviation[3]
+            cppgeneral_alias:company_deviation[4]  = cppgeneral:company_deviation[4]
+            cppgeneral_alias:company_deviation[5]  = cppgeneral:company_deviation[5]
+            cppgeneral_alias:company_deviation[6]  = cppgeneral:company_deviation[6]
+            cppgeneral_alias:package_mod[1]        = cppgeneral:package_mod[1]
+            cppgeneral_alias:package_mod[2]        = cppgeneral:package_mod[2]
+            cppgeneral_alias:package_mod[3]        = cppgeneral:package_mod[3]
+            cppgeneral_alias:package_mod[4]        = cppgeneral:package_mod[4]
+            cppgeneral_alias:package_mod[5]        = cppgeneral:package_mod[5]
+            cppgeneral_alias:package_mod[6]        = cppgeneral:package_mod[6]
+            cppgeneral_alias:multi_location_credit = cppgeneral:multi_location_credit
+            end
+
+        next cppgeneral_alias
+        end
+
+    end
+
+Procedure Definition
+
+Procedure COMPANY_DEVIATION
+Begin
+if cpsdefault:company_deviation[1] <> 0 then
+    begin
+    Change cppGENERAL_ALIAS
+        Begin
+        cppGENERAL_ALIAS:COMPANY_DEVIATION[1] = cpsdefault:company_deviation[1]
+        if cppgeneral_alias:state = 07 then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[1] = cpsdefault:company_deviation[2]
+        end
+    end
+else
+    begin
+    Change cppGENERAL_ALIAS
+        Begin
+        If cppGENERAL_ALIAS:COMPANY_DEVIATION[1] = 0 Then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[1] = 1.00
+        If cppGENERAL_ALIAS:COMPANY_DEVIATION[2] = 0 Then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[2] = 1.00
+        If cppGENERAL_ALIAS:COMPANY_DEVIATION[3] = 0 Then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[3] = 1.00
+        If cppGENERAL_ALIAS:COMPANY_DEVIATION[4] = 0 Then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[4] = 1.00
+        If cppGENERAL_ALIAS:COMPANY_DEVIATION[5] = 0 Then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[5] = 1.00
+        If cppGENERAL_ALIAS:COMPANY_DEVIATION[6] = 0 Then
+            cppGENERAL_ALIAS:COMPANY_DEVIATION[6] = 1.00
+        end
+    End
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppgeneral:state
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "sfspackage.pro"
+
+Change cppGENERAL_ALIAS
+    Begin
+    If L_PACKAGE_MOD <> 0 And
+       sfsline:lob_code one of "SMP" Then
+        Begin
+        cppGENERAL_ALIAS:PACKAGE_MOD[1] = L_PACKAGE_MOD
+        cppGENERAL_ALIAS:PACKAGE_MOD[2] = L_PACKAGE_MOD
+        cppGENERAL_ALIAS:PACKAGE_MOD[3] = L_PACKAGE_MOD
+        cppGENERAL_ALIAS:PACKAGE_MOD[4] = L_PACKAGE_MOD
+        cppGENERAL_ALIAS:PACKAGE_MOD[5] = L_PACKAGE_MOD
+        cppGENERAL_ALIAS:PACKAGE_MOD[6] = L_PACKAGE_MOD
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:PACKAGE_MOD[1] = 1.00
+        cppGENERAL_ALIAS:PACKAGE_MOD[2] = 1.00
+        cppGENERAL_ALIAS:PACKAGE_MOD[3] = 1.00
+        cppGENERAL_ALIAS:PACKAGE_MOD[4] = 1.00
+        cppGENERAL_ALIAS:PACKAGE_MOD[5] = 1.00
+        cppGENERAL_ALIAS:PACKAGE_MOD[6] = 1.00
+        End
+
+    End
+
+End
+
+
+End

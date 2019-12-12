@@ -1,0 +1,495 @@
+%%
+Screen
+        Name            = "cppmtmso601" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Coverage A Schedule of Rates   Ver 7.0  %m" ;
+        Domain          = "cppfarmcova" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_STATE[2] ;
+        Global Unsigned Ascii Number G_OPTION[1] ;
+        Global Unsigned Ascii Number G_COUNTY[3] ;
+        Global Unsigned Ascii Number g_deductible[5] ;
+        Global Unsigned Ascii Number g_wind_deductible[5] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0,
+                                    l_sub_code_1[4]=0,
+                                    L_PER[5]=0,
+                                    l_premium[8]=0,
+                                    l_limit[8]=0,
+                                    l_zone[3]=0,
+                                    l_deductible[5]=0,
+                                    l_deductible_rate[6]=0/dec=4,
+                                    l_protection_rate[4]=0/dec=3,
+                                    l_construction_rate[4]=0/dec=3,
+                                    l_protection[2]=0,
+                                    l_construction[1]=0,
+                                    l_exclusion_rate_a[4]=0/dec=3,
+                                    l_exclusion_rate_b[4]=0/dec=3,
+                                    l_exclusion_rate_d[4]=0/dec=3,
+                                    l_line_of_business[4] ;
+
+        Local String L_COVERAGE[1]="A" ;
+
+        Access cppfarmcova,
+           Set cppfarmcova:policy_NO = G_policy_NO ,
+               cppfarmcova:pol_year = g_year,
+               cppfarmcova:end_sequence = g_end_sequence,
+               cppfarmcova:PREM_NO = G_PREM_NO ,
+               cppfarmcova:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+screen entry
+Access Validation
+If cppfarmcova:policy_NO <> G_policy_NO or
+   cppfarmcova:pol_Year <> g_year or
+   cppfarmcova:end_sequence <> g_end_sequence or
+   cppfarmcova:PREM_NO <> G_PREM_NO or
+   cppfarmcova:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:      _________  ____  ____                                        |
+| Location No:    ____                                                         |
+| Building No:    ____                                                         |
+*------------------------------------------------------------------------------*
+| Protection:     __                                                           |
+| Construction:   _                                                            |
+| Owner Occupied: _                                                            |
+| Exclude Theft:  _     Exclude Vandalism:  _     Exclude Wind: _              |
+|                                                                              |
+| Description:                                                                 |
+| ___________________________________________________________________________  |
+|                                                                              |
+| Limit:          __________                                                   |
+| Rate:           ______                                                       |
+| Premium:        _____________                                                |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        access sfpname, set sfpname:policy_no = g_policy_no,
+                            sfpname:pol_year = g_year,
+                            sfpname:end_sequence = g_end_sequence, generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+
+        If FUNCTION One Of "ADD", "NEW", "APPEND" Then
+            Begin
+            cppfarmcova:policy_NO = G_policy_NO
+            cppfarmcova:pol_year = g_year
+            cppfarmcova:end_sequence = g_end_sequence
+            cppfarmcova:PREM_NO = G_PREM_NO
+            cppfarmcova:BUILD_NO = G_BUILD_NO
+            Do SUBCODE
+            cppfarmcova:SUB_CODE = L_SUB_CODE
+            cppfarmcova:state = g_state
+            cppfarmcova:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppfarmcova:policy_NO/displayonly ;
+302     cppfarmcova:pol_year/displayonly ;
+303     cppfarmcova:end_sequence/displayonly ;
+401     cppfarmcova:PREM_NO/displayonly ;
+501     cppfarmcova:BUILD_NO/displayonly ;
+701     begin
+        if function one of "ADD" then
+            cppfarmcova:protection = cpsfarmdefault:protection
+        end
+        cppfarmcova:protection/default
+        l_protection = cppfarmcova:protection
+        Access CPSfarmprotection, Set CPSfarmprotection:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                      CPSfarmprotection:STATE = G_STATE,
+                                      CPSfarmprotection:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                      CPSfarmprotection:protection = l_protection, generic
+        if cppfarmcova:protection <> cpsfarmprotection:protection then
+            error 1204
+
+        activehelp cpsfarmprotection_alias:protection,
+                   cpsfarmprotection_alias:description ;
+801     begin
+        if function one of "ADD" then
+            cppfarmcova:construction = cpsfarmdefault:construction
+        end
+        cppfarmcova:construction/default
+        l_construction = cppfarmcova:construction
+        Access CPSfarmconstruction, Set CPSfarmconstruction:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                        CPSfarmconstruction:STATE = G_STATE,
+                                        CPSfarmconstruction:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                        CPSfarmconstruction:construction = l_construction, generic
+        if cppfarmcova:construction <> cpsfarmconstruction:construction then
+            error 1203
+
+        activehelp cpsfarmconstruction_alias:construction,
+                   cpsfarmconstruction_alias:description ;
+901     begin
+        if function one of "ADD" then
+            cppfarmcova:owner_occupied = cpsfarmdefault:owner_occupied
+        end
+        cppfarmcova:owner_occupied/checkbox/values="0,1"/default ;
+1001    cppfarmcova:theft_exclusion/checkbox/values="0,1" ;
+1002    cppfarmcova:vandalism_exclusion/checkbox/values="0,1" ;
+1003    cppfarmcova:wind_exclusion/checkbox/values="0,1" ;
+
+1301    cppfarmcova:DESCRIPTION/uppercase ;
+1501    cppfarmcova:LIMIT;
+1601    Begin
+        If FUNCTION One Of "ADD", "APPEND", "NEW", "CHANGE" Then
+            Begin
+            if g_state not one of 37 then
+                begin
+                do access_cpsfarmrates
+                end
+            else
+                begin
+                do access_cpsfarmrates1
+                end
+
+            l_limit      = 0
+            Access sfsdeductible, Set sfsdeductible:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                      sfsdeductible:STATE            = G_STATE,
+                                      sfsdeductible:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+--                                      sfsdeductible:limit            = l_limit,
+                                      sfsdeductible:deductible       = g_deductible, generic
+
+            while sfsdeductible:COMPANY_ID       = sfpNAME:COMPANY_ID and
+                  sfsdeductible:STATE            = G_STATE and
+                  sfsdeductible:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+--                  sfsdeductible:limit            = l_limit and
+                  sfsdeductible:deductible       = g_deductible
+                    Begin
+                    If sfpNAME:EFF_DATE >= sfsdeductible:EFF_DATE Then
+                        l_deductible_rate = sfsdeductible:rate_2
+
+                    next sfsdeductible
+                    end
+
+            cppfarmcova:rate = cppfarmcova:rate * l_deductible_rate
+
+            Access sfswinddeduct, Set sfswinddeduct:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                      sfswinddeduct:STATE            = G_STATE,
+                                      sfswinddeduct:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                      sfswinddeduct:deductible       = g_deductible,
+                                      sfswinddeduct:wind_deductible  = g_wind_deductible, generic
+
+            while sfswinddeduct:COMPANY_ID       = sfpNAME:COMPANY_ID and
+                  sfswinddeduct:STATE            = G_STATE and
+                  sfswinddeduct:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+                  sfswinddeduct:deductible       = g_deductible and
+                  sfswinddeduct:wind_deductible  = g_wind_deductible
+                    Begin
+                    If sfpNAME:EFF_DATE >= sfswinddeduct:EFF_DATE Then
+                        l_deductible_rate = sfswinddeduct:factor
+
+                    next sfswinddeduct
+                    end
+
+            cppfarmcova:rate = cppfarmcova:rate * l_deductible_rate
+
+            l_construction = cppfarmcova:construction
+            Access CPSfarmconstruction, Set CPSfarmconstruction:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                            CPSfarmconstruction:STATE = G_STATE,
+                                            CPSfarmconstruction:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                            CPSfarmconstruction:construction = l_construction, generic
+
+            While CPSfarmconstruction:COMPANY_ID = sfpNAME:COMPANY_ID And
+                  CPSfarmconstruction:STATE = G_STATE And
+                  CPSfarmconstruction:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+                  cpsfarmconstruction:construction = l_construction
+                    Begin
+                    If sfpNAME:EFF_DATE >= CPSfarmconstruction:EFF_DATE Then
+                        l_construction_rate = cpsfarmconstruction:factor
+
+                    next cpsfarmconstruction
+                    end
+
+            cppfarmcova:rate = cppfarmcova:rate * l_construction_rate
+
+            l_protection = cppfarmcova:protection
+            Access CPSfarmprotection, Set CPSfarmprotection:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                          CPSfarmprotection:STATE = G_STATE,
+                                          CPSfarmprotection:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                          CPSfarmprotection:protection = l_protection, generic
+
+            While CPSfarmprotection:COMPANY_ID = sfpNAME:COMPANY_ID And
+                  CPSfarmprotection:STATE = G_STATE And
+                  CPSfarmprotection:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+                  cpsfarmprotection:protection = l_protection
+                    Begin
+                    If sfpNAME:EFF_DATE >= CPSfarmprotection:EFF_DATE Then
+                        l_protection_rate = cpsfarmprotection:factor
+
+                    next cpsfarmprotection
+                    end
+
+            cppfarmcova:rate = cppfarmcova:rate * l_protection_rate
+            Access CPSFARMexclusions, Set CPSFARMexclusions:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                          CPSFARMexclusions:STATE = G_STATE,
+                                          CPSFARMexclusions:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                          CPSFARMexclusions:COVERAGE = L_COVERAGE,
+                                          cpsfarmexclusions:option = g_option, generic
+
+            While CPSFARMexclusions:COMPANY_ID = sfpNAME:COMPANY_ID And
+                  CPSFARMexclusions:STATE = G_STATE And
+                  CPSFARMexclusions:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+                  CPSFARMexclusions:COVERAGE = L_COVERAGE and
+                  cpsfarmexclusions:option = g_option
+                    Begin
+                    l_exclusion_rate_a = cpsfarmexclusions:factor[1]
+                    l_exclusion_rate_b = cpsfarmexclusions:factor[2]
+                    l_exclusion_rate_d = cpsfarmexclusions:factor[3]
+
+                    next cpsfarmexclusions
+                    end
+
+            if l_exclusion_rate_a > 0 and
+               cppfarmcova:theft_exclusion = 1 then
+                cppfarmcova:rate = cppfarmcova:rate * l_exclusion_rate_a
+            if l_exclusion_rate_b > 0 and
+               cppfarmcova:vandalism_exclusion = 1 then
+                cppfarmcova:rate = cppfarmcova:rate * l_exclusion_rate_b
+            if l_exclusion_rate_d > 0 and
+               cppfarmcova:wind_exclusion = 1 then
+                cppfarmcova:rate = cppfarmcova:rate * l_exclusion_rate_d
+
+            End
+
+        End
+        cppfarmcova:RATE/default ;
+1701    Begin
+        If FUNCTION One Of "ADD", "CHANGE", "NEW", "APPEND" Then
+            begin
+            if l_per = 0 then
+                l_per = 100
+            L_PREMIUM = ((cppfarmcova:LIMIT Divide L_PER) *
+                        cppfarmcova:RATE)
+            cppfarmcova:premium = l_premium
+            end
+        End
+        cppfarmcova:PREMIUM/displayonly/mask="ZZZ,ZZZ.99-" ;
+
+}
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "CHANGE", "DELETE", "ADD" then
+        begin
+        Access cppfarmcova_ALIAS, Set cppfarmcova_ALIAS:policy_NO = cppfarmcova:policy_NO,
+                                      cppfarmcova_alias:pol_year = cppfarmcova:pol_year,
+                                      cppfarmcova_alias:end_sequence = cppfarmcova:end_sequence,
+                                      cppfarmcova_ALIAS:PREM_NO = cppfarmcova:PREM_NO,
+                                      cppfarmcova_ALIAS:BUILD_NO = cppfarmcova:BUILD_NO, Generic
+
+        l_limit = 0
+        While cppfarmcova_ALIAS:policy_NO = cppfarmcova:policy_NO And
+              cppfarmcova_alias:pol_year = cppfarmcova:pol_year and
+              cppfarmcova_alias:end_sequence = cppfarmcova:end_sequence and
+              cppfarmcova_ALIAS:PREM_NO = cppfarmcova:PREM_NO And
+              cppfarmcova_ALIAS:BUILD_NO = cppfarmcova:BUILD_NO
+                Begin
+                l_limit = cppfarmcova_alias:limit + l_limit
+
+                next cppfarmcova_alias
+                end
+
+        end
+
+    end
+
+Procedure Definition
+
+procedure access_cpsfarmrates
+begin
+if cppfarmcova:owner_occupied = 1 then
+    l_sub_code_1 = 10
+else
+    l_sub_code_1 = 20
+Access CPSFARMRATES, Set CPSFARMRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                         CPSFARMRATES:STATE = G_STATE,
+                         CPSFARMRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                         CPSFARMRATES:COVERAGE = L_COVERAGE,
+                         cpsfarmrates:sub_code = l_sub_code_1, Generic
+
+While CPSFARMRATES:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSFARMRATES:STATE = G_STATE And
+      CPSFARMRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSFARMRATES:COVERAGE = L_COVERAGE and
+      cpsfarmrates:sub_code = l_sub_code_1
+        Begin
+        If sfpNAME:EFF_DATE >= CPSFARMRATES:EFF_DATE Then
+            Begin
+            Switch(G_OPTION)
+              Case 2 : cppfarmcova:RATE = CPSFARMRATES:OPTION_2_RATE
+              Case 3 : cppfarmcova:RATE = CPSFARMRATES:OPTION_3_RATE
+              Case 5 : cppfarmcova:RATE = CPSFARMRATES:OPTION_5_RATE
+              Case 7 : cppfarmcova:RATE = CPSFARMRATES:OPTION_7_RATE
+              End
+            L_PER = CPSFARMRATES:PER
+            if l_per = 0 then
+                l_per = 1000
+            End
+
+        Next CPSFARMRATES
+        End
+
+end
+
+procedure access_cpsfarmrates1
+begin
+switch(g_option)
+  case 2 :  begin
+            if cppfarmcova:owner_occupied = 1 then
+                l_sub_code_1 = 10
+            else
+                l_sub_code_1 = 20
+            end
+  case 3 :  begin
+            if cppfarmcova:owner_occupied = 1 then
+                l_sub_code_1 = 30
+            else
+                l_sub_code_1 = 50
+            end
+  case 5 :  begin
+            if cppfarmcova:owner_occupied = 1 then
+                l_sub_code_1 = 40
+            else
+                l_sub_code_1 = 50
+            end
+  end
+do access_cpsfarmterr
+Access CPSFARMRATES1, Set CPSFARMRATES1:COMPANY_ID = sfpNAME:COMPANY_ID,
+                          CPSFARMRATES1:STATE = G_STATE,
+                          CPSFARMRATES1:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                          CPSFARMRATES1:COVERAGE = L_COVERAGE,
+                          cpsfarmrates1:option = g_option,
+                          cpsfarmrates1:sub_code = l_sub_code_1, Generic
+
+While CPSFARMRATES1:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSFARMRATES1:STATE = G_STATE And
+      CPSFARMRATES1:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSFARMRATES1:COVERAGE = L_COVERAGE and
+      cpsfarmrates1:option = g_option and
+      cpsfarmrates1:sub_code = l_sub_code_1
+        Begin
+        If sfpNAME:EFF_DATE >= CPSFARMRATES1:EFF_DATE Then
+            Begin
+            Switch(l_zone)
+              Case 1  : cppfarmcova:RATE = CPSFARMRATES1:zone_1
+              Case 2  : cppfarmcova:RATE = CPSFARMRATES1:zone_2
+              Case 3  : cppfarmcova:RATE = CPSFARMRATES1:zone_3
+              Case 4  : cppfarmcova:rate = cpsfarmrates1:zone_4
+              default : cppfarmcova:rate = cpsfarmrates1:zone_5
+              End
+            L_PER = CPSFARMRATES1:PER
+            if l_per = 0 then
+                l_per = 1000
+            End
+
+        Next CPSFARMRATES1
+        End
+
+end
+
+procedure access_cpsfarmterr
+begin
+access cpsfarmterr, set cpsfarmterr:company_id = sfpname:company_id,
+                        cpsfarmterr:state      = g_state,
+                        cpsfarmterr:line_of_business = l_line_of_business,
+                        cpsfarmterr:county           = g_county, generic
+
+while cpsfarmterr:company_id = sfpname:company_id and
+      cpsfarmterr:state      = g_state and
+      cpsfarmterr:line_of_business = l_line_of_business and
+      cpsfarmterr:county           = g_county
+        begin
+        if (sfpname:eff_date >= cpsfarmterr:eff_date and
+           (sfpname:eff_date <= cpsfarmterr:exp_date or
+           cpsfarmterr:exp_date = 0)) then
+            begin
+            l_zone = cpsfarmterr:territory
+
+            end
+
+        next cpsfarmterr
+        end
+
+end
+
+Procedure SUBCODE
+Begin
+Access cppfarmcova_ALIAS, Set cppfarmcova_ALIAS:policy_NO = cppfarmcova:policy_NO,
+                              cppfarmcova_alias:pol_year = cppfarmcova:pol_year,
+                              cppfarmcova_alias:end_sequence = cppfarmcova:end_sequence,
+                              cppfarmcova_ALIAS:PREM_NO = cppfarmcova:PREM_NO,
+                              cppfarmcova_ALIAS:BUILD_NO = cppfarmcova:BUILD_NO, Generic
+
+L_SUB_CODE = 0
+While cppfarmcova_ALIAS:policy_NO = cppfarmcova:policy_NO And
+      cppfarmcova_alias:pol_year = cppfarmcova:pol_year and
+      cppfarmcova_alias:end_sequence = cppfarmcova:end_sequence and
+      cppfarmcova_ALIAS:PREM_NO = cppfarmcova:PREM_NO And
+      cppfarmcova_ALIAS:BUILD_NO = cppfarmcova:BUILD_NO
+        Begin
+        L_SUB_CODE = cppfarmcova_ALIAS:SUB_CODE
+
+        Next cppfarmcova_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

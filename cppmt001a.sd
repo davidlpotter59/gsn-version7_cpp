@@ -1,0 +1,71 @@
+%%
+Screen
+        Name = "cppmt001a" ;
+        Type = "Detail" ;
+        Padcharacter=Space ;
+        Highlight=Underscore ;
+        Screensize="dynamic";
+        Windowtitle="%a     %s Transaction Effective Date - Ver. 7.00     %m";
+        Domain="SFPMASTER" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4] ;
+
+        Global String G_DEC_PAGE[1]  ;
+
+        Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO ,
+                              SFPMASTER:POL_YEAR = G_YEAR,
+                              SFPMASTER:END_SEQUENCE = G_END_SEQUENCE ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                        Transaction Eff Date: __________                      |
+*------------------------------------------------------------------------------*
+
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     SFPMASTER:TRANS_EFF
+        Hide If SFPMASTER:TRANS_CODE = 16
+        if sfpmaster:trans_eff < sfpname:eff_date then
+            error 1295
+        if sfpmaster:trans_eff > sfpname:exp_date then
+            error 1294 ;
+301     SFPMASTER:TRANS_EFF/displayonly ;
+
+}
+
+End

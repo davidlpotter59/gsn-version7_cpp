@@ -1,0 +1,2584 @@
+%%
+Screen
+        Name = "cppmtmso999" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Final Rating - Ver. 7.00     %m" ;
+        Domain = "cppUMBRELLA" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_QUE[10] ,
+                      G_FOB[1] ,
+                      G_FOB_DESCRIPTION[75] ,
+                      g_inquiry[1] ;
+
+        local array[10] of unsigned ascii number l_increase_total[8] ;
+
+        Local Unsigned Ascii Number L_TOTAL[8]=0,
+                                    L_MINIMUM[4]=0,
+                                    l_minimum_premium_without_auto[4]=0,
+                                    l_total_auto[6]=0,
+                                    l_short_rate[4]=0/dec=2,
+                                    L_STATE[2]=0,
+                                    l_end_sequence[4]=0,
+                                    L_SURCHARGE_FACTOR[8]=0/decimals=6,
+                                    L_SURCHARGE_MINIMUM[2]=0,
+                                    l_el_charge_first[3]=0,
+                                    l_el_charge_remaining[3]=0,
+                                    l_mp_changes[1],
+                                    l_employers_liability_charge[3]=0,
+                                    l_prem_no[4],
+                                    l_build_no[4],
+                                    l_changed_premium[8]=0,
+                                    l_line_of_business[4]=0,
+                                    l_total_1[8]=0,
+                                    l_total_2[8]=0,
+                                    l_total_3[8]=0,
+                                    l_total_4[8]=0,
+                                    l_total_5[8]=0,
+                                    L_FINAL_TOTAL_1[8]=0,
+                                    L_FINAL_TOTAL_2[8]=0,
+                                    L_FINAL_TOTAL_3[8]=0,
+                                    L_SURCHARGE[6]=0 ,
+                                    L_LIMIT[8]=0,
+                                    L_CSEXEC_NUMBER[12] ,
+                                    I_CSEXEC_NUMBER[12],
+                                    L_INSTALLMENT[4]=0,
+                                    L_DAYS_RATE[7]=0/decimals=4,
+                                    L_PRO_RATA_PREMIUM[8]=0/decimals=4 ;
+
+        Local Signed Ascii Number L_DAYS ,
+                                  l_previous_total[8],
+                                  l_previous_installment[8],
+                                  l_previous_surcharge[8] ;
+
+        Local String L_TYPE[1] ,
+                     L_CSEXEC_APPLICATION[25]="" ,
+                     L_COMMANDLINE[17],
+                     l_bill_plan[2]="",
+                     L_APP[3]="cpp",
+                     L_DEC[15],
+                     L_FORM_EDITION[25],
+                     l_minimum_applies[1]="N",
+                     l_pro_rata_wording[10]="Pro Rata: ",
+                     l_add_endorsement[1],
+                     L_DESCRIPTION[75],
+                     L_SCREEN[11] ,
+                     l_deleted[1]="N",
+                     L_CODE[7],
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_code_7[7],
+                     l_code_8[7],
+                     l_code_9[7],
+                     l_code_10[7],
+                     l_wc_1[1]="N",
+                     l_wc_2[1]="N",
+                     l_auto_1[1]="N",
+                     l_auto_2[1]="N",
+                     l_hired_1[1]="N",
+                     l_hired_2[1]="N",
+                     l_pi_1[1]="N",
+                     l_pi_2[1]="N",
+                     l_prod_1[1]="N",
+                     l_prod_2[1]="N",
+                     l_endorsement_exists[1]="N",
+                     l_change_code[7],
+                     L_PRO_RATE="PRO RATA" ;
+
+        Local Date L_EFF_DATE_1[8] ,
+                   l_surcharge_date[8] ;
+
+        Local Mmddyyyy Date L_CORRECT_DATE[8] ;
+        Local String L_FIRST_TIME[1]="Y";
+        Unsigned Ascii Number L_HOLD_PAYMENT_PLAN[4]=0;
+        Signed Ascii Number L_SUB_TOTAL[9]=0/decimals=2;
+        Local Unsigned Ascii Number L_OPT[1]=0 ;
+
+        Unsigned Ascii Number L_TERRORISM_PREMIUM[8]/decimals =0;
+        Unsigned Ascii Number L_TERRORISM_PREMIUM_1[8]/decimals =0;
+        Unsigned Ascii Number L_TERRORISM_PREMIUM_2[8]/decimals =0;
+        Unsigned Ascii Number L_TERRORISM_PREMIUM_3[8]/decimals =0;
+        Unsigned Ascii Number L_TPD6_TERRORISM_PREMIUM[8]/decimals =0;
+        Unsigned Ascii Number L_TERROR_PERCENTAGE[5]/decimals=4;
+        Unsigned Ascii Number L_TERROR_MINIMUM[3];
+        Wdate L_TERROR_EFF_DATE;
+        Unsigned Ascii Number L_FOUND[1];
+        Unsigned Ascii Number L_REMOVE_TERROR_FOUND[1] ;
+        Unsigned Ascii Number L_SUB_CODE[4];
+
+        include "update.var"
+
+        include "unbilled.var"
+
+        include "amtdue.var"
+
+        include "prorata.var"
+
+        Include "print.var"
+
+        Include "virtualdecs.var"
+
+        local string l_coverage[1]="" ;
+
+        Local Unsigned Ascii Number l_minimum_premium[4]=0 ,
+                                    l_minimum_premium_2[4]=0,
+                                    l_minimum_premium_3[4]=0,
+                                    l_no_vehicles[3]=0,
+                                    l_no_vehicles_1[3]=0,
+                                    l_sub[2]=0,
+                                    l_sub_1[2]=0,
+                                    l_increased_total[6]=0,
+                                    l_repeat[2]=0,
+                                    l_each_addl_minimum[4]=0,
+                                    l_original_total[8]=0,
+                                    l_minimum_premium_total[8]=0,
+                                    l_increased_million_premium[8]=0,
+                                    l_final_total[8]=0,
+                                    l_irpm[4]=0/dec=2,
+                                    l_increased_factor[4]=0/dec=2 ;
+
+        local signed ascii number l_irpm_total[6]=0;
+
+        Access cppUMBRELLA,
+           Set cppUMBRELLA:policy_NO    = G_policy_NO ,
+               cppumbrella:pol_year     = g_year,
+               cppumbrella:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.inc"
+
+Functions
+
+        "G" display "cppmtmso998" ;
+        "down" display "cppmtmso997" ;
+        "J" display "cppmtmso999a" ;
+
+        "SFP" screenlib "sfplib" ;
+
+        Include "stdfunc7.inc"
+
+        reaccess ;
+
+
+Event Definition
+        default eventhandler {
+                             "reload" { function = "reaccess" abort () }
+                             }
+/*menu definition
+
+        include "stdmenu7.inc"
+
+        Include "cppmsoummenu7f.inc"
+
+}                                   */
+
+Toolbar Definition
+
+screen entry
+l_commandline = str(g_policy_no,9) + str(g_year,4) + str(g_end_sequence[4])
+proc("cli csbatch cppup998 %s",l_commandline)/noconsole
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+access validation
+if cppumbrella:policy_no <> g_policy_no or
+   cppumbrella:pol_Year <> g_year or
+   cppumbrella:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+screen
+{
+%%
+_
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+| Original Total:        _____________                                         |
+| Minimum Premium:       _____________                                         |
+| Changed Total:         _____________                                         |
+*-----------------------------------------------------*------------------------*
+| Increased Limit:       _____________                |    Previous Totals     |
+| Employers Liability:   _____________                | Total:       _________ |
+|                                                     | Installment: _________ |
+|                                                     | Surcharge:   _________ |
+|                                                     *------------------------*
+|                                                  _______________   _________ |
+|                                                       __________   _________ |
+| Final Total:           _____________                  __________   _________ |
+| Terrorism:             _____________                                         |
+| Total Policy Premium:  _____________  _________                              |
+| Surcharge:             _____________            Unearned Premium:  _________ |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppUMBRELLA:policy_NO/displayonly ;
+302     cppumbrella:pol_year/displayonly ;
+303     cppumbrella:end_sequence/displayonly ;
+501     Begin
+        access sfpmaster, set sfpmaster:policy_no = g_policy_no,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence, generic
+
+        if sfpmaster:trans_code not one of 11, 16 then
+            begin
+            do original_total
+            do workers_comp
+            end
+        else
+            begin
+            l_original_total = cppumbrella:original_total
+            l_employers_liability_charge = cppumbrella:employers_liability_charge[1] +
+                                           cppumbrella:employers_liability_charge[2] +
+                                           cppumbrella:employers_liability_charge[3] +
+                                           cppumbrella:employers_liability_charge[4] +
+                                           cppumbrella:employers_liability_charge[5] +
+                                           cppumbrella:employers_liability_charge_1[1] +
+                                           cppumbrella:employers_liability_charge_1[2] +
+                                           cppumbrella:employers_liability_charge_1[3] +
+                                           cppumbrella:employers_liability_charge_1[4] +
+                                           cppumbrella:employers_liability_charge_1[5]
+            end
+        End
+        L_ORIGINAL_TOTAL/displayonly/mask="ZZ,ZZZ,ZZZ.99" ;
+601     begin
+        if sfpmaster:trans_code not one of 11, 16 then
+            do umbrella_minimum_premium
+        else
+            l_minimum_premium_total = cppumbrella:minimum_premium_total
+        end
+        l_minimum_premium_total/displayonly/mask="ZZ,ZZZ,ZZZ.99" ;
+701     cppumbrella:changed_premium/mask="ZZ,ZZZ,ZZZ.99"/default
+        hide if sfpmaster:trans_code one of 11, 16
+        if cppumbrella:changed_premium < l_original_total and
+           cppumbrella:changed_premium <> 0 then
+            begin
+            if l_minimum_premium_total = 0 then
+                begin
+                l_irpm = ((cpsumdefault:irpm_maximum[2] divide 100) + 1)
+                l_irpm_total = cppumbrella:original_total * l_irpm
+                if cppumbrella:changed_premium < l_irpm_total then
+                    error "Total is less than allowed discount"
+                end
+            end ;
+701     cppumbrella:changed_premium/displayonly
+        hide if sfpmaster:trans_code not one of 11, 16;
+901     begin
+        l_changed_premium = cppumbrella:changed_premium
+        if sfpmaster:trans_code not one of 11, 16 then
+            begin
+--            if sfpname:company_id <> "LEBINS" then
+                do increased_million
+/*            else
+                begin
+                l_increased_million_premium = 0
+                if l_changed_premium <> 0 then
+                    l_increase_total[1] = l_changed_premium
+                end*/
+            end
+        else
+            l_increased_million_premium = cppumbrella:increased_million_premium
+        end
+        l_increased_million_premium/displayonly/mask="ZZ,ZZZ,ZZZ.99" ;
+1001    l_employers_liability_charge/displayonly/mask="ZZ,ZZZ,ZZZ.99" ;
+1601    Begin
+        if sfpmaster:trans_code not one of 11, 16 then
+            do final_total
+        else
+            l_final_total = cppumbrella:final_total
+        end
+        L_FINAL_TOTAL/displayonly/mask="ZZ,ZZZ,ZZZ.99";
+1701    begin
+        if sfpmaster:trans_code not one of 11, 16 then
+            begin
+            do terrorism
+            end
+        end
+        l_terrorism_premium/displayonly/mask="ZZ,ZZZ,ZZZ.99"
+        hide if sfsline:lob_code one of "CPORTFOLIO" ;
+1701    begin
+        if sfpmaster:trans_code not one of 11, 16 then
+            begin
+            do terrorism
+            end
+        end
+        l_terrorism_premium/displayonly/mask="ZZ,ZZZ,ZZZ.99"
+        hide if sfsline:lob_code not one of "CPORTFOLIO" ;
+1801    begin
+        if sfpmaster:trans_code not one of 11, 16 then
+            begin
+            if sfpmaster:trans_code = 14 then
+                begin
+                do access_arspayplan
+                if arspayplan:manual_payment_plan = 0 then
+                    Do INSTALLMENT
+                end
+            Do FINAL_TOTAL_1
+            end
+        else
+            begin
+            if sfsline:lob_code one of "CPORTFOLIO" then
+                l_final_total_1 = sfpmastsupp:total[18] + sfpmastsupp:terrorism_premium
+            else
+                l_final_total_1 = sfpmaster:total[18] + sfpmaster:terrorism_premium
+            l_surcharge = sfpmaster:surcharge
+            end
+        if g_inquiry <> "Y" then
+            begin
+            do amt_due
+            if sfscompany:include_installment_rating = "Y" then
+                i_amt_due = i_amt_due + i_installment_amt_due + i_surcharge_amt_due
+            else
+                i_amt_due = i_amt_due + i_surcharge_amt_due
+            end
+        else
+            i_amt_due = sfpmaster:amt_due_total[20]
+        end
+        L_FINAL_TOTAL_1/displayonly/mask="ZZ,ZZZ,ZZZ.99";
+1802    L_PRO_RATE/displayonly/showasguidetext
+        Hide If L_EFF_DATE_1 = sfpNAME:EXP_DATE ;
+1901    L_SURCHARGE/displayonly/mask="$$$$$$9.99";
+
+1002    Begin
+        L_END_SEQUENCE = G_END_SEQUENCE - 1
+        if sfsline:lob_code one of "CPORTFOLIO" then
+            begin
+            Access sfpmastsupp, Set sfpmastsupp:POLICY_NO = G_POLICY_NO,
+                                    sfpmastsupp:POL_YEAR = G_YEAR,
+                                    sfpmastsupp:END_SEQUENCE = L_END_SEQUENCE,
+                                    sfpmastsupp:line_of_business = g_line_of_business, Generic
+
+            L_PREVIOUS_TOTAL = sfpmastsupp:TOTAL[18] + sfpmastsupp:terrorism_premium
+            L_PREVIOUS_SURCHARGE = sfpmastsupp:SURCHARGE
+            end
+        else
+            begin
+            Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO,
+                                  SFPMASTER:POL_YEAR = G_YEAR,
+                                  SFPMASTER:END_SEQUENCE = L_END_SEQUENCE, Generic
+
+            L_PREVIOUS_TOTAL = SFPMASTER:TOTAL[18] + sfpmaster:terrorism_premium
+            L_PREVIOUS_INSTALLMENT = SFPMASTER:INSTALLMENT_CHARGE
+            L_PREVIOUS_SURCHARGE = SFPMASTER:SURCHARGE
+            end
+        End
+        L_PREVIOUS_TOTAL/mask="$$$$$$9.99"/displayonly ;
+1101    L_PREVIOUS_INSTALLMENT/mask="$$$$$$9.99"/displayonly ;
+1201    L_PREVIOUS_SURCHARGE/mask="$$$$$$9.99"/displayonly ;
+
+1401    L_PRO_RATA_WORDING/displayonly/showasguidetext
+        Hide If I_PRO_RATA = 0 ;
+1402    I_PRO_RATA/displayonly/showasguidetext
+        Hide If I_PRO_RATA = 0 ;
+
+1501    Begin
+        If SFPNAME:BILL_PLAN = "AC" And
+           SFPMASTER:TOTAL[1] <> 0 Then
+            I_BILLED = "Billed:"
+        End
+        I_BILLED/displayonly/showasguidetext ;
+1502    I_BILLED_PREMIUM/displayonly/mask="$$$$$$9.99"/showasguidetext
+        Hide If I_BILLED_PREMIUM = 0;
+1602    Begin
+        If SFPNAME:BILL_PLAN = "AC" And
+           SFPMASTER:TOTAL[1] <> 0 Then
+            I_UNBILLED = "Unbilled:"
+        End
+        I_UNBILLED/displayonly/showasguidetext ;
+1603    I_UNBILLED_PREMIUM/displayonly/showasguidetext
+        Hide If I_UNBILLED_PREMIUM = 0 ;
+1902    I_AMT_DUE/displayonly/mask="$$$$$$9.99-";
+
+}
+
+screen exit
+l_commandline = str(g_policy_no,9) + str(g_year,4) + str(g_end_sequence,4)
+proc("cli csbatch cppup999 %s",l_commandline)/noconsole
+
+procedure definition
+
+procedure workers_comp
+begin
+access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                       cpsumrates:state = cppumbrella:state,
+                       cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+l_code_1 = ""
+l_code_2 = ""
+l_code_3 = ""
+l_code_4 = ""
+l_code_5 = ""
+l_code_6 = ""
+while cpsumrates:company_id = sfpname:company_id and
+      cpsumrates:state = cppumbrella:state and
+      cpsumrates:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date => cpsumrates:eff_date then
+            begin
+            l_el_charge_first = cpsumrates:workers_comp_charge_first
+            l_el_charge_remaining = cpsumrates:workers_comp_charge_remaining
+            l_code_1  = cpsumrates:workers_comp_code[1] -- MCL716
+            l_code_2  = cpsumrates:workers_comp_code[2] -- MCL717
+            l_code_3  = cpsumrates:trigger_codes[1] -- MCL703
+            l_code_4  = cpsumrates:trigger_codes[2] -- MCL704
+            l_code_5  = cpsumrates:trigger_codes[3] -- MCL705
+            l_code_6  = cpsumrates:trigger_codes[4] -- MCL706
+            end -- end of eff_date
+
+        next cpsumrates
+        end -- end of while
+
+l_coverage = "E"
+access cppumdetail, set cppumdetail:policy_no    = cppumbrella:policy_no,
+                        cppumdetail:pol_Year     = cppumbrella:pol_year,
+                        cppumdetail:end_sequence = cppumbrella:end_sequence,
+                        cppumdetail:coverage     = l_coverage, generic
+
+if cppumdetail:policy_no    = cppumbrella:policy_no and
+   cppumdetail:pol_year     = cppumbrella:pol_year and
+   cppumdetail:end_sequence = cppumbrella:end_sequence and
+   cppumdetail:coverage     = l_coverage then
+    begin
+    L_CODE = L_CODE_1
+    Do ACCESS_sfpEND
+    If l_wc_1 = "N" and
+       l_wc_2 = "N" and
+       l_code_1 <> "" Then
+        begin
+        Do ADD_sfpEND
+        end
+    else
+    if l_wc_1 = "N" and
+       l_wc_2 = "Y" and
+       l_code_2 <> "" then
+        begin
+        l_change_code = l_code_2
+        do change_sfpend
+        end
+    l_employers_liability_charge = 0
+    access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                                  cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                                  cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+    change cppumbrella_alias
+        begin
+        cppumbrella_alias:employers_liability_charge[1]   = l_el_charge_first
+        cppumbrella_alias:employers_liability_charge[2]   = 0
+        cppumbrella_alias:employers_liability_charge[3]   = 0
+        cppumbrella_alias:employers_liability_charge[4]   = 0
+        cppumbrella_alias:employers_liability_charge[5]   = 0
+        cppumbrella_alias:employers_liability_charge_1[1] = 0
+        cppumbrella_alias:employers_liability_charge_1[2] = 0
+        cppumbrella_alias:employers_liability_charge_1[3] = 0
+        cppumbrella_alias:employers_liability_charge_1[4] = 0
+        cppumbrella_alias:employers_liability_charge_1[5] = 0
+        end
+
+    l_employers_liability_charge = l_el_charge_first
+
+    l_repeat = ((cppumbrella_alias:occurrence - cpsumdefault:occurrence)
+               divide cpsumdefault:occurrence)
+
+    l_sub   = 1
+    l_sub_1 = 0
+    while l_sub <= l_repeat
+        begin
+        l_employers_liability_charge = l_employers_liability_charge + l_el_charge_remaining
+
+        access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                                      cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                                      cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+        change cppumbrella_alias
+            begin
+            if l_sub >= 5 then
+                begin
+                l_sub_1 = l_sub_1 + 1
+                cppumbrella_alias:employers_liability_charge_1[l_sub_1] = l_el_charge_remaining
+                end
+            else
+                cppumbrella_alias:employers_liability_charge[l_sub + 1] = l_el_charge_remaining
+            end -- end of change
+
+        l_sub = l_sub + 1
+        end -- end of while
+
+    end
+else
+    begin
+    L_CODE = L_CODE_2
+    Do ACCESS_sfpEND
+    If l_wc_1 = "N" and
+       l_wc_2 = "N" and
+       l_code_2 <> "" Then
+        Do ADD_sfpEND
+    else
+    if l_wc_1 = "Y" and
+       l_wc_2 = "N" and
+       l_code_1 <> "" then
+        begin
+        l_change_code = l_code_1
+        do change_sfpend
+        end
+
+    l_employers_liability_charge = 0
+    access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                                  cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                                  cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+    change cppumbrella_alias
+        begin
+        cppumbrella_alias:employers_liability_charge[1]   = 0
+        cppumbrella_alias:employers_liability_charge[2]   = 0
+        cppumbrella_alias:employers_liability_charge[3]   = 0
+        cppumbrella_alias:employers_liability_charge[4]   = 0
+        cppumbrella_alias:employers_liability_charge[5]   = 0
+        cppumbrella_alias:employers_liability_charge_1[1] = 0
+        cppumbrella_alias:employers_liability_charge_1[2] = 0
+        cppumbrella_alias:employers_liability_charge_1[3] = 0
+        cppumbrella_alias:employers_liability_charge_1[4] = 0
+        cppumbrella_alias:employers_liability_charge_1[5] = 0
+        end
+    end
+
+end -- end of procedure
+
+procedure original_total
+begin
+access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+if cppumbrella_alias:line_of_business = 0 then
+    begin
+    change cppumbrella_alias
+        begin
+        cppumbrella_alias:line_of_business = g_line_of_business
+        end
+    end
+
+access cppumunderlying, set cppumunderlying:policy_no    = cppumbrella:policy_no,
+                            cppumunderlying:pol_year     = cppumbrella:pol_year,
+                            cppumunderlying:end_sequence = cppumbrella:end_sequence, generic
+
+l_original_total = 0
+while cppumunderlying:policy_no = cppumbrella:policy_no and
+      cppumunderlying:pol_Year = cppumbrella:pol_Year and
+      cppumunderlying:end_sequence = cppumbrella:end_sequence
+    begin
+    if sfscompany:boiler_Rating = 4 then
+        begin
+        if cppumunderlying:coverage = "A" then
+            begin
+            l_total_auto = cppumunderlying:total_premium +
+                           l_total_auto
+            end
+        else
+            begin
+            l_original_total = l_original_total + cppumunderlying:total_premium
+            end
+        end
+    else
+        begin
+        l_ORIGINAL_TOTAL = l_original_total + cppUMUNDERLYING:TOTAL_PREMIUM
+        end
+
+    next cppumunderlying
+    end
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if l_total_auto <> 0 and
+       cppumbrella:autos_minimum_premium <> 0 and
+       l_total_auto < cppumbrella:autos_minimum_premium then
+        begin
+        l_total_auto = cppumbrella:autos_minimum_premium
+        end
+
+    l_original_total = l_original_total + l_total_auto
+    end
+
+access sfpend, set sfpend:policy_no = cppumbrella:policy_no,
+                   sfpend:pol_Year = cppumbrella:pol_Year,
+                   sfpend:end_sequence = cppumbrella:end_sequence, generic
+
+while sfpend:policy_no = cppumbrella:policy_no and
+      sfpend:pol_Year = cppumbrella:poL_year and
+      sfpend:end_sequence = cppumbrella:end_sequence
+    begin
+    if sfpend:terrorism_form = 0 then
+        l_original_total = l_original_total + sfpend:manual_premium
+
+    next sfpend
+    end
+
+Access sfpmisc, Set sfpmisc:policy_no = G_policy_no,
+                    sfpmisc:pol_year = g_year,
+                    sfpmisc:end_sequence = g_end_sequence, generic
+
+While sfpmisc:policy_no = g_policy_no and
+      sfpmisc:pol_year = g_year and
+      sfpmisc:end_sequence = g_end_sequence
+        begin
+        if ((sfpmisc:lob_end_code one of "U" and
+           sfsline:lob_code one of "CPORTFOLIO") or
+           sfsline:lob_code not one of "CPORTFOLIO") then
+            begin
+            l_original_total = l_original_total + sfpmisc:premium
+            end
+
+        next sfpmisc
+        end
+
+
+access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+change cppumbrella_alias
+    begin
+    cppumbrella_alias:original_total = l_original_total +
+                                       cppumbrella_alias:total_premium[1] +
+                                       cppumbrella_alias:total_premium[2] +
+                                       cppumbrella_alias:total_premium[3]
+
+    end
+
+l_original_total = cppumbrella_alias:original_total
+end
+
+procedure umbrella_minimum_premium
+begin
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+change cppumbrella_alias
+    begin
+    if sfscompany:boiler_rating <> 4 then
+        do minimum_premiums
+    else
+        do minimum_premiums_delos
+    if cppumbrella_alias:original_total < l_minimum_premium then
+        cppumbrella_alias:minimum_premium_total = l_minimum_premium
+    else
+        cppumbrella_alias:minimum_premium_total = 0
+    end
+
+l_minimum_premium_total = cppumbrella_alias:minimum_premium_total
+end
+
+procedure increased_million
+begin
+access cppumbrella_alias, set cppumbrella_alias:policy_no    = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year     = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+if l_mp_changes = 2 and
+   sfscompany:boiler_rating = 4 then
+    begin
+    change cppumbrella_alias
+        begin
+--        cppumbrella_alias:changed_premium = l_changed_premium
+        if cppumbrella_alias:occurrence > cpsumdefault:occurrence then
+            begin
+            l_repeat = ((cppumbrella_alias:occurrence - cpsumdefault:occurrence)
+                       divide cpsumdefault:occurrence)
+
+            if cppumbrella_alias:minimum_premium_total = 0 or
+               l_changed_premium <> 0 then
+                begin
+                cppumbrella_alias:increased_million_premium = 0
+                if cppumbrella_alias:changed_premium <> 0 then
+                    l_increased_total = cppumbrella_alias:changed_premium
+                else
+                    l_increased_total = cppumbrella_alias:original_total
+
+                if l_changed_premium <> 0 then
+                    l_increase_total[1] = l_changed_premium
+                else
+                    l_increase_total[1] = l_original_total
+                l_sub_1 = 1
+                l_sub = 1
+                while l_sub <= l_repeat
+                    begin
+                    l_increased_total = l_increased_total *
+                                        l_increased_factor
+
+                    if l_sub + 1 > 5 and
+                       cppumbrella_alias:manually_changed_limits[l_sub_1] = 1 then
+                        begin
+                        l_sub_1 = l_sub_1 + 1
+                        if sfsline:lob_code one of "CPORTFOLIO" then
+                            begin
+                            switch(l_sub + 1)
+                              case 6  : l_increased_total = sfpmastsupp:other_totals[11]
+                              case 7  : l_increased_total = sfpmastsupp:other_totals[12]
+                              case 8  : l_increased_total = sfpmastsupp:other_totals[13]
+                              case 9  : l_increased_total = sfpmastsupp:other_totals[14]
+                              case 10 : l_increased_total = sfpmastsupp:other_totals[15]
+                              end
+                            end
+                        end
+                    else
+                    if l_increased_total < l_minimum_premium and
+                       l_minimum_premium <> 0 then
+                        begin
+                        l_increased_total = l_minimum_premium
+                        end
+
+                    cppumbrella_alias:increased_million_premium =
+                                      cppumbrella_alias:increased_million_premium +
+                                      l_increased_total
+
+                    l_increase_total[l_sub + 1] = l_increased_total
+
+                    l_sub = l_sub + 1
+                    end
+                end
+            else
+            if cppumbrella_alias:minimum_premium_total <> 0 then
+                begin
+                cppumbrella_alias:increased_million_premium = 0
+                l_increased_total = cppumbrella_alias:minimum_premium_total
+
+                if l_changed_premium <> 0 then
+                    l_increase_total[1] = l_changed_premium
+                else
+                    l_increase_total[1] = cppumbrella_alias:minimum_premium_total
+                l_sub = 1
+                l_sub_1 = 1
+                while l_sub <= l_repeat
+                    begin
+                    l_increased_total = l_increased_total *
+                                        l_increased_factor
+
+                    if l_sub + 1 > 5 and
+                       cppumbrella_alias:manually_changed_limits[l_sub_1] = 1 then
+                        begin
+                        l_sub_1 = l_sub_1 + 1
+                        if sfsline:lob_code one of "CPORTFOLIO" then
+                            begin
+                            switch(l_sub + 1)
+                              case 6  : l_increased_total = sfpmastsupp:other_totals[11]
+                              case 7  : l_increased_total = sfpmastsupp:other_totals[12]
+                              case 8  : l_increased_total = sfpmastsupp:other_totals[13]
+                              case 9  : l_increased_total = sfpmastsupp:other_totals[14]
+                              case 10 : l_increased_total = sfpmastsupp:other_totals[15]
+                              end
+                            end
+                        else
+                            begin
+                            switch(l_sub + 1)
+                              case 6  : l_increased_total = sfpmaster:other_totals[11]
+                              case 7  : l_increased_total = sfpmaster:other_totals[12]
+                              case 8  : l_increased_total = sfpmaster:other_totals[13]
+                              case 9  : l_increased_total = sfpmaster:other_totals[14]
+                              case 10 : l_increased_total = sfpmaster:other_totals[15]
+                              end
+                            end
+                        end
+                    else
+                    if l_increased_total < l_minimum_premium then
+                        begin
+                        l_increased_total = l_minimum_premium
+                        end
+
+                    cppumbrella_alias:increased_million_premium =
+                                      cppumbrella_alias:increased_million_premium +
+                                      l_increased_total
+
+                    l_increase_total[l_sub + 1] = l_increased_total
+
+                    l_sub   = l_sub + 1
+                    end
+                end
+            end
+        else
+            begin
+            cppumbrella_alias:increased_million_premium = 0
+            if l_changed_premium <> 0 then
+                l_increase_total[1] = l_changed_premium
+            else
+            if cppumbrella_alias:minimum_premium_total <> 0 then
+                l_increase_total[1] = cppumbrella_alias:minimum_premium_total
+            else
+                l_increase_total[1] = cppumbrella_alias:original_total
+            end
+        end
+    end
+else
+begin
+change cppumbrella_alias
+    begin
+    if l_changed_premium <> 0 then
+        cppumbrella_alias:changed_premium = l_changed_premium
+
+    if cppumbrella_alias:occurrence > cpsumdefault:occurrence then
+        begin
+        l_repeat = ((cppumbrella_alias:occurrence - cpsumdefault:occurrence)
+                   divide cpsumdefault:occurrence)
+
+        if cppumbrella_alias:minimum_premium_total = 0 or
+           l_changed_premium <> 0 then
+            begin
+            cppumbrella_alias:increased_million_premium = 0
+            if cppumbrella_alias:changed_premium <> 0 then
+                l_increased_total = cppumbrella_alias:changed_premium
+            else
+                l_increased_total = cppumbrella_alias:original_total
+
+            l_sub = 1
+            if l_changed_premium <> 0 then
+                l_increase_total[1] = l_changed_premium
+            else
+                l_increase_total[1] = l_original_total
+            l_sub_1 = 1
+            while l_sub <= l_repeat
+                begin
+                l_increased_total = l_increased_total *
+                                    l_increased_factor
+
+                if l_sub + 1 > 5 and
+                   cppumbrella_alias:manually_changed_limits[l_sub_1] = 1 then
+                    begin
+                    l_sub_1 = l_sub_1 + 1
+                    if sfsline:lob_code one of "CPORTFOLIO" then
+                        begin
+                        switch(l_sub + 1)
+                          case 6  : l_increased_total = sfpmastsupp:other_totals[11]
+                          case 7  : l_increased_total = sfpmastsupp:other_totals[12]
+                          case 8  : l_increased_total = sfpmastsupp:other_totals[13]
+                          case 9  : l_increased_total = sfpmastsupp:other_totals[14]
+                          case 10 : l_increased_total = sfpmastsupp:other_totals[15]
+                          end
+                        end
+                    else
+                        begin
+                        switch(l_sub + 1)
+                          case 6  : l_increased_total = sfpmaster:other_totals[11]
+                          case 7  : l_increased_total = sfpmaster:other_totals[12]
+                          case 8  : l_increased_total = sfpmaster:other_totals[13]
+                          case 9  : l_increased_total = sfpmaster:other_totals[14]
+                          case 10 : l_increased_total = sfpmaster:other_totals[15]
+                          end
+                        end
+                    end
+                else
+                if l_increased_total < l_each_addl_minimum and
+                   l_each_addl_minimum <> 0 then
+                    begin
+                    l_increased_total = l_each_addl_minimum
+                    end
+                else
+                if l_increased_total < l_minimum_premium_2 and
+                   l_each_addl_minimum = 0 and
+                   cppumbrella_alias:occurrence = 2000000 then
+                    begin
+                    l_increased_total = l_minimum_premium_2
+                    end
+                else
+                if l_increased_total < l_minimum_premium_3 and
+                   l_each_addl_minimum = 0 and
+                   cppumbrella_alias:occurrence = 3000000 then
+                    begin
+                    l_increased_total = l_minimum_premium_3
+                    end
+
+                if sfscompany:boiler_Rating = 4 and
+                   l_mp_changes = 2 then
+                    begin
+                    if l_increased_total < l_minimum_premium and
+                       l_minimum_applies = "Y" then
+                        l_increased_total = l_minimum_premium
+                    end
+
+                if sfpname:company_id <> "LEBINS" then
+                    begin
+                    cppumbrella_alias:increased_million_premium =
+                                      cppumbrella_alias:increased_million_premium +
+                                      l_increased_total
+                    l_increase_total[l_sub + 1] = l_increased_total
+                    end
+                else
+                    begin
+                    l_increased_total = 1000
+                    cppumbrella_alias:increased_million_premium =
+                                      cppumbrella_alias:increased_million_premium +
+                                      l_increased_total
+                    l_increase_total[l_sub + 1] = l_increased_total
+                    end
+
+                l_sub = l_sub + 1
+                end
+            end
+        else
+            if cppumbrella_alias:minimum_premium_total <> 0 then
+                begin
+                cppumbrella_alias:increased_million_premium = 0
+                l_increased_total = cppumbrella_alias:minimum_premium_total
+
+                if l_changed_premium <> 0 then
+                    l_increase_total[1] = l_changed_premium
+                else
+                    l_increase_total[1] = cppumbrella_alias:minimum_premium_total
+
+                l_sub = 1
+                l_sub_1 = 1
+                while l_sub <= l_repeat
+                    begin
+                    l_increased_total = l_increased_total *
+                                        l_increased_factor
+
+                    if l_sub + 1 > 5 and
+                       cppumbrella:manually_changed_limits[l_sub_1] = 1 then
+                        begin
+                        if sfsline:lob_code one of "CPORTFOLIO" then
+                            begin
+                            switch(l_sub + 1)
+                              case 6  : l_increased_total = sfpmastsupp:other_totals[11]
+                              case 7  : l_increased_total = sfpmastsupp:other_totals[12]
+                              case 8  : l_increased_total = sfpmastsupp:other_totals[13]
+                              case 9  : l_increased_total = sfpmastsupp:other_totals[14]
+                              case 10 : l_increased_total = sfpmastsupp:other_totals[15]
+                              end
+                            end
+                        else
+                            begin
+                            switch(l_sub + 1)
+                              case 6  : l_increased_total = sfpmaster:other_totals[11]
+                              case 7  : l_increased_total = sfpmaster:other_totals[12]
+                              case 8  : l_increased_total = sfpmaster:other_totals[13]
+                              case 9  : l_increased_total = sfpmaster:other_totals[14]
+                              case 10 : l_increased_total = sfpmaster:other_totals[15]
+                              end
+                            end
+                        end
+                    else
+                    if l_increased_total < l_each_addl_minimum then
+                        begin
+                        l_increased_total = l_each_addl_minimum
+                        end
+                    else
+                    if l_increased_total < l_minimum_premium_2 and
+                       l_each_addl_minimum = 0 and
+                       cppumbrella_alias:occurrence = 2000000 then
+                        begin
+                        l_increased_total = l_minimum_premium_2
+                        end
+                    else
+                    if l_increased_total < l_minimum_premium_3 and
+                       l_each_addl_minimum = 0 and
+                       cppumbrella_alias:occurrence = 3000000 then
+                        begin
+                        l_increased_total = l_minimum_premium_3
+                        end
+
+                    if sfscompany:boiler_Rating = 4 and
+                       l_mp_changes = 2 then
+                        begin
+                        if l_increased_total < l_minimum_premium and
+                           l_minimum_applies = "Y" then
+                            l_increased_total = l_minimum_premium
+                        end
+
+                    if sfpname:company_id <> "LEBINS" then
+                        begin
+                        cppumbrella_alias:increased_million_premium =
+                                          cppumbrella_alias:increased_million_premium +
+                                          l_increased_total
+                        l_increase_total[l_sub + 1] = l_increased_total
+                        end
+                    else
+                        begin
+                        l_increased_total = 1000
+                        cppumbrella_alias:increased_million_premium =
+                                          cppumbrella_alias:increased_million_premium +
+                                          l_increased_total
+                        l_increase_total[l_sub + 1] = l_increased_total
+                        end
+
+                    l_sub = l_sub + 1
+                    end
+                end
+        end
+    else
+        begin
+        cppumbrella_alias:increased_million_premium = 0
+        if l_changed_premium <> 0 then
+            l_increase_total[1] = l_changed_premium
+        else
+        if cppumbrella_alias:minimum_premium_total <> 0 then
+            l_increase_total[1] = cppumbrella_alias:minimum_premium_total
+        else
+            l_increase_total[1] = cppumbrella_alias:original_total
+        end
+
+    end
+end
+
+l_increased_million_premium = cppumbrella_alias:increased_million_premium
+end
+
+procedure final_total
+begin
+access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+change cppumbrella_alias
+    begin
+--    if sfpname:company_id = "LEBINS" then
+--        cppumbrella_alias:increased_million_premium = 0
+    If cppUMBRELLA_alias:changed_premium <> 0 Then
+        cppUMBRELLA_alias:FINAL_TOTAL = cppUMBRELLA_alias:changed_premium +
+                                        cppumbrella_alias:increased_million_premium
+    Else
+    if cppumbrella_alias:minimum_premium_total <> 0 then
+        cppumbrella_alias:final_total = cppumbrella_alias:minimum_premium_total +
+                                        cppumbrella_alias:increased_million_premium
+    else
+        cppUMBRELLA_alias:FINAL_TOTAL = cppUMBRELLA_alias:ORIGINAL_TOTAL +
+                                        cppumbrella_alias:increased_million_premium
+
+    l_repeat = ((cppumbrella_alias:occurrence - cpsumdefault:occurrence)
+               divide cpsumdefault:occurrence)
+
+    if cppumbrella_alias:mp_changed_by_user not one of 1 then
+        begin
+        cppumbrella_alias:total_minimum_premium = (l_minimum_premium +
+                                                  (L_each_addl_minimum * l_repeat))
+        end
+    cppumbrella_alias:final_total = cppumbrella_alias:final_total +
+                                    l_employers_liability_charge
+    End
+
+l_final_total = cppumbrella_alias:final_total
+
+if cpsumdefault:mp_final_total = 1 and
+   cppumbrella_alias:mp_changed_by_user not one of 1 then
+    begin
+    access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                                  cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                                  cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+    change cppumbrella_alias
+        begin
+        cppumbrella_alias:total_minimum_premium = l_final_total
+        end
+    end
+end
+
+procedure minimum_premiums
+begin
+access cpsumminimums, set cpsumminimums:company_id = sfpname:company_id,
+                          cpsumminimums:state = cppumbrella:state,
+                          cpsumminimums:line_of_business = cppumbrella:line_of_business, generic
+
+if l_no_vehicles = 0 then
+    l_no_vehicles = cppumbrella:no_vehicles
+while cpsumminimums:company_id = sfpname:company_id and
+      cpsumminimums:state = cppumbrella:state and
+      cpsumminimums:line_of_business = cppumbrella:line_of_business
+        begin
+        if (sfpname:eff_date >= cpsumminimums:eff_date and
+           (sfpname:eff_date <= cpsumminimums:exp_date or
+           cpsumminimums:exp_date = 0)) then
+            begin
+            if cpsumminimums:mp_changes = 0 then
+                begin
+                if cppumbrella:office = 1 then
+                    begin
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                       cppumbrella:receipts <= cpsumminimums:office_minimum then
+                       begin
+                        l_minimum_premium = cpsumminimums:minimum_premium[1]
+                end
+                    else
+                    if l_no_vehicles > cpsumminimums:no_vehicles[1] and
+                       l_no_vehicles <= cpsumminimums:no_vehicles[2] and
+                       cppumbrella:receipts <= cpsumminimums:office_minimum then
+                        l_minimum_premium = cpsumminimums:minimum_premium[2]
+
+                    if l_no_vehicles > cpsumminimums:no_vehicles[2] and
+                       cppumbrella:receipts <= cpsumminimums:office_minimum then
+                        l_minimum_premium = cpsumminimums:minimum_premium[3]
+                    end
+                else
+                    begin
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                       cppumbrella:receipts < cpsumminimums:receipts_1[1] then
+                        l_minimum_premium = cpsumminimums:minimum_premium[1]
+                    else
+                    if ((l_no_vehicles > cpsumminimums:no_vehicles[1] and
+                       l_no_vehicles <= cpsumminimums:no_vehicles[2]) or
+                       (cppumbrella:receipts => cpsumminimums:receipts_1[2] and
+                       cppumbrella:receipts < cpsumminimums:receipts_2[2])) then
+                        l_minimum_premium = cpsumminimums:minimum_premium[2]
+
+                    if (l_no_vehicles > cpsumminimums:no_vehicles[2] or
+                       (cppumbrella:receipts => cpsumminimums:receipts_1[3] and
+                       cppumbrella:receipts <= cpsumminimums:receipts_2[3])) then
+                        l_minimum_premium = cpsumminimums:minimum_premium[3]
+                    end
+                end
+            else
+            if cpsumminimums:mp_changes = 3 then
+                begin
+                if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                   cppumbrella:receipts <= cpsumminimums:receipts_1[1] then
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[1]
+                    l_minimum_premium_2 = cpsumminimums:above_million_mp[1]
+                    l_minimum_premium_3 = cpsumminimums:above_million_mp[3]
+                    end
+                else
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[2]
+                    l_minimum_premium_2 = cpsumminimums:above_million_mp[2]
+                    l_minimum_premium_3 = cpsumminimums:above_million_mp[3]
+                    end
+                end
+            else
+                begin
+                if cppumbrella:office = 1 then
+                    begin
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                       cppumbrella:receipts <= cpsumminimums:office_minimum then
+                        l_minimum_premium = cpsumminimums:minimum_premium[1]
+                    else
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[2] and
+                       cppumbrella:receipts <= cpsumminimums:office_minimum then
+                        l_minimum_premium = cpsumminimums:minimum_premium[2]
+                    else
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[3] and
+                       cppumbrella:receipts <= cpsumminimums:office_minimum then
+                        l_minimum_premium = cpsumminimums:minimum_premium[3]
+
+                    if l_no_vehicles > cpsumminimums:no_vehicles[3] or
+                       cppumbrella:receipts > cpsumminimums:office_minimum then
+                        l_minimum_premium = cpsumminimums:minimum_premium_1[1]
+                    end
+                else
+                    begin
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                       cppumbrella:receipts < cpsumminimums:receipts_1[1] then
+                        l_minimum_premium = cpsumminimums:minimum_premium[1]
+                    else
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[2] and
+                       cppumbrella:receipts < cpsumminimums:receipts_1[2] then
+                        l_minimum_premium = cpsumminimums:minimum_premium[2]
+                    else
+                    if l_no_vehicles <= cpsumminimums:no_vehicles[3] and
+                       cppumbrella:receipts < cpsumminimums:receipts_1[3] then
+                        begin
+                        l_minimum_premium = cpsumminimums:minimum_premium[3]
+                        end
+
+                    if l_no_vehicles > cpsumminimums:no_vehicles[3] or
+                       cppumbrella:receipts => cpsumminimums:receipts_1[3] then
+                        begin
+                        l_minimum_premium = cpsumminimums:minimum_premium_1[1]
+                        end
+                    end
+                end
+
+            l_increased_factor = cpsumminimums:increased_factor
+            l_each_addl_minimum = cpsumminimums:each_addl_minimum_premium
+            end
+
+        next cpsumminimums
+        end
+
+end
+
+procedure minimum_premiums_delos
+begin
+access cppumunderlying, set cppumunderlying:policy_no    = cppumbrella:policy_no,
+                            cppumunderlying:pol_year     = cppumbrella:pol_year,
+                            cppumunderlying:end_sequence = cppumbrella:end_sequence, generic
+
+l_no_vehicles = 0
+while cppumunderlying:policy_no = cppumbrella:policy_no and
+      cppumunderlying:pol_Year = cppumbrella:pol_Year and
+      cppumunderlying:end_sequence = cppumbrella:end_sequence
+    begin
+    if cppumunderlying:coverage = "A" then
+        begin
+        l_no_vehicles = l_no_vehicles +
+                        cppumunderlying:no_vehicles
+        end
+    next cppumunderlying
+    end
+
+if l_no_vehicles = 0 and
+   cppumbrella:no_vehicles <> 0 then
+    l_no_vehicles = cppumbrella:no_vehicles
+
+access cpsumminimums, set cpsumminimums:company_id = sfpname:company_id,
+                          cpsumminimums:state = cppumbrella:state,
+                          cpsumminimums:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumminimums:company_id = sfpname:company_id and
+      cpsumminimums:state = cppumbrella:state and
+      cpsumminimums:line_of_business = cppumbrella:line_of_business
+        begin
+        if (sfpname:eff_date >= cpsumminimums:eff_date and
+           (sfpname:eff_date <= cpsumminimums:exp_date or
+           cpsumminimums:exp_date = 0)) then
+            begin
+            l_mp_changes = cpsumminimums:mp_changes
+            end
+
+        next cpsumminimums
+        end
+
+if l_mp_changes = 2 then
+    begin
+    l_no_vehicles   = 0
+    l_no_vehicles_1 = 0
+    if cppumbrella:no_autos[1] <> 0 then
+        l_no_vehicles   = cppumbrella:no_autos[1]
+    if cppumbrella:no_autos[2] <> 0 then
+        l_no_vehicles   = l_no_vehicles +
+                          cppumbrella:no_autos[2]
+    if cppumbrella:no_autos[3] <> 0 then
+        l_no_vehicles_1 = cppumbrella:no_autos[3]
+    if cppumbrella:no_autos[4] <> 0 then
+        l_no_vehicles_1 = l_no_vehicles_1 +
+                           cppumbrella:no_autos[4]
+    if cppumbrella:no_autos[5] <> 0 then
+        l_no_vehicles_1 = l_no_vehicles_1 +
+                          cppumbrella:no_autos[5]
+    end
+
+
+access cpsumminimums, set cpsumminimums:company_id = sfpname:company_id,
+                          cpsumminimums:state = cppumbrella:state,
+                          cpsumminimums:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumminimums:company_id = sfpname:company_id and
+      cpsumminimums:state = cppumbrella:state and
+      cpsumminimums:line_of_business = cppumbrella:line_of_business
+        begin
+        if (sfpname:eff_date >= cpsumminimums:eff_date and
+           (sfpname:eff_date <= cpsumminimums:exp_date or
+           cpsumminimums:exp_date = 0)) then
+            begin
+            l_mp_changes = cpsumminimums:mp_changes
+            if cpsumminimums:mp_changes = 1 then
+                begin
+                if l_no_vehicles = 0 then
+                    l_minimum_premium = cpsumminimums:each_addl_minimum_premium
+                else
+                if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                   cppumbrella:receipts >= cpsumminimums:receipts_1[1] and
+                   cppumbrella:receipts < cpsumminimums:receipts_1[2] then
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[1]
+                    end
+                else
+                if l_no_vehicles <= cpsumminimums:no_vehicles[2] and
+                   cppumbrella:receipts >= cpsumminimums:receipts_1[2] and
+                   cppumbrella:receipts < cpsumminimums:receipts_1[2] then
+                    l_minimum_premium = cpsumminimums:minimum_premium[2]
+                else
+                if l_no_vehicles > cpsumminimums:no_vehicles[3] or
+                   cppumbrella:receipts => cpsumminimums:receipts_1[3] then
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[3]
+                    end
+
+                l_minimum_premium_without_auto = cpsumminimums:each_addl_minimum_premium
+                l_increased_factor = cpsumminimums:increased_factor
+                l_each_addl_minimum = l_minimum_premium
+                end
+            else
+            begin
+            if cpsumminimums:mp_changes = 2 then
+                begin
+                if l_no_vehicles_1 > 0 or
+                   l_no_vehicles > cpsumminimums:no_vehicles[2] or
+                   cppumbrella:liquor <> 0 or
+                   cppumbrella:receipts > cpsumminimums:receipts_2[2] then
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[3]
+                    l_minimum_applies = "Y"
+                    end
+                else
+                if l_no_vehicles <= cpsumminimums:no_vehicles[1] and
+                   cppumbrella:receipts < cpsumminimums:receipts_1[2] then
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[1]
+                    l_minimum_applies = "Y"
+                    end
+                else
+                if ((l_no_vehicles > cpsumminimums:no_vehicles[1] and
+                   l_no_vehicles <= cpsumminimums:no_vehicles[2]) or
+                   (cppumbrella:receipts >= cpsumminimums:receipts_1[2] and
+                   cppumbrella:receipts <= cpsumminimums:receipts_2[2])) then
+                    begin
+                    l_minimum_premium = cpsumminimums:minimum_premium[2]
+                    l_minimum_applies = "Y"
+                    end
+
+                l_increased_factor = cpsumminimums:increased_factor
+                l_each_addl_minimum = l_minimum_premium
+                end
+            end
+            end
+
+
+        next cpsumminimums
+        end
+
+end
+
+procedure terrorism
+begin
+access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+-- terrorism
+L_EFF_DATE_1 = Dateadd(sfpNAME:EFF_DATE,0,1)
+If sfpNAME:EXP_DATE < L_EFF_DATE_1 Then
+    Begin
+    L_DAYS_RATE = L_final_TOTAL Divide 365
+    L_DAYS = sfpNAME:EXP_DATE - sfpNAME:EFF_DATE
+    L_PRO_RATA_PREMIUM = L_DAYS * L_DAYS_RATE
+    L_final_TOTAL = L_PRO_RATA_PREMIUM
+    l_sub = 1
+    while l_sub < 6
+        begin
+        L_DAYS_RATE = l_increase_TOTAL[l_sub] Divide 365
+        L_DAYS = sfpNAME:EXP_DATE - sfpNAME:EFF_DATE
+        L_PRO_RATA_PREMIUM = L_DAYS * L_DAYS_RATE
+        L_increase_total[l_sub] = L_PRO_RATA_PREMIUM
+        L_DAYS_RATE = cppumbrella_alias:employers_liability_charge[l_sub] Divide 365
+        L_DAYS = sfpNAME:EXP_DATE - sfpNAME:EFF_DATE
+        L_PRO_RATA_PREMIUM = L_DAYS * L_DAYS_RATE
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:employers_liability_charge[l_sub] = L_PRO_RATA_PREMIUM
+            end
+        l_sub = l_sub + 1
+        end
+    End
+
+    if cppumbrella:remove_terrorism_form = 0 then
+        begin
+        do get_terrorism_premium
+        end
+    else
+        begin
+        do add_terrorism_exclusion
+        Do ACCESS_SFSMSOTERROR
+        if sfscompany:boiler_rating = 4 then
+            do access_cpsumrisk
+
+        if sfscompany:boiler_rating = 4 then
+            begin
+            l_terrorism_premium_1 = l_final_total - l_total_auto - l_increased_million_premium
+            if l_terrorism_premium_1 < l_minimum_premium_without_auto then
+                l_terrorism_premium_1 = l_minimum_premium_without_auto
+            if cppumbrella:occurrence > 1000000 then
+                begin
+                l_sub = 1
+                l_terrorism_premium_3 = l_terrorism_premium_1
+                l_repeat = ((cppumbrella_alias:occurrence - cpsumdefault:occurrence)
+                            divide cpsumdefault:occurrence)
+
+                while l_sub <= l_repeat
+                    begin
+                    l_terrorism_premium_2 = l_terrorism_premium_3 * l_increased_factor
+                    if l_terrorism_premium_2 < l_minimum_premium_without_auto then
+                        begin
+                        l_minimum_premium_without_auto = l_minimum_premium_without_auto
+                        l_terrorism_premium_1 = l_terrorism_premium_1 +
+                                                l_minimum_premium_without_auto
+                        l_terrorism_premium_3 = l_minimum_premium_without_auto
+                        end
+                    else
+                        begin
+                        l_terrorism_premium_3 = l_terrorism_premium_2
+                        l_terrorism_premium_1 = l_terrorism_premium_1 + l_terrorism_premium_2
+                        end
+
+                    l_sub = l_sub + 1
+                    end
+                end
+
+            l_tpd6_terrorism_premium = l_terrorism_premium_1 * l_terror_percentage
+            end
+        else
+            begin
+            L_tpd6_TERRORISM_PREMIUM = l_final_total * L_TERROR_PERCENTAGE
+            end
+
+        If L_tpd6_TERRORISM_PREMIUM <= L_TERROR_MINIMUM and
+           l_terror_minimum <> 0 Then
+            begin
+            L_tpd6_TERRORISM_PREMIUM = L_TERROR_MINIMUM
+            l_terrorism_premium = 0
+            end
+
+        if sfsline:lob_code one of "CPORTFOLIO" then
+            begin
+            access sfpmastsupp_alias, set sfpmastsupp_alias:policy_no = g_policy_no,
+                                          sfpmastsupp_alias:pol_year = g_year,
+                                          sfpmastsupp_alias:end_sequence = g_end_sequence,
+                                          sfpmastsupp_alias:line_of_business = g_line_of_business, generic
+
+            change sfpmastsupp_alias
+                begin
+                sfpmastsupp_alias:terrorism_premium = 0
+                end
+            end
+        else
+            begin
+            access sfpmaster_alias, set sfpmaster_alias:policy_no = g_policy_no,
+                                        sfpmaster_alias:pol_Year = g_year,
+                                        sfpmaster_alias:end_sequence = g_end_sequence, generic
+
+            change sfpmaster_alias
+                begin
+                sfpmaster_alias:terrorism_premium = 0
+                sfpmaster_alias:tpd6_terrorism_premium = l_tpd6_terrorism_premium
+                end
+            end
+
+        end
+
+End
+
+procedure remove_terrorism_forms
+begin
+do access_sfsmsoterror
+Access sfpend, Set sfpend:policy_no = G_policy_no,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+L_FOUND = 0
+While sfpend:policy_no = G_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_Sequence = g_end_sequence
+        begin
+        If sfpend:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_ADD or
+           sfpend:code = SFSMSOTERROR:terrorism_form_to_remove Then
+            begin
+            Delete sfpend
+            end
+
+        Next sfpend
+        end
+
+end
+
+procedure add_terrorism_exclusion
+begin
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    do access_sfsmsoterror
+    do access_cpsumrisk
+    end
+else
+    Do ACCESS_SFSMSOTERROR
+
+Access sfpend, Set sfpend:policy_no = G_policy_no,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+L_FOUND = 0
+l_remove_terror_found = 0
+While sfpend:policy_no = G_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_Sequence = g_end_sequence
+        begin
+        If sfpend:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE Then
+            delete sfpend
+
+        if sfpend:code = uppercase(sfsmsoterror:tpd_forms_to_print[2]) then
+            delete sfpend
+
+        next sfpend
+        end
+
+Do ACCESS_SFSMSOTERROR
+Do SUBCODE
+L_CODE = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE
+Do ACCESS_KEY
+l_sub_code = L_sub_code + 10
+if l_form_edition <> "" then
+begin
+Add sfpend  --ADDS ENDORSEMENTS TO sfpend
+    Begin
+    sfpend:policy_no      = g_policy_no
+    sfpend:pol_Year       = g_year
+    sfpend:end_Sequence   = g_end_sequence
+    sfpend:prem_no        = 1
+    sfpend:build_no       = 1
+    sfpend:SUB_CODE       = L_SUB_CODE
+    sfpend:CODE           = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE
+    sfpend:FORM_EDITION   = l_FORM_EDITION
+    sfpend:manual_PREMIUM = 0
+    sfpend:DESCRIPTION    = l_DESCRIPTION
+    sfpend:lob_end_code   = "U"
+    sfpend:terrorism_Form = 1
+    end
+
+if ((sfscompany:boiler_rating = 4 and
+   sfpname:policy_type = "R") or
+   (sfscompany:boiler_rating = 4 and
+   sfpname:previous_policy_no <> 0)) then
+    begin
+    Do SUBCODE
+    l_sub_code = l_sub_code + 10
+    L_CODE     = uppercase(SFSMSOTERROR:tpd_forms_to_print[2])
+    Do ACCESS_KEY
+    Add sfpEND
+        Begin
+        sfpend:policy_no        = g_policy_no
+        sfpend:pol_Year         = g_year
+        sfpend:end_Sequence     = g_end_sequence
+        sfpEND:PREM_NO          = 1
+        sfpEND:BUILD_NO         = 1
+        sfpEND:SUB_CODE         = L_SUB_CODE
+        sfpEND:CODE             = uppercase(sfsmsoterror:tpd_forms_to_print[2])
+        sfpEND:FORM_EDITION     = L_FORM_EDITION
+        sfpEND:PREMIUM          = 0
+        sfpEND:DESCRIPTION      = L_DESCRIPTION
+        sfpend:terrorism_form   = 1
+        sfpend:lob_end_code     = "U"
+        end
+    End
+
+end
+
+end
+
+Procedure GET_TERRORISM_PREMIUM
+begin
+Do ACCESS_SFSMSOTERROR
+if sfscompany:boiler_rating = 4 then
+    do access_cpsumrisk
+
+Access sfpend, Set sfpend:policy_no = G_policy_no,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+L_FOUND = 0
+l_remove_terror_found = 0
+While sfpend:policy_no = G_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_Sequence = g_end_sequence
+        begin
+        If sfpend:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_ADD Then
+            delete sfpend
+
+        if sfpend:code = uppercase(sfsmsoterror:tpd_forms_to_print[2]) then
+            delete sfpend
+
+        next sfpend
+        end
+
+if l_terror_percentage <> 0 then
+    begin
+    if sfscompany:boiler_rating = 4 then
+        begin
+        l_terrorism_premium_1 = l_original_total - l_total_auto
+        if l_terrorism_premium_1 < l_minimum_premium_total - l_increased_million_premium then
+            l_terrorism_premium_1 = l_minimum_premium_total - l_increased_million_premium
+        else
+        if l_terrorism_premium_1 < cppumbrella:total_minimum_premium - l_increased_million_premium then
+            l_terrorism_premium_1 = cppumbrella:total_minimum_premium - l_increased_million_premium
+
+        if dateadd(sfpname:eff_date,0,1) <> sfpname:exp_date then
+            begin
+            L_DAYS_RATE = L_TOTAL_AUTO Divide 365
+            L_DAYS = SFPNAME:EXP_DATE - SFPNAME:EFF_DATE
+            L_TOTAL_AUTO = L_DAYS * L_DAYS_RATE
+            l_terrorism_premium_1 = l_final_total - l_total_auto
+            end
+        else
+        if cppumbrella:occurrence > 1000000 then
+            begin
+            l_sub = 1
+            l_terrorism_premium_3 = l_terrorism_premium_1
+            l_repeat = ((cppumbrella_alias:occurrence - cpsumdefault:occurrence)
+                        divide cpsumdefault:occurrence)
+
+            while l_sub <= l_repeat
+                begin
+                l_terrorism_premium_2 = l_terrorism_premium_3 * l_increased_factor --(Keeping per Connie email 5/6/2014
+                if l_terrorism_premium_2 < l_minimum_premium_without_auto then
+                    begin
+                    l_minimum_premium_without_auto = l_minimum_premium_without_auto
+                    l_terrorism_premium_1 = l_terrorism_premium_1 +
+                                            l_minimum_premium_without_auto
+                    l_terrorism_premium_3 = l_minimum_premium_without_auto
+                    end
+                else
+                    begin
+                    l_terrorism_premium_3 = l_terrorism_premium_2
+                    l_terrorism_premium_1 = l_terrorism_premium_1 + l_terrorism_premium_2
+                    end
+
+                l_sub = l_sub + 1
+                end
+            end
+
+        l_terrorism_premium = l_terrorism_premium_1 * l_terror_percentage
+        end
+    else
+        begin
+        L_TERRORISM_PREMIUM = l_final_total * L_TERROR_PERCENTAGE
+        end
+
+    If L_TERRORISM_PREMIUM <= L_TERROR_MINIMUM Then
+        begin
+        L_TERRORISM_PREMIUM = L_TERROR_MINIMUM
+        end
+
+   Do ADD_TERRORISM_ENDORSEMENT
+   end
+end
+
+Procedure ADD_TERRORISM_ENDORSEMENT
+begin
+Do ACCESS_SFSMSOTERROR
+Do SUBCODE
+L_CODE = SFSMSOTERROR:TERRORISM_FORM_TO_ADD
+Do ACCESS_KEY
+l_sub_code = L_sub_code + 10
+
+if l_form_edition <> "" then
+begin
+Add sfpend  --ADDS ENDORSEMENTS TO sfpend
+    Begin
+    sfpend:policy_no      = g_policy_no
+    sfpend:pol_Year       = g_year
+    sfpend:end_sequence   = g_End_sequence
+    sfpend:prem_no        = 1
+    sfpend:build_no       = 1
+    sfpend:SUB_CODE       = L_SUB_CODE
+    sfpend:CODE           = SFSMSOTERROR:TERRORISM_FORM_TO_ADD
+    sfpend:FORM_EDITION   = l_FORM_EDITION
+    sfpend:manual_PREMIUM = L_TERRORISM_PREMIUM
+    sfpend:DESCRIPTION    = l_DESCRIPTION
+    sfpend:lob_end_code   = "U"
+    sfpend:terrorism_Form = 1
+    end
+end
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpmastsupp_alias, set sfpmastsupp_alias:policy_no = g_policy_no,
+                                  sfpmastsupp_alias:pol_year = g_year,
+                                  sfpmastsupp_alias:end_sequence = g_end_sequence,
+                                  sfpmastsupp_alias:line_of_business = g_line_of_business, generic
+
+    change sfpmastsupp_alias
+        begin
+        sfpmastsupp_alias:terrorism_premium = l_terrorism_premium
+        end
+    end
+else
+    begin
+    access sfpmaster_alias, set sfpmaster_alias:policy_no = g_policy_no,
+                                sfpmaster_alias:pol_year = g_Year,
+                                sfpmaster_alias:end_sequence = g_end_sequence, generic
+
+    change sfpmaster_alias
+        begin
+        sfpmaster_alias:terrorism_premium = l_terrorism_premium
+        end
+    end
+
+end
+
+Procedure ACCESS_SFSMSOTERROR
+begin
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                         SFSMSOTERROR:STATE            = cppumbrella:STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS, Generic
+
+While SFSMSOTERROR:COMPANY_ID       = sfpNAME:COMPANY_ID And
+      SFSMSOTERROR:STATE            = cppumbrella:STATE And
+      SFSMSOTERROR:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS
+        begin
+        if sfpname:eff_date >= sfsmsoterror:eff_date then
+             begin
+             L_TERROR_EFF_DATE   = SFSMSOTERROR:EFF_DATE
+             L_TERROR_PERCENTAGE = SFSMSOTERROR:PERCENTAGE
+             L_TERROR_MINIMUM    = SFSMSOTERROR:MINIMUM_PREMIUM
+             end
+        Next SFSMSOTERROR
+        end
+
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                         SFSMSOTERROR:STATE            = cppumbrella:STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS,
+                         SFSMSOTERROR:EFF_DATE         = L_TERROR_EFF_DATE, Exact
+end
+
+Procedure ACCESS_cpsumrisk
+begin
+Access cpsumrisk, Set cpsumrisk:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                      cpsumrisk:STATE            = cppumbrella:STATE,
+                      cpsumrisk:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS,
+                      cpsumrisk:risk_type        = cppumbrella:risk_type, Generic
+
+While cpsumrisk:COMPANY_ID       = sfpNAME:COMPANY_ID And
+      cpsumrisk:STATE            = cppumbrella:STATE And
+      cpsumrisk:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS and
+      cpsumrisk:risk_type        = cppumbrella:risk_type
+        begin
+        if sfpname:eff_date >= cpsumrisk:eff_date then
+             begin
+             L_TERROR_EFF_DATE   = cpsumrisk:EFF_DATE
+             L_TERROR_PERCENTAGE = cpsumrisk:terrorism_factor divide 100
+             end
+
+        Next cpsumrisk
+        end
+
+Access cpsumrisk, Set cpsumrisk:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                      cpsumrisk:STATE            = cppumbrella:STATE,
+                      cpsumrisk:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS,
+                      cpsumrisk:risk_type        = cppumbrella:risk_type,
+                      cpsumrisk:EFF_DATE         = L_TERROR_EFF_DATE, Exact
+
+end
+
+Procedure ACCESS_KEY
+Begin
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpname:COMPANY_ID ,
+                      SFSOPTEND:STATE            = cppumbrella:STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = cppumbrella:LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+while sfsoptend:company_id = sfpname:company_id and
+      sfsoptend:state = cppumbrella:state and
+      sfsoptend:line_of_business = cppumbrella:line_of_business and
+      sfsoptend:code = l_code
+        begin
+        if (sfpname:eff_date >= sfsoptend:eff_date and
+           (sfpname:eff_date <= sfsoptend:exp_date or
+           sfsoptend:exp_date = 0)) then
+            begin
+            l_Form_edition = sfsoptend:form_edition
+            l_description = sfsoptend:description
+            end
+        next sfsoptend
+        end
+End
+
+Procedure SUBCODE
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpend_ALIAS, Set sfpend_ALIAS:policy_no = g_policy_no ,
+                         sfpend_alias:pol_year = g_year ,
+                         sfpend_alias:end_Sequence = g_end_sequence ,
+                         sfpend_alias:prem_no = l_prem_no,
+                         sfpend_alias:build_no = l_build_no, generic
+
+L_SUB_CODE = 0
+while sfpend_ALIAS:policy_no = g_policy_no and
+      sfpend_alias:pol_year = g_year and
+      sfpend_alias:end_Sequence = g_end_sequence  and
+      sfpend_alias:prem_no = l_prem_no and
+      sfpend_alias:build_no = l_build_no
+        begin
+
+        L_SUB_CODE = sfpend_ALIAS:SUB_CODE + 10
+
+        Next sfpend_ALIAS
+        End
+End
+
+Procedure FINAL_TOTAL_1
+Begin
+If SFSCOMPANY:INCLUDE_INSTALLMENT_RATING = "Y" Then
+    L_FINAL_TOTAL_1 = L_final_TOTAL + L_INSTALLMENT + l_terrorism_premium
+Else
+    L_FINAL_TOTAL_1 = L_final_TOTAL + l_terrorism_premium
+
+access sfssurcharge, set sfssurcharge:company_id = sfpname:company_id,
+                         sfssurcharge:state = cppumbrella:state,
+                         sfssurcharge:line_of_business = cppumbrella:line_of_business, generic
+
+l_surcharge_date = 0
+while sfssurcharge:company_id = sfpname:company_id and
+      sfssurcharge:state = cppumbrella:state and
+      sfssurcharge:line_of_business = cppumbrella:line_of_business
+        begin
+        if (sfpname:eff_date >= sfssurcharge:eff_date and
+           (l_surcharge_date < sfssurcharge:eff_date or
+           l_surcharge_date = 0)) then
+            begin
+            l_surcharge_date    = sfssurcharge:eff_date
+            l_surcharge_factor  = sfssurcharge:surcharge_factor
+            l_surcharge_minimum = sfssurcharge:minimum_premium
+            end
+        next sfssurcharge
+        end
+
+access cppumbrella_alias, set cppumbrella_alias:policy_no = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_Year = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+L_SURCHARGE = L_FINAL_TOTAL_1 * L_SURCHARGE_FACTOR
+If L_SURCHARGE < L_SURCHARGE_MINIMUM Then
+    L_SURCHARGE = L_SURCHARGE_MINIMUM
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpamt, set sfpamt:policy_no = g_policy_no,
+                       sfpamt:pol_Year = g_Year,
+                       sfpamt:end_sequence = g_end_sequence, exact
+
+    if sfpamt:policy_no = g_policy_no and
+       sfpamt:pol_Year = g_year and
+       sfpamt:end_sequence = g_end_sequence then
+        change sfpamt
+            begin
+            sfpamt:lob_totals[4]     = l_final_total_1 - l_terrorism_premium
+            sfpamt:lob_surcharge[4]  = l_surcharge
+            sfpamt:lob_terrorism[4]  = l_terrorism_premium
+            end
+    else
+        add sfpamt
+            begin
+            sfpamt:policy_no         = g_policy_no
+            sfpamt:pol_year          = g_year
+            sfpamt:end_sequence      = g_end_sequence
+            sfpamt:lob_totals[4]     = l_final_total_1 - l_terrorism_premium
+            sfpamt:lob_surcharge[4]  = l_surcharge
+            sfpamt:lob_terrorism[4]  = l_terrorism_premium
+            end
+
+    Access sfpmastsupp_alias, Set sfpmastsupp_alias:policy_NO = G_policy_NO,
+                                  sfpmastsupp_alias:pol_Year = g_year,
+                                  sfpmastsupp_alias:end_sequence = g_end_sequence,
+                                  sfpmastsupp_alias:line_of_business = g_line_of_business, Generic
+
+    If sfpmastsupp_alias:policy_NO = G_policy_NO and
+       sfpmastsupp_alias:pol_Year = g_year and
+       sfpmastsupp_alias:end_sequence = g_end_sequence and
+       sfpmastsupp_alias:line_of_business = g_line_of_business Then
+        Begin
+        Change sfpmastsupp_alias
+            Begin
+--            if l_increase_total[1] = 0 and
+--               sfpname:company_id = "LEBINS" then
+--                l_increase_total[1] = l_final_total
+            sfpmastsupp_alias:TOTAL[1]  = L_increase_total[1] -- 1st million
+            sfpmastsupp_alias:TOTAL[2]  = L_increase_total[2] -- 2nd
+            sfpmastsupp_alias:TOTAL[3]  = L_increase_total[3] -- 3rd
+            sfpmastsupp_alias:TOTAL[4]  = L_increase_total[4] -- 4th
+            sfpmastsupp_alias:TOTAL[5]  = L_increase_total[5] -- 5th
+            sfpmastsupp_alias:other_totals[11] = L_increase_total[6] -- 5th
+            sfpmastsupp_alias:other_totals[12] = L_increase_total[7] -- 5th
+            sfpmastsupp_alias:other_totals[13] = L_increase_total[8] -- 5th
+            sfpmastsupp_alias:other_totals[14] = L_increase_total[9] -- 5th
+            sfpmastsupp_alias:other_totals[15] = L_increase_total[10] -- 5th
+            sfpmastsupp_alias:other_totals[1]  = cppumbrella_alias:employers_liability_charge[1]
+            sfpmastsupp_alias:other_totals[2]  = cppumbrella_alias:employers_liability_charge[2]
+            sfpmastsupp_alias:other_totals[3]  = cppumbrella_alias:employers_liability_charge[3]
+            sfpmastsupp_alias:other_totals[4]  = cppumbrella_alias:employers_liability_charge[4]
+            sfpmastsupp_alias:other_totals[5]  = cppumbrella_alias:employers_liability_charge[5]
+            sfpmastsupp_alias:other_totals[6]  = cppumbrella_alias:employers_liability_charge_1[1]
+            sfpmastsupp_alias:other_totals[7]  = cppumbrella_alias:employers_liability_charge_1[2]
+            sfpmastsupp_alias:other_totals[8]  = cppumbrella_alias:employers_liability_charge_1[3]
+            sfpmastsupp_alias:other_totals[9]  = cppumbrella_alias:employers_liability_charge_1[4]
+            sfpmastsupp_alias:other_totals[10] = cppumbrella_alias:employers_liability_charge_1[5]
+            sfpmastsupp_alias:total[6] = l_original_total
+            sfpmastsupp_alias:total[7] = l_minimum_premium_total
+            sfpmastsupp_alias:total[8] = l_changed_premium
+            sfpmastsupp_alias:total[9] = l_increased_million_premium
+            sfpmastsupp_alias:total[10] = l_final_total
+            sfpmastsupp_alias:TOTAL[18] = L_FINAL_TOTAL_1 - l_terrorism_premium
+            sfpmastsupp_alias:TOTAL[20] = L_FINAL_TOTAL_1 + l_surcharge
+            sfpmastsupp_alias:SURCHARGE = L_SURCHARGE
+            sfpmastsupp_alias:RAW_PREMIUM_AMT_DUE = L_FINAL_TOTAL_1
+            sfpmastsupp_alias:TOTAL[20] = L_FINAL_TOTAL_1 + l_surcharge
+            sfpmastsupp_alias:AMT_DUE_TOTAL[20] = L_FINAL_TOTAL_1 + l_surcharge
+            end
+        End
+    End
+else
+    begin
+    Access sfpMASTER_ALIAS, Set sfpMASTER_ALIAS:policy_NO = cppumbrella:policy_NO,
+                                sfpmaster_alias:pol_Year = cppumbrella:pol_Year,
+                                sfpmaster_alias:end_sequence = cppumbrella:end_sequence, Generic
+
+    If sfpMASTER_ALIAS:policy_NO = cppumbrella:policy_NO and
+       sfpmaster_alias:pol_year = cppumbrella:pol_Year and
+       sfpmaster_alias:end_sequence = cppumbrella:end_sequence Then
+        Begin
+        Change sfpMASTER_ALIAS
+            Begin
+--            if l_increase_total[1] = 0 and
+--               sfpname:company_id = "LEBINS" then
+--                l_increase_total[1] = l_final_total
+            sfpMASTER_ALIAS:TOTAL[1] = L_increase_total[1] -- 1st million
+            sfpMASTER_ALIAS:TOTAL[2] = L_increase_total[2] -- 2nd
+            sfpMASTER_ALIAS:TOTAL[3] = L_increase_total[3] -- 3rd
+            sfpMASTER_ALIAS:TOTAL[4] = L_increase_total[4] -- 4th
+            sfpMASTER_ALIAS:TOTAL[5] = L_increase_total[5] -- 5th
+            sfpMASTER_ALIAS:other_totals[11] = L_increase_total[6] -- 5th
+            sfpMASTER_ALIAS:other_totals[12] = L_increase_total[7] -- 5th
+            sfpMASTER_ALIAS:other_totals[13] = L_increase_total[8] -- 5th
+            sfpMASTER_ALIAS:other_totals[14] = L_increase_total[9] -- 5th
+            sfpMASTER_ALIAS:other_totals[15] = L_increase_total[10] -- 5th
+            sfpmaster_alias:other_totals[1]  = cppumbrella_alias:employers_liability_charge[1]
+            sfpmaster_alias:other_totals[2]  = cppumbrella_alias:employers_liability_charge[2]
+            sfpmaster_alias:other_totals[3]  = cppumbrella_alias:employers_liability_charge[3]
+            sfpmaster_alias:other_totals[4]  = cppumbrella_alias:employers_liability_charge[4]
+            sfpmaster_alias:other_totals[5]  = cppumbrella_alias:employers_liability_charge[5]
+            sfpmaster_alias:other_totals[6]  = cppumbrella_alias:employers_liability_charge_1[1]
+            sfpmaster_alias:other_totals[7]  = cppumbrella_alias:employers_liability_charge_1[2]
+            sfpmaster_alias:other_totals[8]  = cppumbrella_alias:employers_liability_charge_1[3]
+            sfpmaster_alias:other_totals[9]  = cppumbrella_alias:employers_liability_charge_1[4]
+            sfpmaster_alias:other_totals[10] = cppumbrella_alias:employers_liability_charge_1[5]
+            sfpmaster_alias:total[6] = l_original_total
+            sfpmaster_alias:total[7] = l_minimum_premium_total
+            sfpmaster_alias:total[8] = l_changed_premium
+            sfpmaster_alias:total[9] = l_increased_million_premium
+            sfpmaster_alias:total[10] = l_final_total
+            sfpMASTER_ALIAS:TOTAL[18] = L_FINAL_TOTAL_1 - l_terrorism_premium
+            sfpMASTER_ALIAS:TOTAL[20] = L_FINAL_TOTAL_1 + l_surcharge
+            sfpMASTER_ALIAS:INSTALLMENT_CHARGE = L_INSTALLMENT
+            sfpMASTER_ALIAS:SURCHARGE = L_SURCHARGE
+            sfpMASTER_ALIAS:RAW_PREMIUM_AMT_DUE = L_FINAL_TOTAL_1
+            sfpMASTER_ALIAS:TOTAL[20] = L_FINAL_TOTAL_1 + l_surcharge
+            sfpmaster_alias:tpd6_terrorism_premium = l_tpd6_terrorism_premium
+            sfpMASTER_ALIAS:AMT_DUE_TOTAL[20] = L_FINAL_TOTAL_1 + l_surcharge
+            end
+        End
+    End
+
+End
+
+procedure access_arspayplan
+begin
+l_line_of_business = cppumbrella:line_of_business
+Access ARSPAYPLAN, Set ARSPAYPLAN:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                       ARSPAYPLAN:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                       ARSPAYPLAN:PAYMENT_PLAN     = sfpname:PAYMENT_PLAN, generic
+
+end
+
+Procedure INSTALLMENT
+Begin
+/* 05/30/2001 - added logic to calculate the payment plan
+   based on company id, line of business and total premium
+
+   do not perform this routine of the payment plan <> 1
+   must assume that if the payment plan is other than 1 the user
+   wants to manually select the payment plan
+
+   use l_total to compare total premium against minimum_premium
+   requirements from teh arspayplan database
+*/
+/* actually recalculating the payment plan at the policy level is a
+   good idea since a change in limit could easily put the policy
+   into another payment plan option
+*/
+
+Do CALCULATE_PAYMENT_PLAN_OPTION
+
+/* reaccess arspayplan since the above logic changes the value of this file
+   it appears that the file is accessed on entry and even though the
+   payment plan has been changed cqcs is holding the original value
+*/
+
+l_line_of_business = cppumbrella:line_of_business
+Access ARSPAYPLAN, Set ARSPAYPLAN:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                       ARSPAYPLAN:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                       ARSPAYPLAN:PAYMENT_PLAN     = L_HOLD_PAYMENT_PLAN
+
+If ARSPAYPLAN:INSTALLMENT_CHARGE_TYPE = "FLAT" And
+   ARSPAYPLAN:INSTALLMENT_CHARGE_TIME = "EACH" Then
+    L_INSTALLMENT = ARSPAYPLAN:INSTALLMENT_CHARGE_RATE *
+                    ARSPAYPLAN:NUMBER_OF_PAYMENTS
+
+If ARSPAYPLAN:INSTALLMENT_CHARGE_TYPE = "FIXED" Then
+    L_INSTALLMENT = ARSPAYPLAN:INSTALLMENT_CHARGE_RATE
+
+/* end of installment */
+End
+
+Procedure CALCULATE_PAYMENT_PLAN_OPTION
+Begin
+/* house cleaning */
+L_FIRST_TIME = "Y"
+L_HOLD_PAYMENT_PLAN = 1 -- this is a cya
+L_SUB_TOTAL = L_final_TOTAL
+
+l_line_of_business = cppumbrella:line_of_business
+Access ARSPAYPLAN, Set ARSPAYPLAN:COMPANY_ID = sfpNAME:COMPANY_ID,
+                       ARSPAYPLAN:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, generic
+
+While ARSPAYPLAN:COMPANY_ID = sfpNAME:COMPANY_ID And
+      ARSPAYPLAN:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS
+        Begin
+        if arspayplan:manual_payment_plan = 0 then
+        begin
+        If L_FIRST_TIME = "Y" Then
+            Begin
+            L_FIRST_TIME = "N"
+            L_HOLD_PAYMENT_PLAN = ARSPAYPLAN:PAYMENT_PLAN
+            End
+
+        If L_SUB_TOTAL >= ARSPAYPLAN:MINIMUM_PREMIUM  Then
+            Begin
+            L_HOLD_PAYMENT_PLAN = ARSPAYPLAN:PAYMENT_PLAN
+            End
+        end
+
+        Next ARSPAYPLAN
+        End
+
+/* only update the sfpname file if the payment plan actually changed
+   05/31/2001 - removed this logic so that the sfpname file would
+   be updated everytime, also added update of sfpname:final_rating
+*/
+
+/* if there is a mortgagee on this policy where it is of type
+   "B" - billing
+   "C" - combination mortgagee and billing
+   "F" - premium finance
+   then the payment plan is to be set to 1
+*/
+
+Access sfpSUPP, Set sfpSUPP:policy_NO = cppumbrella:policy_no,
+                    sfpsupp:pol_Year = cppumbrella:pol_year,
+                    sfpsupp:end_sequence = cppumbrella:end_sequence, generic
+
+While sfpSUPP:policy_NO = cppumbrella:policy_no and
+      sfpsupp:pol_year = cppumbrella:pol_Year and
+      sfpsupp:end_sequence = cppumbrella:end_sequence
+    Begin
+    If sfpSUPP:MORTGAGE_TYPE_1 One Of "B", "C", "F" Then
+        { L_HOLD_PAYMENT_PLAN = 1 }
+    Next sfpSUPP
+    End
+
+/* change on feb 21, 2002 - if AC only annual is allowed */
+If sfpNAME:BILL_PLAN = "AC" Then
+Begin
+    L_HOLD_PAYMENT_PLAN = 1
+End
+
+Access sfpNAME, Set sfpNAME:policy_NO = cppumbrella:policy_no,
+                    sfpname:pol_Year = cppumbrella:pol_Year,
+                    sfpname:end_sequence = cppumbrella:end_sequence, exact
+
+If sfpNAME:policy_NO = cppumbrella:policy_no and
+   sfpname:pol_year = cppumbrella:pol_year and
+   sfpname:end_sequence = cppumbrella:end_sequence Then
+    Begin
+    Change sfpNAME
+        Begin
+        sfpNAME:PAYMENT_PLAN = L_HOLD_PAYMENT_PLAN
+        End
+
+    End
+
+/* if deposit premium equal to or greater then total premium
+   then the payment plan is to be set to 1
+*/
+Access ARSCHKSU, Set ARSCHKSU:COMPANY_ID = sfpNAME:COMPANY_ID,
+                     ARSCHKSU:CHECK_REFERENCE = sfpNAME:CHECK_REFERENCE, Generic
+
+If ARSCHKSU:CHECK_AMOUNT >= L_final_TOTAL Then
+    Begin
+    L_HOLD_PAYMENT_PLAN = 1
+    End
+
+Access sfpNAME, Set sfpNAME:policy_NO = cppumbrella:policy_no,
+                    sfpname:pol_Year = cppumbrella:pol_Year,
+                    sfpname:end_sequence = cppumbrella:end_sequence, exact
+
+If sfpNAME:policy_NO = cppumbrella:policy_no and
+   sfpname:pol_year = cppumbrella:pol_year and
+   sfpname:end_sequence = cppumbrella:end_sequence Then
+    Begin
+    Change sfpNAME
+        Begin
+        sfpNAME:PAYMENT_PLAN = L_HOLD_PAYMENT_PLAN
+        End
+    End
+
+End
+
+Procedure ACCESS_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+l_add_endorsement = "Y"
+L_wc_1 = "N"
+l_wc_2 = "N"
+l_auto_1 = "N"
+l_auto_2 = "N"
+l_hired_1 = "N"
+l_hired_2 = "N"
+l_pi_1 = "N"
+l_pi_2 = "N"
+l_prod_1 = "N"
+l_prod_2 = "N"
+l_endorsement_exists = "N"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE_1 Then
+        L_WC_1 = "Y"
+    if sfpend:code = l_code_2 then
+        l_wc_2 = "Y"
+    If sfpEND:CODE = L_CODE_3 Then
+        L_auto_1 = "Y"
+    if sfpend:code = l_code_4 then
+        l_auto_2 = "Y"
+    If sfpEND:CODE = L_CODE_5 Then
+        L_hired_1 = "Y"
+    if sfpend:code = l_code_6 then
+        l_hired_2 = "Y"
+    If sfpEND:CODE = L_CODE_7 Then
+        L_pi_1 = "Y"
+    if sfpend:code = l_code_8 then
+        l_pi_2 = "Y"
+    If sfpEND:CODE = L_CODE_9 Then
+        L_prod_1 = "Y"
+    if sfpend:code = l_code_10 then
+        l_prod_2 = "Y"
+    If sfpEND:CODE = L_CODE Then
+        begin
+        L_endorsement_exists = "Y"
+        l_add_Endorsement = "N"
+        end
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppumbrella_ALIAS, Set cppumbrella_ALIAS:policy_NO = G_policy_NO,
+                              cppumbrella_alias:pol_year = g_year,
+                              cppumbrella_alias:end_sequence = g_end_sequence, generic
+
+L_STATE = cppumbrella_ALIAS:STATE
+l_line_of_business = cppumbrella_alias:line_of_business
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = l_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> l_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+if l_Form_edition <> "" then
+    begin
+    add sfpEND
+        Begin
+        sfpend:policy_no            =       cppumbrella:policy_no
+        sfpend:pol_Year             =       g_year
+        sfpend:end_sequence         =       g_End_sequence
+        sfpend:prem_no              =       1
+        sfpend:build_no             =       1
+        sfpend:sub_code             =       l_sub_code
+        sfpEND:CODE                 =       L_CODE
+        sfpEND:FORM_EDITION         =       L_FORM_EDITION
+        sfpEND:DESCRIPTION          =       L_DESCRIPTION
+        sfpEND:PREMIUM              =       0
+        sfpend:lob_end_code         =       "U"
+        sfpend:terrorism_Form       =       0
+        end
+    end
+
+
+End
+
+Procedure CHANGE_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access cppumbrella_ALIAS, Set cppumbrella_ALIAS:policy_NO = G_policy_NO,
+                              cppumbrella_alias:pol_year = g_year,
+                              cppumbrella_alias:end_sequence = g_end_sequence, generic
+
+L_STATE = cppumbrella_ALIAS:STATE
+l_line_of_business = cppumbrella_alias:line_of_business
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = l_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> l_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+access sfpend, set sfpend:policy_no = g_policy_no,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no = g_prem_no,
+                   sfpend:build_no = g_build_no, generic
+
+while sfpend:policy_no = g_policy_no and
+      sfpend:pol_Year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpend:prem_no = g_prem_no and
+      sfpend:build_no = g_build_no
+        begin
+        if sfpend:code = l_change_code then
+        change sfpEND
+            Begin
+            sfpEND:CODE                 =       L_CODE
+            sfpEND:FORM_EDITION         =       L_FORM_EDITION
+            sfpEND:DESCRIPTION          =       L_DESCRIPTION
+            sfpEND:PREMIUM              =       0
+            sfpend:lob_end_code         =       "U"
+            sfpend:terrorism_Form       =       0
+            end
+
+        next sfpend
+        End
+
+End
+
+Procedure DELETE_sfpEND_hired
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+while sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_Year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO = G_PREM_NO and
+      sfpEND:BUILD_NO = G_BUILD_NO
+        begin
+        If sfpEND:CODE = L_CODE_5 or
+           sfpend:code = L_code_6 Then
+            Delete sfpEND
+
+        Next sfpEND
+        End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = g_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+l_deleted = "N"
+while sfpEND:policy_NO = g_policy_NO and
+      sfpend:pol_Year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO = L_PREM_NO and
+      sfpEND:BUILD_NO = L_BUILD_NO
+        begin
+        If sfpEND:CODE = L_CODE and
+           l_deleted = "N" Then
+            begin
+            l_deleted = "Y"
+            Delete sfpEND
+            end
+
+        Next sfpEND
+        End
+
+End
+
+Procedure AMT_DUE
+Begin
+/* set effective date using bopmstr:trans_exp and subtracting 1 to get prior
+   year, sfpname:eff_date is only correct if updating current policy, if
+   updating prior policies sfpname:eff_date will not be correct */
+
+I_TRANS_CODE = sfpmaster:TRANS_CODE
+I_TRANS_EFF = sfpmaster:TRANS_EFF
+I_EFF_DATE = SFPNAME:EFF_DATE
+I_TRANS_EXP = SFPNAME:EXP_DATE
+I_BILL_PLAN = SFPNAME:BILL_PLAN
+I_EFF_DATE = Dateadd(sfpmaster:TRANS_EXP,0,-1)
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    Access sfpmastsupp, Set sfpmastsupp:POLICY_NO = cppumbrella:POLICY_NO,
+                            sfpmastsupp:POL_YEAR = cppumbrella:POL_YEAR,
+                            sfpmastsupp:END_SEQUENCE = cppumbrella:END_SEQUENCE, generic
+
+    I_END_SEQUENCE = cppumbrella:END_SEQUENCE - 1
+    Access sfpmastsupp_ALIAS, Set sfpmastsupp_ALIAS:POLICY_NO = cppumbrella:POLICY_NO,
+                                  sfpmastsupp_ALIAS:POL_YEAR = cppumbrella:POL_YEAR,
+                                  sfpmastsupp_ALIAS:END_SEQUENCE = I_END_SEQUENCE, generic
+
+    /* need prior totals to compare to current to find out difference for amt due */
+
+    I_PREVIOUS = sfpmastsupp_ALIAS:TOTAL[18] + sfpmastsupp_alias:terrorism_premium
+    I_SURCHARGE_PREVIOUS = sfpmastsupp_ALIAS:SURCHARGE
+
+    I_ANNUAL = sfpmastsupp:TOTAL[18] + sfpmastsupp:terrorism_premium
+    I_AMT_DUE = sfpmastsupp:TOTAL[20]
+    I_SURCHARGE_ANNUAL = sfpmastsupp:SURCHARGE
+    I_SURCHARGE_AMT_DUE = sfpmastsupp:SURCHARGE
+    I_SURCHARGE = sfpmastsupp:SURCHARGE
+    end
+else
+    begin
+    Access SFPMASTER, Set SFPMASTER:POLICY_NO = cppumbrella:POLICY_NO,
+                          SFPMASTER:POL_YEAR = cppumbrella:POL_YEAR,
+                          SFPMASTER:END_SEQUENCE = cppumbrella:END_SEQUENCE, Exact
+
+    I_END_SEQUENCE = cppumbrella:END_SEQUENCE - 1
+
+    Access SFPMASTER_ALIAS, Set SFPMASTER_ALIAS:POLICY_NO = cppumbrella:POLICY_NO,
+                                SFPMASTER_ALIAS:POL_YEAR = cppumbrella:POL_YEAR,
+                                SFPMASTER_ALIAS:END_SEQUENCE = I_END_SEQUENCE, Exact
+
+    /* need prior totals to compare to current to find out difference for amt due */
+
+    I_PREVIOUS = SFPMASTER_ALIAS:TOTAL[18] + sfpmaster_alias:terrorism_premium
+    I_INSTALLMENT_PREVIOUS = SFPMASTER_ALIAS:INSTALLMENT_CHARGE
+    I_SURCHARGE_PREVIOUS = SFPMASTER_ALIAS:SURCHARGE
+
+    I_ANNUAL = SFPMASTER:TOTAL[18] + sfpmaster:terrorism_premium
+    I_AMT_DUE = SFPMASTER:TOTAL[20]
+    I_INSTALLMENT_ANNUAL = SFPMASTER:INSTALLMENT_CHARGE
+    I_INSTALLMENT_AMT_DUE = SFPMASTER:INSTALLMENT_CHARGE
+    I_SURCHARGE_ANNUAL = SFPMASTER:SURCHARGE
+    I_SURCHARGE_AMT_DUE = SFPMASTER:SURCHARGE
+    I_INSTALLMENT = SFPMASTER:INSTALLMENT_CHARGE
+    I_SURCHARGE = SFPMASTER:SURCHARGE
+    end
+
+Include "amtdue.pro"
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    Access sfpmastsupp, Set sfpmastsupp:POLICY_NO = cppumbrella:POLICY_NO,
+                            sfpmastsupp:POL_YEAR = cppumbrella:POL_YEAR,
+                            sfpmastsupp:END_SEQUENCE = cppumbrella:END_SEQUENCE,
+                            sfpmastsupp:line_of_business = cppumbrella:line_of_business, Exact
+
+    Change sfpmastsupp
+        Begin
+        sfpmastsupp:AMT_DUE_TOTAL[1] = I_AMT_DUE
+        sfpmastsupp:AMT_DUE_TOTAL[2] = I_INSTALLMENT_AMT_DUE
+        sfpmastsupp:AMT_DUE_TOTAL[3] = I_SURCHARGE_AMT_DUE
+        sfpmastsupp:total[20]        = i_amt_due
+        If SFSCOMPANY:INCLUDE_INSTALLMENT_RATING = "Y" Then
+            sfpmastsupp:AMT_DUE_TOTAL[20] = I_AMT_DUE + I_INSTALLMENT_AMT_DUE +
+                                          I_SURCHARGE_AMT_DUE
+        Else
+            sfpmastsupp:AMT_DUE_TOTAL[20] = I_AMT_DUE + I_SURCHARGE_AMT_DUE
+        sfpmastsupp:RAW_PREMIUM_AMT_DUE = I_AMT_DUE_WITHOUT_BOILER
+        sfpmastsupp:total[15]           = i_unbilled_premium
+        sfpmastsupp:total[16]           = i_billed_premium
+        end
+    end
+else
+    begin
+    Access SFPMASTER, Set SFPMASTER:POLICY_NO = cppumbrella:POLICY_NO,
+                          SFPMASTER:POL_YEAR = cppumbrella:POL_YEAR,
+                          SFPMASTER:END_SEQUENCE = cppumbrella:END_SEQUENCE, Exact
+
+    Change SFPMASTER
+        Begin
+        SFPMASTER:AMT_DUE_TOTAL[1] = I_AMT_DUE
+        SFPMASTER:AMT_DUE_TOTAL[2] = I_INSTALLMENT_AMT_DUE
+        SFPMASTER:AMT_DUE_TOTAL[3] = I_SURCHARGE_AMT_DUE
+        sfpmaster:total[20]        = i_amt_due
+        If SFSCOMPANY:INCLUDE_INSTALLMENT_RATING = "Y" Then
+            SFPMASTER:AMT_DUE_TOTAL[20] = I_AMT_DUE + I_INSTALLMENT_AMT_DUE +
+                                          I_SURCHARGE_AMT_DUE
+        Else
+            SFPMASTER:AMT_DUE_TOTAL[20] = I_AMT_DUE + I_SURCHARGE_AMT_DUE
+        SFPMASTER:RAW_PREMIUM_AMT_DUE = I_AMT_DUE_WITHOUT_BOILER
+        sfpmaster:total[15]           = i_unbilled_premium
+        sfpmaster:total[16]           = i_billed_premium
+        end
+    end
+
+/* end of amt_due */
+End
+
+Procedure PRO_RATA
+Begin
+Access SFSCONTROL, Set SFSCONTROL:COMPANY_ID       = sfpname:company_id,
+                       SFSCONTROL:STATE            = cppumbrella:STATE,
+                       SFSCONTROL:LINE_OF_BUSINESS = g_line_of_business, generic
+
+while SFSCONTROL:COMPANY_ID       = sfpname:company_id and
+      SFSCONTROL:STATE            = cppumbrella:STATE and
+      SFSCONTROL:LINE_OF_BUSINESS = g_line_of_business
+    begin
+    If (sfpNAME:EFF_DATE >= SFSCONTROL:EFF_DATE and
+       (sfpname:eff_date < sfscontrol:exp_date or
+       sfscontrol:exp_date = 0)) Then
+        begin
+        l_short_rate = sfscontrol:short_rate
+        end
+
+    Next SFSCONTROL
+    End
+
+L_EFF_DATE_1 = Dateadd(sfpNAME:EFF_DATE,0,1)
+If sfpNAME:EXP_DATE < L_EFF_DATE_1 Then
+    i_eff_date = sfpname:eff_date
+else
+    I_EFF_DATE = Dateadd(SFPMASTER:TRANS_EXP,0,-1)
+I_SHORT_RATE = SFPMASTER:SHORT_RATE
+I_TOTAL_DAYS = I_EFF_DATE - SFPMASTER:TRANS_EXP
+I_CX_DAYS = I_EFF_DATE - SFPMASTER:TRANS_EFF
+
+Include "prorata.pro"
+
+/* end of pro_rata */
+End
+
+procedure installment_buckets
+begin
+l_bill_plan = sfpname:bill_plan
+
+end
+
+Procedure UNBILLED
+Begin
+/* set i_end_sequence to get the first record of the policy to figure out
+   unbilled premium */
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    I_END_SEQUENCE = 0
+    Access sfpmastsupp_ALIAS, Set sfpmastsupp_ALIAS:POLICY_NO        = cppumbrella:POLICY_NO,
+                                  sfpmastsupp_ALIAS:POL_YEAR         = cppumbrella:POL_YEAR,
+                                  sfpmastsupp_ALIAS:END_SEQUENCE     = I_END_SEQUENCE,
+                                  sfpmastsupp_alias:line_of_business = cppumbrella:line_of_business, Exact
+
+    I_ORIGINAL_PREMIUM = sfpmastsupp_ALIAS:TOTAL[18] +
+                         sfpmastsupp_alias:terrorism_premium +
+                         sfpmastsupp_ALIAS:SURCHARGE
+    end
+else
+    begin
+    I_END_SEQUENCE = 0
+    Access SFPMASTER_ALIAS, Set SFPMASTER_ALIAS:POLICY_NO    = cppumbrella:POLICY_NO,
+                                SFPMASTER_ALIAS:POL_YEAR     = cppumbrella:POL_YEAR,
+                                SFPMASTER_ALIAS:END_SEQUENCE = I_END_SEQUENCE, Exact
+
+    I_ORIGINAL_PREMIUM = SFPMASTER_ALIAS:TOTAL[18] +
+                         sfpmaster_alias:terrorism_premium +
+                         SFPMASTER_ALIAS:INSTALLMENT_CHARGE +
+                         SFPMASTER_ALIAS:SURCHARGE
+    end
+
+Include "unbilled.pro"
+
+/* end of unbilled */
+End
+
+End

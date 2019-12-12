@@ -1,0 +1,1266 @@
+%%
+Screen
+        Name            = "cppmtmso003" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Business Income - Ver 7.00     %m" ;
+        Domain          = "cppBUSINESS" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        global string g_code[7] ;
+
+        Global String G_POPUP[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2] ,
+                                    L_DEPENDENT_PROP[1],
+                                    L_AGREED_VALUE[1] ,
+                                    L_ELECTRONIC_MEDIA[1],
+                                    L_EXTENDED_PERIOD[1],
+                                    L_MONTHLY_RECOVERY[1],
+                                    l_line_of_business[4] ,
+                                    L_LOSS_TUITION[1],
+                                    L_PAYROLL[1],
+                                    L_OFF_PREM[1],
+                                    L_SEASONAL_LEASES[1],
+                                    L_ANTENNA_EXT[1] ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     l_code_6[7],
+                     l_antenna_exists[1]="N",
+                     l_antenna_code[7]="",
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ,
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_SCREEN[11] ;
+
+        Access cppBUSINESS,
+           Set cppBUSINESS:policy_NO = G_policy_NO ,
+               cppbusiness:pol_year = g_year,
+               cppbusiness:end_sequence = g_end_sequence ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "func1" sequence "agreed" tagged agreed_fn ;
+        "agreed" continue  Begin
+                    g_code = "MCP311"
+                    l_screen = "cppmtmso300"
+                    function = "popup"
+                    end ;
+
+        "func2" sequence "dependent" tagged dependent_fn ;
+        "dependent" continue  Begin
+                    g_code = "MCP333"
+                    l_screen = "cppmtmso301"
+                    function = "popup"
+                    end ;
+
+        "func3" sequence "elect" tagged elect_fn ;
+        "elect" continue  Begin
+                    g_code = "MCP501"
+                    l_screen = "cppmtmso302"
+                    function = "popup"
+                    end ;
+
+        "func4" sequence "indemnity" tagged indemnity_fn ;
+        "indemnity" continue  Begin
+                    g_code = "MCP502"
+                    l_screen = "cppmtmso303"
+                    function = "popup"
+                    end ;
+
+
+        "func5" sequence "monthly" tagged monthly_fn ;
+        "monthly" continue  Begin
+                    g_code = "MCP349"
+                    l_screen = "cppmtmso304"
+                    function = "popup"
+                    end ;
+
+        "func6" sequence "tuition" tagged tuition_fn ;
+        "tuition" continue  Begin
+                    g_code = "MCP321"
+                    l_screen = "cppmtmso305"
+                    function = "popup"
+                    end ;
+
+        "func7" sequence "payroll" tagged payroll_fn ;
+        "payroll" continue  Begin
+                    g_code = "MCP341"
+                    l_screen = "cppmtmso306"
+                    function = "popup"
+                    end ;
+        "func8" sequence "loss" tagged loss_fn ;
+        "loss" continue  Begin
+                    g_code = "MCP331"
+                    l_screen = "cppmtmso307"
+                    function = "popup"
+                    end ;
+
+        "func9" sequence "seasonal" tagged seasonal_fn ;
+        "seasonal" continue  Begin
+                    g_code = "MCP319"
+                    l_screen = "cppmtmso308"
+                    function = "popup"
+                    end ;
+
+        "func10" sequence "antenna" tagged antenna_fn ;
+        "antenna" continue  Begin
+                    g_code = "MCP109"
+                    l_screen = "cppmtmso309"
+                    function = "popup"
+                    end ;
+
+        "func11" sequence "opt" tagged option_fn ;
+        "opt" display "cppmtmso350" ;
+
+        "func12" sequence "blanket" tagged blanket_fn ;
+        "blanket" display "cppmtmso003a" ;
+
+        "func13" sequence "blnkrate" tagged blnkrate_fn ;
+        "blnkrate" continue begin
+                            g_prem_no = cppbusiness:prem_no
+                            g_Build_no = cppbusiness:Build_no
+                            l_screen = "cppmtmso310"
+                            function = "popup"
+                            end;
+
+        "popup"  display l_screen ;
+
+        Include "STDFUNC7.INC"
+
+        "redisplay" display/noreturn "cppmtmso003" ;
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        include "cppmsobimenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+
+access validation
+if cppbusiness:policy_no <> g_policy_no or
+   cppbusiness:pol_Year <> g_year or
+   cppbusiness:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Show On Dec: _                                                               |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        l_line_of_business = sfsline:rating_line_of_Business
+        access cppgeneral, set cppgeneral:policy_no    = g_policy_no,
+                               cppgeneral:pol_year     = g_year,
+                               cppgeneral:end_sequence = g_end_sequence, generic
+
+        If FUNCTION = "ADD" Then
+            Begin
+            cppBUSINESS:policy_NO = G_policy_NO
+            cppbusiness:pol_year = g_year
+            cppbusiness:end_sequence = g_end_sequence
+            cppBUSINESS:PREM_NO = 1
+            cppBUSINESS:BUILD_NO = 1
+            cppBUSINESS:STATE = cppGENERAL:STATE
+            cppbusiness:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppBUSINESS:policy_NO/displayonly ;
+302     cppbusiness:pol_Year/displayonly ;
+303     cppbusiness:end_sequence/displayonly ;
+401     cppBUSINESS:PREM_NO/default ;
+501     cppBUSINESS:BUILD_NO/default ;
+701     cppbusiness:show_on_dec/checkbox/values="0,1"
+        hide if sfscompany:boiler_rating <> 4 ;
+
+} -- end of header
+
+CardDialog GUI at 1,80
+
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Limit"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Blanket:     _                                                               |
+| Coverage:    ___   ________________________________________                  |
+| Limit:       __________                                                      |
+*------------------------------------------------------------------------------*
+| Risk Type:   __    ______________________________   Apartment/Condo:     _   |
+| Coinsurance: ___                                                             |
+*------------------------------------------------------------------------------*
+| Recovery Period: _   ______________________________                          |
+| Recovery Set:    _   ______________________________                          |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     cppbusiness:blanket/checkbox/values="0,1" ;
+301     Begin
+        l_line_of_business = sfsline:rating_line_of_business
+        access cpsbuscovtypes_alias, set cpsbuscovtypes_alias:company_id       = sfpname:company_id,
+                                         cpsbuscovtypes_alias:state            = cppbusiness:state,
+                                         cpsbuscovtypes_alias:line_of_business = l_line_of_business, generic
+
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:COVERAGE = CPSBUSDEFAULT:COVERAGE
+        End
+        cppBUSINESS:COVERAGE/default/uppercase
+        hide if cppbusiness:blanket = 1
+        access cpsbuscovtypes, set cpsbuscovtypes:company_id       = sfpname:company_id,
+                                   cpsbuscovtypes:state            = cppbusiness:state,
+                                   cpsbuscovtypes:line_of_business = l_line_of_business,
+                                   cpsbuscovtypes:coverage         = cppbusiness:coverage, generic
+
+        If cppBUSINESS:COVERAGE <> CPSBUSCOVTYPES:COVERAGE Then
+            Error 1232
+
+        Activehelp CPSBUSCOVTYPES_ALIAS:COVERAGE,
+                   CPSBUSCOVTYPES_ALIAS:DESCRIPTION ;
+301     cppbusiness:coverage/displayonly ;
+302     CPSBUSCOVTYPES:DESCRIPTION;
+401     Begin
+        If cppBUSINESS:COVERAGE <> "D2" Then
+            Begin
+            cppBUSINESS:RECOVERY_PERIOD = 0
+            cppBUSINESS:RECOVERY_SET = 0
+            End
+        Else
+            Begin
+            cppBUSINESS:RISK_TYPE = ""
+            cppBUSINESS:COINSURANCE = 0
+            cppBUSINESS:APARTMENT_CONDO = 0
+            End
+        End
+        cppBUSINESS:LIMIT
+        hide if cppbusiness:blanket = 1 ;
+401     cppbusiness:limit/displayonly ;
+601    Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            If cppGENERAL:GROUP_NO = 6 Then
+                cppBUSINESS:RISK_TYPE = "M"
+            Else
+                cppBUSINESS:RISK_TYPE = CPSBUSDEFAULT:RISK_TYPE
+            End
+        End
+        cppBUSINESS:RISK_TYPE/default/uppercase
+        Hide If cppBUSINESS:COVERAGE = "D2"
+        hide if cppbusiness:blanket = 1
+        If cppBUSINESS:RISK_TYPE <> CPSBUSRISKTYPES:RISK_TYPE Then
+            Error "Invalid risk types"
+
+        Activehelp CPSBUSRISKTYPES_ALIAS:RISK_TYPE,
+                   CPSBUSRISKTYPES_ALIAS:DESCRIPTION ;
+601    cppbusiness:risk_type/displayonly ;
+602    CPSBUSRISKTYPES:DESCRIPTION
+        Hide If cppBUSINESS:COVERAGE = "D2" ;
+
+603    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:APARTMENT_CONDO = cppGENERAL:APT_CONDO
+        End
+        cppBUSINESS:APARTMENT_CONDO/checkbox/values="0,1"/default
+        Hide If cppBUSINESS:COVERAGE = "D2"
+        hide if cppbusiness:blanket = 1 ;
+
+701    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:COINSURANCE = CPSBUSDEFAULT:COINSURANCE
+        End
+        cppBUSINESS:COINSURANCE/default
+        Hide If cppBUSINESS:COVERAGE = "D2"
+        hide if cppbusiness:blanket = 1
+        If cppBUSINESS:COINSURANCE <> CPSBUSCOINSURANCE:COINSURANCE Then
+            Error 1208
+
+        Activehelp CPSBUSCOINSURANCE_ALIAS:COINSURANCE ;
+701    cppbusiness:coinsurance/displayonly ;
+901    Begin
+        If FUNCTION = "ADD" Then
+           cppBUSINESS:RECOVERY_PERIOD = CPSBUSDEFAULT:RECOVERY_PERIOD
+        End
+        cppBUSINESS:RECOVERY_PERIOD/default
+        Hide If cppBUSINESS:COVERAGE <> "D2"
+        hide if cppbusiness:blanket = 1
+        If cppBUSINESS:RECOVERY_PERIOD <> CPSBUSPERIOD:RECOVERY_PERIOD Then
+            Error "Invalid Recovery Period"
+
+        If cppBUSINESS:RECOVERY_PERIOD = 0 Then
+            cppBUSINESS:RECOVERY_SET = 0
+
+        Activehelp CPSBUSPERIOD_ALIAS:RECOVERY_PERIOD ,
+                   CPSBUSPERIOD_ALIAS:DESCRIPTION ;
+901    cppbusiness:recovery_period/displayonly ;
+902    CPSBUSPERIOD:DESCRIPTION;
+1001   Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:RECOVERY_SET = CPSBUSDEFAULT:RECOVERY_SET
+        End
+        cppBUSINESS:RECOVERY_SET/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:COVERAGE <> "D2" Or
+                cppBUSINESS:RECOVERY_PERIOD = 0
+
+        If cppBUSINESS:RECOVERY_SET <> CPSBUSRECOVERYSET:RECOVERY_SET Then
+            Error "Invalid recovery set"
+
+        Activehelp CPSBUSRECOVERYSET_ALIAS:RECOVERY_SET,
+                   CPSBUSRECOVERYSET_ALIAS:DESCRIPTION ;
+1001   cppbusiness:recovery_set/displayonly ;
+1002   CPSBUSRECOVERYSET:DESCRIPTION;
+
+}
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Misc"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Dependent Property:          _           Loss Tuition Fees:   _              |
+| Agreed Value:                _           Payroll Limitation:  _              |
+| Electronic Media:            _           Seasonal Leases:     _              |
+| Extended Period Indemnity:   _           Antenna Extension:   _              |
+| Heat/Power/Refrigeration:    _           Building Law:        _              |
+| Maximum Recovery Period:     _           Off Premises:        _              |
+| Monthly Recovery Limitation: _                                               |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:DEPENDENT_PROPERTY = CPSBUSDEFAULT:DEPENDENT_PROPERTY
+        L_DEPENDENT_PROP = cppBUSINESS:DEPENDENT_PROPERTY
+        End
+        cppBUSINESS:DEPENDENT_PROPERTY/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1 ;
+--1701    cppBUSINESS:DEPENDENT_PROPERTY/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+301    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:AGREED_VALUE = CPSBUSDEFAULT:AGREED_VALUE
+        L_AGREED_VALUE = cppBUSINESS:AGREED_VALUE
+        End
+        cppBUSINESS:AGREED_VALUE/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:DEPENDENT_PROPERTY = 1 ;
+--1801    cppBUSINESS:AGREED_VALUE/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0  ;
+401    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:ELECTRONIC_MEDIA = CPSBUSDEFAULT:ELECTRONIC_MEDIA
+        If cppBUSINESS:DEPENDENT_PROPERTY = 1 And
+           cppBUSINESS:AGREED_VALUE = 1 Then
+            Begin
+            L_CODE = "MCP311"
+            Access cppENDORSE, Set cppENDORSE:policy_NO = cppBUSINESS:policy_NO,
+                                   cppendorse:pol_Year = cppbusiness:pol_year,
+                                   cppendorse:end_sequence = cppbusiness:end_sequence,
+                                   cppENDORSE:PREM_NO = cppBUSINESS:PREM_NO,
+                                   cppENDORSE:BUILD_NO = cppBUSINESS:BUILD_NO,
+                                   cppENDORSE:CODE = L_CODE, Generic
+
+            While cppENDORSE:policy_NO = cppBUSINESS:policy_NO And
+                  cppendorse:pol_year = cppbusiness:pol_Year and
+                  cppendorse:end_sequence = cppbusiness:end_sequence and
+                  cppENDORSE:PREM_NO = cppBUSINESS:PREM_NO And
+                  cppENDORSE:BUILD_NO = cppBUSINESS:BUILD_NO And
+                  cppENDORSE:CODE = L_CODE
+                    Begin
+                    Delete cppENDORSE
+
+                    Next cppENDORSE
+                    End
+
+            Access sfpEND, Set sfpEND:policy_NO = cppBUSINESS:policy_NO,
+                               sfpend:pol_Year = cppbusiness:pol_Year,
+                               sfpend:end_sequence = cppbusiness:end_sequence,
+                               sfpEND:PREM_NO = cppBUSINESS:PREM_NO,
+                               sfpEND:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+            While sfpEND:policy_NO = cppBUSINESS:policy_NO And
+                  sfpend:pol_Year = cppbusiness:pol_Year and
+                  sfpend:end_sequence = cppbusiness:end_sequence and
+                  sfpEND:PREM_NO = cppBUSINESS:PREM_NO And
+                  sfpEND:BUILD_NO = cppBUSINESS:BUILD_NO
+                    Begin
+                    If sfpEND:CODE = "MCP311" Then
+                        Delete sfpEND
+
+                    Next sfpEND
+                    End
+
+            cppBUSINESS:AGREED_VALUE = 0
+            End
+        L_ELECTRONIC_MEDIA = cppBUSINESS:ELECTRONIC_MEDIA
+        End
+        cppBUSINESS:ELECTRONIC_MEDIA/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:MAX_RECOVERY_PERIOD = 1 ;
+--1901    cppBUSINESS:ELECTRONIC_MEDIA/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0  ;
+501    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = CPSBUSDEFAULT:EXTENDED_PERIOD_INDEMNITY
+        L_EXTENDED_PERIOD = cppBUSINESS:EXTENDED_PERIOD_INDEMNITY
+        End
+        cppBUSINESS:EXTENDED_PERIOD_INDEMNITY/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:MAX_RECOVERY_PERIOD = 1 Or
+                cppBUSINESS:COVERAGE = "D2" ;
+--2001    cppBUSINESS:EXTENDED_PERIOD_INDEMNITY/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+601    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:HEAT_POWER_REFRIG = CPSBUSDEFAULT:HEAT_POWER_REFRIG
+        End
+        cppBUSINESS:HEAT_POWER_REFRIG/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:RISK_TYPE <> "M" Or
+                cppBUSINESS:COVERAGE = "D2" ;
+--2101    cppBUSINESS:HEAT_POWER_REFRIG/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+701    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:MAX_RECOVERY_PERIOD = CPSBUSDEFAULT:MAX_RECOVERY_PERIOD
+        End
+        cppBUSINESS:MAX_RECOVERY_PERIOD/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:COVERAGE = "D2"
+        If cppBUSINESS:MAX_RECOVERY_PERIOD = 1 And
+           cppBUSINESS:ELECTRONIC_MEDIA = 1 Then
+            Begin
+            Access cppELECTMEDIA, Set cppELECTMEDIA:policy_NO = cppBUSINESS:policy_NO ,
+                                      cppelectmedia:pol_year = cppbusiness:pol_year,
+                                      cppelectmedia:end_sequence = cppbusiness:end_sequence,
+                                      cppELECTMEDIA:PREM_NO = cppBUSINESS:PREM_NO,
+                                      cppELECTMEDIA:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+            While cppELECTMEDIA:policy_NO = cppBUSINESS:policy_NO And
+                  cppelectmedia:pol_Year = cppbusiness:pol_year and
+                  cppelectmedia:end_sequence = cppbusiness:end_sequence and
+                  cppELECTMEDIA:PREM_NO = cppBUSINESS:PREM_NO And
+                  cppELECTMEDIA:BUILD_NO = cppBUSINESS:BUILD_NO
+                    Begin
+                    Delete cppELECTMEDIA
+
+                    Next cppELECTMEDIA
+                    End
+
+            Access sfpEND, Set sfpEND:policy_NO = cppBUSINESS:policy_NO,
+                               sfpend:pol_year = cppbusiness:pol_year,
+                               sfpend:end_sequence = cppbusiness:end_sequence,
+                               sfpEND:PREM_NO = cppBUSINESS:PREM_NO,
+                               sfpEND:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+            While sfpEND:policy_NO = cppBUSINESS:policy_NO And
+                  sfpend:pol_Year = cppbusiness:pol_Year and
+                  sfpend:end_sequence = cppbusiness:end_sequence and
+                  sfpEND:PREM_NO = cppBUSINESS:PREM_NO And
+                  sfpEND:BUILD_NO = cppBUSINESS:BUILD_NO
+                    Begin
+                    If sfpEND:CODE = "MCP501" Then
+                        Delete sfpEND
+
+                    Next sfpEND
+                    End
+
+            cppBUSINESS:ELECTRONIC_MEDIA = 0
+            End
+        If cppBUSINESS:MAX_RECOVERY_PERIOD = 1 And
+           cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 1 Then
+            Begin
+            Access cppEXTPERIOD, Set cppEXTPERIOD:policy_NO = cppBUSINESS:policy_NO ,
+                                     cppextperiod:pol_year = cppbusiness:pol_year,
+                                     cppextperiod:end_sequence = cppbusiness:end_sequence,
+                                     cppEXTPERIOD:PREM_NO = cppBUSINESS:PREM_NO,
+                                     cppEXTPERIOD:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+            While cppEXTPERIOD:policy_NO = cppBUSINESS:policy_NO And
+                  cppextperiod:pol_year = cppbusiness:pol_year and
+                  cppextperiod:end_sequence = cppbusiness:end_sequence and
+                  cppEXTPERIOD:PREM_NO = cppBUSINESS:PREM_NO And
+                  cppEXTPERIOD:BUILD_NO = cppBUSINESS:BUILD_NO
+                    Begin
+                    Delete cppEXTPERIOD
+
+                    Next cppEXTPERIOD
+                    End
+
+            Access sfpEND, Set sfpEND:policy_NO = cppBUSINESS:policy_NO,
+                               sfpend:pol_Year = cppbusiness:pol_year,
+                               sfpend:end_sequence = cppbusiness:end_sequence,
+                               sfpEND:PREM_NO = cppBUSINESS:PREM_NO,
+                               sfpEND:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+            While sfpEND:policy_NO = cppBUSINESS:policy_NO And
+                  sfpend:pol_year = cppbusiness:pol_Year and
+                  sfpend:end_sequence = cppbusiness:end_sequence and
+                  sfpEND:PREM_NO = cppBUSINESS:PREM_NO And
+                  sfpEND:BUILD_NO = cppBUSINESS:BUILD_NO
+                    Begin
+                    If sfpEND:CODE = "MCP502" Then
+                        Delete sfpEND
+
+                    Next sfpEND
+                    End
+
+            cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 0
+            End ;
+--2201    cppBUSINESS:MAX_RECOVERY_PERIOD/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+801    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:MONTHLY_RECOVERY_LIMITATION = CPSBUSDEFAULT:MONTHLY_RECOVERY_LIMITATION
+        L_MONTHLY_RECOVERY = cppBUSINESS:MONTHLY_RECOVERY_LIMITATION
+        End
+        cppBUSINESS:MONTHLY_RECOVERY_LIMITATION/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:COVERAGE = "D2" ;
+--2301    cppBUSINESS:MONTHLY_RECOVERY_LIMITATION/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+
+202    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:LOSS_TUITION_FEES = CPSBUSDEFAULT:LOSS_TUITION_FEES
+        L_LOSS_TUITION = cppBUSINESS:LOSS_TUITION_FEES
+        End
+        cppBUSINESS:LOSS_TUITION_FEES/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:COVERAGE = "D2" ;
+--1702    cppBUSINESS:LOSS_TUITION_FEES/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+
+302    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:PAYROLL_LIMITATION = CPSBUSDEFAULT:PAYROLL_LIMITATION
+        L_PAYROLL = cppBUSINESS:PAYROLL_LIMITATION
+        End
+        cppBUSINESS:PAYROLL_LIMITATION/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:COVERAGE = "D2" ;
+--1802    cppBUSINESS:PAYROLL_LIMITATION/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+402    Begin
+        If FUNCTION = "ADD" Then
+            begin
+            cppBUSINESS:SEASONAL_LEASES = CPSBUSDEFAULT:SEASONAL_LEASES
+            end
+        L_SEASONAL_LEASES = cppBUSINESS:SEASONAL_LEASES
+        l_antenna_code = "MCP109"
+        do access_sfpend
+        End
+        cppBUSINESS:SEASONAL_LEASES/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        Hide If cppBUSINESS:RISK_TYPE <> "R" Or
+                cppBUSINESS:COVERAGE = "D2" ;
+--1902    cppBUSINESS:SEASONAL_LEASES/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+502    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:ANTENNA_EXTENSION = CPSBUSDEFAULT:ANTENNA_EXTENSION
+        L_ANTENNA_EXT = cppBUSINESS:ANTENNA_EXTENSION
+        End
+        cppBUSINESS:ANTENNA_EXTENSION/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1
+        hide if l_antenna_exists = "N" ;
+--2002    cppBUSINESS:ANTENNA_EXTENSION/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+602    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:BUILDING_LAW = CPSBUSDEFAULT:BUILDING_LAW
+        End
+        cppBUSINESS:BUILDING_LAW/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1 ;
+--2102    cppBUSINESS:BUILDING_LAW/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+702    Begin
+        If FUNCTION = "ADD" Then
+            cppBUSINESS:OFF_PREMISES = CPSBUSDEFAULT:OFF_PREMISES
+        L_OFF_PREM = cppBUSINESS:OFF_PREMISES
+        End
+        cppBUSINESS:OFF_PREMISES/checkbox/values="0,1"/default
+        hide if cppbusiness:blanket = 1  ;
+--2202    cppBUSINESS:OFF_PREMISES/checkbox/values="0,1"/default nochange
+--        hide if cppbusiness:blanket = 0 ;
+
+} -- endof misc
+
+}
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    if function = "ADD" then
+        begin
+        access cppblanket, set cppblanket:policy_no = cppbusiness:policy_no,
+                               cppblanket:pol_year = cppbusiness:pol_year,
+                               cppblanket:end_sequence = cppbusiness:end_sequence,
+                               cppblanket:prem_no = cppbusiness:prem_no,
+                               cppblanket:build_no = cppbusiness:build_no, generic
+
+        if cppbusiness:blanket = 1 then
+            begin
+            g_prem_no  = cppbusiness:prem_no
+            g_build_no = cppbusiness:build_no
+            display modal screen "cppmtmso003a"
+            with initial function "ADD"
+            end
+        if cppgeneral:blanket = 1 and
+           cppblanket:base_rate[1] = 0 then
+            begin
+            g_prem_no = cppbusiness:prem_no
+            g_build_no = cppbusiness:build_no
+            display modal screen "cppmtmso310"
+            with initial function "CHANGE"
+            end
+        end
+
+    g_prem_no = cppbusiness:prem_no
+    g_build_no = cppbusiness:build_no
+    -- MCP333, MCP335, MCP337
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:DEPENDENT_PROPERTY = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_DEPENDENT_PROP = 0 And
+       cppBUSINESS:DEPENDENT_PROPERTY = 1)) Then
+        Begin
+        g_code = "MCP333"
+        Display Modal Screen "cppmtmso301"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_DEPENDENT_PROP = 1 And
+       cppBUSINESS:DEPENDENT_PROP_FACTOR[1] = 0 Then
+        Begin
+        L_CODE = "MCP333"
+        Do DELETE_sfpEND
+        L_CODE = "MCP335"
+        Do DELETE_sfpEND
+        L_CODE = "MCP337"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP311
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:AGREED_VALUE = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_AGREED_VALUE = 0 And
+       cppBUSINESS:AGREED_VALUE = 1)) Then
+        Begin
+        g_code = "MCP311"
+        Display Modal Screen "cppmtmso300"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_AGREED_VALUE = 1 And
+       cppBUSINESS:AGREED_VALUE = 0 Then
+        Begin
+        L_CODE = "MCP311"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP501
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:ELECTRONIC_MEDIA = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_ELECTRONIC_MEDIA = 0 And
+       cppBUSINESS:ELECTRONIC_MEDIA = 1)) Then
+        Begin
+        g_code = "MCP501"
+        Display Modal Screen "cppmtmso302"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_ELECTRONIC_MEDIA = 1 And
+       cppBUSINESS:ELECTRONIC_MEDIA = 0 Then
+        Begin
+        L_CODE = "MCP501"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP502
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_EXTENDED_PERIOD = 0 And
+       cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 1)) Then
+        Begin
+        g_code = "MCP502"
+        Display Modal Screen "cppmtmso303"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_EXTENDED_PERIOD  = 1 And
+       cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 0 Then
+        Begin
+        L_CODE = "MCP502"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP349
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:MONTHLY_RECOVERY_LIMITATION = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_MONTHLY_RECOVERY = 0 And
+       cppBUSINESS:MONTHLY_RECOVERY_LIMITATION = 1)) Then
+        Begin
+        g_code = "MCP349"
+        Display Modal Screen "cppmtmso304"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_MONTHLY_RECOVERY = 1 And
+       cppBUSINESS:MONTHLY_RECOVERY_LIMITATION = 0 Then
+        Begin
+        L_CODE = "MCP349"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP321, MCP323
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:LOSS_TUITION_FEES = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_LOSS_TUITION = 0 And
+       cppBUSINESS:LOSS_TUITION_FEES = 1)) Then
+        Begin
+        g_code = "MCP321"
+        Display Modal Screen "cppmtmso305"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_LOSS_TUITION = 1 And
+       cppBUSINESS:LOSS_TUITION_FEES = 0 Then
+        Begin
+        L_CODE = "MCP321"
+        Do DELETE_sfpEND
+        L_CODE = "MCP323"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP341, MCP343, MCP345
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:PAYROLL_LIMITATION = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_PAYROLL = 0 And
+       cppBUSINESS:PAYROLL_LIMITATION = 1)) Then
+        Begin
+        g_code = "MCP341"
+        Display Modal Screen "cppmtmso306"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_PAYROLL = 1 And
+       cppBUSINESS:PAYROLL_LIMITATION = 0 Then
+        Begin
+        L_CODE = "MCP341"
+        Do DELETE_sfpEND
+        L_CODE = "MCP343"
+        Do DELETE_sfpEND
+        L_CODE = "MCP345"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP331
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:OFF_PREMISES = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_OFF_PREM = 0 And
+       cppBUSINESS:OFF_PREMISES = 1)) Then
+        Begin
+        g_code = "MCP331"
+        Display Modal Screen "cppmtmso307"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_OFF_PREM = 1 And
+       cppBUSINESS:OFF_PREMISES = 0 Then
+        Begin
+        L_CODE = "MCP331"
+        Do DELETE_sfpEND
+        End
+
+    -- MCP319
+    If ((FUNCTION = "ADD" And
+       cppBUSINESS:SEASONAL_LEASES = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_SEASONAL_LEASES = 0 And
+       cppBUSINESS:SEASONAL_LEASES = 1)) Then
+        Begin
+        g_code = "MCP319"
+        Display Modal Screen "cppmtmso308"
+        With Initial Function "ADD|BACK"
+        End
+
+    If FUNCTION = "CHANGE" And
+       L_SEASONAL_LEASES = 1 And
+       cppBUSINESS:SEASONAL_LEASES = 0 Then
+        Begin
+        L_CODE = "MCP319"
+        Do DELETE_sfpEND
+        End
+
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:DEPENDENT_PROPERTY = 1) Or
+       (FUNCTION = "CHANGE" And
+       cppBUSINESS:DEPENDENT_PROPERTY = 0 And
+       L_DEPENDENT_PROP = 1)) Then
+        Begin
+        Access cppBUSDEPENDPROP, Set cppBUSDEPENDPROP:policy_NO = cppBUSINESS:policy_NO,
+                                     cppbusdependprop:pol_year = cppbusiness:pol_year,
+                                     cppbusdependprop:end_sequence = cppbusiness:end_sequence,
+                                     cppBUSDEPENDPROP:PREM_NO = cppBUSINESS:PREM_NO,
+                                     cppBUSDEPENDPROP:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+        Delete cppBUSDEPENDPROP
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:AGREED_VALUE = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_AGREED_VALUE = 1 And
+       cppBUSINESS:AGREED_VALUE = 0)) Then
+        Begin
+        L_CODE = "MCP311"
+        Access cppENDORSE, Set cppENDORSE:policy_NO = cppBUSINESS:policy_NO,
+                               cppendorse:pol_Year = cppbusiness:pol_year,
+                               cppendorse:end_sequence = cppbusiness:end_sequence,
+                               cppENDORSE:PREM_NO = cppBUSINESS:PREM_NO,
+                               cppENDORSE:BUILD_NO = cppBUSINESS:BUILD_NO,
+                               cppENDORSE:CODE = L_CODE, Generic
+
+        Delete cppENDORSE
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:ELECTRONIC_MEDIA = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_ELECTRONIC_MEDIA = 1 And
+       cppBUSINESS:ELECTRONIC_MEDIA = 0)) Then
+        Begin
+        Access cppELECTMEDIA, Set cppELECTMEDIA:policy_NO = cppBUSINESS:policy_NO,
+                                  cppelectmedia:pol_year = cppbusiness:pol_year,
+                                  cppelectmedia:end_sequence = cppbusiness:end_sequence,
+                                  cppELECTMEDIA:PREM_NO = cppBUSINESS:PREM_NO,
+                                  cppELECTMEDIA:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+        Delete cppELECTMEDIA
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_EXTENDED_PERIOD = 1 And
+       cppBUSINESS:EXTENDED_PERIOD_INDEMNITY = 0)) Then
+        Begin
+        Access cppEXTPERIOD, Set cppEXTPERIOD:policy_NO = cppBUSINESS:policy_NO,
+                                 cppextperiod:pol_Year = cppbusiness:pol_year,
+                                 cppextperiod:end_sequence = cppbusiness:end_sequence,
+                                 cppEXTPERIOD:PREM_NO = cppBUSINESS:PREM_NO,
+                                 cppEXTPERIOD:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+        Delete cppEXTPERIOD
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:MONTHLY_RECOVERY_LIMITATION = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_MONTHLY_RECOVERY = 1 And
+       cppBUSINESS:MONTHLY_RECOVERY_LIMITATION = 0)) Then
+        Begin
+        L_CODE = "MCP349"
+        Access cppENDORSE, Set cppENDORSE:policy_NO = cppBUSINESS:policy_NO,
+                               cppendorse:pol_year = cppbusiness:pol_year,
+                               cppendorse:end_sequence = cppbusiness:end_sequence,
+                               cppENDORSE:PREM_NO = cppBUSINESS:PREM_NO,
+                               cppENDORSE:BUILD_NO = cppBUSINESS:BUILD_NO,
+                               cppENDORSE:CODE = L_CODE, Generic
+
+        Delete cppENDORSE
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:LOSS_TUITION_FEES = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_LOSS_TUITION = 1 And
+       cppBUSINESS:LOSS_TUITION_FEES = 0)) Then
+        Begin
+        L_CODE = "MCP321"
+        Access cppENDORSE, Set cppENDORSE:policy_NO = cppBUSINESS:policy_NO,
+                               cppendorse:pol_year = cppbusiness:pol_year,
+                               cppendorse:end_sequence = cppbusiness:end_sequence,
+                               cppENDORSE:PREM_NO = cppBUSINESS:PREM_NO,
+                               cppENDORSE:BUILD_NO = cppBUSINESS:BUILD_NO,
+                               cppENDORSE:CODE = L_CODE, Generic
+
+        Delete cppENDORSE
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:PAYROLL_LIMITATION = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_PAYROLL = 1 And
+       cppBUSINESS:PAYROLL_LIMITATION = 0)) Then
+        Begin
+        Access cppBUSPAYROLL, Set cppBUSPAYROLL:policy_NO = cppBUSINESS:policy_NO,
+                                  cppbuspayroll:pol_year = cppbusiness:pol_year,
+                                  cppbuspayroll:end_sequence = cppbusiness:end_sequence,
+                                  cppBUSPAYROLL:PREM_NO = cppBUSINESS:PREM_NO,
+                                  cppBUSPAYROLL:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+        Delete cppBUSPAYROLL
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:OFF_PREMISES = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_OFF_PREM = 1 And
+       cppBUSINESS:OFF_PREMISES = 0)) Then
+        Begin
+        Access cppBUSOFFPREM, Set cppBUSOFFPREM:policy_NO = cppBUSINESS:policy_NO,
+                                  cppbusoffprem:pol_year = cppbusiness:pol_year,
+                                  cppbusoffprem:end_sequence = cppbusiness:end_sequence,
+                                  cppBUSOFFPREM:PREM_NO = cppBUSINESS:PREM_NO,
+                                  cppBUSOFFPREM:BUILD_NO = cppBUSINESS:BUILD_NO, Generic
+
+        Delete cppBUSOFFPREM
+        End
+    If ((FUNCTION = "DELETE" And
+       cppBUSINESS:SEASONAL_LEASES = 1) Or
+       (FUNCTION = "CHANGE" And
+       L_SEASONAL_LEASES = 1 And
+       cppBUSINESS:SEASONAL_LEASES = 0)) Then
+        Begin
+        L_CODE = "MCP319"
+        Access cppENDORSE, Set cppENDORSE:policy_NO = cppBUSINESS:policy_NO,
+                               cppendorse:pol_year = cppbusiness:pol_year,
+                               cppendorse:end_sequence = cppbusiness:end_sequence,
+                               cppENDORSE:PREM_NO = cppBUSINESS:PREM_NO,
+                               cppENDORSE:BUILD_NO = cppBUSINESS:BUILD_NO,
+                               cppENDORSE:CODE = L_CODE, Generic
+
+        Delete cppENDORSE
+        End
+
+    L_STATE = cppGENERAL:STATE
+    Access CPSBUSMISCRATES, Set CPSBUSMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                CPSBUSMISCRATES:STATE = L_STATE,
+                                CPSBUSMISCRATES:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+    While CPSBUSMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSBUSMISCRATES:STATE = L_STATE And
+          CPSBUSMISCRATES:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSBUSMISCRATES:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSBUSMISCRATES:HEAT_POWER_CODE    -- MCP347
+                L_CODE_2 = CPSBUSMISCRATES:MAX_RECOVERY_CODE  -- MCP351
+                L_CODE_3 = CPSBUSMISCRATES:BUILDING_LAW_CODE  -- MCP504
+                l_code_4 = cpsbusmiscrates:antenna_ext_code[2] -- MCP503
+                End
+            Next CPSBUSMISCRATES
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppBUSINESS:HEAT_POWER_REFRIG = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppBUSINESS:HEAT_POWER_REFRIG = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppBUSINESS:MAX_RECOVERY_PERIOD = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppBUSINESS:MAX_RECOVERY_PERIOD = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppBUSINESS:BUILDING_LAW = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppBUSINESS:BUILDING_LAW = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_4 <> "" Then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppBUSINESS:antenna_extension = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppBUSINESS:antenna_extension = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    L_STATE = cppGENERAL:STATE
+    Access CPSBUSEXTRA, Set CPSBUSEXTRA:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSBUSEXTRA:STATE = L_STATE,
+                            CPSBUSEXTRA:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+    While CPSBUSEXTRA:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSBUSEXTRA:STATE = L_STATE And
+          CPSBUSEXTRA:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSBUSEXTRA:EFF_DATE Then
+                Begin
+                L_CODE_5 = CPSBUSEXTRA:MONTHLY_3_PERIOD_CODE -- MCP353
+                L_CODE_6 = CPSBUSEXTRA:MONTHLY_4_PERIOD_CODE -- MCP355
+                End
+            Next CPSBUSEXTRA
+            End
+
+    If L_CODE_5 <> "" Then
+        Begin
+        L_CODE = L_CODE_5
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppBUSINESS:RECOVERY_PERIOD = 1 And
+           cppBUSINESS:RECOVERY_SET < 3 Then
+            Do ADD_sfpEND
+        If (L_ADD_ENDORSEMENT = "N" And
+           (cppBUSINESS:RECOVERY_PERIOD = 0 Or
+           cppBUSINESS:RECOVERY_SET > 2)) Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_6 <> "" Then
+        Begin
+        L_CODE = L_CODE_6
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppBUSINESS:RECOVERY_PERIOD = 1 And
+           cppBUSINESS:RECOVERY_SET > 2 Then
+            Do ADD_sfpEND
+        If (L_ADD_ENDORSEMENT = "N" And
+           (cppBUSINESS:RECOVERY_PERIOD = 0 Or
+           cppBUSINESS:RECOVERY_SET < 3)) Then
+            Do DELETE_sfpEND
+        End
+
+    if cppbusiness:blanket = 1 and
+       function = "ADD" then
+        function = "redisplay"
+    End
+
+screen exit
+g_prem_no = cppbusiness:prem_no
+g_build_no = cppbusiness:build_no
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+l_antenna_exists = "N"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+    if sfpend:code = l_antenna_code then
+        l_antenna_exists = "Y"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence,
+                             cppGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             cppGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = cppGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "B"
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "B"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

@@ -1,0 +1,138 @@
+%%
+Screen
+        Name            = "cppmtmso866" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Endorsement Information     Ver 7.00 %m" ;
+        Domain          = "cppENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global String G_CODE[7] ;
+        global unsigned ascii number g_sub_code[4] ;
+        global unsigned ascii number g_system_rate[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+access validation
+if cppendorse:policy_no <> g_policy_no or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:prem_no <> g_prem_no or
+   cppendorse:build_no <> g_build_no or
+   cppendorse:code <> g_code then
+    error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Premium:    _____________                                                    |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_Sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            do subcode
+            cppENDORSE:SUB_CODE = l_sub_code + 10
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppendorse:total_premium ;
+
+}
+
+}
+
+
+procedure definition
+
+procedure subcode
+begin
+access cppendorse_alias, set cppendorse_alias:policy_no = g_policy_no,
+                             cppendorse_alias:pol_year = g_year,
+                             cppendorse_alias:end_sequence = g_end_sequence,
+                             cppendorse_alias:prem_no = g_prem_no,
+                             cppendorse_alias:build_no = g_build_no,
+                             cppendorse_alias:code = g_code, generic
+
+l_sub_code = 0
+while cppendorse_alias:policy_no = g_policy_no and
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppendorse_alias:prem_no = g_prem_no and
+      cppendorse_alias:build_no = g_build_no and
+      cppendorse_alias:code = g_code
+        begin
+        l_sub_code = cppendorse_alias:sub_code
+
+        next cppendorse_alias
+        end
+
+end
+
+End

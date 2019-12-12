@@ -1,0 +1,186 @@
+%%
+Screen
+        Name            = "cppmtmso860" ;
+        Type            = "Multiline" ;
+        Repeat line_items, 10 Times Down ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppUMUIM" ;
+        Windowtitle = "%a     %s Uninsured/Underinsured Motorists   Ver 7.00  %m" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        global unsigned ascii number g_year[4];
+        global unsigned ascii number g_end_sequence[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        global unsigned ascii number g_state[2] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    l_line_of_business[4];
+
+        Access cppUMUIM,
+           Set cppUMUIM:policy_NO = G_policy_NO ,
+               cppumuim:pol_year = g_year,
+               cppumuim:end_sequence = g_end_sequence,
+               cppUMUIM:PREM_NO = G_PREM_NO ,
+               cppUMUIM:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+        !F8="Append" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "add" Sequence "new|append" ;
+        "new" Add/autoupdate ;
+        Append ;
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppUMUIM:policy_NO <> G_policy_NO Or
+   cppumuim:pol_year <> g_year or
+   cppumuim:end_sequence <> g_end_sequence or
+   cppUMUIM:PREM_NO <> G_PREM_NO Or
+   cppUMUIM:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                    Description:                         Limit                |
+|                                                                              |
+| __________________________________________________     ___________           |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+501     Begin
+        access sfpname, set sfpname:policy_no = g_policy_no,
+                            sfpname:pol_year = g_year,
+                            sfpname:end_sequence = g_end_sequence, generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+        if g_state = 0 then
+            g_state = sfpmaster:state
+        If FUNCTION = "ADD" Or
+           FUNCTION = "NEW" Or
+           FUNCTION = "APPEND" Then
+            Begin
+            cppUMUIM:policy_NO = G_policy_NO
+            cppumuim:pol_year = g_year
+            cppumuim:end_sequence = g_end_sequence
+            cppUMUIM:PREM_NO = G_PREM_NO
+            cppUMUIM:BUILD_NO = G_BUILD_NO
+            Do SUBCODE
+            End
+        End
+        cppUMUIM:DESCRIPTION tagged line_items;
+501     Begin
+        If cppUMUIM:DESCRIPTION = "" Then
+            Abort()
+        End
+        cppUMUIM:DESCRIPTION/displayonly tagged line_items ;
+502     begin
+        access cppliablimits, set cppliablimits:policy_no = g_policy_no,
+                                  cppliablimits:pol_year = g_year,
+                                  cppliablimits:end_sequence = g_end_sequence, generic
+
+        access cpsliabuninsured_alias, set cpsliabuninsured_alias:company_id = sfpname:company_id,
+                                   cpsliabuninsured_alias:state = g_state,
+                                   cpsliabuninsured_alias:line_of_business = l_line_of_business, generic
+
+        if function one of "ADD", "APPEND", "NEW" then
+            cppumuim:limit = cpsliabuninsured_alias:limit
+        end
+        cppUMUIM:LIMIT/default tagged line_items
+        if cppumuim:limit > cppliablimits:occurrence then
+            error "Limit can not be more than liability limit"
+        access cpsliabuninsured, set cpsliabuninsured:company_id = sfpname:company_id,
+                             cpsliabuninsured:state = g_state,
+                             cpsliabuninsured:line_of_business = l_line_of_business,
+                             cpsliabuninsured:limit = cppumuim:limit, generic
+
+        If cppUMUIM:LIMIT <> cpsliabuninsured:LIMIT Then
+            Error 1238
+        Activehelp cpsliabuninsured_ALIAS:LIMIT ;
+
+}
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppUMUIM_ALIAS, Set cppUMUIM_ALIAS:policy_NO = cppUMUIM:policy_NO,
+                           cppumuim_alias:pol_year = cppumuim:pol_year,
+                           cppumuim_alias:end_sequence = cppumuim:end_sequence,
+                           cppUMUIM_ALIAS:PREM_NO = cppUMUIM:PREM_NO,
+                           cppUMUIM_ALIAS:BUILD_NO = cppUMUIM:BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If cppUMUIM_ALIAS:policy_NO <> cppUMUIM:policy_NO Or
+            cppumuim_alias:pol_Year <> cppumuim:pol_year or
+            cppumuim_alias:end_sequence <> cppumuim:end_sequence or
+            cppUMUIM_ALIAS:PREM_NO <> cppUMUIM:PREM_NO Or
+            cppUMUIM_ALIAS:BUILD_NO <> cppUMUIM:BUILD_NO
+
+    L_SUB_CODE = cppUMUIM_ALIAS:SUB_CODE
+
+    Next cppUMUIM_ALIAS
+    End
+
+cppUMUIM:SUB_CODE = L_SUB_CODE + 10
+
+End
+
+End

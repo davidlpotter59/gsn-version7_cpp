@@ -1,0 +1,221 @@
+%%
+Screen
+        Name            = "cppmtmso750" ;
+        Type            = "Multiline" ;
+        Repeat line_items, 10 Times Down ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Computer Coverage     %m" ;
+        Domain          = "cppDESC" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4];
+        global unsigned ascii number g_end_sequence[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Local String L_HARDWARE_SOFTWARE[10] ;
+
+        Access cppDESC,
+           Set cppDESC:policy_NO = G_policy_NO ,
+               cppdesc:pol_year = g_year,
+               cppdesc:end_sequence = g_end_sequence,
+               cppDESC:PREM_NO = G_PREM_NO ,
+               cppDESC:BUILD_NO = G_BUILD_NO ,
+               cppdesc:code = g_code ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "add" Sequence "new|append" ;
+        Append ;
+        "new" Add/autoupdate ;
+
+        "I" Display/noreturn "cppmtmso750a" tagged limits_fn;
+
+        Include "STDFUNC7m.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7m.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Toolbar Tagged Main_t Properties
+                        {
+                        Text     = "Main"
+                        FontName = "SansSerif"
+                        Fontsize = 10
+                        }
+                {
+                ToolBarButton Properties
+                        {
+                        Iconname   = "up.bmp"
+                        tooltip    = "Limits"
+                        }
+                        Events
+                        {
+                        Action    = limits_fn
+                       }
+Separator
+
+}
+
+Access Validation
+If cppDESC:policy_NO <> G_policy_NO Or
+   cppdesc:pol_year <> g_year or
+   cppdesc:end_sequence <> g_end_sequence or
+   cppDESC:PREM_NO <> G_PREM_NO Or
+   cppDESC:BUILD_NO <> G_BUILD_NO or
+   cppdesc:code <> g_code Then
+    Error 1000 ;
+
+
+screen
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|  Hardware/                      Description                         Limit    |
+|  Software                                                                    |
+|                                                                              |
+| __________   __________________________________________________   ________   |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+601     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" Then
+            Begin
+            cppDESC:policy_NO = G_policy_NO
+            cppdesc:pol_year = g_year
+            cppdesc:end_sequence = g_end_sequence
+            cppDESC:PREM_NO = G_PREM_NO
+            cppDESC:BUILD_NO = G_BUILD_NO
+            cppDESC:CODE = G_CODE
+            Do SUBCODE
+            cppDESC:SUB_CODE = L_SUB_CODE
+            End
+        End
+        cppDESC:HARDWARE_SOFTWARE/uppercase tagged line_items ;
+601     Begin
+        Switch(cppDESC:HARDWARE_SOFTWARE)
+          Case "S" : L_HARDWARE_SOFTWARE = "SOFTWARE"
+          Case "H" : L_HARDWARE_SOFTWARE = "HARDWARE"
+          Default  : L_HARDWARE_SOFTWARE = ""
+          End
+        End
+        L_HARDWARE_SOFTWARE/displayonly tagged line_items;
+602     cppDESC:DESCRIPTION tagged line_items ;
+602     Begin
+        If cppDESC:DESCRIPTION = "" Then
+            Abort()
+        End
+        cppDESC:DESCRIPTION/displayonly tagged line_items ;
+603     cppDESC:LIMIT tagged line_items ;
+
+}
+
+}
+
+Screen Exit
+-- limits screen
+Access cppENDORSE, Set cppENDORSE:policy_NO = cppDESC:policy_NO,
+                       cppendorse:pol_year = cppdesc:pol_year,
+                       cppendorse:end_sequence = cppdesc:end_sequence,
+                       cppENDORSE:PREM_NO = cppDESC:PREM_NO,
+                       cppENDORSE:BUILD_NO = cppDESC:BUILD_NO,
+                       cppENDORSE:CODE = cppDESC:CODE, Generic
+
+If cppENDORSE:policy_NO = cppDESC:policy_NO And
+   cppendorse:pol_year = cppdesc:pol_Year and
+   cppendorse:end_sequence = cppdesc:end_sequence and
+   cppENDORSE:PREM_NO = cppDESC:PREM_NO And
+   cppENDORSE:BUILD_NO = cppDESC:BUILD_NO And
+   cppENDORSE:CODE = cppDESC:CODE Then
+    Begin
+    Display Modal Screen "cppmtmso750a"
+    With Initial Function "CHANGE|BACK"
+    End
+Else
+    Begin
+    Display Modal Screen "cppmtmso750a"
+    With Initial Function "ADD|BACK"
+    End
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppDESC_ALIAS, Set cppDESC_ALIAS:policy_NO = G_policy_NO,
+                          cppdesc_alias:pol_year = g_year,
+                          cppdesc_alias:end_sequence = g_end_sequence,
+                          cppDESC_ALIAS:PREM_NO = G_PREM_NO,
+                          cppDESC_ALIAS:BUILD_NO = G_BUILD_NO,
+                          cppDESC_ALIAS:CODE = G_CODE, Generic
+
+Repeat Begin
+    Exit If cppDESC_ALIAS:policy_NO <> G_policy_NO Or
+            cppdesc_alias:pol_year <> g_year or
+            cppdesc_alias:end_sequence <> g_end_sequence or
+            cppDESC_ALIAS:PREM_NO <> G_PREM_NO Or
+            cppDESC_ALIAS:BUILD_NO <> G_BUILD_NO Or
+            cppDESC_ALIAS:CODE <> G_CODE
+
+    L_SUB_CODE = cppDESC_ALIAS:SUB_CODE
+
+    Next cppDESC_ALIAS
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

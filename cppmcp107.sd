@@ -1,0 +1,206 @@
+%%
+/*
+Date Written: October 2, 2002
+
+Name: cppmcp107.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+10/02/2002             RMG              Starting form
+
+===========================
+*/
+
+Program
+  Name = "cppmcp107";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[13] = "cppmcp107.cq";
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+   Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO,
+       SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR,
+       SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access CPPPROPERTY,
+   Set CPPPROPERTY:POLICY_NO    = SFPPRINT1:POLICY_NO,
+       CPPPROPERTY:POL_YEAR     = SFPPRINT1:POL_YEAR,
+       CPPPROPERTY:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Include  "swsut100.inc"
+I_CODE = "MCP107 "
+Include  "swsut200.inc"
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+  {
+    If SFPEND:CODE = I_CODE Then
+      {
+        Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+        Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_6)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s"," 1996 MSO, Inc.")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+0V")
+        Writefile(L_FILE_NAME,"%s","WATER DAMAGE")
+        Writefile(L_FILE_NAME,"%s","<033>&a+30h-30V<033>*c75h3v0P")
+        Writefile(L_FILE_NAME,"%s","<033>&a+105h+30V")
+        Writefile(L_FILE_NAME,"%s","SEWER / DRAIN BACKUP COVERAGE")
+        Writefile(L_FILE_NAME,"%s","<033>&a+30h+10V")
+        Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+        Writefile(L_FILE_NAME,"%s","<033>&a+30h-10V")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","PART I")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+0V")
+        Writefile(L_FILE_NAME,"%s%s","This endorsement establishes coverage for loss ",
+                  "by water damage resulting from sewer or drain backup. The required information")
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+120V")
+        Writefile(L_FILE_NAME,"%s","may be shown below or elsewhere in this policy.")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+40V")
+        Writefile(L_FILE_NAME,"%s%s","The provisions of this endorsement apply only ",
+                  "when the endorsement number is listed in the Declarations.")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+120V")
+        Writefile(L_FILE_NAME,"%s%s","Except as provided below, all ",
+                  "other provisions in this policy are unchanged.")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s%s","<033>&a90h-60V<033>*c5800h5v0P",
+                              "<NL>")           --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+60V")
+        Writefile(L_FILE_NAME,"%s","Policy # ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%n",SFPPRINT1:POLICY_NO)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+0V")
+        Writefile(L_FILE_NAME,"%s","SCHEDULE")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+0V")
+        Writefile(L_FILE_NAME,"%s","Number*")
+        Writefile(L_FILE_NAME,"%s","<033>&a1600h+0V")
+        Writefile(L_FILE_NAME,"%s","Limit ($5,000 if blank)")
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+120V")
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","Location ")
+        Writefile(L_FILE_NAME,"%n",sfpend:prem_no)
+        Writefile(L_FILE_NAME,"%s","<033>&a1600h+0V")
+        Writefile(L_FILE_NAME,"%s","$ ")
+
+          if cppproperty:water_backup <> 0 then
+             {
+                Writefile(L_FILE_NAME,"%s",l_letter_gothic_bold_10)
+                Writefile(L_FILE_NAME,"%s",str(cppproperty:water_backup,"ZZ,ZZZ"))
+             }
+          else
+             {
+                Writefile(L_FILE_NAME,"%s","")
+             }
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+120V")
+        Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+        Writefile(L_FILE_NAME,"%s","Building ")
+        Writefile(L_FILE_NAME,"%n",sfpend:build_no)
+
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h3500V")
+        Writefile(L_FILE_NAME,"%s%s","* Item No. or Location / Building ",
+                  "No. as Shown in the Declarations ")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a100h+60V")
+        Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1150h+0V")
+        Writefile(L_FILE_NAME,"%s%s","With regard to the decribed premises shown ",
+                  "in the Schedule, Exclusion B of the WATER DAMAGE")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a1150h+0V")
+        Writefile(L_FILE_NAME,"%s","EXCLUSION in Part I F is amended as follows:")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1150h+0V")
+        Writefile(L_FILE_NAME,"%s","1.")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1350h+0V")
+        Writefile(L_FILE_NAME,"%s","We ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s%s","cover damage caused ",
+                  "by water which backs up through sewers or drains up to the applicable")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a1350h+0V")
+        Writefile(L_FILE_NAME,"%s","limit of liability.")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1150h+60V")
+        Writefile(L_FILE_NAME,"%s","2.")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1350h+0V")
+        Writefile(L_FILE_NAME,"%s","Our ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s%s","limit of liability per each loss occurrence for ",
+                  "such damage is $5,000 unless another limit is")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a1350h+0V")
+        Writefile(L_FILE_NAME,"%s","shown above.")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+        Writefile(L_FILE_NAME,"%s","<FF>")
+
+        }
+    NEXT SFPEND
+  }
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

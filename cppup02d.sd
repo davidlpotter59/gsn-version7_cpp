@@ -1,0 +1,386 @@
+%%
+Program
+        Name = "cppUP02d" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_RATE_TYPE[2] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_MISC[1]="N",
+                     L_BUILDING_INCLUDED[1]="N",
+                     L_RATE_BOILERS[1]="N",
+                     l_filename[15]="",
+                     l_specific_minimum[1]="N",
+                     L_CODE[7] ;
+
+        local unsigned ascii number l_line_of_business[4],
+                                    l_boiler_deductible[6]=0/dec=4 ,
+                                    l_number[9] ;
+
+        Local Signed Ascii Number L_END_PREMIUM[8]=0 ,
+                                  L_UPDATE_SFPEND_PREMIUM[6]=0,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  L_DEVIATION[5]=0/dec=3,
+                                  L_PACKAGE_MOD[5]=0/dec=3,
+                                  L_OPTIONAL_COVERAGES[8]=0,
+                                  L_SUPPLEMENTAL_PREMIUM[8]=0;
+
+        Include "cpsrate.var"
+
+Initialisation
+G_policy_NO    = Val(COMMANDLINE[1,9])
+g_year         = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+l_number       = g_policy_no
+l_filename     = "cppup002.log"
+
+-- log file to track why flemington has problems when calculating final total
+-- March 22, 2004
+include "loginitial.inc"
+
+Do RATE_LOCATION
+
+Update
+
+screen exit
+include "logscreenexit.inc"
+
+errors
+include "logerrors.inc"
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+Access cppblanket_ALIAS, Set cppblanket_ALIAS:policy_NO = G_policy_NO,
+                             cppblanket_alias:pol_Year = g_year,
+                             cppblanket_alias:end_sequence = g_end_sequence, Generic
+
+While cppblanket_ALIAS:policy_NO = G_policy_NO and
+      cppblanket_alias:pol_year = g_year and
+      cppblanket_alias:end_sequence = g_end_sequence
+    Begin
+    access cppgeneral, set cppgeneral:policy_no = cppblanket_alias:policy_no,
+                           cppgeneral:pol_year = cppblanket_alias:pol_year,
+                           cppgeneral:end_sequence = cppblanket_alias:end_sequence, generic
+
+    if cppblanket_alias:limit[1] <> 0 then
+        begin
+        L_RATE_TYPE = cppblanket_ALIAS:RATE_TYPE
+        Access cppEXCLUSIONS, Set cppEXCLUSIONS:policy_NO = cppblanket_ALIAS:policy_NO,
+                                  cppexclusions:pol_year = cppblanket_alias:pol_year,
+                                  cppexclusions:end_sequence = cppblanket_alias:end_sequence,
+                                  cppEXCLUSIONS:PREM_NO = cppblanket_ALIAS:PREM_NO,
+                                  cppEXCLUSIONS:BUILD_NO = cppblanket_ALIAS:BUILD_NO,
+                                  cppEXCLUSIONS:RATE_TYPE = cppblanket_ALIAS:RATE_TYPE, Generic
+
+        Access sfpNAME, Set sfpNAME:policy_NO = cppblanket_ALIAS:policy_NO,
+                            sfpname:pol_year = cppblanket_alias:pol_year,
+                            sfpname:end_sequence = cppblanket_alias:end_sequence, Generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+
+        access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+        access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                               cpsdefault:line_of_business = l_line_of_business, generic
+
+        Do COMPANY_DEVIATION
+        Do PACKAGE_MOD
+
+        L_FIRE_BASE_RATE = cppgeneral:BASE_RATE[1]
+        L_EC_BASE_RATE = cppgeneral:BASE_RATE[2]
+        L_VMM_BASE_RATE = cppgeneral:BASE_RATE[3]
+        L_AOP_BASE_RATE = cppgeneral:BASE_RATE[4]
+        L_SL_BASE_RATE = cppgeneral:BASE_RATE[6]
+
+        -- miscellaneous rates to update net factor
+--        Do MISC_PROP_RATES
+        Change cppblanket_ALIAS
+            Begin
+/*            cppblanket_alias:specific_minimum[1] = 0
+            l_specific_minimum = "N"
+            If cppblanket_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] = 0 Then
+                cppblanket_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] = 1.00
+            else
+                begin
+                l_specific_rate_minimum = cppblanket_alias:specific_rate_adjustment[1] *
+                                          l_fire_base_rate
+                if l_specific_rate_minimum < cppblanket_alias:specific_rate_minimum then
+                    begin
+                    l_fire_specific_rate = cppblanket_alias:specific_rate_minimum
+                    l_specific_minimum = "Y"
+                    cppblanket_alias:specific_minimum[1] = 1
+                    end
+                end*/
+
+            If cppblanket_ALIAS:RATING_TERRITORY_FACTOR = 0 Then
+                cppblanket_ALIAS:RATING_TERRITORY_FACTOR = 1.00
+
+/*            if l_specific_minimum = "Y" then
+                begin
+                cppblanket_ALIAS:ADJ_RATE[1] = l_fire_specific_rate *
+                                               cppgeneral:COINSURANCE_FACTOR[1] *
+                                               cppgeneral:PUBLIC_INSTITUTE_FACTOR[1] *
+                                               cppgeneral:NET_FACTOR[1] *
+                                               l_deviation *
+                                               cppgeneral:DEDUCTIBLE_FACTOR[1]
+                end
+            else*/
+                begin
+                cppblanket_ALIAS:ADJ_RATE[1] = l_fire_base_rate *
+                                               cppgeneral:SPECIFIC_RATE_ADJUSTMENT[1] *
+                                               cppgeneral:COINSURANCE_FACTOR[1] *
+                                               cppgeneral:PUBLIC_INSTITUTE_FACTOR[1] *
+                                               cppgeneral:NET_FACTOR[1] *
+                                               l_DEVIATION *
+                                               cppgeneral:DEDUCTIBLE_FACTOR[1]
+                end
+
+            cppblanket_ALIAS:ADJ_PREMIUM[1] = ((cppblanket_ALIAS:LIMIT[1] Divide 100) *
+                                              cppblanket_ALIAS:ADJ_RATE[1]) *
+                                              cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                              l_PACKAGE_MOD
+            cppblanket_alias:premium1[1] = cppblanket_ALIAS:ADJ_PREMIUM[1]
+
+            -- ec
+            If cppgeneral:form > 1 Then
+                Begin
+                cppblanket_ALIAS:ADJ_RATE[2] = l_ec_base_rate *
+                                               cppgeneral:COINSURANCE_FACTOR[2] *
+                                               cppgeneral:PUBLIC_INSTITUTE_FACTOR[2] *
+                                               cppgeneral:WIND_DEDUCTIBLE_FACTOR[2] *
+                                               cppgeneral:NET_FACTOR[2] *
+                                               l_DEVIATION *
+                                               cppgeneral:DEDUCTIBLE_FACTOR[2]
+
+                cppblanket_ALIAS:ADJ_PREMIUM[2] = ((cppblanket_ALIAS:LIMIT[1] Divide 100) *
+                                                  cppblanket_ALIAS:ADJ_RATE[2] *
+                                                  cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                  l_PACKAGE_MOD)
+                cppblanket_alias:premium1[2] = cppblanket_ALIAS:ADJ_PREMIUM[2]
+                End
+            Else
+                Begin
+                cppblanket_ALIAS:ADJ_RATE[2] = 0
+                cppblanket_ALIAS:ADJ_PREMIUM[2] = 0
+                cppblanket_alias:premium1[2] = 0
+                End
+
+            -- vmm
+            If cppgeneral:form > 1 And
+               cppEXCLUSIONS:EXCLUDE_VANDALISM = 0 Then
+                Begin
+                cppblanket_ALIAS:ADJ_RATE[3] = l_vmm_base_rate *
+                                               cppgeneral:COINSURANCE_FACTOR[3] *
+                                               cppgeneral:PUBLIC_INSTITUTE_FACTOR[3] *
+                                               cppgeneral:NET_FACTOR[3] *
+                                               l_DEVIATION *
+                                               cppgeneral:DEDUCTIBLE_FACTOR[3]
+
+                cppblanket_ALIAS:ADJ_PREMIUM[3] = ((cppblanket_ALIAS:LIMIT[1] Divide 100) *
+                                                  cppblanket_ALIAS:ADJ_RATE[3] *
+                                                  cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                  l_PACKAGE_MOD)
+                cppblanket_alias:premium1[3] = cppblanket_ALIAS:ADJ_PREMIUM[3]
+                End
+            Else
+                Begin
+                cppblanket_ALIAS:ADJ_PREMIUM[3] = 0
+                cppblanket_ALIAS:ADJ_RATE[3] = 0
+                cppblanket_alias:premium1[3] = 0
+                End
+
+            If cppgeneral:form one of 3, 5 Then
+                Begin
+                if cppgeneral:form one of 3 then
+                    Begin
+                    cppblanket_ALIAS:ADJ_RATE[4] = l_aop_base_rate *
+                                                   cppgeneral:COINSURANCE_FACTOR[4] *
+                                                   cppgeneral:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                   cppgeneral:NET_FACTOR[4] *
+                                                   l_DEVIATION *
+                                                   cppgeneral:DEDUCTIBLE_FACTOR[4]
+
+                    cppblanket_ALIAS:ADJ_PREMIUM[4] = ((cppblanket_ALIAS:LIMIT[1] Divide 100) *
+                                                      cppblanket_ALIAS:ADJ_RATE[4] *
+                                                      cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      l_PACKAGE_MOD)
+                    cppblanket_alias:premium1[4] = cppblanket_ALIAS:ADJ_PREMIUM[4]
+                    End
+
+                If (cppgeneral:form one of 5 And
+                   (cppblanket_ALIAS:RATE_TYPE = 1 Or
+                   cppblanket_ALIAS:RATE_TYPE = 5)) Then
+                    Begin
+                    cppblanket_ALIAS:ADJ_RATE[4] = l_aop_base_rate *
+                                                   cppgeneral:COINSURANCE_FACTOR[4] *
+                                                   cppgeneral:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                   cppgeneral:NET_FACTOR[4] *
+                                                   l_DEVIATION *
+                                                   cppgeneral:DEDUCTIBLE_FACTOR[4]
+
+                    cppblanket_ALIAS:ADJ_PREMIUM[4] = ((cppblanket_ALIAS:LIMIT[1] Divide 100) *
+                                                      cppblanket_ALIAS:ADJ_RATE[4] *
+                                                      cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      l_PACKAGE_MOD)
+                    cppblanket_alias:premium1[4] = cppblanket_ALIAS:ADJ_PREMIUM[4]
+                    End
+                Else
+                    Begin
+                    L_THEFT_ADJ_RATE = ((l_aop_base_rate *
+                                       cppgeneral:COINSURANCE_FACTOR[4] *
+                                       l_DEVIATION) *
+                                       (cppblanket_ALIAS:LIMIT[1] Divide 100))
+                    cppblanket_alias:premium1[4] = (((cppblanket_ALIAS:BRTHEFT *
+                                                  cppgeneral:DEDUCTIBLE_FACTOR[4] *
+                                                  cppblanket_ALIAS:THEFT_TERRITORY_FACTOR) +
+                                                  L_THEFT_ADJ_RATE) *
+                                                  cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                  l_PACKAGE_MOD)
+                    End
+                End
+            Else
+                Begin
+                cppblanket_alias:premium1[4] = 0
+                cppblanket_ALIAS:ADJ_PREMIUM[4] = 0
+                End
+
+            If cppgeneral:SPRINKLER_LEAKAGE = 1 And
+               cppgeneral:form <> 5 Then
+                Begin
+                cppblanket_ALIAS:ADJ_RATE[6] = l_sl_base_rate *
+                                               cppgeneral:COINSURANCE_FACTOR[6] *
+                                               cppgeneral:PUBLIC_INSTITUTE_FACTOR[6] *
+                                               cppgeneral:NET_FACTOR[6] *
+                                               l_DEVIATION
+
+                cppblanket_ALIAS:ADJ_PREMIUM[6] = ((cppblanket_ALIAS:LIMIT[1] Divide 100) *
+                                                  cppblanket_ALIAS:ADJ_RATE[6] *
+                                                  cppgeneral:DEDUCTIBLE_FACTOR[6] *
+                                                  cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                  l_PACKAGE_MOD)
+                cppblanket_alias:premium1[6] = cppblanket_ALIAS:ADJ_PREMIUM[6]
+                End
+            Else
+                Begin
+                cppblanket_ALIAS:ADJ_RATE[6] = 0
+                cppblanket_ALIAS:ADJ_PREMIUM[6] = 0
+                cppblanket_alias:premium1[6] = 0
+                End
+
+            If cppgeneral:EARTHQUAKE = 1 Then
+                Begin
+                access cppearthquake, set cppearthquake:policy_no = cppblanket_alias:policy_no,
+                                          cppearthquake:pol_year = cppblanket_alias:pol_year,
+                                          cppearthquake:end_sequence = cppblanket_alias:end_sequence,
+                                          cppearthquake:prem_no = cppblanket_alias:prem_no,
+                                          cppearthquake:build_no = cppblanket_alias:build_no,
+                                          cppearthquake:rate_type = cppblanket_alias:rate_type, generic
+
+                Do RATE_EARTHQUAKE
+
+                l_earthquake_rate = cppblanket_alias:base_rate[5]
+                If cppEARTHQUAKE:DEDUCTIBLE <> L_EARTHQUAKE_DEDUCTIBLE_PERCENT Then
+                    Begin
+                    L_EARTHQUAKE_RATE = (L_EARTHQUAKE_RATE * ((100 -
+                                        (((cppEARTHQUAKE:DEDUCTIBLE -
+                                        L_EARTHQUAKE_DEDUCTIBLE_PERCENT) *
+                                        L_EARTHQUAKE_REDUCTION_PER) *
+                                        L_EARTHQUAKE_REDUCTION)) Divide 100))
+                    end
+                If cppEARTHQUAKE:SPRINKLER_LEAKAGE = 1 Then
+                    L_EARTHQUAKE_RATE = L_EARTHQUAKE_RATE * L_EARTHQUAKE_SL
+
+                cppblanket_ALIAS:ADJ_RATE[5] = l_earthquake_rate *
+                                               l_DEVIATION
+
+                cppblanket_ALIAS:ADJ_PREMIUM[5] = ((cppblanket_ALIAS:LIMIT[1]
+                                                  Divide 100) *
+                                                  cppblanket_ALIAS:ADJ_RATE[5] *
+                                                  cppblanket_ALIAS:RATING_TERRITORY_FACTOR *
+                                                  l_PACKAGE_MOD)
+                cppblanket_alias:premium1[5] = cppblanket_ALIAS:ADJ_PREMIUM[5]
+                End
+            Else
+                Begin
+                cppblanket_ALIAS:ADJ_RATE[5] = 0
+                cppblanket_ALIAS:ADJ_PREMIUM[5] = 0
+                cppblanket_alias:premium1[5] = 0
+                End
+
+            end
+        end
+    Else
+        Begin
+        Change cppblanket_ALIAS
+            Begin
+            cppblanket_alias:premium1[1] = 0
+            cppblanket_alias:premium1[2] = 0
+            cppblanket_alias:premium1[3] = 0
+            cppblanket_alias:premium1[4] = 0
+            cppblanket_alias:premium1[5] = 0
+            cppblanket_alias:premium1[6] = 0
+            End
+
+        end
+
+    Next cppblanket_ALIAS
+    End
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+if cppgeneral:company_deviation[1] = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[1] <> 1.00 then
+        l_deviation = (1 + (cppgeneral:company_deviation[1] * 0.01))
+    else
+        l_deviation = cppgeneral:company_deviation[1]
+
+End
+
+Procedure RATE_EARTHQUAKE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppblanket_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_EARTHQUAKE_BUILDING_TYPE = cppEARTHQUAKE:CONSTRUCTION
+L_EARTHQUAKE_RATE_CLASS = cppEARTHQUAKE:GROUP_NO
+
+Include "cpsearthquake.pro"
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+if cppgeneral:package_mod[1] = 0 then
+    begin
+    l_package_mod = 1.00
+    end
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:package_mod[1] <> 1.00 then
+        l_package_mod = (1 + (cppgeneral:package_mod[1] * 0.01))
+    else
+        l_package_mod = cppgeneral:package_mod[1]
+    end
+
+End
+
+End

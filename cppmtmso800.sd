@@ -1,0 +1,894 @@
+%%
+Screen
+        Name            = "cppmtmso800" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space;
+        Highlite        = Underscore;
+        Screensize      ="dynamic" ;
+        Windowtitle = "%a     %s Limits - Ver 7.00     %m";
+        Domain          = "cppLIABLIMITS";
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4] ,
+                                     G_STATE[2] ;
+
+        Local Unsigned Ascii Number L_FORM[2] ,
+                                    L_STATE[2] ,
+                                    L_OCCURRENCE[8]=0 ,
+                                    l_Fire_legal[8]=0,
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0,
+                                    l_line_of_business[4],
+                                    L_SUB_CODE[4]=0;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     L_CODE_6[7],
+                     L_CODE_7[7],
+                     L_CODE_8[7],
+                     L_CODE_9[7] ,
+                     l_code_10[7],
+                     l_code_11[7],
+                     l_code_12[7],
+                     l_code_13[7],
+                     l_screen[12] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1]="N" ;
+
+        Access cppLIABLIMITS,
+           Set cppLIABLIMITS:policy_NO = G_policy_NO,
+               cppliablimits:pol_year = g_year,
+               cppliablimits:end_sequence = g_end_sequence ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "Fire" sequence "gofire" tagged fire_fn ;
+
+        "gofire" continue begin
+                          if sfscompany:boiler_rating = 4 then
+                              error "Invalid Option"
+                          else
+                              begin
+                              l_screen = "cppmtmso800a"
+                              function = "popup"
+                              end
+                          end ;
+        "popup" display l_screen ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cppmsofiretoolbar7.inc"
+
+}
+
+screen entry
+access sfpname,
+   set sfpname:policy_no = g_policy_no,
+       sfpname:pol_year = g_year,
+       sfpname:end_sequence = g_end_sequence, generic
+
+access sfscompany,
+   set sfscompany:company_id = sfpname:company_id, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+
+Access Validation
+If cppLIABLIMITS:policy_NO <> G_policy_NO or
+   cppliablimits:pol_year <> g_year or
+   cppliablimits:end_sequence <> g_End_sequence Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppLIABLIMITS:policy_NO = G_policy_NO
+            cppliablimits:pol_year = g_year
+            cppliablimits:end_sequence = g_end_sequence
+            cppliablimits:rating_line_of_business = sfsline:rating_line_of_business
+            if g_state <> 0 then
+                cppliablimits:state = g_state
+            else
+                cppLIABLIMITS:STATE = cppLIABILITY:STATE
+            End
+        End
+        cppLIABLIMITS:policy_NO/displayonly ;
+302     cppliablimits:pol_year/displayonly ;
+303     cppliablimits:end_sequence/displayonly ;
+
+}  -- end of header
+
+CardDialog GUI at 1,80
+
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Form"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Form:                        _                                               |
+*------------------------------------------------------------------------------*
+%%
+components
+
+fields
+201     Begin
+        l_form = 0
+        Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                   CPSLIABDEFAULT:STATE = cppLIABLIMITS:STATE,
+                                   CPSLIABDEFAULT:LIABILITY_FORM = L_FORM, Generic
+
+        If FUNCTION = "ADD" Then
+            cppLIABLIMITS:FORM = CPSLIABDEFAULT:FORM
+        End
+        cppLIABLIMITS:FORM/default
+        If cppLIABLIMITS:FORM <> CPSLIABFORM:LIABILITY_FORM Or
+           cppLIABLIMITS:FORM = 0 Then
+            Error 1205
+
+        Activehelp CPSLIABFORM_ALIAS:LIABILITY_FORM,
+                   CPSLIABFORM_ALIAS:DESCRIPTION ;
+
+}  -- end of form
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Limits"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Occurrence:                  __________                                      |
+| General Aggregate:           __________                                      |
+| Products Aggregate:          __________                                      |
+| Medical Payments:            __________                                      |
+| Fire Legal:                  __________                                      |
+| Advertising Personal Injury: __________                                      |
+*------------------------------------------------------------------------------*
+%%
+components
+
+fields
+201     Begin
+        L_OCCURRENCE = cppLIABLIMITS:OCCURRENCE
+        If FUNCTION = "ADD" Then
+            Begin
+            L_FORM = cppLIABlimits:FORM
+            Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                       CPSLIABDEFAULT:STATE = cppLIABLIMITS:STATE,
+                                       CPSLIABDEFAULT:LIABILITY_FORM = L_FORM, Generic
+
+            While CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID And
+                  CPSLIABDEFAULT:STATE = cppLIABLIMITS:STATE And
+                  CPSLIABDEFAULT:LIABILITY_FORM = L_FORM
+                    Begin
+                    If sfpNAME:EFF_DATE >= CPSLIABDEFAULT:EFF_DATE Then
+                        Begin
+                        cppLIABLIMITS:OCCURRENCE = CPSLIABDEFAULT:OCCURRENCE
+                        cppLIABLIMITS:MEDICAL_PAYMENTS = CPSLIABDEFAULT:MEDICAL_PAYMENTS
+                        cppLIABLIMITS:FIRE_LEGAL = CPSLIABDEFAULT:FIRE_LEGAL
+                        End
+                    Next CPSLIABDEFAULT
+                    End
+            End
+        End
+        cppLIABLIMITS:OCCURRENCE/default
+        if cppliablimits:occurrence <> cpsliablimitso:limit then
+            error 1238
+
+        activehelp cpsliablimitso_alias:limit ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            cppLIABLIMITS:GENERAL_AGGREGATE = cppLIABLIMITS:OCCURRENCE * 2
+        If FUNCTION = "CHANGE" And
+           cppLIABLIMITS:OCCURRENCE <> L_OCCURRENCE Then
+            cppLIABLIMITS:GENERAL_AGGREGATE = cppLIABLIMITS:OCCURRENCE * 2
+        End
+        cppLIABLIMITS:GENERAL_AGGREGATE/default
+        if cppliablimits:general_aggregate <> cpsliablimitsa:limit then
+            error 1238
+
+        activehelp cpsliablimitsa_alias:limit ;
+401     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            If cppLIABILITY:PRODUCT_NOT_APPLICABLE = 1 Or
+               cppLIABlimits:FORM one of 2, 3 Then
+                cppLIABLIMITS:PRODUCTS = 0
+            Else
+            if cpsliabdefault:default_products_aggregate = 1 then
+                cppLIABLIMITS:PRODUCTS = cppLIABLIMITS:GENERAL_AGGREGATE
+            else
+                cppliablimits:products = cppliablimits:occurrence
+            End
+        If FUNCTION = "CHANGE" And
+           cppLIABLIMITS:OCCURRENCE <> L_OCCURRENCE Then
+            Begin
+            If cppLIABILITY:PRODUCT_NOT_APPLICABLE = 1 or
+               cppliablimits:form one of 2, 3 Then
+                cppLIABLIMITS:PRODUCTS = 0
+            Else
+            if cpsliabdefault:default_products_aggregate = 1 then
+                cppLIABLIMITS:PRODUCTS = cppLIABLIMITS:GENERAL_AGGREGATE
+            else
+                cppliablimits:products = cppliablimits:occurrence
+            End
+        End
+        cppLIABLIMITS:PRODUCTS/default
+        if cppliablimits:products <> cpsliablimitsp:limit then
+            error 1238
+
+        activehelp cpsliablimitsp_alias:limit ;
+501    cppLIABLIMITS:MEDICAL_PAYMENTS/default
+        If cppLIABLIMITS:MEDICAL_PAYMENTS <> CPSLIABMEDPAY:LIMIT Then
+            Error 1238
+
+        Activehelp CPSLIABMEDPAY_ALIAS:LIMIT ;
+601    begin
+        l_Fire_legal = cppliablimits:fire_legal
+        end
+        cppLIABLIMITS:FIRE_LEGAL/default
+        if cppliablimits:fire_legal <> cpsliablimitsf:limit then
+            error 1238
+
+        activehelp cpsliablimitsf_alias:limit ;
+701    Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            If cppLIABlimits:FORM not one of 2, 3 Then
+                cppLIABLIMITS:ADVERTISING_PERSONAL_INJURY = cppLIABLIMITS:OCCURRENCE
+            End
+        If FUNCTION = "CHANGE" And
+           cppLIABLIMITS:OCCURRENCE <> L_OCCURRENCE Then
+            Begin
+            If cppLIABlimits:FORM not one of 2, 3 Then
+                cppLIABLIMITS:ADVERTISING_PERSONAL_INJURY = cppLIABLIMITS:OCCURRENCE
+            End
+        End
+        cppLIABLIMITS:ADVERTISING_PERSONAL_INJURY/default
+        hide if cppliablimits:form one of 2, 3
+        if cppliablimits:advertising_personal_injury <> cpsliablimitsv:limit then
+            error 1238
+
+        activehelp cpsliablimitsv_alias:limit ;
+
+
+} -- end of limits
+
+
+Panel tagged coverages_fn
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Coverages"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Written Contracts - Insured(MCL501):  _                                      |
+| Listed Contracts (MCL502):            _                                      |
+| Written Contracts (MCL510):           _                                      |
+| Delete Employees Insured (MCL506):    _                                      |
+| Newly Acquired Entities (MCL507):     _                                      |
+| Products Insured Prem (MCL508):       _                                      |
+| Professional Activities (MCL505):     _                                      |
+| Structural Exclusion (MCL509):        _                                      |
+| Employment Related Acts (MCL504):     _                                      |
+| Extended Fire Legal (MCL511):         _                                      |
+*------------------------------------------------------------------------------*
+%%
+components
+
+fields
+201    begin
+        if function one of "ADD" then
+            begin
+            cppliablimits:contract_coverage[1] = cpsliabdefault:contract_coverage[1]
+            cppliablimits:contract_coverage[2] = cpsliabdefault:contract_coverage[2]
+            cppliablimits:contract_coverage[3] = cpsliabdefault:contract_coverage[3]
+            cppliablimits:delete_employees_insured = cpsliabdefault:delete_employees_insured
+
+            access sfpname,
+               set sfpname:policy_no = g_policy_no,
+                   sfpname:pol_year = g_year,
+                   sfpname:end_sequence = g_end_sequence, generic
+
+            Access CPSLIABDEFAULT,
+               Set CPSLIABDEFAULT:COMPANY_ID = SFPNAME:COMPANY_ID,
+                   CPSLIABDEFAULT:STATE = CPPLIABLIMITS:STATE,
+                   CPSLIABDEFAULT:LIABILITY_FORM = L_FORM, Generic
+
+            If sfpname:company_id = "FLEMINGTON" and
+               CPpLIABLIMITS:form one of 2, 3 then
+              begin
+                cppliablimits:newly_acquired_entities = 0
+              end
+            else
+              begin
+                cppliablimits:newly_acquired_entities = cpsliabdefault:newly_acquired_entities
+              end
+            cppliablimits:products_insured_prem = cpsliabdefault:products_insured_prem
+            cppliablimits:professional_activities = cpsliabdefault:professional_activities
+            cppliablimits:structural_exclusion = cpsliabdefault:structural_exclusion
+            cppliablimits:employment_related_acts = cpsliabdefault:employment_related_acts
+            end
+        end
+        cppLIABLIMITS:CONTRACT_COVERAGE[1]/checkbox/values="0,1"/default;
+301    cppLIABLIMITS:CONTRACT_COVERAGE[2]/checkbox/values="0,1"/default;
+401    cppLIABLIMITS:CONTRACT_COVERAGE[3]/checkbox/values="0,1"/default;
+501    cppLIABLIMITS:DELETE_EMPLOYEES_INSURED/checkbox/values="0,1"/default;
+601    cppLIABLIMITS:NEWLY_ACQUIRED_ENTITIES/checkbox/values="0,1"/default;
+--       Hide if sfpname:company_id = "FLEMINGTON" and
+--       cppLIABLIMITS:FORM one of 2, 3 ;
+701    cppLIABLIMITS:PRODUCTS_INSURED_PREM/checkbox/values="0,1"/default;
+801    cppLIABLIMITS:PROFESSIONAL_ACTIVITIES/checkbox/values="0,1"/default;
+901    cppLIABLIMITS:STRUCTURAL_EXCLUSION/checkbox/values="0,1"/default;
+1001   cppLIABLIMITS:EMPLOYMENT_RELATED_ACTS/checkbox/values="0,1"/default
+       Hide if sfpname:company_id = "FLEMINGTON" and
+               cppLIABLIMITS:form one of 1, 2, 3 ;
+1001   cppliablimits:employment_related_acts/displayonly/checkbox/values="0,1";
+1101   cppliablimits:fire_legal_extended/checkbox/values="0,1" ;
+
+} -- end of coverages
+
+}
+
+}
+
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    if function one of "ADD", "CHANGE" then
+        begin
+        access cppliability, set cppliability:policy_no = cppliablimits:policy_no,
+                                 cppliability:pol_year = cppliablimits:pol_year,
+                                 cppliability:end_sequence = cppliablimits:end_sequence, generic
+
+        while cppliability:policy_no = cppliablimits:policy_no and
+              cppliability:pol_Year = cppliablimits:pol_Year and
+              cppliability:end_sequence = cppliablimits:end_sequence
+            begin
+            change cppliability
+                begin
+                cppliability:form = cppliablimits:form
+                end
+
+            next cppliability
+            end
+        end
+
+    g_prem_no = cppliability:prem_no
+    g_build_no = cppliability:build_no
+    l_form = cppliablimits:form
+    Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSLIABDEFAULT:STATE = cppLIABLIMITS:STATE,
+                               CPSLIABDEFAULT:LIABILITY_FORM = L_FORM, Generic
+
+    if function = "ADD" then
+        begin
+        if cppliablimits:fire_legal <> cpsliabdefault:fire_legal and
+           cppliablimits:fire_legal <> 0 then
+            begin
+            if sfscompany:boiler_rating one of 1 then
+                begin
+                display modal screen "cppmtmso800a"
+                with initial function "CHANGE"
+                end
+            end
+        end
+    if function = "CHANGE" then
+        begin
+        if cppliablimits:fire_legal <> l_fire_legal and
+           cppliablimits:fire_legal <> cpsliabdefault:fire_legal and
+           cppliablimits:fire_legal <> 0 then
+            begin
+            if sfscompany:boiler_rating one of 1 then
+                begin
+                display modal screen "cppmtmso800a"
+                with initial function "CHANGE"
+                end
+            end
+        end
+    if cppliablimits:fire_legal = cpsliabdefault:Fire_legal or
+       cppliablimits:fire_legal = 0 then
+        begin
+        access cppliablimits_alias, set cppliablimits:policy_no = g_policy_no,
+                                        cppliablimits:pol_year = g_year,
+                                        cppliablimits:end_Sequence = g_end_sequence, generic
+
+        change cppliablimits_alias
+            begin
+            cppliablimits:fire_legal_property_rate = 0
+            end
+        end
+
+    access cppliablimits_alias, set cppliablimits_alias:policy_no = g_policy_no,
+                                    cppliablimits:pol_year = g_year,
+                                    cppliablimits:end_Sequence = g_end_sequence, generic
+
+    l_state = cppliablimits_alias:state
+    access sfpname, set sfpname:policY_no = g_policy_no,
+                        sfpname:pol_year = g_year,
+                        sfpname:end_sequence = g_end_sequence, generic
+
+    Access CPSLIABTRIGGER, Set CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSLIABTRIGGER:STATE = L_STATE,
+                               CPSLIABTRIGGER:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+    While CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSLIABTRIGGER:STATE = l_STATE And
+          CPSLIABTRIGGER:LINE_OF_BUSINESS = l_line_of_business
+            Begin
+            If sfpNAME:EFF_DATE >= CPSLIABTRIGGER:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[1]
+                L_CODE_2 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[2]
+                L_CODE_3 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[3]
+                L_CODE_4 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[4]
+                L_CODE_5 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[5]
+                L_CODE_6 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[6]
+                L_CODE_7 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[7]
+                L_CODE_8 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[8]
+                L_CODE_9 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[9]
+                l_code_10 = cpsliabtrigger:trigger_endorsement[13]
+                l_code_11 = cpsliabtrigger:trigger_endorsement[14]
+                l_code_12 = cpsliabtrigger:trigger_endorsement[15]
+                l_code_13 = cpsliabtrigger:trigger_endorsement[30]
+                End
+            Next CPSLIABTRIGGER
+            End
+
+    If L_CODE_10 <> "" Then
+        Begin
+        L_CODE = L_CODE_10
+        Do ACCESS_sfpEND_1
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_ALIAS:form one of 1 then
+            Do ADD_sfpEND_1
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_ALIAS:form not one of 1 then
+            Do DELETE_sfpEND_1
+        End
+
+    If L_CODE_11 <> "" Then
+        Begin
+        L_CODE = L_CODE_11
+        Do ACCESS_sfpEND_1
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:form one of 2 then
+            Do ADD_sfpEND_1
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:form not one of 2 then
+            Do DELETE_sfpEND_1
+        End
+
+    If L_CODE_12 <> "" Then
+        Begin
+        L_CODE = L_CODE_12
+        Do ACCESS_sfpEND_1
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:form one of 3 then
+            Do ADD_sfpEND_1
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:form not one of 3 then
+            Do DELETE_sfpEND_1
+        End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:CONTRACT_COVERAGE[1] = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:CONTRACT_COVERAGE[1] = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:CONTRACT_COVERAGE[2] = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:CONTRACT_COVERAGE[2] = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:CONTRACT_COVERAGE[3] = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:CONTRACT_COVERAGE[3] = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_4 <> "" Then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:DELETE_EMPLOYEES_INSURED = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:DELETE_EMPLOYEES_INSURED = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_5 <> "" Then
+        Begin
+        L_CODE = L_CODE_5
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:NEWLY_ACQUIRED_ENTITIES = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:NEWLY_ACQUIRED_ENTITIES = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_6 <> "" Then
+        Begin
+        L_CODE = L_CODE_6
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:PRODUCTS_INSURED_PREM = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:PRODUCTS_INSURED_PREM = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_7 <> "" Then
+        Begin
+        L_CODE = L_CODE_7
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:PROFESSIONAL_ACTIVITIES = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:PROFESSIONAL_ACTIVITIES = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_8 <> "" Then
+        Begin
+        L_CODE = L_CODE_8
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:STRUCTURAL_EXCLUSION = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:STRUCTURAL_EXCLUSION = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_9 <> "" Then
+        Begin
+        L_CODE = L_CODE_9
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:EMPLOYMENT_RELATED_ACTS = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:EMPLOYMENT_RELATED_ACTS = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_13 <> "" Then
+        Begin
+        L_CODE = L_CODE_13
+        Do ACCESS_sfpEND_1
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppLIABLIMITS_alias:fire_legal_extended = 1 Then
+            Do ADD_sfpEND_1
+        If L_ADD_ENDORSEMENT = "N" And
+           cppLIABLIMITS_alias:fire_legal_extended = 0 Then
+            Do DELETE_sfpEND_1
+        End
+
+    End
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppLIABLIMITS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "L"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no = 0000
+l_build_no = 0000
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = l_PREM_NO,
+                   sfpEND:BUILD_NO = l_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> l_PREM_NO Or
+            sfpEND:BUILD_NO <> l_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppLIABLIMITS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       0000
+    sfpEND:BUILD_NO             =       0000
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "L"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

@@ -1,0 +1,234 @@
+%%
+Screen
+        Name = "cppmt302" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Electronic Media - Ver 7.00     %m" ;
+        Domain = "cppELECTMEDIA" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_END_SCREEN[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_line_of_business[4]=0008;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access cppELECTMEDIA,
+           Set cppELECTMEDIA:policy_NO    = G_policy_NO ,
+               cppelectmedia:pol_year     = g_year,
+               cppelectmedia:end_sequence = g_end_sequence,
+               cppELECTMEDIA:PREM_NO      = G_PREM_NO ,
+               cppELECTMEDIA:BUILD_NO     = G_BUILD_NO ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppELECTMEDIA:policy_NO <> G_policy_NO Or
+   cppelectmedia:pol_year <> g_year or
+   cppelectmedia:end_sequence <> g_end_sequence or
+   cppELECTMEDIA:PREM_NO <> G_PREM_NO Or
+   cppELECTMEDIA:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| No Limit:    _   (if no limit is not checked than its 180 days)              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppELECTMEDIA:policy_NO    = G_policy_NO
+            cppelectmedia:pol_Year     = g_Year
+            cppelectmedia:end_sequence = g_end_sequence
+            cppELECTMEDIA:PREM_NO      = G_PREM_NO
+            cppELECTMEDIA:BUILD_NO     = G_BUILD_NO
+            End
+        End
+        cppELECTMEDIA:policy_NO/displayonly ;
+302     cppelectmedia:pol_year/displayonly ;
+303     cppelectmedia:end_sequence/displayonly ;
+401     cppELECTMEDIA:PREM_NO/displayonly ;
+501     cppELECTMEDIA:BUILD_NO/displayonly ;
+701     cppELECTMEDIA:NO_LIMIT/checkbox/values="0,1";
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    Access cppbusiness, Set cppbusiness:policy_NO    = G_policy_NO,
+                            cppbusiness:pol_year     = g_year,
+                            cppbusiness:end_sequence = g_end_sequence, generic
+
+    L_STATE = cppbusiness:STATE
+    Access CPSBUSMISCRATES, Set CPSBUSMISCRATES:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                CPSBUSMISCRATES:STATE            = L_STATE,
+                                CPSBUSMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSBUSMISCRATES:COMPANY_ID       = sfpNAME:COMPANY_ID And
+          CPSBUSMISCRATES:STATE            = L_STATE And
+          CPSBUSMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSBUSMISCRATES:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSBUSMISCRATES:ELECTRONIC_MEDIA_CODE
+                End
+
+            Next CPSBUSMISCRATES
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" Then
+            Do ADD_sfpEND
+        End
+
+    End
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = G_PREM_NO,
+                   sfpEND:BUILD_NO     = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = G_PREM_NO,
+                   sfpEND:BUILD_NO     = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppbusiness, Set cppbusiness:policy_NO    = G_policy_NO,
+                        cppbusiness:pol_year     = g_year,
+                        cppbusiness:end_sequence = g_end_sequence, generic
+
+L_STATE = cppbusiness:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "B"
+    End
+
+End
+
+End

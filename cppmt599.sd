@@ -1,0 +1,837 @@
+%%
+Screen
+        Name = "cppMT599" ;
+        Type = "multiline" ;
+        repeat LINE_ITEMS, 10 times, 2 times with 13 spaces across ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppisocrime";
+        Windowtitle = "%a     %s Crime Information - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_CHECK_REFERENCE[7],
+                                     G_AGENT_NO[4],
+                                     G_OPT[2];
+
+        Global String G_COMPANY[10] ,
+                      G_COMPANY_ID[10] ,
+                      G_FUNCTION[10] ,
+                      G_FIRST[1],
+                      G_FIRST_1[1] ;
+
+        global MMDDYYYY date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date ,
+                             g_exp_date ;
+
+        global string g_lib_1[10] ,
+                      g_name[50] ,
+                      g_inquiry[1] ,
+                      g_fob[1],
+                      g_fob_description[75] ,
+                      g_que[10] ;
+
+        global unsigned ascii number g_state[2] ,
+                                     g_rate_type[2] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        global signed ascii number g_total[8],
+                                   g_boiler[8],
+                                   g_terrorism[8],
+                                   g_final_total[8],
+                                   g_surcharge[8] ;
+
+        Local String l_desc[50] ,
+                     l_coverage[1] ,
+                     L_ADD_ENDORSEMENT[1],
+                     L_FORM_EDITION[25],
+                     L_DESCRIPTION[50] ,
+                     l_peril_1[8],
+                     l_peril_2[8],
+                     l_peril_3[8],
+                     l_peril_4[8],
+                     l_display_field[1],
+                     l_code[7] ,
+                     l_boiler_added[1]="N",
+                     l_company_id[10] ,
+                     l_minimum_applies[1]="N" ;
+
+        local signed ascii number l_boiler_premium[8],
+                                  l_surcharge[8],
+                                  l_final_total[8] ,
+                                  l_boiler_factor[4]=0/dec=3,
+                                  l_boiler_limit[5]=0,
+                                  l_boiler_minimum[3]=0,
+                                  l_total[8],
+                                  l_days ,
+                                  l_irpm[8]=0/dec=4,
+                                  l_installment[4]=0 ,
+                                  l_boiler_prem_total[8]=0 ;
+
+        Local Unsigned Ascii Number l_prem_no[4],
+                                    l_build_no[4],
+                                    l_minimum[4]=0,
+                                    l_minimum_boiler[4]=0,
+                                    l_crime_total[8]=0,
+                                    l_pro_rata_premium[8]=0/dec=3,
+                                    l_terror_line_of_business[4]=0013,
+                                    l_form[1] ,
+                                    l_agreed_factor[5]=0/dec=3,
+                                    l_end_factor[5]=0/dec=3,
+                                    l_end_limit[5]=0,
+                                    l_end_premium1[6]=0,
+                                    l_surcharge_factor[8]=0/dec=6,
+                                    l_surcharge_minimum[2]=0,
+                                    l_days_rate[5]=0/dec=3,
+                                    l_state[2],
+                                    l_line_of_business[4] ,
+                                    l_group_i[6]=0/dec=4,
+                                    l_group_ii[6]=0/dec=4,
+                                    l_special[5]=0/dec=3,
+                                    l_broad[5]=0/dec=3,
+                                    l_special_office[3]=0,
+                                    l_special_relativities[4]=0,
+                                    l_special_theft[5]=0/dec=3,
+                                    l_theft_rate[8]=0/dec=3,
+                                    l_territory_factor[6]=0/dec=4,
+                                    l_protection_factor[5]=0/dec=3,
+                                    l_coinsurance_factor[5]=0/dec=3,
+                                    l_deductible_factor_1[6]=0/dec=4,
+                                    l_deductible_factor_2[6]=0/dec=4,
+                                    l_deductible_factor_3[6]=0/dec=4,
+                                    l_deductible_factor[6]=0/dec=4,
+                                    l_limit[8]=0,
+                                    l_limit_1[8]=0,
+                                    l_limit_2[8]=0,
+                                    l_adj_rate_1[6]=0/dec=3,
+                                    l_adj_rate_2[6]=0/dec=3,
+                                    l_adj_rate_3[6]=0/dec=3,
+                                    l_adj_rate_4[6]=0/dec=3,
+                                    l_adj_rate_5[6]=0/dec=3,
+                                    l_adj_rate_6[6]=0/dec=3,
+                                    l_adj_rate_7[6]=0/dec=3,
+                                    l_adj_rate_8[6]=0/dec=3,
+                                    l_premium[8]=0,
+                                    l_premium_1[8]=0,
+                                    l_premium_2[8]=0,
+                                    l_premium_3[8]=0,
+                                    l_premium_4[8]=0,
+                                    l_premium_5[8]=0,
+                                    l_premium_6[8]=0,
+                                    l_premium_7[8]=0,
+                                    l_premium_8[8]=0,
+                                    l_end_premium[8]=0,
+                                    l_update_sfpend_premium[8]=0,
+                                    l_deductible_limit[8]=0,
+                                    l_inflation_factor[4]=0/dec=2,
+                                    l_loss_cost[6]=0/dec=4 ,
+                                    l_base_rate_1[6]=0/dec=3,
+                                    l_total_premium[8]=0,
+                                    l_building_total[8]=0,
+                                    l_contents_total[8]=0;
+
+        Unsigned Ascii Number L_TERRORISM_PREMIUM[8]/decimals =0;
+        Unsigned Ascii Number L_TERROR_PERCENTAGE[5]/decimals=4;
+        Unsigned Ascii Number L_TERROR_MINIMUM[3];
+        Unsigned Ascii Number L_FOUND[1];
+        Unsigned Ascii Number L_SUB_CODE[4];
+        Wdate L_TERROR_EFF_DATE;
+
+        local date l_surcharge_date[8] ,
+                   l_eff_date_1[8] ;
+
+        Local String L_FIRST_TIME[1]="Y";
+        Unsigned Ascii Number L_HOLD_PAYMENT_PLAN[4]=0;
+        String L_ENTER[1];
+        Signed Ascii Number L_SUB_TOTAL[9]=0/decimals=2;
+        Unsigned Ascii Number L_BUILD[4];
+
+        Access cppisocrime, Set cppisocrime:policy_NO  = G_policy_NO,
+                                cppisocrime:pol_year = g_year,
+                                cppisocrime:end_sequence = g_end_sequence, generic
+
+        scrollmessage = "" ;
+
+        Include "stdkeys7.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+        reaccess ;
+
+EVENT DEFINITION
+        default eventhandler {
+                             "reload" { function = "reaccess" abort() }
+                             }
+
+Toolbar Definition
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+g_final_total = 0
+g_total       = 0
+g_boiler      = 0
+g_surcharge   = 0
+g_terrorism   = 0
+l_total       = 0
+
+Access Validation
+If cppisocrime:policy_NO  <> G_policy_NO or
+   cppisocrime:pol_year <> g_year or
+   cppisocrime:end_sequence <> g_end_sequence then
+    Error 1000 ;
+
+screen
+{
+%%
+*------------------------------------------------------------------------------*
+|  Prem No    Build No   Premium             Prem No    Build No   Premium     |
+|    ____      ____     _________                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+| Total:                _________                                              |
+| Terrorism:            _________                                              |
+| Final Total:          _________                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+
+0301    cppisocrime:prem_no/displayonly  tagged LINE_ITEMS;
+0302    cppisocrime:build_no/displayonly tagged LINE_ITEMS;
+0303    begin
+            l_premium     = 0
+            l_end_premium = 0
+            do loc_totals
+            l_premium = l_premium + l_end_premium
+            l_total   = l_total + l_premium
+        end
+        l_premium/displayonly           tagged LINE_ITEMS;
+
+1401    begin
+        if g_inquiry <> "Y" then
+            begin
+            do minimum_premium
+            do final_total
+            l_final_total = l_total
+            end
+        else
+            begin
+            do read_sfpend
+            l_final_total = l_total +
+                            l_terrorism_premium
+            end
+        end
+        l_total/displayonly ;
+1501    l_terrorism_premium/displayonly ;
+1601    l_final_total/displayonly ;
+
+}
+
+Procedure Definition
+
+procedure read_sfpend
+begin
+access sfpend, set sfpend:policy_no    = g_policy_no,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+while sfpend:policy_no    = g_policy_no and
+      sfpend:pol_Year     = g_year and
+      sfpend:end_sequence = g_end_sequence
+        begin
+        if sfpend:terrorism_form = 1 and
+           sfpend:lob_end_code = "C" then
+            l_terrorism_premium = sfpend:premium
+
+        next sfpend
+        end
+
+end
+
+Procedure GET_TERRORISM_PREMIUM
+begin
+Access cppisocrime_alias, Set cppisocrime_alias:policy_NO = G_policy_NO,
+                              cppisocrime_alias:pol_year = g_Year,
+                              cppisocrime_alias:end_sequence = g_end_sequence,
+                              cppisocrime_alias:prem_no  = g_prem_no,
+                              cppisocrime_alias:build_no = g_build_no, generic
+
+L_STATE = cppisocrime_alias:state
+Do ACCESS_SFSMSOTERROR
+if l_terror_percentage <> 0 then
+    begin
+    L_TERRORISM_PREMIUM = L_TOTAL *
+                          l_terror_PERCENTAGE
+
+    If L_TERRORISM_PREMIUM <= L_TERROR_MINIMUM Then
+        L_TERRORISM_PREMIUM = L_TERROR_MINIMUM
+
+    Do ADD_TERRORISM_ENDORSEMENT
+    end
+
+end
+
+Procedure ADD_TERRORISM_ENDORSEMENT
+begin
+Access sfpEND, Set sfpEND:policy_NO = cppisocrime:policy_NO,
+                   sfpend:pol_Year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence,
+                   sfpend:prem_no  = 0,
+                   sfpend:build_no = 0, Generic
+
+While sfpEND:policy_NO = cppisocrime:policy_NO and
+      sfpend:pol_year = cppisocrime:pol_year and
+      sfpend:end_sequence = cppisocrime:End_sequence and
+      sfpend:prem_no  = 0 and
+      sfpend:build_no = 0
+    begin
+    If sfpEND:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_ADD Then
+        Delete sfpEND
+
+     Next sfpEND
+     end
+
+Access sfpEND, Set sfpEND:policy_NO = cppisocrime:policy_NO,
+                   sfpend:pol_Year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence, generic
+
+Do SUBCODE
+l_sub_code = l_sub_code + 10
+L_CODE     = SFSMSOTERROR:TERRORISM_FORM_TO_ADD
+Do ACCESS_KEY
+Add sfpEND
+    Begin
+    sfpEND:policy_NO        = cppisocrime:policy_NO
+    sfpend:pol_year         = cppisocrime:pol_year
+    sfpend:end_sequence     = cppisocrime:end_sequence
+    sfpEND:PREM_NO          = 0
+    sfpEND:BUILD_NO         = 0
+    sfpEND:SUB_CODE         = L_SUB_CODE
+    sfpEND:CODE             = SFSMSOTERROR:TERRORISM_FORM_TO_ADD
+    sfpEND:FORM_EDITION     = L_FORM_EDITION
+    sfpEND:PREMIUM          = L_TERRORISM_PREMIUM
+    sfpEND:DESCRIPTION      = L_DESCRIPTION
+    sfpEND:MINIMUM_PREMIUM  = Str(SFSMSOTERROR:MINIMUM_PREMIUM)
+    sfpend:policy_wide_form = 1
+    sfpend:lob_end_code     = "I"
+    sfpend:terrorism_form   = 1
+    End
+
+do remove_terrorism_exclusion
+end
+
+procedure remove_terrorism_form
+begin
+Access cppisocrime_ALIAS, Set cppisocrime_ALIAS:policy_NO = G_policy_NO,
+                              cppisocrime_alias:pol_year = g_Year,
+                              cppisocrime_alias:end_sequence = g_end_sequence,
+                              cppisocrime_ALIAS:PREM_NO  = G_PREM_NO,
+                              cppisocrime_ALIAS:BUILD_NO = G_BUILD_NO, generic
+
+L_STATE = cppisocrime_ALIAS:STATE
+Do ACCESS_SFSMSOTERROR
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO,
+                   sfpend:pol_Year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence,
+                   sfpend:prem_no  = 0,
+                   sfpend:build_no = 0, Generic
+
+While sfpEND:policy_NO = G_policy_NO and
+      sfpend:prem_no  = 0 and
+      sfpend:build_no = 0
+    begin
+    If sfpEND:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_ADD Then
+        begin
+        Delete sfpEND
+        end
+
+     Next sfpEND
+     end
+
+end
+
+procedure remove_terrorism_exclusion
+begin
+Access cppisocrime_ALIAS, Set cppisocrime_ALIAS:policy_NO = G_policy_NO,
+                              cppisocrime_alias:pol_year = g_Year,
+                              cppisocrime_alias:end_sequence = g_end_sequence,
+                              cppisocrime_ALIAS:PREM_NO  = G_PREM_NO,
+                              cppisocrime_ALIAS:BUILD_NO = G_BUILD_NO, generic
+
+L_STATE = cppisocrime_ALIAS:STATE
+Do ACCESS_SFSMSOTERROR
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO,
+                   sfpend:pol_Year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence,
+                   sfpend:prem_no  = 0,
+                   sfpend:build_no = 0, Generic
+
+While sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_year = cppisocrime:pol_year and
+      sfpend:end_sequence = cppisocrime:End_sequence and
+      sfpend:prem_no  = 0 and
+      sfpend:build_no = 0
+    begin
+    If sfpEND:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE Then
+        begin
+        Delete sfpEND
+        end
+
+     Next sfpEND
+     end
+
+end
+
+Procedure ADD_TERRORISM_exclusion
+begin
+Access cppisocrime_ALIAS, Set cppisocrime_ALIAS:policy_NO = G_policy_NO,
+                              cppisocrime_alias:pol_year = g_Year,
+                              cppisocrime_alias:end_sequence = g_end_sequence,
+                              cppisocrime_ALIAS:PREM_NO  = G_PREM_NO,
+                              cppisocrime_ALIAS:BUILD_NO = G_BUILD_NO, generic
+
+L_STATE = cppisocrime_ALIAS:STATE
+Do ACCESS_SFSMSOTERROR
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO,
+                   sfpend:pol_Year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence,
+                   sfpend:prem_no  = 0,
+                   sfpend:build_no = 0, Generic
+
+While sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_Year = cppisocrime:pol_year and
+      sfpend:end_sequence = cppisocrime:end_sequence and
+      sfpend:pol_year = cppisocrime:pol_year and
+      sfpend:end_sequence = cppisocrime:End_sequence and
+      sfpend:prem_no  = 0 and
+      sfpend:build_no = 0
+    begin
+    If sfpEND:CODE = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE Then
+        Delete sfpEND
+
+     Next sfpEND
+     end
+
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO,
+                   sfpend:pol_Year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence, generic
+
+Do SUBCODE
+l_sub_code = l_sub_code + 10
+L_CODE     = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE
+Do ACCESS_KEY
+Add sfpEND
+    Begin
+    sfpEND:policy_NO         = G_policy_NO
+    sfpend:pol_year         = g_year
+    sfpend:end_sequence     = g_End_sequence
+    sfpEND:PREM_NO          = 0
+    sfpEND:BUILD_NO         = 0
+    sfpEND:SUB_CODE         = L_SUB_CODE
+    sfpEND:CODE             = SFSMSOTERROR:TERRORISM_FORM_TO_REMOVE
+    sfpEND:FORM_EDITION     = L_FORM_EDITION
+    sfpEND:PREMIUM          = 0
+    sfpEND:DESCRIPTION      = L_DESCRIPTION
+    sfpend:terrorism_form   = 1
+    sfpend:policy_wide_form = 1
+    sfpend:lob_end_code     = "I"
+    sfpend:terrorism_form   = 1
+    End
+
+end
+
+Procedure ACCESS_SFSMSOTERROR
+begin
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpname:company_id,
+                         SFSMSOTERROR:STATE            = cppisocrime:STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = l_terror_line_of_business, generic
+
+l_terror_percentage = 0
+l_terror_minimum = 0
+While SFSMSOTERROR:COMPANY_ID       = sfpname:company_id And
+      SFSMSOTERROR:STATE            = cppisocrime:STATE And
+      SFSMSOTERROR:LINE_OF_BUSINESS = l_terror_line_of_business
+    begin
+    if sfpname:eff_date >= sfsmsoterror:eff_date then
+        begin
+        L_TERROR_EFF_DATE   = SFSMSOTERROR:EFF_DATE
+        L_TERROR_PERCENTAGE = SFSMSOTERROR:PERCENTAGE
+        L_TERROR_MINIMUM    = SFSMSOTERROR:MINIMUM_PREMIUM
+        end
+
+    Next SFSMSOTERROR
+    end
+
+Access SFSMSOTERROR, Set SFSMSOTERROR:COMPANY_ID       = sfpname:company_id,
+                         SFSMSOTERROR:STATE            = cppisocrime:STATE,
+                         SFSMSOTERROR:LINE_OF_BUSINESS = l_terror_line_of_business,
+                         SFSMSOTERROR:EFF_DATE         = L_TERROR_EFF_DATE, Exact
+
+end
+
+Procedure ACCESS_KEY
+Begin
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpname:company_id ,
+                      SFSOPTEND:STATE            = cppisocrime:STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = cppisocrime:rating_line_of_business,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+
+While SFSOPTEND:COMPANY_ID       = sfpname:company_id And
+      SFSOPTEND:STATE            = cppisocrime:STATE And
+      SFSOPTEND:LINE_OF_BUSINESS = cppisocrime:rating_line_of_business And
+      SFSOPTEND:CODE             = L_CODE
+        Begin
+        If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+           (sfpname:eff_date <= sfsoptend:exp_date or
+           sfsoptend:exp_date = 0)) Then
+            Begin
+            L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+            L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+            End
+
+        Next SFSOPTEND
+        End
+
+End
+
+Procedure SUBCODE
+Begin
+Access sfpEND_alias, Set sfpEND_alias:policy_NO = G_policy_NO,
+                         sfpend_alias:pol_Year = g_year,
+                         sfpend_alias:end_sequence = g_end_sequence,
+                         sfpend_alias:prem_no  = 0,
+                         sfpend_alias:build_no = 0, generic
+
+L_SUB_CODE = 0
+while sfpEND_alias:policy_NO = G_policy_NO and
+      sfpend_alias:pol_year = g_Year and
+      sfpend_alias:end_Sequence = g_End_sequence and
+      sfpend_alias:prem_no  = 0 and
+      sfpend_alias:build_no = 0
+        begin
+        L_SUB_CODE = sfpEND_alias:SUB_CODE
+
+        Next sfpEND_alias
+        End
+
+End
+
+procedure loc_totals
+begin
+access cppisocrime_alias, set cppisocrime_alias:policy_no   = cppisocrime:policy_no,
+                              cppisocrime_alias:pol_year = cppisocrime:pol_year,
+                              cppisocrime_alias:end_sequence = cppisocrime:end_sequence,
+                              cppisocrime_alias:prem_no    = cppisocrime:prem_no,
+                              cppisocrime_alias:build_no   = cppisocrime:build_no,
+                              cppisocrime_alias:crime_form = cppisocrime:crime_form, generic
+
+while cppisocrime_alias:policy_NO   = cppisocrime:policy_NO and
+      cppisocrime_alias:pol_year   = cppisocrime:pol_year and
+      cppisocrime_alias:end_sequence = cppisocrime:End_sequence and
+      cppisocrime_alias:PREM_NO    = cppisocrime:PREM_NO and
+      cppisocrime_alias:BUILD_NO   = cppisocrime:BUILD_NO and
+      cppisocrime_alias:crime_form = cppisocrime:crime_Form
+    begin
+    L_premium = l_premium +
+                cppisocrime_alias:final_premium[1] +
+                cppisocrime_alias:final_premium[2] +
+                cppisocrime_alias:final_premium[3] +
+                cppisocrime_alias:final_premium[4] +
+                cppisocrime_alias:final_premium[5]
+
+    Next cppisocrime_alias
+    End
+
+Access sfpEND, Set sfpEND:policy_NO = cppisocrime:policy_NO,
+                   sfpend:pol_year = cppisocrime:pol_year,
+                   sfpend:end_sequence = cppisocrime:end_sequence,
+                   sfpEND:PREM_NO  = cppisocrime:PREM_NO,
+                   sfpEND:BUILD_NO = cppisocrime:BUILD_NO, Generic
+
+l_end_premium = 0
+while sfpEND:policy_NO = cppisocrime:policy_NO and
+      sfpend:pol_year = cppisocrime:pol_year and
+      sfpend:end_sequence = cppisocrime:end_sequence and
+      sfpEND:PREM_NO  = cppisocrime:PREM_NO and
+      sfpEND:BUILD_NO = cppisocrime:BUILD_NO
+    begin
+    if sfpend:lob_end_code = "C" then
+        L_END_PREMIUM = L_END_PREMIUM + sfpend:premium
+
+    Next sfpEND
+    End
+
+end
+
+procedure loss_cost
+begin
+access sfslosscost, set sfslosscost:company_id       = sfpname:company_id,
+                        sfslosscost:state            = cppisocrime:state,
+                        sfslosscost:line_of_business = cppisocrime:rating_line_of_business, generic
+
+l_loss_cost = 0
+while sfslosscost:company_id       = sfpname:company_id and
+      sfslosscost:state            = cppisocrime:state and
+      sfslosscost:line_of_business = cppisocrime:rating_line_of_business
+        begin
+        if sfpname:eff_date >= sfslosscost:eff_date then
+            l_loss_cost = sfslosscost:rate
+
+        next sfslosscost
+        end
+
+end
+
+procedure deductible
+begin
+access sfsdeductible, set sfsdeductible:company_id       = sfpname:company_id,
+                          sfsdeductible:state            = cppisocrime:state,
+                          sfsdeductible:line_of_business = cppisocrime:rating_line_of_business,
+                          sfsdeductible:deductible       = cppisocrime:deductible, generic
+
+if sfsdeductible:limit = 0 then
+    begin
+    while sfsdeductible:company_id       = sfpname:company_id and
+          sfsdeductible:state            = cppisocrime:state and
+          sfsdeductible:line_of_business = cppisocrime:rating_line_of_business and
+          sfsdeductible:deductible       = cppisocrime:deductible
+            begin
+            if sfpname:eff_date >= sfsdeductible:eff_date then
+                begin
+                l_deductible_factor_1 = sfsdeductible:rate_1
+                l_deductible_factor_2 = sfsdeductible:rate_2
+                l_deductible_factor_3 = sfsdeductible:rate_3
+                end
+
+            next sfsdeductible
+            end
+    end
+else
+    begin
+    switch(l_coverage)
+      case "B" : l_limit = cppisocrime:limit[1]
+      default  : l_limit = cppisocrime:limit[2]
+      end
+
+    access sfsdeductible, set sfsdeductible:company_id       = sfpname:company_id,
+                              sfsdeductible:state            = cppisocrime:state,
+                              sfsdeductible:line_of_business = cppisocrime:rating_line_of_business,
+                              sfsdeductible:deductible       = cppisocrime:deductible,
+                              sfsdeductible:limit            = l_limit, approximate
+
+    l_deductible_limit = sfsdeductible:limit
+
+    access sfsdeductible, set sfsdeductible:company_id       = sfpname:company_id,
+                              sfsdeductible:state            = cppisocrime:state,
+                              sfsdeductible:line_of_business = cppisocrime:rating_line_of_business,
+                              sfsdeductible:deductible       = cppisocrime:deductible,
+                              sfsdeductible:limit            = l_deductible_limit, generic
+
+
+    while sfsdeductible:company_id       = sfpname:company_id and
+          sfsdeductible:state            = cppisocrime:state and
+          sfsdeductible:line_of_business = cppisocrime:rating_line_of_business and
+          sfsdeductible:deductible       = cppisocrime:deductible and
+          sfsdeductible:limit            = l_deductible_limit
+            begin
+            if sfpname:eff_date >= sfsdeductible:eff_date then
+                begin
+                l_deductible_factor_1 = sfsdeductible:rate_1
+                l_deductible_factor_2 = sfsdeductible:rate_2
+                l_deductible_factor_3 = sfsdeductible:rate_3
+                end
+
+            next sfsdeductible
+            end
+    end
+end
+
+procedure minimum_premium
+begin
+Access SFSCONTROL, Set SFSCONTROL:COMPANY_ID       = sfpname:company_id,
+                       SFSCONTROL:STATE            = cppisocrime:STATE,
+                       SFSCONTROL:LINE_OF_BUSINESS = cppisocrime:rating_line_of_business, Approximate
+
+while SFSCONTROL:COMPANY_ID       = sfpname:company_id and
+      SFSCONTROL:STATE            = cppisocrime:STATE and
+      SFSCONTROL:LINE_OF_BUSINESS = cppisocrime:rating_line_of_business
+    begin
+    If (sfpNAME:EFF_DATE >= SFSCONTROL:EFF_DATE and
+       (sfpname:eff_date < sfscontrol:exp_date or
+       sfscontrol:exp_date = 0)) Then
+        begin
+        L_MINIMUM               = SFSCONTROL:MINIMUM_PREMIUM
+        end
+
+    Next SFSCONTROL
+    End
+
+l_minimum_applies = "N"
+if l_total < l_minimum then
+    begin
+    l_total = l_minimum
+    l_minimum_applies = "Y"
+    end
+end
+
+Procedure FINAL_TOTAL
+Begin
+L_EFF_DATE_1 = Dateadd(sfpNAME:EFF_DATE,0,1)
+If sfpNAME:EXP_DATE < L_EFF_DATE_1 Then
+    Begin
+    L_DAYS_RATE = L_TOTAL Divide 365
+    L_DAYS = sfpNAME:EXP_DATE - sfpNAME:EFF_DATE
+    L_PRO_RATA_PREMIUM = L_DAYS * L_DAYS_RATE
+    L_TOTAL = L_PRO_RATA_PREMIUM
+    End
+
+L_FINAL_TOTAL = L_TOTAL + L_BOILER_PREM_TOTAL
+
+If L_IRPM = 0 Then
+    L_IRPM = 1
+
+access sfssurcharge, set sfssurcharge:company_id       = sfpname:company_id,
+                         sfssurcharge:state            = cppisocrime:state,
+                         sfssurcharge:line_of_business = cppisocrime:rating_line_of_business, generic
+
+l_surcharge_date = 0
+while sfssurcharge:company_id       = sfpname:company_id and
+      sfssurcharge:state            = cppisocrime:state and
+      sfssurcharge:line_of_business = cppisocrime:rating_line_of_business
+        begin
+        if (sfpname:eff_date >= sfssurcharge:eff_date and
+           (l_surcharge_date < sfssurcharge:eff_date or
+           l_surcharge_date = 0)) then
+            begin
+            l_surcharge_date    = sfssurcharge:eff_date
+            l_surcharge_factor  = sfssurcharge:surcharge_factor
+            l_surcharge_minimum = sfssurcharge:minimum_premium
+            end
+
+        next sfssurcharge
+        end
+
+l_minimum_applies = "N"
+If L_final_TOTAL <= L_MINIMUM Then
+    Begin
+    L_final_total = L_MINIMUM
+    L_MINIMUM_APPLIES = "Y"
+    end
+
+L_SURCHARGE = L_FINAL_TOTAL * L_SURCHARGE_FACTOR
+If L_SURCHARGE < L_SURCHARGE_MINIMUM Then
+    L_SURCHARGE = L_SURCHARGE_MINIMUM
+
+access cppcrime1, set cppcrime1:policy_no = g_policy_no,
+                      cppcrime1:pol_year = g_year,
+                      cppcrime1:end_sequence = g_end_sequence, generic
+
+l_crime_total = 0
+while cppcrime1:policy_no = g_policy_no and
+      cppcrime1:pol_year = g_year and
+      cppcrime1:end_sequence = g_End_sequence
+    begin
+    l_crime_total = cppcrime1:premium + l_crime_total
+
+    next cppcrime1
+    end
+
+access cppcrime1, set cppcrime1:policy_no = g_policy_no,
+                      cppcrime1:pol_year = g_year,
+                      cppcrime1:end_sequence = g_end_sequence, generic
+
+change cppcrime1
+    begin
+    cppcrime1:premium = l_final_total
+    end
+
+L_COMPANY_ID = sfpname:company_id
+access sfsline, set sfsline:company_id       = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline      = "00", generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpmastsupp, set sfpmastsupp:policy_no = g_policy_no,
+                            sfpmastsupp:pol_year = g_year,
+                            sfpmastsupp:end_sequence = g_end_sequence,
+                            sfpmastsupp:line_of_business = g_line_of_business, generic
+
+    If sfpmastsupp:policy_no = G_policy_NO and
+       sfpmastsupp:pol_year = g_year and
+       sfpmastsupp:end_sequence = g_end_sequence and
+       sfpmastsupp:line_of_business = g_line_of_business Then
+        begin
+        Change sfpmastsupp
+            Begin
+            sfpmastsupp:TOTAL[17] = L_TOTAL
+            sfpmastsupp:TOTAL[18] = L_FINAL_TOTAL
+            sfpmastsupp:TOTAL[20] = L_FINAL_TOTAL + L_SURCHARGE
+            sfpmastsupp:AMT_DUE_TOTAL[20] = L_FINAL_TOTAL + L_SURCHARGE
+            sfpmastsupp:TOTAL[6] = L_FINAL_TOTAL
+            If L_MINIMUM_APPLIES = "Y" Then
+                sfpmastsupp:MINIMUM_PREM_APPLIES = "Y"
+            else
+                sfpmastsupp:minimum_prem_applies = "N"
+            sfpmastsupp:SURCHARGE = L_SURCHARGE
+            sfpmastsupp:RAW_PREMIUM_AMT_DUE = l_total
+            End
+        end
+    end
+else
+    begin
+    If sfpMASTER:policy_NO = cppisocrime:policy_NO and
+       sfpmaster:pol_year = cppisocrime:pol_year and
+       sfpmaster:end_sequence = cppisocrime:end_sequence Then
+        begin
+        Change sfpMASTER
+            Begin
+            sfpMASTER:TOTAL[17] = L_TOTAL
+            sfpMASTER:TOTAL[18] = L_FINAL_TOTAL
+            sfpMASTER:TOTAL[20] = L_FINAL_TOTAL + L_SURCHARGE
+            sfpMASTER:AMT_DUE_TOTAL[20] = L_FINAL_TOTAL + L_SURCHARGE
+            sfpMASTER:TOTAL[6] = L_FINAL_TOTAL
+            sfpMASTER:INSTALLMENT_CHARGE = L_INSTALLMENT
+            If L_MINIMUM_APPLIES = "Y" Then
+                sfpMASTER:MINIMUM_PREM_APPLIES = "Y"
+            else
+                sfpmaster:minimum_prem_applies = "N"
+            sfpMASTER:SURCHARGE = L_SURCHARGE
+            sfpMASTER:RAW_PREMIUM_AMT_DUE = l_total
+            End
+        end
+    end
+
+End
+
+End

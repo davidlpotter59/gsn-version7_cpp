@@ -1,0 +1,722 @@
+%%
+Program
+        Name = "CPPCV200" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+    Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                 G_YEAR[4] ,
+                                 G_END_SEQUENCE[4] ,
+                                 G_QUOTE_NO[8] ;
+
+    Local String L_PROCEDURE[50] ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_QUOTE_NO = Val(COMMANDLINE[21,28])
+
+/* cpqgeneral FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cpqgeneral FILE UPDATE"
+
+Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO,
+                      SFPMASTER:POL_YEAR = G_YEAR,
+                      SFPMASTER:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Access CPPBLANKET_ALIAS, Set CPPBLANKET_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPBLANKET_ALIAS:POL_YEAR = G_YEAR,
+                             CPPBLANKET_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBLANKET_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBLANKET_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBLANKET_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQBLANKET
+        Begin
+        CPQBLANKET:QUOTE_NO                 = G_QUOTE_NO
+        CPQBLANKET:PREM_NO                  = CPPBLANKET_ALIAS:PREM_NO
+        CPQBLANKET:BUILD_NO                 = CPPBLANKET_ALIAS:BUILD_NO
+        CPQBLANKET:RATE_TYPE                = CPPBLANKET_ALIAS:RATE_TYPE
+        CPQBLANKET:RECORD_RDF               = CPPBLANKET_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBLANKET_ALIAS
+    End
+
+Access CPPblanketbi_ALIAS, Set CPPblanketbi_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPblanketbi_ALIAS:POL_YEAR = G_YEAR,
+                             CPPblanketbi_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPblanketbi_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPblanketbi_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPblanketbi_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQblanketbi
+        Begin
+        CPQblanketbi:QUOTE_NO                 = G_QUOTE_NO
+        CPQblanketbi:PREM_NO                  = CPPblanketbi_ALIAS:PREM_NO
+        CPQblanketbi:BUILD_NO                 = CPPblanketbi_ALIAS:BUILD_NO
+        cpqblanketbi:coverage                 = cppblanketbi_alias:coverage
+        CPQblanketbi:RECORD_RDF               = CPPblanketbi_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPblanketbi_ALIAS
+    End
+
+/* cpqbusdependprop FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cpqbusdependprop FILE UPDATE"
+
+Access CPPBUSDEPENDPROP_ALIAS, Set CPPBUSDEPENDPROP_ALIAS:POLICY_NO = G_POLICY_NO,
+                                   CPPBUSDEPENDPROP_ALIAS:POL_YEAR = G_YEAR,
+                                   CPPBUSDEPENDPROP_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSDEPENDPROP_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSDEPENDPROP_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSDEPENDPROP_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQBUSDEPENDPROP
+        Begin
+        CPQBUSDEPENDPROP:QUOTE_NO               = G_QUOTE_NO
+        CPQBUSDEPENDPROP:PREM_NO                = CPPBUSDEPENDPROP_ALIAS:PREM_NO
+        CPQBUSDEPENDPROP:BUILD_NO               = CPPBUSDEPENDPROP_ALIAS:BUILD_NO
+        CPQBUSDEPENDPROP:RECORD_RDF             = CPPBUSDEPENDPROP_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSDEPENDPROP_ALIAS
+    End
+
+/* cppbusiness FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppbusiness FILE UPDATE"
+
+Access CPPBUSINESS_ALIAS, Set CPPBUSINESS_ALIAS:POLICY_NO = G_POLICY_NO,
+                              CPPBUSINESS_ALIAS:POL_YEAR = G_YEAR,
+                              CPPBUSINESS_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSINESS_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSINESS_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSINESS_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQBUSINESS
+        Begin
+        CPQBUSINESS:QUOTE_NO               = G_QUOTE_NO
+        CPQBUSINESS:PREM_NO                = CPPBUSINESS_ALIAS:PREM_NO
+        CPQBUSINESS:BUILD_NO               = CPPBUSINESS_ALIAS:BUILD_NO
+        CPQBUSINESS:COVERAGE               = CPPBUSINESS_ALIAS:COVERAGE/raw
+        CPQBUSINESS:RECORD_RDF             = CPPBUSINESS_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSINESS_ALIAS
+    End
+
+/* cppbusoffprem FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppbusoffprem FILE UPDATE"
+
+Access CPPBUSOFFPREM_ALIAS, Set CPPBUSOFFPREM_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPBUSOFFPREM_ALIAS:POL_YEAR = G_YEAR,
+                                CPPBUSOFFPREM_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSOFFPREM_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSOFFPREM_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSOFFPREM_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQBUSOFFPREM
+        Begin
+        CPQBUSOFFPREM:QUOTE_NO               = G_QUOTE_NO
+        CPQBUSOFFPREM:PREM_NO                = CPPBUSOFFPREM_ALIAS:PREM_NO
+        CPQBUSOFFPREM:BUILD_NO               = CPPBUSOFFPREM_ALIAS:BUILD_NO
+        CPQBUSOFFPREM:RECORD_RDF             = CPPBUSOFFPREM_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSOFFPREM_ALIAS
+    End
+
+/* cppbuspayroll FILE UPDATE LOGIC */
+
+L_PROCEDURE = "cppbuspayroll FILE UPDATE"
+
+Access CPPBUSPAYROLL_ALIAS, Set CPPBUSPAYROLL_ALIAS:POLICY_NO = G_POLICY_NO,
+                                CPPBUSPAYROLL_ALIAS:POL_YEAR = G_YEAR,
+                                CPPBUSPAYROLL_ALIAS:END_SEQUENCE = G_END_SEQUENCE, Approximate
+
+Repeat Begin
+    Exit If CPPBUSPAYROLL_ALIAS:POLICY_NO <> G_POLICY_NO Or
+            CPPBUSPAYROLL_ALIAS:POL_YEAR <> G_YEAR Or
+            CPPBUSPAYROLL_ALIAS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQBUSPAYROLL
+        Begin
+        CPQBUSPAYROLL:QUOTE_NO               = G_QUOTE_NO
+        CPQBUSPAYROLL:PREM_NO                = CPPBUSPAYROLL_ALIAS:PREM_NO
+        CPQBUSPAYROLL:BUILD_NO               = CPPBUSPAYROLL_ALIAS:BUILD_NO
+        CPQBUSPAYROLL:RECORD_RDF             = CPPBUSPAYROLL_ALIAS:RECORD_RDF/raw
+        End
+
+    Next CPPBUSPAYROLL_ALIAS
+    End
+
+-- cppcrime
+
+L_PROCEDURE = "cppcrime FILE UPDATE"
+
+Access CPPCRIME, Set CPPCRIME:POLICY_NO = G_POLICY_NO,
+                     CPPCRIME:POL_YEAR = G_YEAR,
+                     CPPCRIME:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPCRIME:POLICY_NO <> G_POLICY_NO Or
+            CPPCRIME:POL_YEAR <> G_YEAR Or
+            CPPCRIME:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQCRIME
+        Begin
+        CPQCRIME:QUOTE_NO               = G_QUOTE_NO
+        CPQCRIME:PREM_NO                = CPPCRIME:PREM_NO
+        CPQCRIME:BUILD_NO               = CPPCRIME:BUILD_NO
+        CPQCRIME:CRIME_FORM             = CPPCRIME:CRIME_FORM/raw
+        CPQCRIME:RECORD_RDF             = CPPCRIME:RECORD_RDF/raw
+        End
+
+    Next CPPCRIME
+    End
+
+-- cppcrimeform
+
+L_PROCEDURE = "cppcrimeform FILE UPDATE"
+
+Access CPPCRIMEFORM, Set CPPCRIMEFORM:POLICY_NO = G_POLICY_NO,
+                         CPPCRIMEFORM:POL_YEAR = G_YEAR,
+                         CPPCRIMEFORM:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPCRIMEFORM:POLICY_NO <> G_POLICY_NO Or
+            CPPCRIMEFORM:POL_YEAR <> G_YEAR Or
+            CPPCRIMEFORM:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQCRIMEFORM
+        Begin
+        CPQCRIMEFORM:QUOTE_NO               = G_QUOTE_NO
+        CPQCRIMEFORM:PREM_NO                = CPPCRIMEFORM:PREM_NO
+        CPQCRIMEFORM:BUILD_NO               = CPPCRIMEFORM:BUILD_NO
+        CPQCRIMEFORM:RECORD_RDF             = CPPCRIMEFORM:RECORD_RDF/raw
+        End
+
+    Next CPPCRIMEFORM
+    End
+
+-- cppdesc FILE UPDATE LOGIC
+
+L_PROCEDURE = "cppdesc FILE UPDATE"
+
+Access CPPDESC, Set CPPDESC:POLICY_NO = G_POLICY_NO,
+                    CPPDESC:POL_YEAR = G_YEAR,
+                    CPPDESC:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPDESC:POLICY_NO <> G_POLICY_NO Or
+            CPPDESC:POL_YEAR <> G_YEAR Or
+            CPPDESC:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQDESC
+        Begin
+        CPQDESC:QUOTE_NO               = G_QUOTE_NO
+        CPQDESC:PREM_NO                = CPPDESC:PREM_NO
+        CPQDESC:BUILD_NO               = CPPDESC:BUILD_NO
+        CPQDESC:CODE                   = CPPDESC:CODE/raw
+        CPQDESC:SUB_CODE               = CPPDESC:SUB_CODE
+        CPQDESC:RECORD_RDF             = CPPDESC:RECORD_RDF/raw
+        End
+
+    Next CPPDESC
+    End
+
+-- cppearthquake FILE UPDATE LOGIC
+
+L_PROCEDURE = "cppearthquake FILE UPDATE"
+
+Access CPPEARTHQUAKE, Set CPPEARTHQUAKE:POLICY_NO = G_POLICY_NO,
+                          CPPEARTHQUAKE:POL_YEAR = G_YEAR,
+                          CPPEARTHQUAKE:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPEARTHQUAKE:POLICY_NO <> G_POLICY_NO Or
+            CPPEARTHQUAKE:POL_YEAR <> G_YEAR Or
+            CPPEARTHQUAKE:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQEARTHQUAKE
+        Begin
+        CPQEARTHQUAKE:QUOTE_NO               = G_QUOTE_NO
+        CPQEARTHQUAKE:PREM_NO                = CPPEARTHQUAKE:PREM_NO
+        CPQEARTHQUAKE:BUILD_NO               = CPPEARTHQUAKE:BUILD_NO
+        CPQEARTHQUAKE:RATE_TYPE              = CPPEARTHQUAKE:RATE_TYPE
+        CPQEARTHQUAKE:RECORD_RDF             = CPPEARTHQUAKE:RECORD_RDF/raw
+        End
+
+    Next CPPEARTHQUAKE
+    End
+
+L_PROCEDURE = "cppelectmedia FILE UPDATE"
+
+Access CPPELECTMEDIA, Set CPPELECTMEDIA:POLICY_NO = G_POLICY_NO,
+                          CPPELECTMEDIA:POL_YEAR = G_YEAR,
+                          CPPELECTMEDIA:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPELECTMEDIA:POLICY_NO <> G_POLICY_NO Or
+            CPPELECTMEDIA:POL_YEAR <> G_YEAR Or
+            CPPELECTMEDIA:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQELECTMEDIA
+        Begin
+        CPQELECTMEDIA:QUOTE_NO               = G_QUOTE_NO
+        CPQELECTMEDIA:PREM_NO                = CPPELECTMEDIA:PREM_NO
+        CPQELECTMEDIA:BUILD_NO               = CPPELECTMEDIA:BUILD_NO
+        CPQELECTMEDIA:RECORD_RDF             = CPPELECTMEDIA:RECORD_RDF/raw
+        End
+
+    Next CPPELECTMEDIA
+    End
+
+L_PROCEDURE = "cppendorse FILE UPDATE"
+
+Access CPPENDORSE, Set CPPENDORSE:POLICY_NO = G_POLICY_NO,
+                       CPPENDORSE:POL_YEAR = G_YEAR,
+                       CPPENDORSE:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPENDORSE:POLICY_NO <> G_POLICY_NO Or
+            CPPENDORSE:POL_YEAR <> G_YEAR Or
+            CPPENDORSE:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQENDORSE
+        Begin
+        CPQENDORSE:QUOTE_NO               = G_QUOTE_NO
+        CPQENDORSE:PREM_NO                = CPPENDORSE:PREM_NO
+        CPQENDORSE:BUILD_NO               = CPPENDORSE:BUILD_NO
+        CPQENDORSE:CODE                   = CPPENDORSE:CODE/raw
+        CPQENDORSE:SUB_CODE               = CPPENDORSE:SUB_CODE
+        CPQENDORSE:RECORD_RDF             = CPPENDORSE:RECORD_RDF/raw
+        End
+
+    Next CPPENDORSE
+    End
+
+L_PROCEDURE = "cppendorse1 FILE UPDATE"
+
+Access CPPendorse1, Set CPPendorse1:POLICY_NO = G_POLICY_NO,
+                       CPPendorse1:POL_YEAR = G_YEAR,
+                       CPPendorse1:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPendorse1:POLICY_NO <> G_POLICY_NO Or
+            CPPendorse1:POL_YEAR <> G_YEAR Or
+            CPPendorse1:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQendorse1
+        Begin
+        CPQendorse1:QUOTE_NO               = G_QUOTE_NO
+        CPQendorse1:PREM_NO                = CPPendorse1:PREM_NO
+        CPQendorse1:BUILD_NO               = CPPendorse1:BUILD_NO
+        CPQendorse1:CODE                   = CPPendorse1:CODE/raw
+        CPQendorse1:SUB_CODE               = CPPendorse1:SUB_CODE
+        CPQendorse1:RECORD_RDF             = CPPendorse1:RECORD_RDF/raw
+        End
+
+    Next CPPendorse1
+    End
+
+L_PROCEDURE = "cppexclusions FILE UPDATE"
+
+Access CPPEXCLUSIONS, Set CPPEXCLUSIONS:POLICY_NO = G_POLICY_NO,
+                          CPPEXCLUSIONS:POL_YEAR = G_YEAR,
+                          CPPEXCLUSIONS:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPEXCLUSIONS:POLICY_NO <> G_POLICY_NO Or
+            CPPEXCLUSIONS:POL_YEAR <> G_YEAR Or
+            CPPEXCLUSIONS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQEXCLUSIONS
+        Begin
+        CPQEXCLUSIONS:QUOTE_NO               = G_QUOTE_NO
+        CPQEXCLUSIONS:PREM_NO                = CPPEXCLUSIONS:PREM_NO
+        CPQEXCLUSIONS:BUILD_NO               = CPPEXCLUSIONS:BUILD_NO
+        CPQEXCLUSIONS:RATE_TYPE              = CPPEXCLUSIONS:RATE_TYPE
+        CPQEXCLUSIONS:RECORD_RDF             = CPPEXCLUSIONS:RECORD_RDF/raw
+        End
+
+    Next CPPEXCLUSIONS
+    End
+
+L_PROCEDURE = "cppextperiod FILE UPDATE"
+
+Access CPPEXTPERIOD, Set CPPEXTPERIOD:POLICY_NO = G_POLICY_NO,
+                         CPPEXTPERIOD:POL_YEAR = G_YEAR,
+                         CPPEXTPERIOD:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPEXTPERIOD:POLICY_NO <> G_POLICY_NO Or
+            CPPEXTPERIOD:POL_YEAR <> G_YEAR Or
+            CPPEXTPERIOD:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQEXTPERIOD
+        Begin
+        CPQEXTPERIOD:QUOTE_NO               = G_QUOTE_NO
+        CPQEXTPERIOD:PREM_NO                = CPPEXTPERIOD:PREM_NO
+        CPQEXTPERIOD:BUILD_NO               = CPPEXTPERIOD:BUILD_NO
+        CPQEXTPERIOD:RECORD_RDF             = CPPEXTPERIOD:RECORD_RDF/raw
+        End
+
+    Next CPPEXTPERIOD
+    End
+
+L_PROCEDURE = "cppgeneral FILE UPDATE"
+
+Access CPPGENERAL, Set CPPGENERAL:POLICY_NO = G_POLICY_NO,
+                       CPPGENERAL:POL_YEAR = G_YEAR,
+                       CPPGENERAL:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPGENERAL:POLICY_NO <> G_POLICY_NO Or
+            CPPGENERAL:POL_YEAR <> G_YEAR Or
+            CPPGENERAL:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQGENERAL
+        Begin
+        CPQGENERAL:QUOTE_NO               = G_QUOTE_NO
+        CPQGENERAL:PREM_NO                = CPPGENERAL:PREM_NO
+        CPQGENERAL:BUILD_NO               = CPPGENERAL:BUILD_NO
+        CPQGENERAL:RATE_TYPE              = CPPGENERAL:RATE_TYPE
+        CPQGENERAL:RECORD_RDF             = CPPGENERAL:RECORD_RDF/raw
+        End
+
+    Next CPPGENERAL
+    End
+
+L_PROCEDURE = "cppglass FILE UPDATE"
+
+Access CPPGLASS, Set CPPGLASS:POLICY_NO = G_POLICY_NO,
+                     CPPGLASS:POL_YEAR = G_YEAR,
+                     CPPGLASS:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPGLASS:POLICY_NO <> G_POLICY_NO Or
+            CPPGLASS:POL_YEAR <> G_YEAR Or
+            CPPGLASS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQGLASS
+        Begin
+        CPQGLASS:QUOTE_NO               = G_QUOTE_NO
+        CPQGLASS:PREM_NO                = CPPGLASS:PREM_NO
+        CPQGLASS:BUILD_NO               = CPPGLASS:BUILD_NO
+        CPQGLASS:SUB_CODE               = CPPGLASS:SUB_CODE
+        CPQGLASS:RECORD_RDF             = CPPGLASS:RECORD_RDF/raw
+        End
+
+    Next CPPGLASS
+    End
+
+L_PROCEDURE = "cppglassspec FILE UPDATE"
+
+Access CPPGLASSSPEC, Set CPPGLASSSPEC:POLICY_NO = G_POLICY_NO,
+                         CPPGLASSSPEC:POL_YEAR = G_YEAR,
+                         CPPGLASSSPEC:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPGLASSSPEC:POLICY_NO <> G_POLICY_NO Or
+            CPPGLASSSPEC:POL_YEAR <> G_YEAR Or
+            CPPGLASSSPEC:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQGLASSSPEC
+        Begin
+        CPQGLASSSPEC:QUOTE_NO               = G_QUOTE_NO
+        CPQGLASSSPEC:PREM_NO                = CPPGLASSSPEC:PREM_NO
+        CPQGLASSSPEC:BUILD_NO               = CPPGLASSSPEC:BUILD_NO
+        CPQGLASSSPEC:SUB_CODE               = CPPGLASSSPEC:SUB_CODE
+        CPQGLASSSPEC:RECORD_RDF             = CPPGLASSSPEC:RECORD_RDF/raw
+        End
+
+    Next CPPGLASSSPEC
+    End
+
+L_PROCEDURE = "cppliabdeduct FILE UPDATE"
+
+Access CPPLIABDEDUCT, Set CPPLIABDEDUCT:POLICY_NO = G_POLICY_NO,
+                          CPPLIABDEDUCT:POL_YEAR = G_YEAR,
+                          CPPLIABDEDUCT:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPLIABDEDUCT:POLICY_NO <> G_POLICY_NO Or
+            CPPLIABDEDUCT:POL_YEAR <> G_YEAR Or
+            CPPLIABDEDUCT:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQLIABDEDUCT
+        Begin
+        CPQLIABDEDUCT:QUOTE_NO               = G_QUOTE_NO
+        CPQLIABDEDUCT:RECORD_RDF             = CPPLIABDEDUCT:RECORD_RDF/raw
+        End
+
+    Next CPPLIABDEDUCT
+    End
+
+L_PROCEDURE = "cppliability FILE UPDATE"
+
+Access CPPLIABILITY, Set CPPLIABILITY:POLICY_NO = G_POLICY_NO,
+                         CPPLIABILITY:POL_YEAR = G_YEAR,
+                         CPPLIABILITY:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPLIABILITY:POLICY_NO <> G_POLICY_NO Or
+            CPPLIABILITY:POL_YEAR <> G_YEAR Or
+            CPPLIABILITY:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQLIABILITY
+        Begin
+        CPQLIABILITY:QUOTE_NO               = G_QUOTE_NO
+        CPQLIABILITY:PREM_NO                = CPPLIABILITY:PREM_NO
+        CPQLIABILITY:BUILD_NO               = CPPLIABILITY:BUILD_NO
+        CPQLIABILITY:CLASS_CODE             = CPPLIABILITY:CLASS_CODE
+        CPQLIABILITY:RECORD_RDF             = CPPLIABILITY:RECORD_RDF/raw
+        End
+
+    Next CPPLIABILITY
+    End
+
+L_PROCEDURE = "cppliablimits FILE UPDATE"
+
+Access CPPLIABLIMITS, Set CPPLIABLIMITS:POLICY_NO = G_POLICY_NO,
+                          CPPLIABLIMITS:POL_YEAR = G_YEAR,
+                          CPPLIABLIMITS:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPLIABLIMITS:POLICY_NO <> G_POLICY_NO Or
+            CPPLIABLIMITS:POL_YEAR <> G_YEAR Or
+            CPPLIABLIMITS:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQLIABLIMITS
+        Begin
+        CPQLIABLIMITS:QUOTE_NO               = G_QUOTE_NO
+        CPQLIABLIMITS:RECORD_RDF             = CPPLIABLIMITS:RECORD_RDF/raw
+        End
+
+    Next CPPLIABLIMITS
+    End
+
+L_PROCEDURE = "cppdeviation FILE UPDATE"
+
+Access CPPdeviation, Set CPPdeviation:POLICY_NO = G_POLICY_NO,
+                          CPPdeviation:POL_YEAR = G_YEAR,
+                          CPPdeviation:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPdeviation:POLICY_NO <> G_POLICY_NO Or
+            CPPdeviation:POL_YEAR <> G_YEAR Or
+            CPPdeviation:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQdeviation
+        Begin
+        CPQdeviation:QUOTE_NO               = G_QUOTE_NO
+        CPQdeviation:RECORD_RDF             = CPPdeviation:RECORD_RDF/raw
+        End
+
+    Next CPPdeviation
+    End
+
+L_PROCEDURE = "cpppolicy FILE UPDATE"
+
+Access CPPPOLICY, Set CPPPOLICY:POLICY_NO = G_POLICY_NO,
+                      CPPPOLICY:POL_YEAR = G_YEAR,
+                      CPPPOLICY:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPPOLICY:POLICY_NO <> G_POLICY_NO Or
+            CPPPOLICY:POL_YEAR <> G_YEAR Or
+            CPPPOLICY:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQQUOTE
+        Begin
+        CPQQUOTE:QUOTE_NO               = G_QUOTE_NO
+        CPQQUOTE:PREM_NO                = CPPPOLICY:PREM_NO
+        CPQQUOTE:BUILD_NO               = CPPPOLICY:BUILD_NO
+        CPQQUOTE:RECORD_RDF             = CPPPOLICY:RECORD_RDF/raw
+        End
+
+    Next CPPPOLICY
+    End
+
+L_PROCEDURE = "cppproperty FILE UPDATE"
+
+Access CPPPROPERTY, Set CPPPROPERTY:POLICY_NO = G_POLICY_NO,
+                        CPPPROPERTY:POL_YEAR = G_YEAR,
+                        CPPPROPERTY:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPPROPERTY:POLICY_NO <> G_POLICY_NO Or
+            CPPPROPERTY:POL_YEAR <> G_YEAR Or
+            CPPPROPERTY:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQPROPERTY
+        Begin
+        CPQPROPERTY:QUOTE_NO               = G_QUOTE_NO
+        CPQPROPERTY:PREM_NO                = CPPPROPERTY:PREM_NO
+        CPQPROPERTY:BUILD_NO               = CPPPROPERTY:BUILD_NO
+        CPQPROPERTY:RECORD_RDF             = CPPPROPERTY:RECORD_RDF/raw
+        End
+
+    Next CPPPROPERTY
+    End
+
+L_PROCEDURE = "cppprotect FILE UPDATE"
+
+Access CPPPROTECT, Set CPPPROTECT:POLICY_NO = G_POLICY_NO,
+                       CPPPROTECT:POL_YEAR = G_YEAR,
+                       CPPPROTECT:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPPROTECT:POLICY_NO <> G_POLICY_NO Or
+            CPPPROTECT:POL_YEAR <> G_YEAR Or
+            CPPPROTECT:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQPROTECT
+        Begin
+        CPQPROTECT:QUOTE_NO               = G_QUOTE_NO
+        CPQPROTECT:PREM_NO                = CPPPROTECT:PREM_NO
+        CPQPROTECT:BUILD_NO               = CPPPROTECT:BUILD_NO
+        CPQPROTECT:RATE_TYPE              = CPPPROTECT:RATE_TYPE
+        CPQPROTECT:RECORD_RDF             = CPPPROTECT:RECORD_RDF/raw
+        End
+
+    Next CPPPROTECT
+    End
+
+L_PROCEDURE = "cppsprinkleak FILE UPDATE"
+
+Access CPPSPRINKLEAK, Set CPPSPRINKLEAK:POLICY_NO = G_POLICY_NO,
+                          CPPSPRINKLEAK:POL_YEAR = G_YEAR,
+                          CPPSPRINKLEAK:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPSPRINKLEAK:POLICY_NO <> G_POLICY_NO Or
+            CPPSPRINKLEAK:POL_YEAR <> G_YEAR Or
+            CPPSPRINKLEAK:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQSPRINKLEAK
+        Begin
+        CPQSPRINKLEAK:QUOTE_NO               = G_QUOTE_NO
+        CPQSPRINKLEAK:PREM_NO                = CPPSPRINKLEAK:PREM_NO
+        CPQSPRINKLEAK:BUILD_NO               = CPPSPRINKLEAK:BUILD_NO
+        CPQSPRINKLEAK:RATE_TYPE              = CPPSPRINKLEAK:RATE_TYPE
+        CPQSPRINKLEAK:RECORD_RDF             = CPPSPRINKLEAK:RECORD_RDF/raw
+        End
+
+    Next CPPSPRINKLEAK
+    End
+
+L_PROCEDURE = "cppcrime1 FILE UPDATE"
+
+Access CPPcrime1, Set CPPcrime1:POLICY_NO = G_POLICY_NO,
+                          CPPcrime1:POL_YEAR = G_YEAR,
+                          CPPcrime1:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPcrime1:POLICY_NO <> G_POLICY_NO Or
+            CPPcrime1:POL_YEAR <> G_YEAR Or
+            CPPcrime1:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQcrime1
+        Begin
+        CPQcrime1:QUOTE_NO               = G_QUOTE_NO
+        CPQcrime1:PREM_NO                = CPPcrime1:PREM_NO
+        CPQcrime1:BUILD_NO               = CPPcrime1:BUILD_NO
+        CPQcrime1:sub_code               = cppcrime1:sub_code
+        CPQcrime1:RECORD_RDF             = CPPcrime1:RECORD_RDF/raw
+        End
+
+    Next CPPcrime1
+    End
+
+L_PROCEDURE = "cppinland FILE UPDATE"
+
+Access CPPinland, Set CPPinland:POLICY_NO = G_POLICY_NO,
+                          CPPinland:POL_YEAR = G_YEAR,
+                          CPPinland:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPinland:POLICY_NO <> G_POLICY_NO Or
+            CPPinland:POL_YEAR <> G_YEAR Or
+            CPPinland:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQinland
+        Begin
+        CPQinland:QUOTE_NO               = G_QUOTE_NO
+        CPQinland:PREM_NO                = CPPinland:PREM_NO
+        CPQinland:BUILD_NO               = CPPinland:BUILD_NO
+        CPQinland:sub_code               = cppinland:sub_code
+        CPQinland:RECORD_RDF             = CPPinland:RECORD_RDF/raw
+        End
+
+    Next CPPinland
+    End
+
+L_PROCEDURE = "cppimcov FILE UPDATE"
+
+Access CPPimcov, Set CPPimcov:POLICY_NO = G_POLICY_NO,
+                          CPPimcov:POL_YEAR = G_YEAR,
+                          CPPimcov:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPimcov:POLICY_NO <> G_POLICY_NO Or
+            CPPimcov:POL_YEAR <> G_YEAR Or
+            CPPimcov:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQimcov
+        Begin
+        CPQimcov:QUOTE_NO               = G_QUOTE_NO
+        CPQimcov:sub_code               = cppimcov:sub_code
+        CPQimcov:RECORD_RDF             = CPPimcov:RECORD_RDF/raw
+        End
+
+    Next CPPimcov
+    End
+
+L_PROCEDURE = "cppumuim FILE UPDATE"
+
+Access CPPumuim, Set CPPumuim:POLICY_NO = G_POLICY_NO,
+                          CPPumuim:POL_YEAR = G_YEAR,
+                          CPPumuim:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPumuim:POLICY_NO <> G_POLICY_NO Or
+            CPPumuim:POL_YEAR <> G_YEAR Or
+            CPPumuim:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQumuim
+        Begin
+        CPQumuim:QUOTE_NO               = G_QUOTE_NO
+        CPQumuim:PREM_NO                = CPPumuim:PREM_NO
+        CPQumuim:BUILD_NO               = CPPumuim:BUILD_NO
+        cpqumuim:sub_code               = cppumuim:sub_code
+        CPQumuim:RECORD_RDF             = CPPumuim:RECORD_RDF/raw
+        End
+
+    Next CPPumuim
+    End
+
+Update
+
+Errors
+Writefile("cppcv200.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv200.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv200.err","%s<nl>",L_PROCEDURE)
+
+End

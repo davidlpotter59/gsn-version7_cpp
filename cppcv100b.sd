@@ -1,0 +1,336 @@
+%%
+Program
+        Name = "cppcv100b" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4] ,
+                                     G_END_SEQUENCE[4] ,
+                                     G_YEAR_1[4],
+                                     G_END_SEQUENCE_1[4] ,
+                                     G_TRANS_CODE[4] ,
+                                     g_prem_no[4],
+                                     g_build_no[4];
+
+        Local String L_PROCEDURE[50] ,
+                     l_company_id[10],
+                     l_code[7],
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_form_edition[25],
+                     l_description[75],
+                     l_add_endorsement[1],
+                     l_desc[50];
+
+        local unsigned ascii number l_sub_code[4],
+                                    l_state[2],
+                                    l_mcp140_limit[8],
+                                    l_line_of_business[4] ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_YEAR_1 = Val(COMMANDLINE[21,24])
+G_END_SEQUENCE_1 = Val(COMMANDLINE[26,29])
+G_TRANS_CODE = Val(COMMANDLINE[31,34])
+
+do access_cpstransitional
+
+Update
+
+Errors
+Writefile("cppcv100.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv100.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv100.err","%s<nl>",L_PROCEDURE)
+
+procedure definition
+
+procedure access_cpstransitional
+begin
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+access cppgeneral, set cppgeneral:policy_no    = g_policy_no,
+                       cppgeneral:pol_year     = g_year_1,
+                       cppgeneral:end_sequence = g_end_sequence_1, generic
+
+while cppgeneral:policy_no    = g_policy_no and
+      cppgeneral:pol_year     = g_year_1 and
+      cppgeneral:end_sequence = g_end_sequence_1
+        begin
+        l_desc             = cppgeneral:description
+        l_company_id       = sfpname:company_id
+        l_state            = cppgeneral:state
+        l_line_of_business = sfsline:rating_line_of_business
+        Access CPSTRANSITIONAL_ALIAS, Set CPSTRANSITIONAL_ALIAS:COMPANY_ID       = L_COMPANY_ID,
+                                          CPSTRANSITIONAL_ALIAS:STATE            = L_STATE,
+                                          CPSTRANSITIONAL_ALIAS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                          CPSTRANSITIONAL_ALIAS:ALPHA_LOOK       = l_desc, Approximate
+
+        change cppgeneral
+            begin
+            cppgeneral:dont_inspect = cpstransitional_alias:dont_inspect
+            end
+
+        do access_cpstrigger
+
+        next cppgeneral
+        end
+
+end
+
+procedure access_cpstrigger
+begin
+/*access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access cppgeneral, set cppgeneral:policy_no    = g_policy_no,
+                       cppgeneral:pol_year     = g_year_1,
+                       cppgeneral:end_sequence = g_end_sequence_1, generic
+
+while cppgeneral:policy_no    = g_policy_no and
+      cppgeneral:pol_year     = g_year_1 and
+      cppgeneral:end_sequence = g_end_sequence_1
+        begin*/
+        g_prem_no          = cppgeneral:prem_no
+        g_build_no         = cppgeneral:build_no
+--        l_company_id       = sfpname:company_id
+--        l_state            = cppgeneral:state
+--        l_line_of_business = sfsline:rating_line_of_business
+        Access CPSTRIGGER, Set CPSTRIGGER:COMPANY_ID       = L_COMPANY_ID,
+                               CPSTRIGGER:STATE            = L_STATE,
+                               CPSTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While CPSTRIGGER:COMPANY_ID       = L_COMPANY_ID And
+              CPSTRIGGER:STATE            = L_STATE And
+              CPSTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSTRIGGER:EFF_DATE Then
+                Begin
+                l_code_1 = cpstrigger:code_1[2] -- mcp550
+                End
+
+            Next CPSTRIGGER
+            End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:dont_inspect = 0 and
+                cppgeneral:file_no = "" Then
+                Do ADD_sfpEND
+            If ((L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:dont_inspect = 1) or
+               (l_add_endorsement = "N" and
+               cppgeneral:file_no <> "")) Then
+                Do DELETE_sfpEND
+            End
+
+--        next cppgeneral
+--        end
+
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+access cppgeneral, set cppgeneral:policy_no    = g_policy_no,
+                       cppgeneral:pol_year     = g_year_1,
+                       cppgeneral:end_sequence = g_end_sequence_1, generic
+
+while cppgeneral:policy_no    = g_policy_no and
+      cppgeneral:pol_year     = g_year_1 and
+      cppgeneral:end_sequence = g_end_sequence_1
+        begin
+        g_prem_no          = cppgeneral:prem_no
+        g_build_no         = cppgeneral:build_no
+        l_company_id       = sfpname:company_id
+        l_state            = cppgeneral:state
+        l_line_of_business = sfsline:rating_line_of_business
+        Access CPSTRIGGER, Set CPSTRIGGER:COMPANY_ID       = L_COMPANY_ID,
+                               CPSTRIGGER:STATE            = L_STATE,
+                               CPSTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While CPSTRIGGER:COMPANY_ID       = L_COMPANY_ID And
+              CPSTRIGGER:STATE            = L_STATE And
+              CPSTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSTRIGGER:EFF_DATE Then
+                Begin
+                l_code_2 = cpstrigger:code_2[1] -- mcp140
+                End
+
+            Next CPSTRIGGER
+            End
+
+        If L_CODE_2 <> "" and
+           sfpname:company_id = "FARMERS" Then
+            Begin
+            L_CODE = L_CODE_2
+            g_prem_no  = cppgeneral:prem_no
+            g_build_no = cppgeneral:build_no
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+                begin
+                Do ADD_sfpEND
+                do add_cppendorse
+                end
+            End
+
+        next cppgeneral
+        end
+
+end
+
+Procedure ADD_cppendorse
+Begin
+Add cppendorse
+    Begin
+    cppendorse:policy_NO                  =       G_policy_NO
+    cppendorse:pol_year                   =       g_year_1
+    cppendorse:end_sequence               =       g_end_sequence_1
+    cppendorse:PREM_NO                    =       G_prem_no
+    cppendorse:BUILD_NO                   =       G_build_no
+    cppendorse:code                       =       l_code
+    cppendorse:sub_code                   =       10
+    cppendorse:LIMIT[1]                   =       l_mcp140_limit
+    End
+
+End
+
+Procedure ADD_cppendorse_1
+Begin
+Add cppendorse
+    Begin
+    cppendorse:policy_NO                  =       G_policy_NO
+    cppendorse:pol_year                   =       g_year_1
+    cppendorse:end_sequence               =       g_end_sequence_1
+    cppendorse:PREM_NO                    =       0
+    cppendorse:BUILD_NO                   =       0
+    cppendorse:code                       =       l_code
+    cppendorse:sub_code                   =       10
+    cppendorse:LIMIT[1]                   =       l_mcp140_limit
+    End
+
+End
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year_1,
+                   sfpend:end_sequence = g_end_sequence_1,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year_1 or
+            sfpend:end_Sequence <> g_end_sequence_1 or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year_1,
+                   sfpend:end_sequence = g_end_sequence_1,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year_1 or
+            sfpend:end_Sequence <> g_end_sequence_1 or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = L_COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> L_COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        l_mcp140_limit = sfsoptend:limit[1]
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year_1
+    sfpend:end_sequence         =       g_end_sequence_1
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "P"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year_1,
+                   sfpend:end_sequence = g_end_sequence_1,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year_1 or
+            sfpend:end_Sequence <> g_end_sequence_1 or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

@@ -1,0 +1,129 @@
+%%
+Screen
+        Name = "cppmt715" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Rental Reimbursement - Ver 7.00     %m" ;
+        Domain = "cppendorse1" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_sub_code[4] ;
+        global unsigned ascii number g_state[2] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0 ;
+
+        Access cppendorse1, Set cppendorse1:policy_NO    = G_policy_NO ,
+                                cppendorse1:pol_Year     = g_year,
+                                cppendorse1:end_sequence = g_End_sequence,
+                                cppendorse1:PREM_NO      = G_PREM_NO ,
+                                cppendorse1:BUILD_NO     = G_BUILD_NO ,
+                                cppendorse1:CODE         = G_CODE ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppendorse1:policy_NO    <> G_policy_NO Or
+   cppendorse1:pol_Year     <> g_year or
+   cppendorse1:end_sequence <> g_end_sequence or
+   cppendorse1:PREM_NO      <> G_PREM_NO Or
+   cppendorse1:BUILD_NO     <> G_BUILD_NO Or
+   cppendorse1:CODE         <> G_CODE Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| The most "we" pay for rental reimbursement expenses is: __________           |
+| Waiting Period: ______                                                       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse1:policy_NO = G_policy_NO
+            cppendorse1:pol_Year = g_year
+            cppendorse1:end_sequence = g_end_sequence
+            cppendorse1:PREM_NO  = G_PREM_NO
+            cppendorse1:BUILD_NO = G_BUILD_NO
+            cppendorse1:CODE     = G_CODE
+            Do SUBCODE
+            cppendorse1:SUB_CODE = L_SUB_CODE
+            cppendorse1:state    = g_state
+            g_sub_code           = cppendorse1:sub_code
+            cppendorse1:rating_line_of_business = 0008
+            End
+        End
+        cppendorse1:limit[1] ;
+401     cppendorse1:hours[1] ;
+
+}
+
+screen exit
+g_sub_code = cppendorse1:sub_code ;
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppendorse1_ALIAS, Set cppendorse1_ALIAS:policy_NO = G_policy_NO,
+                              cppendorse1_alias:pol_year = g_year,
+                              cppendorse1_alias:end_sequence = g_end_sequence,
+                              cppendorse1_ALIAS:PREM_NO  = G_PREM_NO,
+                              cppendorse1_ALIAS:BUILD_NO = G_BUILD_NO,
+                              cppendorse1_ALIAS:CODE     = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppendorse1_ALIAS:policy_NO = G_policy_NO And
+      cppendorse1_alias:pol_year = g_year and
+      cppendorse1_alias:end_sequence = g_end_sequence and
+      cppendorse1_ALIAS:PREM_NO  = G_PREM_NO And
+      cppendorse1_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppendorse1_ALIAS:CODE     = G_CODE
+        Begin
+        L_SUB_CODE = cppendorse1_ALIAS:SUB_CODE
+
+        Next cppendorse1_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

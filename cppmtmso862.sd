@@ -1,0 +1,152 @@
+%%
+Screen
+        Name            = "cppmtmso862" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppendorse" ;
+        Windowtitle = "%a     %s Endorsement   Ver 7.00  %m" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4] ;
+        global unsigned ascii number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        global string g_code[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO = G_PREM_NO ,
+               cppendorse:BUILD_NO = G_BUILD_NO ,
+               cppendorse:code = g_code ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+Access Validation
+If cppendorse:policy_NO <> G_policy_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:PREM_NO <> G_PREM_NO Or
+   cppendorse:BUILD_NO <> G_BUILD_NO or
+   cppendorse:code <> g_code Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Limits of Liability            Premium Basis            Estimated Premium    |
+|                                                                              |
+| Each Claim: __________         No of Condo Units: ____     ____________      |
+|                                                                              |
+| Aggregate:  __________                                                       |
+|                                                                              |
+| Deductible: _____                                                            |
+|                                                                              |
+| Retro Date: __________                                                       |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext  ;
+501     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:policy_NO = G_policy_NO
+            cppendorse:pol_Year = g_year
+            cppendorse:end_sequence = g_End_sequence
+            cppendorse:PREM_NO = G_PREM_NO
+            cppendorse:BUILD_NO = G_BUILD_NO
+            cppendorse:code = g_code
+            Do SUBCODE
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppendorse:limit[1] ;
+502     cppendorse:no_employees ;
+503     cppendorse:premium[1] ;
+701     cppendorse:limit[2] ;
+901     cppendorse:deductible[1] ;
+1101    cppendorse:eff_date ;
+
+}
+
+}
+
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppendorse_ALIAS, Set cppendorse_ALIAS:policy_NO = cppendorse:policy_NO,
+                             cppendorse_alias:pol_year = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             cppendorse_ALIAS:PREM_NO = cppendorse:PREM_NO,
+                             cppendorse_ALIAS:BUILD_NO = cppendorse:BUILD_NO,
+                             cppendorse_alias:code = cppendorse:code, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If cppendorse_ALIAS:policy_NO <> cppendorse:policy_NO Or
+            cppendorse_alias:pol_year <> cppendorse:pol_year or
+            cppendorse_alias:end_Sequence <> cppendorse:end_sequence or
+            cppendorse_ALIAS:PREM_NO <> cppendorse:PREM_NO Or
+            cppendorse_ALIAS:BUILD_NO <> cppendorse:BUILD_NO or
+            cppendorse_alias:code <> cppendorse:code
+
+    L_SUB_CODE = cppendorse_ALIAS:SUB_CODE
+
+    Next cppendorse_ALIAS
+    End
+
+cppendorse:SUB_CODE = L_SUB_CODE + 10
+
+End
+
+End

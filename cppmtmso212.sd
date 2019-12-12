@@ -1,0 +1,89 @@
+%%
+Screen
+        Name            = "cppmtmso212";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Signs Construction   Ver 7.0  %m";
+        Domain          = "cppPROPERTY" ;
+        iconline        =0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries boqisolib boqmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_prem_no[4],
+                                     g_build_no[4] ;
+
+        Access cppproperty, Set cppproperty:policy_NO = G_policy_NO ,
+                                cppproperty:pol_year = g_year,
+                                cppproperty:end_sequence = g_end_sequence,
+                                cppproperty:prem_no = g_prem_no,
+                                cppproperty:build_no = g_build_no ;
+
+        Include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Entirely metal including frame and supports: _                               |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppproperty:signs_metal/checkbox/values="0,1" ;
+
+}
+
+}
+
+End

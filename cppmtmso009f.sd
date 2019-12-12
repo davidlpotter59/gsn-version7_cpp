@@ -1,0 +1,208 @@
+%%
+Screen
+        Name = "cppmtmso009f" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s No Autos - Ver. 7.00     %m" ;
+        Domain = "cppumbrella" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_state[2],
+                                     g_line_of_business[4] ;
+
+        Local Unsigned Ascii Number L_TYPE[1]=0 ,
+                                    L_FACTOR[4]=0/dec=2,
+                                    L_STATE[2]=0,
+                                    L_SUB_CODE[4]=0,
+                                    L_UM_UIM_SURCHARGE[3]=0,
+                                    l_line_of_business[4]=0,
+                                    l_ppt[4]=0,
+                                    l_lt[4]=0,
+                                    l_mt[4]=0,
+                                    l_ht[4]=0,
+                                    l_xht[4]=0,
+                                    L_LIMIT_1[8]=0,
+                                    L_LIMIT_2[8]=0 ;
+
+        Local String L_TABLE[1]="" ,
+                     l_coverage[1]="A";
+
+        Access cppumbrella,
+           Set cppumbrella:policy_NO    = G_policy_NO ,
+               cppumbrella:pol_year     = g_year,
+               cppumbrella:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+screen entry
+disable(add_fn)
+disable(delete_fn)
+
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpamt, set sfpamt:policy_no    = g_policy_no,
+                       sfpamt:pol_year     = g_year,
+                       sfpamt:end_sequence = g_end_sequence, generic
+
+    g_line_of_business = sfpamt:line_of_business[4]
+    end
+else
+    begin
+    g_line_of_business = sfpname:line_of_business
+    end
+
+access validation
+if cppumbrella:policy_no <> g_policy_no or
+   cppumbrella:pol_year <> g_year or
+   cppumbrella:end_sequence <> g_end_sequence then
+    error 1000
+
+screen
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+*------------------------------------------------------------------------------*
+| Type                  No of Autos               Premium                      |
+*------------------------------------------------------------------------------*
+| PPT                      __                      _____                       |
+| LT                       __                      _____                       |
+| MT                       __                      _____                       |
+| HT                       __                      _____                       |
+| XHT                      __                      _____                       |
+*------------------------------------------------------------------------------*
+| Total Minimum Premium:                         _______                       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppumbrella:policy_NO/displayonly ;
+302     cppumbrella:pol_year/displayonly ;
+303     cppumbrella:end_sequence/displayonly ;
+
+701     cppumbrella:no_autos[1] ;
+702     begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            do get_auto_mp
+            cppumbrella:no_autos_mp[1] = cppumbrella:no_autos[1] *
+                                         l_ppt
+            end
+        end
+        cppumbrella:no_autos_mp[1]/displayonly ;
+
+801     cppumbrella:no_autos[2] ;
+802     begin
+        if function one of "ADD", "CHANGE" then
+            cppumbrella:no_autos_mp[2] = cppumbrella:no_autos[2] *
+                                         l_lt
+        end
+        cppumbrella:no_autos_mp[2]/displayonly ;
+
+901     cppumbrella:no_autos[3] ;
+902     begin
+        if function one of "ADD", "CHANGE" then
+            cppumbrella:no_autos_mp[3] = cppumbrella:no_autos[3] *
+                                         l_mt
+        end
+        cppumbrella:no_autos_mp[3]/displayonly ;
+
+1001    cppumbrella:no_autos[4];
+1002    begin
+        if function one of "ADD", "CHANGE" then
+            cppumbrella:no_autos_mp[4] = cppumbrella:no_autos[4] *
+                                         l_ht
+        end
+        cppumbrella:no_autos_mp[4]/displayonly ;
+
+1101    cppumbrella:no_autos[5];
+1102    begin
+        if function one of "ADD", "CHANGE" then
+            cppumbrella:no_autos_mp[5] = cppumbrella:no_autos[5] *
+                                         l_xht
+        end
+        cppumbrella:no_autos_mp[5]/displayonly ;
+
+1301    begin
+        if function one of "ADD", "CHANGE" then
+            cppumbrella:autos_minimum_premium = cppumbrella:no_autos_mp[1] +
+                                                cppumbrella:no_autos_mp[2] +
+                                                cppumbrella:no_autos_mp[3] +
+                                                cppumbrella:no_autos_mp[4] +
+                                                cppumbrella:no_autos_mp[5]
+        end
+        cppumbrella:autos_minimum_premium/displayonly ;
+}
+
+procedure definition
+
+procedure get_auto_mp
+begin
+access cpsumautomp, set cpsumautomp:company_id       = sfpname:company_id,
+                        cpsumautomp:state            = cppumbrella:state,
+                        cpsumautomp:line_of_business = sfpname:line_of_business,
+                        cpsumautomp:county           = cppumbrella:county, generic
+
+while cpsumautomp:company_id       = sfpname:company_id and
+      cpsumautomp:state            = cppumbrella:state and
+      cpsumautomp:line_of_business = sfpname:line_of_business and
+      cpsumautomp:county           = cppumbrella:county
+        begin
+        if (sfpname:eff_date >= cpsumautomp:eff_date and
+           (sfpname:eff_date <= cpsumautomp:exp_date or
+           cpsumautomp:exp_date = 0)) then
+            begin
+            l_ppt = cpsumautomp:minimum_premium[1]
+            l_lt  = cpsumautomp:minimum_premium[2]
+            l_mt  = cpsumautomp:minimum_premium[3]
+            l_ht  = cpsumautomp:minimum_premium[4]
+            l_xht = cpsumautomp:minimum_premium[5]
+            end
+
+        next cpsumautomp
+        end
+
+end
+
+End

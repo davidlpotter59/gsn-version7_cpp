@@ -1,0 +1,213 @@
+%%
+Screen
+        Name            = "cppmtmso001f" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle= "%a     %s Reinsurance Premium Detail    Ver 7.00  %m" ;
+        Domain          = "sfpREINS" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        local unsigned ascii number l_end_sequence[4] ,
+                                    l_short_rate[4]=0/dec=2 ;
+
+        local date i_eff_date[8] ;
+
+        local signed ascii number l_pro_rata[4] ;
+
+        include "prorata.var"
+
+        Access sfpREINS,
+           Set sfpREINS:policy_NO = G_policy_NO ,
+               sfpreins:pol_year = g_year,
+               sfpreins:end_sequence = g_end_sequence ;
+
+        Include "INQKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "inqfunc7.inc"
+
+menu definition
+
+--        include "stdmenu7.inc"
+
+--}
+
+toolbar definition
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Access Validation
+If sfpREINS:policy_NO <> G_policy_NO or
+   sfpreins:pol_year <> g_year or
+   sfpreins:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                       Pro Rata:  __________ |
+*------------------------------------------------------------------------------*
+|                          Previous      Current      Difference     Unearned  |
+|~Fire Subline:           __________    __________    __________    __________ |
+|~EC/VMM Subline:         __________    __________    __________    __________ |
+|~Other Subline:          __________    __________    __________    __________ |
+|~Crime Subline:          __________    __________    __________    __________ |
+|~Glass Subline:          __________    __________    __________    __________ |
+|~Inland Marine Subline:  __________    __________    __________    __________ |
+|~IRPM Subline:           __________    __________    __________    __________ |
+*------------------------------------------------------------------------------*
+|~Total Premium:          __________    __________    __________    __________ |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     sfpREINS:policy_NO/displayonly  ;
+302     sfpreins:pol_year/displayonly ;
+303     sfpreins:end_sequence/displayonly ;
+
+601     begin
+        l_end_sequence = sfpreins:end_sequence - 1
+        access sfpreins_alias, set sfpreins_alias:policy_no = sfpreins:policy_no,
+                                   sfpreins_alias:pol_Year  = sfpreins:pol_year,
+                                   sfpreins_alias:end_sequence = l_end_sequence, generic
+        end
+        sfpREINS_alias:total_premium[1]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+701     sfpreins_alias:total_premium[2]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+801     sfpreins_alias:total_premium[3]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+901     sfpreins_alias:total_premium[4]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1001    sfpreins_alias:total_premium[5]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1101    sfpreins_alias:total_premium[6]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1201    sfpreins_alias:total_premium[7]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1401    sfpreins_alias:reins_premium/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+
+602     sfpREINS:total_premium[1]/displayonly ;
+702     sfpreins:total_premium[2]/displayonly ;
+802     sfpreins:total_premium[3]/displayonly ;
+902     sfpreins:total_premium[4]/displayonly ;
+1002    sfpreins:total_premium[5]/displayonly ;
+1102    sfpreins:total_premium[6]/displayonly ;
+1202    sfpreins:total_premium[7]/displayonly ;
+1402    sfpreins:reins_premium/displayonly ;
+
+603     begin
+        l_end_sequence = sfpreins:end_sequence - 1
+        access sfpreins_alias, set sfpreins_alias:policy_no = sfpreins:policy_no,
+                                   sfpreins_alias:pol_Year  = sfpreins:pol_year,
+                                   sfpreins_alias:end_sequence = l_end_sequence, generic
+        end
+        sfpREINS:total_premium[1] - sfpreins_alias:total_premium[1]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+703     sfpreins:total_premium[2] - sfpreins_alias:total_premium[2]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+803     sfpreins:total_premium[3] - sfpreins_alias:total_premium[3]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+903     sfpreins:total_premium[4] - sfpreins_alias:total_premium[4]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1003    sfpreins:total_premium[5] - sfpreins_alias:total_premium[5]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1103    sfpreins:total_premium[6] - sfpreins_alias:total_premium[6]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1203    sfpreins:total_premium[7] - sfpreins_alias:total_premium[7]/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+1403    sfpreins:reins_premium    - sfpreins_alias:reins_premium/displayonly
+        hide if sfpmaster:trans_code one of 14 ;
+
+604     begin
+        l_end_sequence = sfpreins:end_sequence - 1
+        access sfpreins_alias, set sfpreins_alias:policy_no = sfpreins:policy_no,
+                                   sfpreins_alias:pol_Year  = sfpreins:pol_year,
+                                   sfpreins_alias:end_sequence = l_end_sequence, generic
+        do pro_rata
+        end
+        ((sfpREINS:total_premium[1] -
+        sfpreins_alias:total_premium[1]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+704     ((sfpreins:total_premium[2] -
+        sfpreins_alias:total_premium[2]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+804     ((sfpreins:total_premium[3] -
+        sfpreins_alias:total_premium[3]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+904     ((sfpreins:total_premium[4] -
+        sfpreins_alias:total_premium[4]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+1004    ((sfpreins:total_premium[5] -
+        sfpreins_alias:total_premium[5]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+1104    ((sfpreins:total_premium[6] -
+        sfpreins_alias:total_premium[6]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+1204    ((sfpreins:total_premium[7] -
+        sfpreins_alias:total_premium[7]) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+1404    ((sfpreins:reins_premium -
+        sfpreins_alias:reins_premium) *
+        i_pro_rata)/displayonly/mask="ZZZZZZZ9-"
+        hide if sfpmaster:trans_code one of 14 ;
+304     i_pro_rata/displayonly ;
+
+
+}
+
+}
+
+procedure definition
+
+Procedure PRO_RATA
+Begin
+I_EFF_DATE = Dateadd(SFPMASTER:TRANS_EXP,0,-1)
+I_SHORT_RATE = SFPMASTER:SHORT_RATE
+I_TOTAL_DAYS = I_EFF_DATE - SFPMASTER:TRANS_EXP
+I_CX_DAYS = I_EFF_DATE - SFPMASTER:TRANS_EFF
+
+Include "prorata.pro"
+
+/* end of pro_rata */
+End
+
+End

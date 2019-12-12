@@ -1,0 +1,192 @@
+%%
+Screen
+        Name            = "CPPMTMSO399" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlight       = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPBUSINESS";
+        Windowtitle = "%a     %s Business Income Final Rating   Ver 7.0  %m" ;
+        iconline        = 0;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Access CPPBUSINESS, Set CPPBUSINESS:POLICY_NO = G_POLICY_NO,
+                                CPPBUSINESS:POL_YEAR = G_YEAR,
+                                CPPBUSINESS:END_SEQUENCE  = G_END_SEQUENCE, Generic
+
+        Include "STDKEYS7.INC"
+--        !F8="Down"/function/icon="Factor" ;
+  --      !F11="G"/function/icon="Dev" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "Down" Display "cppmtmso398" ;
+        "G"    Display "cppmtmso396" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPBUSINESS:POLICY_NO <> G_POLICY_NO Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:    __ ____________________                                        |
+*------------------------------------------------------------------------------*
+| Peril           Rate          BI            Adj           Premium            |
+|                             Factor         Rate                              |
+*------------------------------------------------------------------------------*
+| FIRE:          _______      ______        ______         __________          |
+| EC:            _______      ______        ______         __________          |
+| VMM:           _______      ______        ______         __________          |
+| AOP:           _______      ______        ______         __________          |
+| SL:            _______      ______        ______         __________          |
+| Boiler:                                                  __________          |
+|                                                                              |
+|                                        Total Premium:    __________          |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPBUSINESS:POLICY_NO/displayonly  ;
+302     CPPBUSINESS:POL_YEAR/displayonly;
+303     CPPBUSINESS:END_SEQUENCE/displayonly;
+401     CPPBUSINESS:PREM_NO/displayonly ;
+501     CPPBUSINESS:BUILD_NO/displayonly ;
+
+-- Fire
+1101    Begin
+        Access CPPBUSINESS_ALIAS, Set CPPBUSINESS_ALIAS:POLICY_NO = CPPBUSINESS:POLICY_NO,
+                                      CPPBUSINESS_ALIAS:POL_YEAR = CPPBUSINESS:POL_YEAR,
+                                      CPPBUSINESS_ALIAS:END_SEQUENCE = CPPBUSINESS:END_SEQUENCE,
+                                      CPPBUSINESS_ALIAS:PREM_NO = CPPBUSINESS:PREM_NO,
+                                      CPPBUSINESS_ALIAS:BUILD_NO = CPPBUSINESS:BUILD_NO, Generic
+
+        if cppgeneral:blanket = 0 then
+            begin
+            access cppgeneral, set cppgeneral:policy_no = cppbusiness:policy_no,
+                                   cppgeneral:pol_year = cppbusiness:pol_year,
+                                   cppgeneral:end_sequence = cppbusiness:end_sequence,
+                                   cppgeneral:prem_no = cppbusiness:prem_no,
+                                   cppgeneral:build_no = cppbusiness:Build_no, generic
+            end
+        else
+            begin
+            access cppgeneral, set cppgeneral:policy_no = cppbusiness:policy_no,
+                                   cppgeneral:pol_year = cppbusiness:pol_year,
+                                   cppgeneral:end_sequence = cppbusiness:end_sequence, generic
+            end
+        End
+        CPPBUSINESS_ALIAS:BASE_RATE[1]/displayonly ;
+1102    CPPBUSINESS_ALIAS:BI_FACTOR[1]/displayonly ;
+1103    CPPBUSINESS_ALIAS:ADJ_RATE[1]/displayonly ;
+1104    CPPBUSINESS_ALIAS:BI_PREMIUM[1]/displayonly  ;
+
+-- EC
+1201    CPPBUSINESS_ALIAS:BASE_RATE[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1;
+1202    CPPBUSINESS_ALIAS:BI_FACTOR[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1;
+1203    CPPBUSINESS_ALIAS:ADJ_RATE[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+1204    CPPBUSINESS_ALIAS:BI_PREMIUM[2]/displayonly
+        Hide If CPPGENERAL:FORM = 1 ;
+
+-- VMM
+1301    CPPBUSINESS_ALIAS:BASE_RATE[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1302    CPPBUSINESS_ALIAS:BI_FACTOR[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1303    CPPBUSINESS_ALIAS:ADJ_RATE[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+1304    CPPBUSINESS_ALIAS:BI_PREMIUM[3]/displayonly
+        Hide If CPPGENERAL:FORM = 1
+        Hide If CPPEXCLUSIONS:EXCLUDE_VANDALISM = 1 ;
+
+-- AOP
+1401    CPPBUSINESS_ALIAS:BASE_RATE[4]/displayonly ;
+--        Hide If CPPGENERAL:FORM < 5 ;
+1402    CPPBUSINESS_ALIAS:BI_FACTOR[4]/displayonly ;
+--        Hide If CPPGENERAL:FORM < 5 ;
+1403    CPPBUSINESS_ALIAS:ADJ_RATE[4]/displayonly ;
+--        Hide If CPPGENERAL:FORM < 5 ;
+1404    CPPBUSINESS_ALIAS:BI_PREMIUM[4]/displayonly ;
+--        Hide If CPPGENERAL:FORM < 5;
+
+-- sprinkler leakage
+1501    CPPBUSINESS_ALIAS:BASE_RATE[5]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+1502    CPPBUSINESS_ALIAS:BI_FACTOR[5]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+1503    CPPBUSINESS_ALIAS:ADJ_RATE[5]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+1504    CPPBUSINESS_ALIAS:BI_PREMIUM[5]/displayonly
+        Hide If CPPGENERAL:SPRINKLER_LEAKAGE = 0 ;
+
+1601    CPPBUSINESS_ALIAS:BOILER_PREMIUM/displayonly ;
+
+-- final premium
+1801    CPPBUSINESS_ALIAS:TOTAL_PREMIUM/displayonly ;
+
+}
+
+}
+
+
+End

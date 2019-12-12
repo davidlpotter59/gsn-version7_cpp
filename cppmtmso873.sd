@@ -1,0 +1,173 @@
+%%
+Screen
+        Name = "cppmtmso873" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Premium - Ver. 7.00    %m" ;
+        Domain = "cppENDORSE" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+        Global Unsigned Ascii Number G_OPT[2] ;
+        Global Unsigned Ascii Number g_manual_premium[6] ;
+
+        Global String G_CODE[7] ;
+
+        Local string l_username[15],
+                     l_system_id[15] ;
+
+        local unsigned ascii number l_premium[6],
+                                    l_state[2] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO  = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE     = G_CODE ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+l_username      = username/spacefill
+l_system_id     = "cpp"/spacefill
+
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfssecurity_rating, set sfssecurity_rating:company_id = sfpname:company_id,
+                               sfssecurity_rating:user_id    = l_username,
+                               sfssecurity_rating:system_id  = l_system_id, generic
+
+if g_opt = 99 and
+   sfssecurity_rating:allow_to_change_in_inquiry = 0 then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_Year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO  <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE     <> G_CODE Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Premium: ___________                                                         |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+        if function one of "ADD" then
+            begin
+            access sfpname, set sfpname:policy_no = g_policy_no,
+                                sfpname:pol_year = g_year,
+                                sfpname:end_sequence = g_end_sequence, generic
+
+            access cppliability, set cppliability:policy_no = g_policy_no,
+                                      cppliability:pol_year = g_year,
+                                      cppliability:end_sequence = g_end_sequence, generic
+
+            l_state = cppliability:state
+            access sfsoptend, set sfsoptend:company_id = sfpname:company_id,
+                                  sfsoptend:state = l_state,
+                                  sfsoptend:line_of_business = sfpname:line_of_business,
+                                  sfsoptend:code = g_code, generic
+
+            l_premium = 0
+            while sfsoptend:company_id = sfpname:company_id and
+                  sfsoptend:state = l_state and
+                  sfsoptend:line_of_business = sfpname:line_of_business and
+                  sfsoptend:code = g_code
+                    begin
+                    if (sfpname:eff_date >= sfsoptend:eff_date and
+                       (sfpname:eff_date <= sfsoptend:exp_date or
+                       sfsoptend:exp_date = 0)) then
+                        l_premium = sfsoptend:premium_1[1]
+
+                    next sfsoptend
+                    end
+            cppendorse:total_premium = l_premium
+            end
+        end
+        cppENDORSE:total_PREMIUM/default
+        g_manual_premium = cppendorse:total_premium
+        access sfpend, set sfpend:policy_no = g_policy_no,
+                           sfpend:pol_year = g_year,
+                           sfpend:end_sequence = g_end_sequence, generic
+
+        while sfpend:policy_no = g_policy_no and
+              sfpend:pol_Year = g_year and
+              sfpend:end_sequence = g_end_sequence
+        begin
+        if sfpend:code = g_code then
+            begin
+            change sfpend
+                begin
+                sfpend:manual_premium = cppendorse:total_premium
+                sfpend:lob_end_code   = "L"
+                end
+            end
+
+        next sfpend
+        end ;
+
+
+
+}
+
+Assignments
+If FUNCTION = "ADD" Then
+    Begin
+    cppENDORSE:policy_NO = G_policy_NO
+    cppendorse:pol_year = g_year
+    cppendorse:end_sequence = g_end_sequence
+    cppENDORSE:PREM_NO  = G_PREM_NO
+    cppENDORSE:BUILD_NO = G_BUILD_NO
+    cppENDORSE:CODE     = G_CODE
+    cppENDORSE:SUB_CODE = 10
+    End
+
+End

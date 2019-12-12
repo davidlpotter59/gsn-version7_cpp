@@ -1,0 +1,161 @@
+%%
+Screen
+        Name            = "cppmtmso204" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Protective Systems   Ver 7.0  %m" ;
+        Domain          = "CPPPROTECT" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4];
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_RATE_TYPE[2] ;
+
+        Access CPPPROTECT,
+           Set CPPPROTECT:POLICY_NO = G_POLICY_NO ,
+               CPPPROTECT:POL_YEAR = G_YEAR,
+               CPPPROTECT:END_SEQUENCE = G_END_SEQUENCE,
+               CPPPROTECT:PREM_NO = G_PREM_NO ,
+               CPPPROTECT:BUILD_NO = G_BUILD_NO ,
+               CPPPROTECT:RATE_TYPE = G_RATE_TYPE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+Access Validation
+If CPPPROTECT:POLICY_NO <> G_POLICY_NO Or
+   CPPPROTECT:POL_YEAR <> G_YEAR Or
+   CPPPROTECT:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPPROTECT:PREM_NO <> G_PREM_NO Or
+   CPPPROTECT:BUILD_NO <> G_BUILD_NO Or
+   CPPPROTECT:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+| Rate Type:    __                                                             |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPPROTECT:POLICY_NO = G_POLICY_NO
+            CPPPROTECT:POL_YEAR = G_YEAR
+            CPPPROTECT:END_SEQUENCE = G_END_SEQUENCE
+            CPPPROTECT:PREM_NO = G_PREM_NO
+            CPPPROTECT:BUILD_NO = G_BUILD_NO
+            CPPPROTECT:RATE_TYPE = G_RATE_TYPE
+            End
+        End
+        CPPPROTECT:POLICY_NO/displayonly ;
+302     CPPPROTECT:POL_YEAR/displayonly;
+303     CPPPROTECT:END_SEQUENCE/displayonly;
+401     CPPPROTECT:PREM_NO/displayonly ;
+501     CPPPROTECT:BUILD_NO/displayonly ;
+601     CPPPROTECT:RATE_TYPE/displayonly ;
+
+} -- end of header
+
+CardDialog GUI at 1,20
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Security"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+|                             Security Service                                 |
+|                                                                              |
+| Symbol:                [R _~W-1   _~W-2   _~W-3 R]                           |
+*------------------------------------------------------------------------------*
+%%
+
+Components
+
+fields
+401    CPPPROTECT:SECURITY_SYMBOL/values="W-1,W-2,W-3" ;
+
+} -- end of security
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Burglar"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+|                              Burglar Alarm                                   |
+|                                                                              |
+| Symbol:                [R _~C     _~K     _~LR]                              |
+| Installation No:       [R _~1     _~2     _~3R]                              |
+| Grade:                 [R _~A     _~B     _~CR]                              |
+*------------------------------------------------------------------------------*
+| Entire premises is protected by Security Service and a Burglar Alarm: _      |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+401    CPPPROTECT:BURGLAR_SYMBOL/values="C,K,L";
+501    CPPPROTECT:BURGLAR_INSTALL_NO/values="1,2,3";
+601    CPPPROTECT:BURGLAR_GRADE/values="A,B,C";
+801    CPPPROTECT:ENTIRE_PREMISES_PROTECTED/checkbox/values="0,1"
+        Hide If CPPPROTECT:SECURITY_SYMBOL = "" Or
+                CPPPROTECT:BURGLAR_SYMBOL = "" ;
+} -- end of burglar
+
+}
+
+}
+
+End

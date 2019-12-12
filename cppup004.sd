@@ -1,0 +1,580 @@
+%%
+Program
+        Name = "cppup004" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_quote_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_quote_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_SCREEN[11] ,
+                     L_COMPANY_ID[10] ,
+                     L_OUTSIZE[1]="N",
+                     L_TEMPERED[1] ,
+                     L_GLASS_BENT[1],
+                     L_GLASS_FLAT[1] ,
+                     L_CLASS[1] ,
+                     L_OBSTRUCTION_CLASS[1] ;
+
+        local signed ascii number l_package_mod[5]=0/dec=3,
+                                  l_deviation[5]=0/dec=3 ,
+                                  l_multi_loc[5]=0/dec=3,
+                                  l_exp_factor[5]=0/dec=3,
+                                  l_irpm_deviation[5]=0/dec=3 ;
+
+        Local Unsigned Ascii Number L_LENGTH[4]=0,
+                                    L_WIDTH[4]=0,
+                                    L_LENGTH_1[4]=0,
+                                    L_SQUARE_FEET[7]=0/decimals=3,
+                                    l_square_feet_1[7]=0/dec=3,
+                                    L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4],
+                                    L_BASE_RATE[7]=0/decimals=3 ,
+                                    L_STRUCTURAL_RATE[4]=0/decimals=3,
+                                    L_CLASS_E_RATE[5]=0/decimals=3,
+                                    L_CLASS_E_PER[4]=0,
+                                    L_HOTEL_MOTEL[5]=0/decimals=3 ,
+                                    L_HOTEL_MOTEL_PER[2]=0 ,
+                                    L_POSITION_USE[1]=0 ,
+                                    L_GLASS_POS_USE_FACTOR[5]=0/decimals=3 ,
+                                    L_TERRITORY[3]=0,
+                                    L_TERRITORY_FACTOR[5]=0/decimals=3,
+                                    L_SUB[2]=0 ,
+                                    L_DEDUCTIBLE[5]=0,
+                                    L_DEDUCTIBLE_FACTOR[5]=0/decimals=4 ,
+                                    L_LOSS_FACTOR_1[4]=0/decimals=3 ,
+                                    L_LOSS_FACTOR_2[4]=0/decimals=3,
+                                    L_LOSS_LENGTH_1[3]=0,
+                                    L_LOSS_LENGTH_2[3]=0,
+                                    L_LOSS_WIDTH_1[3]=0,
+                                    L_LOSS_WIDTH_2[3]=0 ,
+                                    L_VACANCY_FACTOR[4]=0/decimals=3 ,
+                                    L_RETENTION_FACTOR[4]=0/decimals=3 ;
+
+        Local Array [15] Of Unsigned Ascii Number L_CONDITION[5]/decimals=3 ;
+
+        Local Wdate L_EFF_DATE ;
+
+Initialisation
+G_policy_NO = Val(COMMANDLINE[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+
+Do RATE_LOCATION
+
+Update
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+Access cppGLASS_ALIAS, Set cppGLASS_ALIAS:policy_NO = g_policy_NO,
+                           cppglass_alias:pol_year = g_year,
+                           cppglass_alias:end_sequence = g_end_sequence, Generic
+
+While cppGLASS_ALIAS:policy_NO = g_policy_NO and
+      cppglass_alias:pol_year = g_year and
+      cppglass_alias:end_sequence = g_end_sequence
+    Begin
+    Access cppGENERAL, Set cppGENERAL:policy_NO = cppGLASS_ALIAS:policy_NO,
+                           cppgeneral:pol_year = cppglass_alias:pol_year,
+                           cppgeneral:end_sequence = cppglass_alias:end_sequence,
+                           cppGENERAL:PREM_NO = cppGLASS_ALIAS:PREM_NO,
+                           cppGENERAL:BUILD_NO = cppGLASS_ALIAS:BUILD_NO, Generic
+
+    if cppgeneral:prem_no <> cppglass_alias:prem_no or
+       cppgeneral:build_no <> cppglass_alias:build_no then
+        begin
+        Access cppGENERAL, Set cppGENERAL:policy_NO = cppGLASS_ALIAS:policy_NO,
+                               cppgeneral:pol_year = cppglass_alias:pol_year,
+                               cppgeneral:end_sequence = cppglass_alias:end_sequence, generic
+
+        end
+
+    Access sfpNAME, Set sfpNAME:policy_NO = cppGLASS_ALIAS:policy_NO,
+                        sfpname:pol_year = cppglass_alias:pol_year,
+                        sfpname:end_Sequence = cppglass_alias:end_sequence, Generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+
+    access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+    do company_deviation
+    do package_mod
+
+    if sfscompany:boiler_rating <> 4 then
+        Do OUTSIZE
+    If cppGLASS_ALIAS:HOTELS_MOTELS = 1 Then
+        Begin
+        Do GET_RATE
+        Change cppGLASS_ALIAS
+            Begin
+            cppGLASS_ALIAS:GLASS_RATE = L_HOTEL_MOTEL * L_HOTEL_MOTEL_PER
+            End
+        End
+    Else
+    If cppGLASS_ALIAS:CLASS One Of "A", "B", "C", "D", "T" Then
+        Begin
+        Do BASE_RATE
+        Change cppGLASS_ALIAS
+            Begin
+            cppGLASS_ALIAS:GLASS_RATE = L_BASE_RATE
+            If cppGLASS_ALIAS:CLASS = "T" Then
+                cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS = L_TEMPERED
+            End
+        End
+    Else
+    If (cppGLASS_ALIAS:CLASS One Of "S" And
+       (cppGLASS_ALIAS:STRUCTURAL_FLAT[1] = 1 Or
+       cppGLASS_ALIAS:STRUCTURAL_BENT[1] = 1)) Then
+        Begin
+        Do BASE_RATE
+        Change cppGLASS_ALIAS
+            Begin
+            cppGLASS_ALIAS:GLASS_RATE = L_BASE_RATE
+            If cppGLASS_ALIAS:STRUCTURAL_FLAT[1] = 1 Then
+                cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS = L_GLASS_FLAT
+            If cppGLASS_ALIAS:STRUCTURAL_BENT[1] = 1 Then
+                cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS = L_GLASS_BENT
+            End
+        End
+    Else
+    If (cppGLASS_ALIAS:CLASS One Of "S" And
+       (cppGLASS_ALIAS:STRUCTURAL_FLAT[2] = 1 Or
+       cppGLASS_ALIAS:STRUCTURAL_BENT[2] = 1)) Then
+        Begin
+        Do GET_RATE
+        Change cppGLASS_ALIAS
+            Begin
+            cppGLASS_ALIAS:GLASS_RATE = L_STRUCTURAL_RATE *
+                                        cppGLASS_ALIAS:SQUARE_FEET
+            If cppGLASS_ALIAS:STRUCTURAL_FLAT[2] = 1 Then
+                cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS = L_GLASS_FLAT
+            If cppGLASS_ALIAS:STRUCTURAL_BENT[2] = 1 Then
+                cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS = L_GLASS_BENT
+            End
+        End
+    Else
+    If cppGLASS_ALIAS:CLASS One Of "E" Then
+        Begin
+        Do GET_RATE
+        Change cppGLASS_ALIAS
+            Begin
+            cppGLASS_ALIAS:GLASS_RATE = ((cppGLASS_ALIAS:LIMIT Divide
+                                        L_CLASS_E_PER) *
+                                        L_CLASS_E_RATE)
+            End
+        End
+
+    If cppGLASS_ALIAS:HOTELS_MOTELS = 0 Then
+        Begin
+        Do POSITION_USE
+        Do TERRITORY
+        Do SPECIAL_CONDITIONS
+        If cppGLASS_ALIAS:DEDUCTIBLE_PERCENT = 1 Then
+            Do PERCENT_DEDUCTIBLE
+        Else
+            Do DEDUCTIBLE
+        Do OPTIONAL_LOSS_PAYMENT
+        Do VACANCY
+        Do RETENTION
+        End
+    Else
+        Begin
+        Change cppGLASS_ALIAS
+            Begin
+            cppGLASS_ALIAS:POSITION_USE_FACTOR = 1.00
+            cppGLASS_ALIAS:TERRITORY_FACTOR = 1.00
+            L_SUB = 1
+            While L_SUB < 16
+                Begin
+                cppGLASS_ALIAS:SPECIAL_CONDITION_FACTOR[L_SUB] = 1.00
+                L_SUB = L_SUB + 1
+                End
+            cppGLASS_ALIAS:OBSTRUCTION_FACTOR = 1.00
+            cppGLASS_ALIAS:DEDUCTIBLE_FACTOR = 1.00
+            cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR = 1.0
+            cppGLASS_ALIAS:VACANCY_FACTOR = 1.00
+            cppGLASS_ALIAS:RETENTION_FACTOR = 1.00
+            End
+        End
+
+    Change cppGLASS_ALIAS
+        Begin
+        cppGLASS_ALIAS:MISC_FACTOR = cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR *
+                                     cppGLASS_ALIAS:VACANCY_FACTOR *
+                                     cppGLASS_ALIAS:RETENTION_FACTOR
+
+        L_SUB = 1
+        While L_SUB < 16
+            Begin
+            If L_SUB = 1 Then
+                cppGLASS_ALIAS:SPECIAL_FACTOR = cppGLASS_ALIAS:SPECIAL_CONDITION_FACTOR[1]
+            Else
+                cppGLASS_ALIAS:SPECIAL_FACTOR = cppGLASS_ALIAS:SPECIAL_CONDITION_FACTOR[L_SUB] *
+                                                cppGLASS_ALIAS:SPECIAL_FACTOR
+            L_SUB = L_SUB + 1
+            End
+
+        cppGLASS_ALIAS:SPECIAL_FACTOR = cppGLASS_ALIAS:SPECIAL_FACTOR *
+                                        cppGLASS_ALIAS:OBSTRUCTION_FACTOR
+
+        cppglass_alias:rating_Territory_factor = cppgeneral:rating_territory_factor
+        if cppglass_alias:rating_territory_factor = 0 then
+            cppglass_alias:rating_territory_factor = 1.00
+
+        if sfscompany:boiler_rating <> 4 then
+            begin
+            cppGLASS_ALIAS:ADJ_RATE = cppGLASS_ALIAS:GLASS_RATE *
+                                      cppGLASS_ALIAS:POSITION_USE_FACTOR *
+                                      cppGLASS_ALIAS:TERRITORY_FACTOR *
+                                      cppGLASS_ALIAS:SPECIAL_FACTOR *
+                                      cppGLASS_ALIAS:DEDUCTIBLE_FACTOR *
+                                      cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR *
+                                      cppGLASS_ALIAS:VACANCY_FACTOR *
+                                      cppGLASS_ALIAS:RETENTION_FACTOR *
+                                      l_PACKAGE_MOD *
+                                      l_DEVIATION *
+                                      cppglass_alias:rating_territory_factor
+
+            cppGLASS_ALIAS:GLASS_PREMIUM = cppGLASS_ALIAS:ADJ_RATE *
+                                           cppGLASS_ALIAS:NO_PLATES
+            end
+        else
+            begin
+            cppGLASS_ALIAS:ADJ_RATE = cppGLASS_ALIAS:GLASS_RATE *
+                                      cppGLASS_ALIAS:POSITION_USE_FACTOR *
+                                      cppGLASS_ALIAS:TERRITORY_FACTOR *
+                                      cppGLASS_ALIAS:SPECIAL_FACTOR *
+                                      cppGLASS_ALIAS:DEDUCTIBLE_FACTOR *
+                                      cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR *
+                                      cppGLASS_ALIAS:VACANCY_FACTOR *
+                                      cppGLASS_ALIAS:RETENTION_FACTOR *
+                                      l_PACKAGE_MOD *
+                                      l_deviation *
+                                      l_irpm_deviation
+
+            cppGLASS_ALIAS:GLASS_PREMIUM = cppGLASS_ALIAS:ADJ_RATE *
+                                           cppglass_alias:no_plates
+            end
+
+        End
+
+    Next cppGLASS_ALIAS
+    End
+
+End
+
+Procedure OUTSIZE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_SQUARE_FEET = cppGLASS_ALIAS:SQUARE_FEET
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_LENGTH = cppGLASS_ALIAS:LENGTH
+L_WIDTH = cppGLASS_ALIAS:WIDTH
+
+Include "cpsglassoutsize.pro"
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+access sfpname, set sfpname:policy_no = cppglass_alias:policy_no,
+                    sfpname:pol_year = cppglass_alias:pol_year,
+                    sfpname:end_sequence = cppglass_alias:end_sequence, generic
+
+access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                       cpsdefault:line_of_business = l_line_of_business, generic
+
+if cppgeneral:company_deviation[1] = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[1] <> 1.00 then
+        l_deviation = (1 + (cppgeneral:company_deviation[1] * 0.01))
+    else
+        l_deviation = cppgeneral:company_deviation[1]
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral:company_deviation[2] = 0 then
+        l_irpm_deviation = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[2] <> 1.00 then
+        l_irpm_deviation = (1 + (cppgeneral:company_deviation[2] * 0.01))
+    else
+        l_irpm_deviation = cppgeneral:company_deviation[2]
+
+    end
+else
+    l_irpm_deviation = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral:company_deviation[3] = 0 then
+        l_exp_factor = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[3] <> 1.00 then
+        l_exp_factor = (1 + (cppgeneral:company_deviation[3] * 0.01))
+    else
+        l_exp_factor = cppgeneral:company_deviation[3]
+
+    end
+else
+    l_exp_factor = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral:multi_location_credit = 0 then
+        l_multi_loc = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:multi_location_credit <> 1.00 then
+        l_multi_loc = (1 + (cppgeneral:multi_location_credit * 0.01))
+    else
+        l_multi_loc = cppgeneral:multi_location_credit
+
+    end
+else
+    l_multi_loc = 1.00
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+if cppgeneral:package_mod[1] = 0 then
+    begin
+    l_package_mod = 1.00
+    end
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:package_mod[1] <> 1.00 then
+        l_package_mod = (1 + (cppgeneral:package_mod[1] * 0.01))
+    else
+        l_package_mod = cppgeneral:package_mod[1]
+    end
+
+End
+
+Procedure BASE_RATE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_SQUARE_FEET = cppGLASS_ALIAS:SQUARE_FEET
+
+Include "cpsglassrate.pro"
+
+End
+
+Procedure GET_RATE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsglassrate1.pro"
+
+End
+
+Procedure POSITION_USE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_POSITION_USE = cppGLASS_ALIAS:POSITION_USE
+If cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS <> "" Then
+    L_CLASS = cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS
+Else
+    L_CLASS = cppGLASS_ALIAS:CLASS
+
+Include "cpsglassposuse.pro"
+
+Change cppGLASS_ALIAS
+    Begin
+    cppGLASS_ALIAS:POSITION_USE_FACTOR = L_GLASS_POS_USE_FACTOR
+    End
+
+End
+
+Procedure TERRITORY
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_TERRITORY = cppGLASS_ALIAS:TERRITORY
+If cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS <> "" Then
+    L_CLASS = cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS
+Else
+    L_CLASS = cppGLASS_ALIAS:CLASS
+
+Include "cpsglassterr.pro"
+
+Change cppGLASS_ALIAS
+    Begin
+    cppGLASS_ALIAS:TERRITORY_FACTOR = L_TERRITORY_FACTOR
+    End
+
+End
+
+Procedure SPECIAL_CONDITIONS
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsglasspec.pro"
+
+Access cppGLASSSPEC, Set cppGLASSSPEC:policy_NO = cppGLASS_ALIAS:policy_NO,
+                         cppglassspec:pol_year = cppglass_alias:pol_year,
+                         cppglassspec:end_sequence = cppglass_alias:end_sequence,
+                         cppGLASSSPEC:PREM_NO = cppGLASS_ALIAS:PREM_NO,
+                         cppGLASSSPEC:BUILD_NO = cppGLASS_ALIAS:BUILD_NO,
+                         cppGLASSSPEC:SUB_CODE = cppGLASS_ALIAS:SUB_CODE, Generic
+
+Change cppGLASS_ALIAS
+    Begin
+    L_SUB = 1
+    While L_SUB < 16
+        Begin
+        If cppGLASSSPEC:SPECIAL_CONDITION[L_SUB] = 1 Then
+            cppGLASS_ALIAS:SPECIAL_CONDITION_FACTOR[L_SUB] = L_CONDITION[L_SUB]
+        Else
+            cppGLASS_ALIAS:SPECIAL_CONDITION_FACTOR[L_SUB] = 1.00
+        L_SUB = L_SUB + 1
+        End
+    End
+
+Do GET_RATE
+Change cppGLASS_ALIAS
+    Begin
+    If cppGLASS_ALIAS:OBSTRUCTIONS = 1 Then
+        cppGLASS_ALIAS:OBSTRUCTION_FACTOR = L_CLASS_E_RATE
+    Else
+        cppGLASS_ALIAS:OBSTRUCTION_FACTOR = 1.00
+    End
+
+End
+
+Procedure PERCENT_DEDUCTIBLE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_DEDUCTIBLE = cppGLASS_ALIAS:DEDUCTIBLE
+
+Include "cpsglassdedp.pro"
+
+if l_deductible_factor = 0 then
+     l_deductible_factor = 1.00
+Change cppGLASS_ALIAS
+    Begin
+    cppGLASS_ALIAS:DEDUCTIBLE_FACTOR = L_DEDUCTIBLE_FACTOR
+    End
+
+End
+
+Procedure DEDUCTIBLE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_DEDUCTIBLE = cppGLASS_ALIAS:DEDUCTIBLE
+
+Include "cpsglassdeduct.pro"
+
+if l_deductible_factor = 0 then
+     l_deductible_factor = 1.00
+Change cppGLASS_ALIAS
+    Begin
+    cppGLASS_ALIAS:DEDUCTIBLE_FACTOR = L_DEDUCTIBLE_FACTOR
+    End
+
+End
+
+Procedure OPTIONAL_LOSS_PAYMENT
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsglassloss.pro"
+
+Change cppGLASS_ALIAS
+    Begin
+    If cppGLASS_ALIAS:LENGTH <= L_LOSS_LENGTH_1 And
+       cppGLASS_ALIAS:WIDTH <= L_LOSS_WIDTH_1 And
+       cppGLASS_ALIAS:OPTIONAL_LOSS_PAYMENT = 1 Then
+        cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR = L_LOSS_FACTOR_1
+    Else
+    If cppGLASS_ALIAS:LENGTH > L_LOSS_LENGTH_2 And
+       cppGLASS_ALIAS:WIDTH > L_LOSS_WIDTH_2 And
+       cppGLASS_ALIAS:OPTIONAL_LOSS_PAYMENT = 1Then
+        cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR = L_LOSS_FACTOR_2
+    Else
+        cppGLASS_ALIAS:OPTIONAL_LOSS_PAY_FACTOR = 1.00
+    End
+
+End
+
+Procedure VACANCY
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsglassvacancy.pro"
+
+Change cppGLASS_ALIAS
+    Begin
+    If cppGLASS_ALIAS:VACANCY_UNOCCUPANCY = 1 Then
+        cppGLASS_ALIAS:VACANCY_FACTOR = L_VACANCY_FACTOR
+    Else
+        cppGLASS_ALIAS:VACANCY_FACTOR = 1.00
+    End
+
+End
+
+Procedure RETENTION
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGLASS_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsglass50.pro"
+
+Change cppGLASS_ALIAS
+    Begin
+    If cppGLASS_ALIAS:RETENTION = 1 Then
+        cppGLASS_ALIAS:RETENTION_FACTOR = L_RETENTION_FACTOR
+    Else
+        cppGLASS_ALIAS:RETENTION_FACTOR = 1.00
+    End
+
+End
+
+End

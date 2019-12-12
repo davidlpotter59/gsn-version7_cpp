@@ -1,0 +1,155 @@
+%%
+Screen
+        Name            = "cppmtmso02d" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle= "%a     %s Reinsurance Worksheet   Ver 7.0  %m" ;
+        Domain          = "SFPREINS" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+
+        Local Unsigned Ascii Number L_REINS_CO[6] ,
+                                    L_COMM_RATE[4]=0/decimals=2,
+                                    L_PERCENTAGE[8]=0/decimals=4 ;
+
+        Access SFPREINS,
+           Set SFPREINS:POLICY_NO = G_POLICY_NO ,
+               SFPREINS:POL_YEAR = G_YEAR,
+               SFPREINS:END_SEQUENCE = G_END_SEQUENCE ;
+
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If SFPREINS:POLICY_NO <> G_POLICY_NO Or
+   SFPREINS:POL_YEAR <> G_YEAR Or
+   SFPREINS:END_SEQUENCE <> END_SEQUENCE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No:      _________  ____  ____                                        |
+*------------------------------------------------------------------------------*
+| Reins Co:       ______                                                       |
+| Comm Rate:      _____                                                        |
+*------------------------------------------------------------------------------*
+| Key Risk:       _                                                            |
+| Percentage:     _________                                                    |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext  ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            SFPREINS:POLICY_NO = G_POLICY_NO
+            SFPREINS:POL_YEAR = G_YEAR
+            SFPREINS:END_SEQUENCE = G_END_SEQUENCE
+            End
+        End
+        SFPREINS:POLICY_NO/displayonly ;
+302     SFPREINS:POL_YEAR/displayonly;
+303     SFPREINS:END_SEQUENCE/displayonly;
+501     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            L_REINS_CO = 1
+            Access SFSREINSCO_ALT, Set SFSREINSCO_ALT:COMPANY_ID = SFPNAME:COMPANY_ID,
+                                       SFSREINSCO_ALT:REINS_CO = L_REINS_CO, Approximate
+
+            SFPREINS:REINS_CO = SFSREINSCO_ALT:REINS_CO
+            End
+        End
+        SFPREINS:REINS_CO/default
+        If SFPREINS:REINS_CO <> SFSREINSCO:REINS_CO Then
+            Error 1245
+
+        Activehelp SFSREINSCO_ALIAS:REINS_CO,
+                   SFSREINSCO_ALIAS:NAME[1] ;
+601     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "CHANGE" Then
+            Begin
+            Do GET_FACULTATIVE_FACTOR
+            SFPREINS:COMM_RATE = L_COMM_RATE
+            SFPREINS:PERCENTAGE = L_PERCENTAGE
+            End
+        End
+        SFPREINS:COMM_RATE/default ;
+801     sfpreins:key_risk/checkbox/values="0,1" ;
+901     SFPREINS:PERCENTAGE/default ;
+
+}
+
+}
+
+
+Procedure Definition
+
+Procedure GET_FACULTATIVE_FACTOR
+Begin
+Access SFSFACREINS, Set SFSFACREINS:COMPANY_ID = SFPNAME:COMPANY_ID,
+                        SFSFACREINS:REINS_CO = SFPREINS:REINS_CO, Generic
+
+L_COMM_RATE  = 0
+l_percentage = 0
+While SFSFACREINS:COMPANY_ID = SFPNAME:COMPANY_ID And
+      SFSFACREINS:REINS_CO = SFPREINS:REINS_CO
+        Begin
+        If (SFPNAME:EFF_DATE >= SFSFACREINS:EFF_DATE and
+           (sfpname:eff_date <= sfsfacreins:exp_date or
+           sfsfacreins:exp_date = 0)) Then
+            Begin
+            L_COMM_RATE  = SFSFACREINS:COMM_RATE
+            L_PERCENTAGE = SFSFACREINS:FACULTATIVE_FACTOR
+            End
+
+        Next SFSFACREINS
+        End
+
+End
+
+End

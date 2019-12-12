@@ -1,0 +1,139 @@
+%%
+Screen
+        Name            = "cppmtmso210";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Policy Information    Ver 7.0 %m";
+        Domain          = "sfpMASTER" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries boqisolib boqmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_STATE[2],
+                                     G_LINE_OF_BUSINESS[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      g_fob[1] ;
+
+        Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO ,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.INC"
+--        !F8="I"/function/icon="Other" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        add/update="NO" ;
+
+        "I" Display "cppmtmso211" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If sfpMASTER:policy_NO <> G_policy_NO or
+   sfpmaster:pol_year <> g_year or
+   sfpmaster:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                                                                              |
+|                            *------------------------*                        |
+|                            |     Form of Business   |                        |
+|                            |                        |                        |
+|                            | [R  _~~Corporation     |                        |
+|                            |     _~~Individual      |                        |
+|                            |     _~~Joint~Venture   |                        |
+|                            |     _~~Organization    |                        |
+|                            |     _~~Partnership     |                        |
+|                            |     _~~LLC             |                        |
+|                            |     _~~Other         R]|                        |
+|                            *------------------------*                        |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+701     Begin
+        If sfpmaster:form_of_business = "" then
+            g_fob = "I"
+        else
+            g_fob = sfpmaster:form_of_business
+        End
+        g_fob/values="C,I,J,O,P,L,T"/default
+        access sfpmaster_alias, set sfpmaster_alias:policy_no = g_policy_no,
+                                    sfpmaster_alias:pol_year = g_year,
+                                    sfpmaster_alias:end_sequence = g_end_sequence, generic
+
+        if sfpmaster_alias:policy_no = g_policy_no and
+           sfpmaster_alias:pol_year = g_year and
+           sfpmaster_alias:end_sequence = g_end_sequence then
+            change sfpmaster_alias
+                begin
+                sfpmaster_alias:form_of_business = g_fob
+                if sfpmaster_alias:form_of_business <> "T" then
+                    sfpmaster_alias:fob_description = ""
+                end
+        If g_fob = "T" Then
+            Begin
+            Display Modal Screen "cppmtmso211"
+            With Initial Function "ADD|BACK"
+            End ;
+
+}
+
+}
+
+
+End
+/* end of file */

@@ -1,0 +1,132 @@
+%%
+Screen
+        Name = "cppmtMSO997" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppumbrella" ;
+        Windowtitle = "%a     %s Final Rating - Minimum Premiums - Ver. 7.00     %m" ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      g_inquiry[1] ;
+
+        Local String l_username[15],
+                     l_system_id[15] ;
+
+        local unsigned ascii number l_minimum_premium[6]=0 ,
+                                    l_abort_program[1] ;
+
+        Access cppumbrella, Set cppumbrella:policy_NO = G_policy_NO,
+                                cppumbrella:pol_Year = g_year,
+                                cppumbrella:end_Sequence = g_end_sequence, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        "func1" display "" tagged misc_fn ;
+        "func2" display "" tagged notes_fn ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+disable(add_fn)
+disable(delete_fn)
+if g_company_id = "" then
+    g_company_id = sfsdefault:company_id
+l_system_id = "cup"/spacefill
+include "rating_security.inc"
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppumbrella:policy_NO <> G_policy_NO or
+   cppumbrella:pol_Year <> g_year or
+   cppumbrella:end_sequence <> g_end_sequence then
+    Error 1000
+
+screen
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+|                       Minimum Premium: ___________                           |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppumbrella:policy_NO/displayonly  ;
+302     cppumbrella:pol_Year/displayonly ;
+303     cppumbrella:end_sequence/displayonly ;
+
+501     begin
+            l_minimum_premium = cppumbrella:total_minimum_premium
+        end
+        cppumbrella:total_minimum_premium ;
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function = "CHANGE" then
+        begin
+        if l_minimum_premium <> cppumbrella:total_minimum_premium then
+            begin
+            access cppumbrella_alias, set cppumbrella_alias:policy_no    = cppumbrella:policy_no,
+                                          cppumbrella_alias:pol_year     = cppumbrella:pol_year,
+                                          cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+            change cppumbrella_alias
+                begin
+                cppumbrella_alias:mp_changed_by_user = 1
+                end
+            end
+        end
+    end
+
+End

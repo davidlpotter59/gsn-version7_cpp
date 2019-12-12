@@ -1,0 +1,104 @@
+%%
+Screen
+        Name            = "cppmtmso310" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Blanket Building Rates    Ver 7.00 %m" ;
+        Domain          = "cppbusiness" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppbusiness,
+           Set cppbusiness:policy_NO = G_policy_NO ,
+               cppbusiness:pol_year = g_year,
+               cppbusiness:end_sequence = g_end_sequence,
+               cppbusiness:PREM_NO = G_PREM_NO ,
+               cppbusiness:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+Access Validation
+If cppbusiness:policy_NO <> G_policy_NO Or
+   cppbusiness:pol_year <> g_year or
+   cppbusiness:end_sequence <> g_end_sequence or
+   cppbusiness:PREM_NO <> G_PREM_NO Or
+   cppbusiness:BUILD_NO <> G_BUILD_NO then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________   ____  ____                                          |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Fire Rate:   _________                                                       |
+| EC Rate:     _________                                                       |
+| VMM Rate:    _________                                                       |
+| Expanded:    _________                                                       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     cppbusiness:policy_NO/displayonly ;
+302     cppbusiness:pol_year/displayonly ;
+303     cppbusiness:end_sequence/displayonly ;
+401     cppbusiness:PREM_NO/displayonly ;
+501     cppbusiness:BUILD_NO/displayonly ;
+701     cppbusiness:blanket_rate[1];
+801     cppbusiness:blanket_rate[2];
+901     cppbusiness:blanket_rate[3];
+1001    cppbusiness:blanket_rate[4];
+
+}
+
+}
+
+End

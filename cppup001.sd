@@ -1,0 +1,285 @@
+%%     
+Program
+        Name = "CPPUP001" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "FLAT" ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4] ,
+                                     G_LINE_OF_BUSINESS[4] ;
+
+        Global String G_RENEWAL[1] ,
+                      G_AGENT_NAME[50] ;
+
+        Local Unsigned Ascii Number L_YEAR[4]=0 ,
+                                    l_line_of_business[4]=0008 ;
+
+        Local String L_POLICY_STAT_STRING[20] ;
+
+        Include "amtdue.var"
+
+        Include "unbilled.var"
+
+        Include "update.var"
+
+        Include "print.var"
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[10,13])
+G_END_SEQUENCE = Val(COMMANDLINE[14,17])
+
+Access sfpmaster, Set sfpmaster:POLICY_NO = G_POLICY_NO,
+                      sfpmaster:POL_YEAR = G_YEAR,
+                      sfpmaster:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Do UPDATE_FILES
+
+Update
+
+Procedure Definition
+
+Procedure UPDATE_FILES
+Begin
+Access SFPNAME, Set SFPNAME:POLICY_NO = G_POLICY_NO,
+                    SFPNAME:POL_YEAR = G_YEAR,
+                    SFPNAME:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Access SFPPOINT, Set SFPPOINT:POLICY_NO = G_POLICY_NO,
+                     SFPPOINT:POL_YEAR = G_YEAR, Generic
+
+Access SFSCOMPANY, Set SFSCOMPANY:COMPANY_ID = SFPNAME:COMPANY_ID, Generic
+
+If SFPPOINT:CONVERTED = "N" Then
+    Begin
+    Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO,
+                          SFPMASTER:POL_YEAR = G_YEAR,
+                          SFPMASTER:END_SEQUENCE = G_END_SEQUENCE, Exact
+
+    I_TRANS_CODE = SFPMASTER:TRANS_CODE
+
+    If SFPMASTER:TRANS_CODE One Of 11 Then
+        Begin
+        Access ARSCANCEL, Set ARSCANCEL:COMPANY_ID = SFPNAME:COMPANY_ID,
+                              ARSCANCEL:POLICY_NO = G_POLICY_NO, Generic
+
+        While ARSCANCEL:COMPANY_ID = SFPNAME:COMPANY_ID And
+              ARSCANCEL:POLICY_NO = G_POLICY_NO
+                Begin
+                If ARSCANCEL:CX_STATUS = "P" Then
+                    Change ARSCANCEL
+                        Begin
+                        ARSCANCEL:CX_STATUS = "C"
+                        ARSCANCEL:REASON_CODE = SFPNAME:CANCELLATION_CODE
+                        End
+
+                Next ARSCANCEL
+                End
+        End
+
+--    If SFPMASTER:TRANS_CODE = 11 Or
+--       SFPMASTER:TRANS_CODE = 16 Then
+--        Begin
+        Access SFSCANCEL, Set SFSCANCEL:COMPANY_ID = SFPNAME:COMPANY_ID,
+                              SFSCANCEL:POLICY_NO = G_POLICY_NO, Generic
+
+        Repeat Begin
+            Exit If SFSCANCEL:COMPANY_ID <> SFPNAME:COMPANY_ID Or
+                    SFSCANCEL:POLICY_NO <> G_POLICY_NO
+
+            If SFSCANCEL:STATUS = "PENDING" And
+               SFPMASTER:TRANS_CODE = 11 Then
+                Begin
+                Change SFSCANCEL
+                    Begin
+                    SFSCANCEL:STATUS = "CANCELLED"
+                    SFSCANCEL:STATUS_EFF_DATE = TODAYSDATE
+                    End
+                End
+
+            if sfscancel:status = "NONRENEW" and
+               sfpmaster:trans_code = 14 then
+                begin
+                change sfscancel
+                    begin
+                    sfscancel:status = "REINSTATED"
+                    sfscancel:status_eff_date = todaysdate
+                    end
+                end
+
+            If SFSCANCEL:STATUS = "CANCELLED" And
+               SFPMASTER:TRANS_CODE = 16 Then
+                Begin
+                Change SFSCANCEL
+                    Begin
+                    SFSCANCEL:STATUS = "REINSTATED"
+                    SFSCANCEL:STATUS_EFF_DATE = TODAYSDATE
+                    End
+                End
+
+            Next SFSCANCEL
+            End
+
+--        End
+
+    If SFSDEFAULT:PREMIUMS = "Y" Then
+        Begin
+        Do UPDATE_PREMIUMS
+        End
+
+    Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO,
+                          SFPMASTER:POL_YEAR = G_YEAR,
+                          SFPMASTER:END_SEQUENCE = G_END_SEQUENCE, Exact
+
+    I_TRANS_CODE = SFPMASTER:TRANS_CODE
+
+    G_RENEWAL = "N"
+    Include "sfppoint.pro"
+
+    If SFPMASTER:TRANS_CODE = 11 Or
+       SFPMASTER:TRANS_CODE = 16 Then
+        Change SFPNAME
+            Begin
+            If SFPMASTER:TRANS_CODE = 11 Then
+                SFPNAME:STATUS = "CANCELLED"
+            Else
+                If SFPMASTER:TRANS_CODE = 16 Then
+                    SFPNAME:STATUS = "CURRENT"
+                Else
+                    SFPNAME:STATUS = ""
+            SFPNAME:STATUS_DATE = SFPMASTER:TRANS_EFF
+            End
+
+    Access SFSAGENT, Set SFSAGENT:COMPANY_ID = SFPNAME:COMPANY_ID,
+                         SFSAGENT:AGENT_NO = SFPNAME:AGENT_NO, Generic
+
+    G_AGENT_NAME = SFSAGENT:NAME[1]
+    G_LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS
+    If SFPMASTER:TRANS_CODE <> 11 And
+       SFPMASTER:TRANS_CODE <> 16 Then
+        Begin
+        If SFSDEFAULT:SORT_BY_AGENT = "Y" Then
+            Begin
+            Include "sfpprint6.pro"
+            End
+        Else
+            Begin
+            Include "sfpprint.pro"
+            End
+        End
+
+    Access SFSLINE, Set SFSLINE:COMPANY_ID = SFPNAME:COMPANY_ID,
+                        SFSLINE:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS,
+                        SFSLINE:LOB_SUBLINE = "00", Generic
+
+    L_POLICY_STAT_STRING = Str(G_POLICY_NO,9) + " " +
+                           Str(G_YEAR,4) + " " +
+                           Str(G_END_SEQUENCE,4)
+
+    If SFSCOMPANY:DEBUG_MODE = 0 Then
+        Proc("cli csbatch %s %s",SFSLINE:STAT_PROGRAM_POLICY,L_POLICY_STAT_STRING)/noconsole
+    Else
+        Proc("cli csbatch %s %s",SFSLINE:STAT_PROGRAM_POLICY,L_POLICY_STAT_STRING)
+
+
+    End
+
+-- took out 12/13/2002, Dave has a new process that will be done in arsup001
+--Do PROCESS_REINSURANCE
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Proc("cli csbatch arsup001")/noconsole
+Else
+    Proc("cli csbatch arsup001")
+
+If SFPMASTER:TRANS_CODE = 14 Then
+    Begin
+    Do ACCESS_SFPRENEWSUS
+
+    L_YEAR = G_YEAR - 1
+    Access SFPNAME, Set SFPNAME:POLICY_NO = G_POLICY_NO,
+                        SFPNAME:POL_YEAR = L_YEAR, Generic
+
+    Repeat Begin
+        Exit If SFPNAME:POLICY_NO <> G_POLICY_NO Or
+                SFPNAME:POL_YEAR <> L_YEAR
+
+        Change SFPNAME
+            Begin
+            SFPNAME:STATUS      =       "EXPIRED"
+            SFPNAME:STATUS_DATE =       SFPNAME:EXP_DATE
+            End
+
+        Next SFPNAME
+        End
+
+    End
+
+End
+
+Procedure ACCESS_SFPRENEWSUS
+Begin
+L_YEAR = G_YEAR - 1
+Access SFPRENEWSUS, Set SFPRENEWSUS:POLICY_NO = G_POLICY_NO,
+                        SFPRENEWSUS:POL_YEAR = L_YEAR, Generic
+
+Access SFPMASTER, Set SFPMASTER:POLICY_NO = G_POLICY_NO,
+                      SFPMASTER:POL_YEAR = SFPRENEWSUS:POL_YEAR,
+                      SFPMASTER:END_SEQUENCE = SFPRENEWSUS:END_SEQUENCE, Generic
+
+If SFPMASTER:POLICY_NO = G_POLICY_NO And
+   SFPMASTER:POL_YEAR = SFPRENEWSUS:POL_YEAR And
+   SFPMASTER:END_SEQUENCE = SFPRENEWSUS:END_SEQUENCE Then
+    Begin
+    Change SFPMASTER
+        Begin
+        SFPMASTER:RENEWAL_PROCESS = "N"
+        SFPMASTER:RENEWED = "Y"
+        SFPMASTER:RENEWAL_OVERRIDE = "N"
+        SFPMASTER:RENEWAL_MANUAL = "Y"
+        End
+    End
+
+L_YEAR = G_YEAR - 1
+Access SFPRENEWSUS, Set SFPRENEWSUS:POLICY_NO = G_POLICY_NO,
+                        SFPRENEWSUS:POL_YEAR = L_YEAR, Generic
+
+If SFPRENEWSUS:POLICY_NO = G_POLICY_NO And
+   SFPRENEWSUS:POL_YEAR = L_YEAR Then
+    Begin
+    Delete SFPRENEWSUS
+    End
+
+End
+
+Procedure UPDATE_PREMIUMS
+Begin
+
+If SFSCOMPANY:DEBUG_MODE = 1 Then
+    {
+    Proc ("csbatch %s %s%s%s",SFSCOMPANY:PRSTRANS_BATCH_PROGRAM[2],Str(G_POLICY_NO,"999999999"),Str(G_YEAR,"9999"),Str(G_END_SEQUENCE,"9999"))
+    }
+Else
+    {
+    Proc ("csbatch %s %s%s%s",SFSCOMPANY:PRSTRANS_BATCH_PROGRAM[2],Str(G_POLICY_NO,"999999999"),Str(G_YEAR,"9999"),Str(G_END_SEQUENCE,"9999"))/noconsole
+    }
+
+/* end of update premiums */
+End
+
+/*Procedure PROCESS_REINSURANCE
+Begin
+
+If SFSCOMPANY:DEBUG_MODE = 1 Then
+{
+    Proc (":cli csbatch prsup600 %s%s%s%s",Str(I_TRANS_CODE,"99"),Str(SFPMASTER:POLICY_NO,"999999999"),Str(SFPMASTER:POL_YEAR,"9999"),Str(SFPMASTER:END_SEQUENCE,"9999"))
+}
+Else
+{
+    Proc (":cli csbatch prsup600 %s%s%s%s",Str(I_TRANS_CODE,"99"),Str(SFPMASTER:POLICY_NO,"999999999"),Str(SFPMASTER:POL_YEAR,"9999"),Str(SFPMASTER:END_SEQUENCE,"9999"))/noconsole
+}
+End */
+
+End

@@ -1,0 +1,923 @@
+%%
+Screen
+        Name            = "cppmtmso004a" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Glass - Ver 7.00     %m" ;
+        Domain          = "cppGLASS" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_policy_no[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+
+        global string g_code[7] ;
+
+        Local String L_DESC[50] ,
+                     L_CLASS[1] ,
+                     L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_SCREEN[11] ;
+
+        Local Unsigned Ascii Number L_SPECIAL_CONDITION[1] ,
+                                    L_HOTEL_MOTEL[1] ,
+                                    L_LOSS_PAYMENT[1] ,
+                                    l_damaged_glass[1],
+                                    L_RETENTION[1] ,
+                                    L_SUB_CODE[4] ,
+                                    l_line_of_business[4] ;
+
+        Access cppGLASS,
+           Set cppGLASS:policy_no = G_policy_no ,
+               cppglass:pol_year = g_year,
+               cppglass:end_sequence = g_end_sequence, generic ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+        "func1"  display "cppmtmso450"  tagged endorse_fn ;
+        "func2"  display "cppmtmso400"  tagged spec_fn ;
+        "func3"  display "cppmtmso401"  tagged struct_fn ;
+        "func4"  display "cppmtmso402"  tagged hotel_fn ;
+        "func5"  display "cppmtmso451"  tagged damaged_fn ;
+        "func6"  display "cppmtmso403"  tagged loss_fn ;
+        "func7"  display "cppmtmso404"  tagged retention_fn ;
+
+menu definition
+
+        include "stdmenu7.inc"
+/*  cppmsoglmenu7.inc
+
+    SCIPS.com, Inc.
+
+    December 4, 2006
+*/
+
+Menu tagged cpp_mm properties { Text="Options" }
+ {
+    Menuitem Properties {
+                              Iconname = "divided.bmp"
+                              Text     = "Endorsements"
+                              }
+                 Events {
+                              Action = endorse_fn
+                              }
+
+Separator
+    Menuitem Properties {
+                              Iconname = "power.bmp"
+                              Text     = "Damaged Glass Exclusion"
+                              }
+                 Events {
+                              Action = damaged_fn
+                              }
+
+    Menuitem Properties {
+                              Iconname = "subtract.bmp"
+                              Text     = "Optional Loss Payment"
+                              }
+                 Events {
+                              Action = loss_fn
+                              }
+
+
+    Menuitem Properties {
+                              Iconname = "time.bmp"
+                              Text     = "50/50 Retention"
+                              }
+                 Events {
+                              Action = retention_fn
+                              }
+}
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppGLASS:policy_no <> G_policy_no or
+   cppglass:pol_year <> g_year or
+   cppglass:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+Screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        access sfpname, set sfpname:policY_no = g_policy_no,
+                            sfpname:pol_year = g_year,
+                            sfpname:end_sequence = g_end_sequence, generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        access cppgeneral, set cppgeneral:policy_no = g_policY_no,
+                               cppgeneral:pol_year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence, generic
+
+        If FUNCTION = "ADD" Then
+            Begin
+            cppGLASS:policy_no = G_policy_no
+            cppGLASS:PREM_NO = G_PREM_NO
+            cppGLASS:BUILD_NO = G_BUILD_NO
+            cppGLASS:STATE = cppGENERAL:STATE
+            cppglass:rating_line_of_business = sfsline:rating_line_of_business
+            end
+
+        End
+        cppGLASS:policy_no/displayonly ;
+302     cppglass:pol_year/displayonly ;
+303     cppglass:end_sequence/displayonly ;
+401     cppGLASS:PREM_NO/default Mandatory ;
+501     cppGLASS:BUILD_NO/default Mandatory ;
+
+} --end of header
+
+CardDialog GUI at 1,80
+
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Description"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Description:           __________________________________________________    |
+|                        __________________________________________________    |
+| Indoor Glass:          _  LF: _______  Outdoor Glass:    _  LF: _______      |
+| Showcase Glass:        _  LF: _______                                        |
+| Territory:             ___                                                   |
+| Deductible Percent:    _               Deductible:       _____               |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201     begin
+        l_line_of_business = sfsline:rating_line_of_business
+        if function one of "ADD" then
+            begin
+            do subcode
+            cppglass:sub_code = l_sub_code
+            end
+        end
+        cppGLASS:DESCRIPTION[1]/uppercase;
+301     cppGLASS:DESCRIPTION[2]/uppercase;
+401     cppglass:indoor_glass/checkbox/values="0,1" ;
+402     cppglass:indoor_lf ;
+403     cppglass:outdoor_glass/checkbox/values="0,1" ;
+404     cppglass:outdoor_lf ;
+501     cppglass:showcase_glass/checkbox/values="0,1" ;
+502     cppglass:showcase_lf ;
+601     cppGLASS:TERRITORY
+        If cppGLASS:TERRITORY <> CPSGLASSTERR:TERRITORY Or
+           cppGLASS:TERRITORY = 0 Then
+            Error 1206
+
+        Activehelp CPSGLASSTERR_ALIAS:TERRITORY/width=10,
+                   cpsglassterr_ALIAS:DESCRIPTION ;
+
+701    cppGLASS:DEDUCTIBLE_PERCENT/checkbox/values="0,1" ;
+702    cppGLASS:DEDUCTIBLE
+        Hide If cppGLASS:DEDUCTIBLE_PERCENT = 1
+        If cppGLASS:DEDUCTIBLE <> CPSGLASSDEDUCT:DEDUCTIBLE Then
+            Error 1207
+
+        Activehelp CPSGLASSDEDUCT_ALIAS:DEDUCTIBLE ;
+702    cppGLASS:DEDUCTIBLE
+        Hide If cppGLASS:DEDUCTIBLE_PERCENT = 0
+        If cppGLASS:DEDUCTIBLE <> CPSGLASSDEDP:DEDUCTIBLE Then
+            Error "Invalid deductible percent"
+
+        Activehelp CPSGLASSDEDP_ALIAS:DEDUCTIBLE ;
+
+} -- end of description
+
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Optional Coverages"
+        }
+{
+
+%%
+*------------------------------------------------------------------------------*
+| Optional Loss Payment For Large Plates (MCP530): _                           |
+| Vacancy/Unoccupancy:                             _                           |
+| 50/50 Retention (MCP535):                        _                           |
+| Damaged Glass Exclusion (MCP133):                _                           |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+201     Begin
+            L_LOSS_PAYMENT = cppGLASS:OPTIONAL_LOSS_PAYMENT
+        End
+        cppGLASS:OPTIONAL_LOSS_PAYMENT/checkbox/values="0,1";
+301     cppGLASS:VACANCY_UNOCCUPANCY/checkbox/values="0,1" ;
+401     Begin
+            L_RETENTION = cppGLASS:RETENTION
+        End
+        cppGLASS:RETENTION/checkbox/values="0,1";
+401     Begin
+            L_damaged_glass = cppGLASS:damaged_glass_exclusion
+        End
+        cppGLASS:damaged_glass_Exclusion/checkbox/values="0,1";
+
+} -- end of optional coverages
+
+}
+
+}
+
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    If FUNCTION = "ADD" Then
+        Begin
+        Access cpppolicy, Set cpppolicy:policy_no = cppGLASS:policy_no,
+                              cpppolicy:pol_year = cppglass:pol_year,
+                              cpppolicy:end_sequence = cppglass:end_sequence,
+                              cpppolicy:PREM_NO = cppGLASS:PREM_NO,
+                              cpppolicy:BUILD_NO = cppGLASS:BUILD_NO, Generic
+
+        If cpppolicy:policy_no <> cppGLASS:policy_no Or
+           cpppolicy:pol_year <> cppglass:pol_year or
+           cpppolicy:end_sequence <> cppglass:end_sequence or
+           cpppolicy:PREM_NO <> cppGLASS:PREM_NO Or
+           cpppolicy:BUILD_NO <> cppGLASS:BUILD_NO Then
+            Add cpppolicy
+                Begin
+                cpppolicy:policy_no = cppGLASS:policy_no
+                cpppolicy:pol_year = cppglass:pol_year
+                cpppolicy:end_sequence = cppglass:end_sequence
+                cpppolicy:PREM_NO = cppGLASS:PREM_NO
+                cpppolicy:BUILD_NO = cppGLASS:BUILD_NO
+                End
+        End
+
+    If FUNCTION = "ADD" Then
+        Begin
+        If cppGLASS:CLASS = "S" Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso401"
+            With Initial Function "CHANGE|BACK"
+            End
+
+        If cppGLASS:SPECIAL_CONDITIONS = 1 Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso400"
+            With Initial Function "ADD|BACK"
+            End
+
+        If cppGLASS:HOTELS_MOTELS = 1 Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso402"
+            With Initial Function "CHANGE|BACK"
+            End
+
+        If cppGLASS:damaged_glass_exclusion = 1 Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            g_code = "MCP133"
+            Display Modal Screen "cppmtmso451"
+            With Initial Function "ADD|BACK"
+            End
+
+        --MCP530
+        If ((FUNCTION = "ADD" And
+           cppGLASS:OPTIONAL_LOSS_PAYMENT = 1) Or
+           (FUNCTION = "CHANGE" And
+           L_LOSS_PAYMENT = 0 And
+           cppGLASS:OPTIONAL_LOSS_PAYMENT = 1)) Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso403"
+            With Initial Function "CHANGE|BACK"
+            End
+
+        If FUNCTION = "CHANGE" And
+           L_LOSS_PAYMENT = 1 And
+           cppGLASS:OPTIONAL_LOSS_PAYMENT = 0 Then
+            Begin
+            L_CODE = "MCP530"
+            Do DELETE_sfpEND
+            End
+
+        --MCP535
+        If ((FUNCTION = "ADD" And
+           cppGLASS:RETENTION = 1) Or
+           (FUNCTION = "CHANGE" And
+           L_RETENTION = 0 And
+           cppGLASS:RETENTION = 1)) Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso404"
+            With Initial Function "CHANGE|BACK"
+            End
+
+        If FUNCTION = "CHANGE" And
+           L_RETENTION = 1 And
+           cppGLASS:RETENTION = 0 Then
+            Begin
+            L_CODE = "MCP535"
+            Do DELETE_sfpEND
+            End
+        End
+
+    If FUNCTION = "CHANGE" Then
+        Begin
+        If cppGLASS:CLASS = "S" And
+           L_CLASS <> "S" Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso401"
+            With Initial Function "CHANGE|BACK"
+            End
+
+        If cppGLASS:SPECIAL_CONDITIONS = 1 And
+           L_SPECIAL_CONDITION = 0 Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso400"
+            With Initial Function "ADD|BACK"
+            End
+
+        If cppGLASS:HOTELS_MOTELS = 1 And
+           L_HOTEL_MOTEL = 0 Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_SUB_CODE = cppGLASS:SUB_CODE
+            Display Modal Screen "cppmtmso402"
+            With Initial Function "CHANGE|BACK"
+            End
+
+        If cppGLASS:damaged_glass_exclusion = 1 And
+           L_damaged_glass = 0 Then
+            Begin
+            G_PREM_NO = cppGLASS:PREM_NO
+            G_BUILD_NO = cppGLASS:BUILD_NO
+            G_code = "MCP133"
+            Display Modal Screen "cppmtmso451"
+            With Initial Function "ADD|BACK"
+            End
+
+        End
+
+    If FUNCTION = "CHANGE" Then
+        Begin
+        If cppGLASS:CLASS <> "S" And
+           L_CLASS = "S" Then
+            Begin
+            Access cppGLASS_ALIAS, Set cppGLASS_ALIAS:policy_no = cppGLASS:policy_no,
+                                       cppglass_alias:pol_year = cppglass:pol_year,
+                                       cppglass_alias:end_sequence = cppglass:end_sequence,
+                                       cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO,
+                                       cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO,
+                                       cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE, Generic
+
+            If cppGLASS_ALIAS:policy_no = cppGLASS:policy_no And
+               cppglass_alias:pol_year = cppglass:pol_year and
+               cppglass_alias:end_sequence = cppglass:end_sequence and
+               cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO And
+               cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO And
+               cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE Then
+                Change cppGLASS_ALIAS
+                    Begin
+                    cppGLASS_ALIAS:STRUCTURAL[1] = 0
+                    cppGLASS_ALIAS:STRUCTURAL_BENT[1] = 0
+                    cppGLASS_ALIAS:STRUCTURAL_FLAT[1] = 0
+                    cppGLASS_ALIAS:STRUCTURAL[2] = 0
+                    cppGLASS_ALIAS:STRUCTURAL_BENT[2] = 0
+                    cppGLASS_ALIAS:STRUCTURAL_FLAT[2] = 0
+                    cppGLASS_ALIAS:STRUCTURAL_TEMPERED_CLASS = ""
+                    End
+            End
+
+        If cppGLASS:SPECIAL_CONDITIONS = 0 And
+           L_SPECIAL_CONDITION = 1 Then
+            Begin
+            Access cppGLASSSPEC, Set cppGLASSSPEC:policy_no = cppGLASS:policy_no,
+                                     cppglassspec:pol_year = cppglass:pol_year,
+                                     cppglassspec:end_sequence = cppglass:end_sequence,
+                                     cppGLASSSPEC:PREM_NO = cppGLASS:PREM_NO,
+                                     cppGLASSSPEC:BUILD_NO = cppGLASS:BUILD_NO,
+                                     cppGLASSSPEC:SUB_CODE = cppGLASS:SUB_CODE, Generic
+
+            If cppGLASSSPEC:policy_no = cppGLASS:policy_no And
+               cppglassspec:pol_year = cppglass:pol_year and
+               cppglassspec:end_sequence = cppglass:end_sequence and
+               cppGLASSSPEC:PREM_NO = cppGLASS:PREM_NO And
+               cppGLASSSPEC:BUILD_NO = cppGLASS:BUILD_NO And
+               cppGLASSSPEC:SUB_CODE = cppGLASS:SUB_CODE Then
+                Delete cppGLASSSPEC
+            End
+
+        If cppGLASS:HOTELS_MOTELS = 0 And
+           L_HOTEL_MOTEL = 1 Then
+            Begin
+            Access cppGLASS_ALIAS, Set cppGLASS_ALIAS:policy_no = cppGLASS:policy_no,
+                                       cppglass_alias:pol_year = cppglass:pol_year,
+                                       cppglass_alias:end_sequence = cppglass:end_sequence,
+                                       cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO,
+                                       cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO,
+                                       cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE, Generic
+
+            If cppGLASS_ALIAS:policy_no = cppGLASS:policy_no And
+               cppglass_alias:pol_year = cppglass:pol_year and
+               cppglass_alias:end_sequence = cppglass:end_sequence and
+               cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO And
+               cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO And
+               cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE Then
+                Change cppGLASS_ALIAS
+                    Begin
+                    cppGLASS_ALIAS:NO_ROOMS = 0
+                    End
+            End
+
+        If cppGLASS:damaged_glass_exclusion = 0 And
+           L_damaged_glass = 1 Then
+            Begin
+            g_code = "MCP133"
+            Access cppendorse, Set cppendorse:policy_no = cppGLASS:policy_no,
+                                   cppendorse:pol_year = cppglass:pol_year,
+                                   cppendorse:end_sequence = cppglass:end_sequence,
+                                   cppendorse:PREM_NO = cppGLASS:PREM_NO,
+                                   cppendorse:BUILD_NO = cppGLASS:BUILD_NO,
+                                   cppendorse:code = g_code, generic
+
+            while cppendorse:policy_no = cppGLASS:policy_no And
+                  cppendorse:pol_year = cppglass:pol_year and
+                  cppendorse:end_sequence = cppglass:end_sequence and
+                  cppendorse:PREM_NO = cppGLASS:PREM_NO And
+                  cppendorse:BUILD_NO = cppGLASS:BUILD_NO And
+                  cppendorse:code = g_code
+                    begin
+                    delete cppendorse
+
+                    next cppendorse
+                    end
+
+            End
+
+        If cppGLASS:OPTIONAL_LOSS_PAYMENT = 0 And
+           L_LOSS_PAYMENT = 1 Then
+            Begin
+            Access cppGLASS_ALIAS, Set cppGLASS_ALIAS:policy_no = cppGLASS:policy_no,
+                                       cppglass_alias:pol_year = cppglass:pol_year,
+                                       cppglass_alias:end_sequence = cppglass:end_sequence,
+                                       cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO,
+                                       cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO,
+                                       cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE, Generic
+
+            If cppGLASS_ALIAS:policy_no = cppGLASS:policy_no And
+               cppglass_alias:pol_year = cppglass:pol_year and
+               cppglass_alias:end_sequence = cppglass:end_sequence and
+               cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO And
+               cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO And
+               cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE Then
+                Change cppGLASS_ALIAS
+                    Begin
+                    cppGLASS_ALIAS:PLATE_LIMITATION = 0
+                    End
+            End
+
+        If cppGLASS:RETENTION = 0 And
+           L_RETENTION = 1 Then
+            Begin
+            Access cppGLASS_ALIAS, Set cppGLASS_ALIAS:policy_no = cppGLASS:policy_no,
+                                       cppglass_alias:pol_year = cppglass:pol_year,
+                                       cppglass_alias:end_sequence = cppglass:end_sequence,
+                                       cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO,
+                                       cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO,
+                                       cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE, Generic
+
+            If cppGLASS_ALIAS:policy_no = cppGLASS:policy_no And
+               cppglass_alias:pol_year = cppglass:pol_year and
+               cppglass_alias:end_sequence = cppglass:end_sequence and
+               cppGLASS_ALIAS:PREM_NO = cppGLASS:PREM_NO And
+               cppGLASS_ALIAS:BUILD_NO = cppGLASS:BUILD_NO And
+               cppGLASS_ALIAS:SUB_CODE = cppGLASS:SUB_CODE Then
+                Change cppGLASS_ALIAS
+                    Begin
+                    cppGLASS_ALIAS:RETENTION_AMOUNT = 0
+                    End
+            End
+
+        End
+
+    Access CPSGLASSDEDP, Set CPSGLASSDEDP:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSGLASSDEDP:STATE = cppGLASS:STATE,
+                             CPSGLASSDEDP:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                             CPSGLASSDEDP:DEDUCTIBLE = cppGLASS:DEDUCTIBLE, Generic
+
+    While CPSGLASSDEDP:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSGLASSDEDP:STATE = cppGLASS:STATE And
+          CPSGLASSDEDP:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+          CPSGLASSDEDP:DEDUCTIBLE = cppGLASS:DEDUCTIBLE
+            Begin
+            If sfpNAME:EFF_DATE >= CPSGLASSDEDP:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSGLASSDEDP:CODE --MCP532 or MCP533
+                End
+
+            Next CPSGLASSDEDP
+            End
+
+    Access CPSGLASSLOSS, Set CPSGLASSLOSS:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSGLASSLOSS:STATE = cppGLASS:STATE,
+                             CPSGLASSLOSS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSGLASSLOSS:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSGLASSLOSS:STATE = cppGLASS:STATE And
+          CPSGLASSLOSS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSGLASSLOSS:EFF_DATE Then
+                Begin
+                L_CODE_2 = CPSGLASSLOSS:CODE --MCP530
+                End
+
+            Next CPSGLASSLOSS
+            End
+
+    Access CPSGLASSVACANCY, Set CPSGLASSVACANCY:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                CPSGLASSVACANCY:STATE = cppGLASS:STATE,
+                                CPSGLASSVACANCY:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSGLASSVACANCY:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSGLASSVACANCY:STATE = cppGLASS:STATE And
+          CPSGLASSVACANCY:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSGLASSVACANCY:EFF_DATE Then
+                Begin
+                L_CODE_3 = CPSGLASSVACANCY:CODE --MCP531
+                End
+
+            Next CPSGLASSVACANCY
+            End
+
+    Access CPSGLASSRATE1, Set CPSGLASSRATE1:COMPANY_ID = sfpNAME:COMPANY_ID,
+                              CPSGLASSRATE1:STATE = cppGLASS:STATE,
+                              CPSGLASSRATE1:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSGLASSRATE1:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSGLASSRATE1:STATE = cppGLASS:STATE And
+          CPSGLASSRATE1:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSGLASSRATE1:EFF_DATE Then
+                Begin
+                L_CODE_4 = CPSGLASSRATE1:DAMAGED_GLASS_EXCLUSION --MCP133
+                End
+
+            Next CPSGLASSRATE1
+            End
+
+    Access CPSGLASS50, Set CPSGLASS50:COMPANY_ID = sfpNAME:COMPANY_ID,
+                           CPSGLASS50:STATE = cppGLASS:STATE,
+                           CPSGLASS50:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+    While CPSGLASS50:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSGLASS50:STATE = cppGLASS:STATE And
+          CPSGLASS50:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSGLASS50:EFF_DATE Then
+                Begin
+                L_CODE_5 = CPSGLASS50:CODE  --MCP535
+                End
+
+            Next CPSGLASS50
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppGLASS:DEDUCTIBLE_PERCENT = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppGLASS:DEDUCTIBLE_PERCENT = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppGLASS:OPTIONAL_LOSS_PAYMENT = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppGLASS:OPTIONAL_LOSS_PAYMENT = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppGLASS:VACANCY_UNOCCUPANCY = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppGLASS:VACANCY_UNOCCUPANCY = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_4 <> "" Then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppGLASS:DAMAGED_GLASS_EXCLUSION = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppGLASS:DAMAGED_GLASS_EXCLUSION = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_5 <> "" Then
+        Begin
+        L_CODE = L_CODE_5
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppGLASS:RETENTION = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppGLASS:RETENTION = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If FUNCTION = "ADD" Or
+       FUNCTION = "CHange" Then
+        Begin
+        Access CPSGLASSTRIGGER, Set CPSGLASSTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                    CPSGLASSTRIGGER:STATE = cppGLASS:STATE,
+                                    CPSGLASSTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While CPSGLASSTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+              CPSGLASSTRIGGER:STATE = cppGLASS:STATE And
+              CPSGLASSTRIGGER:LINE_OF_BUSINESS =  L_LINE_OF_BUSINESS
+                Begin
+                L_CODE_1 = CPSGLASSTRIGGER:TRIGGER_ENDORSEMENT[1]
+                L_CODE_2 = CPSGLASSTRIGGER:TRIGGER_ENDORSEMENT[2]
+
+                Next CPSGLASSTRIGGER
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+               Do ADD_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+                Do ADD_sfpEND
+            End
+
+        End
+
+    If FUNCTION = "DELETE" Then
+        Begin
+        Access cppGLASS_ALIAS, Set cppGLASS_ALIAS:policy_no = G_policy_no,
+                                   cppglass_alias:pol_year = cppglass:pol_year,
+                                   cppglass_alias:end_sequence = cppglass:end_sequence,
+                                   cppGLASS_ALIAS:PREM_NO = G_PREM_NO,
+                                   cppGLASS_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+        If cppGLASS_ALIAS:policy_no <> G_policy_no Or
+           cppglass_alias:pol_year <> cppglass:pol_year or
+           cppglass_alias:end_sequence <> cppglass:end_sequence or
+           cppGLASS_ALIAS:PREM_NO <> G_PREM_NO Or
+           cppGLASS_ALIAS:BUILD_NO <> G_BUILD_NO Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" Then
+                Do DELETE_sfpEND
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" Then
+                Do DELETE_sfpEND
+            End
+        End
+
+    End
+
+Procedure Definition
+
+procedure subcode
+begin
+access cppglass_alias, set cppglass_alias:policy_no = cppglass:policy_no,
+                           cppglass_alias:pol_year = cppglass:pol_year,
+                           cppglass_alias:end_sequence = cppglass:end_sequence,
+                           cppglass_alias:prem_no = cppglass:prem_no,
+                           cppglass_alias:build_no = cppglass:build_no, generic
+
+l_sub_code = 0
+while cppglass_alias:policy_no = cppglass:policy_no and
+      cppglass_alias:pol_year = cppglass:pol_year and
+      cppglass_alias:end_sequence = cppglass:end_sequence and
+      cppglass_alias:prem_no = cppglass:prem_no and
+      cppglass_alias:build_no = cppglass:build_no
+        begin
+        l_sub_code = cppglass_alias:sub_code
+
+        next cppglass_alias
+        end
+
+l_sub_code = l_sub_code + 10
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_no = G_policy_no ,
+                   sfpend:pol_year = g_Year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_no <> G_policy_no Or
+            sfpend:pol_year <> g_Year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_no = G_policy_no ,
+                   sfpend:pol_year = g_Year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_no <> G_policy_no Or
+            sfpend:pol_year <> g_Year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = cppGLASS:STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> cppGLASS:STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_no            =       G_policy_no
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "G"
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "G"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_no = G_policy_no ,
+                   sfpend:pol_year = g_Year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_no <> G_policy_no Or
+            sfpend:pol_year <> g_Year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

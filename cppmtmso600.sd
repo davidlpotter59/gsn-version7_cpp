@@ -1,0 +1,362 @@
+%%
+Screen
+        Name            = "cppmtmso600" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Supplemental   Ver 7.0  %m" ;
+        Domain          = "cppFARMSUPP" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4];
+        global unsigned ascii number g_end_sequence[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_line_of_business[4]=0008 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access cppFARMSUPP,
+           Set cppFARMSUPP:policy_NO = G_policy_NO ,
+               cppfarmsupp:pol_year = g_year,
+               cppfarmsupp:end_sequence = g_end_sequence,
+               cppFARMSUPP:PREM_NO = G_PREM_NO ,
+               cppFARMSUPP:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppFARMSUPP:policy_NO <> G_policy_NO Or
+   cppfarmsupp:pol_year <> g_year or
+   cppfarmsupp:end_sequence <> g_End_sequence or
+   cppFARMSUPP:PREM_NO <> G_PREM_NO Or
+   cppFARMSUPP:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Agricultural Equip:      _ ________   Pollution:            ________         |
+| Building Code:           __           Light/Power:          ________         |
+| Building Code Acv Basis: _            Contract Carrier:     ________         |
+| Loss Utility:            ________     Campers:              ________         |
+| Mechanical:              ________     Furs:                 ________         |
+| Credit Card:             ________     Grave Markers:        ________         |
+| Debris:                  ________     Guns:                 ________         |
+| Loss Of Use:             ________     Jewelry:              ________         |
+| Extra Expense:           ________     Money:                ________         |
+| Operations:              ________     Business Property:    ________         |
+| Rental Property:         ________     Watercraft:           ________         |
+| Securities:              ________     Peak Season:                           |
+| Silverware:              ________        Coverage D:        ___              |
+| Water Damage:            ________        Coverage E:        ___              |
+| Inflation Guard:                      Boilers:              _                |
+|   Coverage A:            __                                                  |
+|   Coverage B:            __                                                  |
+|   Coverage C:            __                                                  |
+|   Coverage D:            __                                                  |
+|   Coverage E:            __                                                  |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppFARMSUPP:policy_NO = G_policy_NO
+            cppfarmsupp:pol_year = g_year
+            cppfarmsupp:end_sequence = g_end_sequence
+            cppFARMSUPP:PREM_NO = G_PREM_NO
+            cppFARMSUPP:BUILD_NO = G_BUILD_NO
+            End
+        End
+        cppFARMSUPP:policy_NO/displayonly ;
+302     cppfarmsupp:pol_year/displayonly ;
+303     cppfarmsupp:end_sequence/displayonly;
+401     cppFARMSUPP:PREM_NO/displayonly ;
+501     cppFARMSUPP:BUILD_NO/displayonly ;
+
+701     cppFARMSUPP:AGRIC_EQUIPMENT/checkbox/values="0,1";
+702     cppFARMSUPP:AGRIC_EQUIP_LIMIT/displayonly ;
+801     cppFARMSUPP:BUILDING_CODE_PERCENT;
+901     cppFARMSUPP:BUILDING_CODE_ACV_BASIS/checkbox/values="0,1" ;
+1001    cppFARMSUPP:LOSS_UTILITY_LIMIT;
+1101    cppFARMSUPP:MECHANICAL_LIMIT;
+1201    cppFARMSUPP:CREDIT_CARD_LIMIT;
+1301    cppFARMSUPP:DEBRIS_LIMIT;
+1401    cppFARMSUPP:LOSS_USE_LIMIT;
+1501    cppFARMSUPP:EXTRA_EXP_LIMIT;
+1601    cppFARMSUPP:OPERATIONS_LIMIT;
+1701    cppFARMSUPP:RENTAL_PROP_LIMIT;
+1801    cppFARMSUPP:SECURITIES_LIMIT;
+1901    cppFARMSUPP:SILVERWARE_LIMIT;
+2001    cppFARMSUPP:WATER_DAMAGE_LIMIT;
+2201    cppFARMSUPP:INFLATION_GUARD[1];
+2301    cppFARMSUPP:INFLATION_GUARD[2];
+2401    cppFARMSUPP:INFLATION_GUARD[3];
+2501    cppFARMSUPP:INFLATION_GUARD[4] ;
+2601    cppFARMSUPP:INFLATION_GUARD[5] ;
+
+703     cppFARMSUPP:POLLUTION_LIMIT;
+802     cppFARMSUPP:LIGHT_POWER_LIMIT;
+902     cppFARMSUPP:CONTRACT_CARRIER_LIMIT;
+1002    cppFARMSUPP:CAMPERS_LIMIT;
+1102    cppFARMSUPP:FURS_LIMIT;
+1202    cppFARMSUPP:GRAVE_MARKERS_LIMIT;
+1302    cppFARMSUPP:GUNS_LIMIT;
+1402    cppFARMSUPP:JEWELRY_LIMIT;
+1502    cppFARMSUPP:MONEY_LIMIT;
+1602    cppFARMSUPP:BUS_PROP_LIMIT;
+1702    cppFARMSUPP:WATERCRAFT_LIMIT;
+1902    cppFARMSUPP:PEAK_SEASON[1];
+2002    cppFARMSUPP:PEAK_SEASON[2];
+2101    cppFARMSUPP:BOILER/checkbox/values="0,1";
+
+}
+
+}
+
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    L_STATE = cppFARM:STATE
+    Access CPSFARMMISCRATES, Set CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSFARMMISCRATES:STATE = L_STATE,
+                                 CPSFARMMISCRATES:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+    While CPSFARMMISCRATES:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSFARMMISCRATES:STATE = L_STATE And
+          CPSFARMMISCRATES:LINE_OF_BUSINESS = l_line_of_business
+            Begin
+            If sfpNAME:EFF_DATE >= CPSFARMMISCRATES:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSFARMMISCRATES:ACV_BASIS_CODE -- building code acv basis
+                L_CODE_2 = CPSFARMMISCRATES:WATER_DAMAGE_CODE -- water backup
+                L_CODE_3 = CPSFARMMISCRATES:BOILER_CODE -- boilers
+                L_CODE_4 = CPSFARMMISCRATES:AGRIC_EQUIP_CODE -- agric equip
+                End
+            Next CPSFARMMISCRATES
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARMSUPP:BUILDING_CODE_ACV_BASIS = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARMSUPP:BUILDING_CODE_ACV_BASIS = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARMSUPP:WATER_DAMAGE_PREMIUM <> 0 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARMSUPP:WATER_DAMAGE_PREMIUM = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARMSUPP:BOILER = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARMSUPP:BOILER = 0  Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_4 <> "" Then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppFARMSUPP:AGRIC_EQUIPMENT = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppFARMSUPP:AGRIC_EQUIPMENT = 0  Then
+            Do DELETE_sfpEND
+        End
+
+    End
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence,
+                             cppGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             cppGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = cppGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "P"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

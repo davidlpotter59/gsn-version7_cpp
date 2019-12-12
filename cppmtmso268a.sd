@@ -1,0 +1,152 @@
+%%
+Screen
+        Name            = "cppmtmso268a"
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Scheduled Property Declarations     Ver 7.00 %m" ;
+        Domain          = "CPPDESC" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4];
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access CPPDESC, Set CPPDESC:POLICY_NO = G_POLICY_NO,
+                            CPPDESC:POL_YEAR = G_YEAR,
+                            CPPDESC:END_SEQUENCE = G_END_SEQUENCE,
+                            CPPDESC:PREM_NO = G_PREM_NO,
+                            CPPDESC:BUILD_NO = G_BUILD_NO ,
+                            CPPDESC:CODE = G_CODE, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPDESC:POLICY_NO <> G_POLICY_NO Or
+   CPPDESC:POL_YEAR <> G_YEAR Or
+   CPPDESC:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPDESC:PREM_NO <> G_PREM_NO Or
+   CPPDESC:BUILD_NO <> G_BUILD_NO Or
+   CPPDESC:CODE <> G_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Limit: ____________                                                          |
+*------------------------------------------------------------------------------*
+|                              Description                                     |
+|                                                                              |
+| ___________________________________________________________________________  |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            Do SUBCODE
+            CPPDESC:SUB_CODE = L_SUB_CODE
+            End
+        End
+        CPPDESC:LIMIT;
+701     CPPDESC:DESCRIPTION/freetextlines=10;
+
+}
+
+}
+
+Assignments
+If FUNCTION = "ADD" Then
+    Begin
+    CPPDESC:POLICY_NO = G_POLICY_NO
+    CPPDESC:POL_YEAR = G_YEAR
+    CPPDESC:END_SEQUENCE = G_END_SEQUENCE
+    CPPDESC:PREM_NO = G_PREM_NO
+    CPPDESC:BUILD_NO = G_BUILD_NO
+    CPPDESC:CODE = G_CODE
+    End
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access CPPDESC_ALIAS, Set CPPDESC_ALIAS:POLICY_NO = G_POLICY_NO,
+                          CPPDESC_ALIAS:POL_YEAR = G_YEAR,
+                          CPPDESC_ALIAS:END_SEQUENCE = G_END_SEQUENCE,
+                          CPPDESC_ALIAS:PREM_NO = G_PREM_NO,
+                          CPPDESC_ALIAS:BUILD_NO = G_BUILD_NO,
+                          CPPDESC_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While CPPDESC_ALIAS:POLICY_NO = G_POLICY_NO And
+      CPPDESC_ALIAS:POL_YEAR = G_YEAR And
+      CPPDESC_ALIAS:END_SEQUENCE = G_END_SEQUENCE And
+      CPPDESC_ALIAS:PREM_NO = G_PREM_NO And
+      CPPDESC_ALIAS:BUILD_NO = G_BUILD_NO And
+      CPPDESC_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = CPPDESC_ALIAS:SUB_CODE
+
+        Next CPPDESC_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

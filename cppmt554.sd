@@ -1,0 +1,141 @@
+%%
+Screen
+        Name            = "cppmt554" ;
+        Type            = "Detail" ;
+        Screensize      = "dynamic" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Windowtitle = "%a     %s Include Automotive Products in Outside Containers - Ver 7.00     %m" ;
+        Domain          = "cppendorse" ;
+--      resizeable      = "yes" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7],
+                      g_inquiry[1] ;
+
+        local unsigned ascii number l_sub_code[4] ;
+
+        local string l_username[15] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO    = G_policy_NO ,
+               cppendorse:pol_year     = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO      = G_PREM_NO ,
+               cppendorse:BUILD_NO     = G_BUILD_NO ,
+               cppendorse:CODE         = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+l_username = username
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if (sfpname:policy_no <> 0 or
+   (sfpname:released_by_underwriter <> "" and
+   sfsemail:agent_no <> 0) or
+   g_inquiry = "Y") then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppendorse:policy_NO    <> G_policy_NO Or
+   cppendorse:pol_year     <> g_year or
+   cppendorse:end_Sequence <> g_end_sequence or
+   cppendorse:PREM_NO      <> G_PREM_NO Or
+   cppendorse:BUILD_NO     <> G_BUILD_NO Or
+   cppendorse:code         <> g_code Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Limit:                     __________                                        |
+| Automotive Supplies and Equipment:  _                                        |
+| Gasoline and Oil:                   _                                        |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:policy_NO    = G_policy_NO
+            cppendorse:pol_year     = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:PREM_NO      = G_PREM_NO
+            cppendorse:BUILD_NO     = G_BUILD_NO
+            cppendorse:code         = g_code
+            do subcode
+            cppendorse:sub_code     = l_sub_code
+            end
+        End
+        cppendorse:limit[1] ;
+401     cppendorse:coverages[1]/checkbox/values="0,1" ;
+501     cppendorse:coverages[2]/checkbox/values="0,1" ;
+
+}
+
+procedure definition
+
+procedure subcode
+begin
+access cppendorse_alias, set cppendorse_alias:policy_no    = cppendorse:policy_no,
+                             cppendorse_alias:pol_year     = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             cppendorse_alias:prem_no      = cppendorse:prem_no,
+                             cppendorse_alias:build_no     = cppendorse:build_no,
+                             cppendorse_alias:code         = cppendorse:code, generic
+
+l_sub_code = 0
+while cppendorse_alias:policy_no    = cppendorse:policy_no and
+      cppendorse_alias:pol_year     = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      cppendorse_alias:prem_no      = cppendorse:prem_no and
+      cppendorse_alias:build_no     = cppendorse:build_no and
+      cppendorse_alias:code         = cppendorse:code
+        begin
+        l_sub_code = cppendorse_alias:sub_code
+
+        next cppendorse_alias
+        end
+
+end
+
+End

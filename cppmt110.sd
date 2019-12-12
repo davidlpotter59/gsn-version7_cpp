@@ -1,0 +1,109 @@
+%%
+Screen
+        Name = "cppmt110";
+        Type = "Detail" ;
+        Highlight=Underscore ;
+        Padcharacter=Space ;
+        Screensize="dynamic";
+        Windowtitle="%a     %s Policy Information     %m";
+        Domain="SFPMASTER" ;
+--      resizeable = yes;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_STATE[2],
+                                     G_LINE_OF_BUSINESS[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      g_fob[1] ,
+                      g_fob_description[75] ;
+
+        Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO ,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:End_sequence = g_end_sequence;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/update="NO" ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+Access Validation
+If sfpMASTER:policy_NO <> G_policy_NO or
+   sfpmaster:pol_year <> g_year or
+   sfpmaster:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                                                                              |
+|                                 Form of Business                             |
+|                                                                              |
+|                             [R  _~~Corporation                               |
+|                                 _~~Individual                                |
+|                                 _~~Joint~Venture                             |
+|                                 _~~Organization                              |
+|                                 _~~Partnership                               |
+|                                 _~~Other         R]                          |
+|                                                                              |
+*------------------------------------------------------------------------------*
+| Description: ______________________________________________________________  |
+*------------------------------------------------------------------------------*
+
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext;
+601     begin
+        if sfpmaster:form_of_business <> "" then
+            g_fob = sfpmaster:form_of_business
+        end
+        g_fob/values="C,I,J,O,P,T"/default
+        if g_fob not one of "T" then
+            g_fob_description = "" ;
+1401    g_fob_description
+        hide if g_fob not one of "T" ;
+1401    g_fob_description/displayonly
+        access sfpmaster_alias, set sfpmaster_alias:policy_no    = g_policy_no,
+                                    sfpmaster_alias:pol_year     = g_year,
+                                    sfpmaster_alias:end_sequence = g_end_sequence, generic
+
+        if sfpmaster_alias:policy_no    = g_policy_no and
+           sfpmaster_alias:pol_year     = g_year and
+           sfpmaster_alias:end_sequence = g_end_sequence then
+            begin
+            change sfpmaster_alias
+                begin
+                sfpmaster_alias:form_of_business = g_fob
+                sfpmaster_alias:fob_description  = g_fob_description
+                end
+            end ;
+
+}
+
+End

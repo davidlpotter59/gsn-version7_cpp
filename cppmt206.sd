@@ -1,0 +1,184 @@
+%%
+Screen
+        Name            = "cppmt206" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "cppENDORSE" ;
+        Windowtitle = "%a     %s Spoilage Coverage     Ver 7.00 %m" ;
+        iconline = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7];
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0 ,
+                                    l_state[2]=0,
+                                    l_line_of_business[4]=0,
+                                    l_class[1]=0 ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_Year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        Include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_Year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                          |
+| Location No:  ____                                                           |
+| Building No:  ____                                                           |
+*------------------------------------------------------------------------------*
+| Class/Description: _  __________________________________________________     |
+*______________________________________________________________________________*
+|   Limit      Deductible    Refrigeration      Causes of Loss                 |
+|                             Maintenance   Breakdown or     Power     Selling |
+|                              Agreement    Contamination    Outage     Price  |
+|                                                                              |
+| _________      _____             _               _            _          _   |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = 0008
+            End
+        End
+        cppENDORSE:policy_NO/displayonly ;
+302     cppendorse:pol_year/displayonly ;
+303     cppendorse:end_sequence/displayonly ;
+401     cppENDORSE:PREM_NO/displayonly ;
+501     cppENDORSE:BUILD_NO/displayonly ;
+701     begin
+        l_state = cppgeneral:state
+        l_line_of_business = cppgeneral:rating_line_of_business
+        access cppgeneral, set cppgeneral:policy_no    = g_policy_no,
+                               cppgeneral:pol_year     = g_year,
+                               cppgeneral:end_sequence = g_end_sequence,
+                               cppgeneral:prem_no      = g_prem_no,
+                               cppgeneral:build_no     = g_build_no, generic
+
+        access cpsspoilage_alias, set cpsspoilage_alias:company_id       = sfpname:company_id,
+                                      cpsspoilage_alias:state            = l_state,
+                                      cpsspoilage_alias:line_of_business = l_line_of_business, generic
+        end
+        cppENDORSE:option[1]
+        l_class = cppendorse:option[1]
+        access cpsspoilage, set cpsspoilage:company_id       = sfpname:company_id,
+                                cpsspoilage:state            = l_state,
+                                cpsspoilage:line_of_business = l_line_of_business,
+                                cpsspoilage:class            = l_class, generic
+
+        if cppendorse:option[1] <> cpsspoilage:class then
+            error "Invalid Class"
+
+        cppendorse:name[1] = cpsspoilage_alias:description
+
+        activehelp cpsspoilage_alias:class,
+                   cpsspoilage_alias:description;
+0702    cppendorse:name[1]/default ;
+1301    cppendorse:limit[1] ;
+1302    cppendorse:deductible[1] ;
+1303    cppENDORSE:coverages[1]/checkbox/values="0,1";
+1304    cppENDORSE:coverages[2]/checkbox/values="0,1";
+1305    cppENDORSE:coverages[3]/checkbox/values="0,1";
+1306    cppENDORSE:coverages[4]/checkbox/values="0,1" ;
+
+}
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS, Set cppENDORSE_ALIAS:policy_NO = cppENDORSE:policy_NO,
+                             cppendorse_alias:pol_year = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             cppENDORSE_ALIAS:PREM_NO = cppENDORSE:PREM_NO,
+                             cppENDORSE_ALIAS:BUILD_NO = cppENDORSE:BUILD_NO,
+                             cppENDORSE_ALIAS:CODE = cppENDORSE:CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO = cppENDORSE:policy_NO And
+      cppendorse_alias:pol_year = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      cppENDORSE_ALIAS:PREM_NO = cppENDORSE:PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO = cppENDORSE:BUILD_NO And
+      cppENDORSE_ALIAS:CODE = cppENDORSE:CODE
+        Begin
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

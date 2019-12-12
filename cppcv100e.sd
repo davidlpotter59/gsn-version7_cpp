@@ -1,0 +1,228 @@
+%%
+Program
+        Name = "cppcv100e" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4] ,
+                                     G_END_SEQUENCE[4] ,
+                                     G_YEAR_1[4],
+                                     G_END_SEQUENCE_1[4] ,
+                                     G_TRANS_CODE[4] ;
+
+        Local String L_PROCEDURE[50],
+                     l_company_id[10] ,
+                     l_lob_end_code[1] ,
+                     l_code[7],
+                     l_form_edition[25],
+                     l_description[75];
+
+        local date l_terror_eff_date[8] ;
+
+        local unsigned ascii number l_add_back[1],
+                                    l_state[2] ,
+                                    l_zip_code[5],
+                                    l_state2[2],
+                                    l_agent_increase[4]=0/dec=2,
+                                    l_dont_increase[1],
+                                    l_increase[4]=0/dec=2,
+                                    l_inflatzipcode_increase[4]=0/dec=2,
+                                    l_agent_no[4],
+                                    l_rounded_building[8],
+                                    l_rounded_property[8],
+                                    l_percent[4],
+                                    l_rounded_limit[8],
+                                    l_round_factor[5],
+                                    l_stripped_number[8],
+                                    l_insurance_limit[8],
+                                    l_increase_used[6]=0/dec=2,
+                                    l_line_of_business[4]=0008,
+                                    l_line_of_business_1[4],
+                                    l_group_1[5]=0/dec=3,
+                                    l_group_2[5]=0/dec=3 ;
+
+        local wdate l_eff_date ;
+
+Initialisation
+G_POLICY_NO      = Val(COMMANDLINE[1,9])
+G_YEAR           = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE   = Val(COMMANDLINE[16,19])
+G_YEAR_1         = Val(COMMANDLINE[21,24])
+G_END_SEQUENCE_1 = Val(COMMANDLINE[26,29])
+G_TRANS_CODE     = Val(COMMANDLINE[31,34])
+
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year_1,
+                    sfpname:end_sequence = g_end_sequence_1, generic
+
+Access CPPGENERAL_ALIAS, Set CPPGENERAL_ALIAS:POLICY_NO    = G_POLICY_NO,
+                             CPPGENERAL_ALIAS:POL_YEAR     = G_YEAR_1,
+                             CPPGENERAL_ALIAS:END_SEQUENCE = G_END_SEQUENCE_1, generic
+
+l_company_id       = sfpname:company_id
+l_state            = cppgeneral_alias:state
+l_line_of_business = cppgeneral_alias:rating_line_of_business
+Access SFSLINE, Set SFSLINE:COMPANY_ID       = SFPNAME:COMPANY_ID,
+                    SFSLINE:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS,
+                    SFSLINE:LOB_SUBLINE      = "00", Generic
+
+access scipscontrol, set scipscontrol:company_id = l_company_id,
+                         scipscontrol:state      = l_state,
+                         scipscontrol:lob_Code   = sfsline:LOB_code, exact
+
+access sfprenewchanges, set sfprenewchanges:company_id       = l_company_id,
+                            sfprenewchanges:state            = l_state,
+                            sfprenewchanges:line_of_business = l_line_of_business, generic
+
+while sfprenewchanges:company_id       = l_company_id and
+      sfprenewchanges:state            = l_state and
+      sfprenewchanges:line_of_business = l_line_of_business
+    begin
+    if sfpname:eff_date >= sfprenewchanges:rate_date then
+        begin
+        l_increase                          = sfprenewchanges:increase
+        end
+
+    next sfprenewchanges
+    end
+
+l_agent_no = sfpname:agent_no
+access sfprenewrollon, set sfprenewrollon:company_id       = l_company_id,
+                           sfprenewrollon:agent_no         = l_agent_no,
+                           sfprenewrollon:state            = l_state,
+                           sfprenewrollon:line_of_business = l_line_of_business, generic
+
+l_agent_increase = 0
+l_dont_Increase = 0
+while sfprenewrollon:company_id       = l_company_id and
+      sfprenewrollon:agent_no         = l_agent_no and
+      sfprenewrollon:state            = l_state and
+      sfprenewrollon:line_of_business = l_line_of_business
+    begin
+    if sfpname:eff_date >= sfprenewrollon:rate_eff_date and
+       sfpname:eff_date <= sfprenewrollon:rate_exp_date then
+        begin
+        l_agent_increase = sfprenewrollon:increase
+        l_dont_increase = sfprenewrollon:dont_increase
+        end
+
+    next sfprenewrollon
+    end
+
+while cppgeneral_alias:policy_no = g_policy_no and
+      cppgeneral_alias:pol_year = g_year_1 and
+      cppgeneral_alias:end_sequence = g_end_sequence_1
+    begin
+    if cppgeneral_alias:rate_type = 1 then
+        begin
+        Access sfplocation, Set sfplocation:POLICY_NO     = cppgeneral_alias:POLICY_NO,
+                                sfplocation:POL_YEAR      = cppgeneral_alias:POL_YEAR,
+                                sfplocation:END_SEQUENCE  = cppgeneral_alias:END_SEQUENCE,
+                                sfplocation:PREM_NO       = cppgeneral_alias:PREM_NO,
+                                sfplocation:BUILD_NO      = cppgeneral_alias:BUILD_NO, Generic
+
+        l_zip_code = sfplocation:zipcode[1,5]
+        l_state2 = sfplocation:state
+        Access sfsinflatzipcode, set sfsinflatzipcode:company_id       = l_company_id,
+                                     sfsinflatzipcode:state            = l_state2,
+                                     sfsinflatzipcode:line_of_business = l_line_of_business,
+                                     sfsinflatzipcode:zip_code_5       = l_zip_code, generic
+
+        l_inflatzipcode_increase = 0
+        while sfsinflatzipcode:company_id       = l_company_id and
+              sfsinflatzipcode:state            = l_state2 and
+              sfsinflatzipcode:line_of_business = l_line_of_business and
+              sfsinflatzipcode:zip_code_5       = l_zip_code
+            begin
+            if sfpname:eff_date >= sfsinflatzipcode:eff_date and
+               sfpname:eff_date <= sfsinflatzipcode:exp_date then
+                begin
+                l_inflatzipcode_increase = sfsinflatzipcode:inflation_factor
+                end
+
+            next sfsinflatzipcode
+            end
+
+        if g_trans_code one of 14 and
+           sfpname:company_id = "LEBINS" then
+            begin
+            if l_dont_increase = 0 then
+                begin
+                If l_AGENT_INCREASE <> 0 Then
+                    Begin
+                    l_increase_used = l_agent_increase
+                    do process_increase
+                    end
+                else
+                    begin
+                    if l_inflatzipcode_increase <> 0 then
+                        l_increase = l_inflatzipcode_increase
+
+                    If L_INCREASE <> 0 Then
+                        Begin
+                        l_increase_used = l_increase
+                        do process_increase
+                        End
+                    Else
+                    if CPPGENERAL_ALIAS:inflation_guard <> 0 Then
+                        Begin
+                        l_increase_used = CPPGENERAL_ALIAS:inflation_guard
+                        do process_increase
+                        End
+                    else
+                        begin
+                        l_rounded_limit = cppgeneral_alias:limit[1]
+                        end
+                    end
+
+                access cppgeneral, set cppgeneral:policy_no    = cppgeneral_alias:policy_no,
+                                       cppgeneral:pol_year     = cppgeneral_alias:pol_year,
+                                       cppgeneral:end_sequence = cppgeneral_alias:end_sequence,
+                                       cppgeneral:prem_no      = cppgeneral_alias:prem_no,
+                                       cppgeneral:build_no     = cppgeneral_alias:build_no,
+                                       cppgeneral:rate_type    = cppgeneral_alias:rate_type, generic
+
+                if cppgeneral:policy_no    = cppgeneral_alias:policy_no and
+                   cppgeneral:pol_year     = cppgeneral_alias:pol_year and
+                   cppgeneral:end_sequence = cppgeneral_alias:end_sequence and
+                   cppgeneral:prem_no      = cppgeneral_alias:prem_no and
+                   cppgeneral:build_no     = cppgeneral_alias:build_no and
+                   cppgeneral:rate_type    = cppgeneral_alias:rate_type then
+                    begin
+                    change cppgeneral
+                        begin
+                        CPPGENERAL:LIMIT[1] = l_rounded_limit
+                        end
+                    end
+                end
+            end
+        end
+
+   next cppgeneral_alias
+   end
+
+Update
+
+Errors
+Writefile("cppcv100.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv100.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv100.err","%s<nl>",L_PROCEDURE)
+
+procedure definition
+
+procedure process_increase
+BEGIN
+l_insurance_limit = (CPPGENERAL_ALIAS:LIMIT[1] *
+                    (L_INCREASE_used Divide 100 + 1))
+l_round_factor    = scipscontrol:round_factor
+if l_round_factor = 0 then
+  {
+    l_round_factor = 1  --this will eliminate division by zero
+  }
+l_stripped_number = l_insurance_limit divide l_round_factor
+l_rounded_limit = l_stripped_number * l_round_factor
+END
+
+End

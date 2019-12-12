@@ -1,0 +1,346 @@
+%%
+Screen
+        Name            = "cppmtmso301" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Business Income Dependent Property Coverage     Ver 7.00 %m" ;
+        Domain          = "CPPBUSDEPENDPROP" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4];
+        Global Unsigned Ascii Number G_END_SEQUENCE[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_END_SCREEN[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    l_line_of_business[4]=0008 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access CPPBUSDEPENDPROP,
+           Set CPPBUSDEPENDPROP:POLICY_NO = G_POLICY_NO ,
+               CPPBUSDEPENDPROP:POL_YEAR = G_YEAR,
+               CPPBUSDEPENDPROP:END_SEQUENCE = G_END_SEQUENCE,
+               CPPBUSDEPENDPROP:PREM_NO = G_PREM_NO ,
+               CPPBUSDEPENDPROP:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPBUSDEPENDPROP:POLICY_NO <> G_POLICY_NO Or
+   CPPBUSDEPENDPROP:POL_YEAR <> G_YEAR Or
+   CPPBUSDEPENDPROP:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPBUSDEPENDPROP:PREM_NO <> G_PREM_NO Or
+   CPPBUSDEPENDPROP:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Limited:     _                                                               |
+| Insured's business is dependent on such Dependent property: _                |
+*------------------------------------------------------------------------------*
+| Contributing Locations:                       Limit: __________              |
+| ___________________________________________________________________________  |
+| ___________________________________________________________________________  |
+*------------------------------------------------------------------------------*
+| Leader Locations:                             Limit: __________              |
+| ___________________________________________________________________________  |
+| ___________________________________________________________________________  |
+*------------------------------------------------------------------------------*
+| Manufacturing Locations:                      Limit: __________              |
+| ___________________________________________________________________________  |
+| ___________________________________________________________________________  |
+*------------------------------------------------------------------------------*
+| Recipient Location:                           Limit: __________              |
+| ___________________________________________________________________________  |
+| ___________________________________________________________________________  |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPBUSDEPENDPROP:POLICY_NO = G_POLICY_NO
+            CPPBUSDEPENDPROP:POL_YEAR = G_YEAR
+            CPPBUSDEPENDPROP:END_SEQUENCE = G_END_SEQUENCE
+            CPPBUSDEPENDPROP:PREM_NO = G_PREM_NO
+            CPPBUSDEPENDPROP:BUILD_NO = G_BUILD_NO
+            End
+        End
+        CPPBUSDEPENDPROP:POLICY_NO/displayonly ;
+302     CPPBUSDEPENDPROP:POL_YEAR/displayonly;
+303     CPPBUSDEPENDPROP:END_SEQUENCE/displayonly;
+401     CPPBUSDEPENDPROP:PREM_NO/displayonly ;
+501     CPPBUSDEPENDPROP:BUILD_NO/displayonly ;
+
+701     CPPBUSDEPENDPROP:LIMITED/checkbox/values="0,1" ;
+801     CPPBUSDEPENDPROP:DEPENDENT_PROPERTY/checkbox/values="0,1";
+
+1001    Begin
+        If CPPBUSINESS:COVERAGE = "D2" Then
+            CPPBUSDEPENDPROP:LIMITED = 1
+        End
+        CPPBUSDEPENDPROP:LIMIT[1]
+        Hide If CPPBUSDEPENDPROP:LIMITED = 0 ;
+1101    CPPBUSDEPENDPROP:LOCATION_1[1];
+1201    CPPBUSDEPENDPROP:LOCATION_2[1]
+        Hide If CPPBUSDEPENDPROP:LOCATION_1[1] = "" ;
+
+1401    CPPBUSDEPENDPROP:LIMIT[2]
+        Hide If CPPBUSDEPENDPROP:LIMITED = 0 ;
+1501    CPPBUSDEPENDPROP:LOCATION_1[2];
+1601    CPPBUSDEPENDPROP:LOCATION_2[2]
+        Hide If CPPBUSDEPENDPROP:LOCATION_1[2] = "" ;
+
+1801    CPPBUSDEPENDPROP:LIMIT[3]
+        Hide If CPPBUSDEPENDPROP:LIMITED = 0 ;
+1901    CPPBUSDEPENDPROP:LOCATION_1[3];
+2001    CPPBUSDEPENDPROP:LOCATION_2[3]
+        Hide If CPPBUSDEPENDPROP:LOCATION_1[3] = "" ;
+
+2201    CPPBUSDEPENDPROP:LIMIT[4]
+        Hide If CPPBUSDEPENDPROP:LIMITED = 0 ;
+2301    CPPBUSDEPENDPROP:LOCATION_1[4];
+2401    CPPBUSDEPENDPROP:LOCATION_2[4]
+        Hide If CPPBUSDEPENDPROP:LOCATION_1[4] = "" ;
+
+}
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" And
+   G_END_SCREEN  Not One Of "Y" Then
+    Begin
+    L_STATE = CPPGENERAL:STATE
+    Access CPSBUSMISCRATES, Set CPSBUSMISCRATES:COMPANY_ID = SFPNAME:COMPANY_ID,
+                                CPSBUSMISCRATES:STATE = L_STATE,
+                                CPSBUSMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSBUSMISCRATES:COMPANY_ID = SFPNAME:COMPANY_ID And
+          CPSBUSMISCRATES:STATE = L_STATE And
+          CPSBUSMISCRATES:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If SFPNAME:EFF_DATE >= CPSBUSMISCRATES:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSBUSMISCRATES:DEPENDANT_PROP_CODE[1] -- MCP333
+                L_CODE_2 = CPSBUSMISCRATES:DEPENDANT_PROP_CODE[2] -- MCP335
+                L_CODE_3 = CPSBUSMISCRATES:DEPENDANT_PROP_CODE[3] -- MCP337
+                End
+            Next CPSBUSMISCRATES
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_SFPEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           CPPBUSDEPENDPROP:LIMITED = 0 And
+           CPPBUSINESS:COVERAGE <> "D2" Then
+            Do ADD_SFPEND
+        If L_ADD_ENDORSEMENT = "N" And
+           CPPBUSDEPENDPROP:LIMITED = 1 Or
+           CPPBUSINESS:COVERAGE = "D2" Then
+            Do DELETE_SFPEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_SFPEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           CPPBUSDEPENDPROP:LIMITED = 1 And
+           CPPBUSINESS:COVERAGE <> "D2" Then
+            Do ADD_SFPEND
+        If L_ADD_ENDORSEMENT = "N" And
+           CPPBUSDEPENDPROP:LIMITED = 0 Or
+           CPPBUSINESS:COVERAGE = "D2" Then
+            Do DELETE_SFPEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_SFPEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           CPPBUSINESS:COVERAGE = "D2" Then
+            Do ADD_SFPEND
+        If L_ADD_ENDORSEMENT = "N" And
+           CPPBUSINESS:COVERAGE <> "D2" Then
+            Do DELETE_SFPEND
+        End
+
+    End
+
+Procedure Definition
+
+Procedure ACCESS_SFPEND
+Begin
+Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO ,
+                   SFPEND:POL_YEAR = G_YEAR,
+                   SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                   SFPEND:PREM_NO = G_PREM_NO,
+                   SFPEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If SFPEND:POLICY_NO <> G_POLICY_NO Or
+            SFPEND:POL_YEAR <> G_YEAR Or
+            SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+            SFPEND:PREM_NO <> G_PREM_NO Or
+            SFPEND:BUILD_NO <> G_BUILD_NO
+
+    If SFPEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next SFPEND
+    End
+
+End
+
+Procedure ADD_SFPEND
+Begin
+Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO ,
+                   SFPEND:POL_YEAR = G_YEAR,
+                   SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                   SFPEND:PREM_NO = G_PREM_NO,
+                   SFPEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If SFPEND:POLICY_NO <> G_POLICY_NO Or
+            SFPEND:POL_YEAR <> G_YEAR Or
+            SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+            SFPEND:PREM_NO <> G_PREM_NO Or
+            SFPEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = SFPEND:SUB_CODE
+
+    Next SFPEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access CPPGENERAL_ALIAS, Set CPPGENERAL_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPGENERAL_ALIAS:POL_YEAR = G_YEAR,
+                             CPPGENERAL_ALIAS:END_SEQUENCE = G_END_SEQUENCE,
+                             CPPGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             CPPGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = CPPGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = SFPNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> SFPNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If SFPNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add SFPEND
+    Begin
+    SFPEND:POLICY_NO            =       G_POLICY_NO
+    SFPEND:POL_YEAR             =       G_YEAR
+    SFPEND:END_SEQUENCE         =       G_END_SEQUENCE
+    SFPEND:PREM_NO              =       G_PREM_NO
+    SFPEND:BUILD_NO             =       G_BUILD_NO
+    SFPEND:SUB_CODE             =       L_SUB_CODE
+    SFPEND:CODE                 =       L_CODE
+    SFPEND:FORM_EDITION         =       L_FORM_EDITION
+    SFPEND:DESCRIPTION          =       L_DESCRIPTION
+    SFPEND:PREMIUM              =       0
+    SFPEND:LOB_END_CODE         =       "B"
+    End
+
+End
+
+Procedure DELETE_SFPEND
+Begin
+Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO ,
+                   SFPEND:POL_YEAR = G_YEAR,
+                   SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                   SFPEND:PREM_NO = G_PREM_NO,
+                   SFPEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If SFPEND:POLICY_NO <> G_POLICY_NO Or
+            SFPEND:POL_YEAR <> G_YEAR Or
+            SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+            SFPEND:PREM_NO <> G_PREM_NO Or
+            SFPEND:BUILD_NO <> G_BUILD_NO
+
+    If SFPEND:CODE = L_CODE Then
+        Delete SFPEND
+
+    Next SFPEND
+    End
+
+End
+
+End

@@ -1,0 +1,373 @@
+%%
+Screen
+        Name            = "cppmt555" ;
+        Type            = "Detail" ;
+        Screensize      = "dynamic" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Windowtitle = "%a     %s Protective Devices or Services Provision - Ver 7.00     %m" ;
+        Domain          = "cppendorse" ;
+--      resizeable      = "yes" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7],
+                      g_inquiry[1] ;
+
+        local unsigned ascii number l_sub_code[4] ;
+
+        local string l_username[15] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO    = G_policy_NO ,
+               cppendorse:pol_year     = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO      = G_PREM_NO ,
+               cppendorse:BUILD_NO     = G_BUILD_NO ,
+               cppendorse:CODE         = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+l_username = username
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if (sfpname:policy_no <> 0 or
+   (sfpname:released_by_underwriter <> "" and
+   sfsemail:agent_no <> 0) or
+   g_inquiry = "Y") then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppendorse:policy_NO    <> G_policy_NO Or
+   cppendorse:pol_year     <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:PREM_NO      <> G_PREM_NO Or
+   cppendorse:BUILD_NO     <> G_BUILD_NO Or
+   cppendorse:code         <> g_code Then
+    Error 1000 ;
+
+screen at 2,1 to 25, 81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Section 1: _     Section 2: _                                                |
+*------------------------------------------------------------------------------*
+| Items Applicable                                                             |
+*------------------------------------------------------------------------------*
+|                  __________________________________________________          |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:policy_NO    = G_policy_NO
+            cppendorse:pol_year     = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:PREM_NO      = G_PREM_NO
+            cppendorse:BUILD_NO     = G_BUILD_NO
+            cppendorse:code         = g_code
+            do subcode
+            cppendorse:sub_code     = l_sub_code
+            end
+        End
+        cppendorse:option[1]/checkbox/values="0,1" ;
+302     cppendorse:option[2]/checkbox/values="0,1" ;
+701     cppendorse:description/freetextlines=10 ;
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 1"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 1: _                                                                    |
+*------------------------------------------------------------------------------*
+| Name of Alarm Company:  __________________________________________________   |
+| UL Classification:      __________________________________________________   |
+| Connected With:         __________________________________________________   |
+*------------------------------------------------------------------------------*
+| Type of Alarm:          Premises:      _           Safe~Or~Vault:     _      |
+| Grade Extent of Protection:  Certificate No:       ____________________      |
+|                              Eff Date: __________  Exp Date: __________      |
+| Outside Central Station: _   Outside Gong:      _  Alarm Company Has Keys: _ |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     cppendorse:item[1]/checkbox/values="0,1" ;
+401     cppendorse:name[1] ;
+501     cppendorse:address1[1] ;
+601     cppendorse:address2[1] ;
+801     cppendorse:option1[1]/checkbox/values="0,1" ;
+802     cppendorse:option1[2]/checkbox/values="0,1" ;
+901     cppendorse:serial_no ;
+1001    cppendorse:eff_date ;
+1002    cppendorse:exp_date ;
+1101    cppendorse:option1[3]/checkbox/values="0,1" ;
+1102    cppendorse:option1[4]/checkbox/values="0,1" ;
+1103    cppendorse:option1[5]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 2"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 2: _                                                                    |
+*------------------------------------------------------------------------------*
+| No of private watchperson(s):     ____                                       |
+| Register at least hourly on a clock: _                                       |
+| Signal a central station:            _                                       |
+|   at least hourly:                   _                                       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    cppendorse:item[2]/checkbox/values="0,1" ;
+0401    cppendorse:no_employees ;
+0501    cppendorse:option2[1]/checkbox/values="0,1" ;
+0601    cppendorse:option2[2]/checkbox/values="0,1" ;
+0701    cppendorse:option2[3]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 3"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 3: _                                                                    |
+| The premises is equipped with a Bullet Resisting enclosure for which you     |
+| hold an unexpired Underwriters' Laboratories, Inc. certificate               |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    cppendorse:item[3]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 4"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 4: _                                                                    |
+| The premises is equipped with a Bullet Resisting enclosure and alarm system  |
+| for which you hold an unexpired Underwriters' Laboratories, Inc. certificate |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    cppendorse:item[4]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 5"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 5: _                                                                    |
+*------------------------------------------------------------------------------*
+| No of guard(s): ____ will be on duty within the premises or at its door      |
+| while regularly open for business                                            |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    cppendorse:item[5]/checkbox/values="0,1" ;
+0401    cppendorse:no_employees2 ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 6"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 6: _                                                                    |
+*------------------------------------------------------------------------------*
+| The premises is equipped with a holdup alarm connected with:                 |
+| Central Station:                                                         _   |
+| Police Station with 1 regular police officer on duty at all times:       _   |
+| Local gong inside or outside the premises:                               _   |
+| Insured holds an unexpired Underwriters' Laboratories, Inc. Certificate: _   |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    cppendorse:item[6]/checkbox/values="0,1" ;
+0501    cppendorse:option2[4]/checkbox/values="0,1" ;
+0601    cppendorse:option2[5]/checkbox/values="0,1" ;
+0701    cppendorse:option2[6]/checkbox/values="0,1" ;
+0801    cppendorse:option2[7]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Item 7"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Item 7: _                                                                    |
+*------------------------------------------------------------------------------*
+| The covered property will be conveyed outside the premises in the following: |
+| A locked safe or chest bolted or welded inside a vehicle:              _     |
+| An Underwriters' Laboratories, Inc. approved messenger protective bag: _     |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    cppendorse:item[7]/checkbox/values="0,1" ;
+0501    cppendorse:option2[8]/checkbox/values="0,1" ;
+0601    cppendorse:option2[9]/checkbox/values="0,1" ;
+
+}
+
+}
+
+}
+
+procedure definition
+
+procedure subcode
+begin
+access cppendorse_alias, set cppendorse_alias:policy_no    = cppendorse:policy_no,
+                             cppendorse_alias:pol_year     = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             cppendorse_alias:prem_no      = cppendorse:prem_no,
+                             cppendorse_alias:build_no     = cppendorse:build_no,
+                             cppendorse_alias:code         = cppendorse:code, generic
+
+l_sub_code = 0
+while cppendorse_alias:policy_no    = cppendorse:policy_no and
+      cppendorse_alias:pol_year     = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      cppendorse_alias:prem_no      = cppendorse:prem_no and
+      cppendorse_alias:build_no     = cppendorse:build_no and
+      cppendorse_alias:code         = cppendorse:code
+        begin
+        l_sub_code = cppendorse_alias:sub_code
+
+        next cppendorse_alias
+        end
+
+end
+
+End

@@ -1,0 +1,3161 @@
+%%
+Program
+        Name = "cppUP02b" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+-- optional coverages rating
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        Local String L_MISC[1]="N",
+                     L_CODE[7] ,
+                     l_mcp507_exists[1],
+                     l_cmp_symbol[2]="",
+                     l_filename[15]="",
+                     l_bu2510_mp[1]="N",
+                     l_company_id[10] ;
+
+        local date l_eff_date_1[8],
+                   l_eff_date[8],
+                   l_exp_date[8] ;
+
+        local unsigned ascii number l_line_of_business[4];
+
+        Local Signed Ascii Number L_END_PREMIUM[8]=0 ,
+                                  L_UPDATE_SFPEND_PREMIUM[6]=0,
+                                  l_deviation[5]=0/dec=3,
+                                  l_package_mod[5]=0/dec=3,
+                                  l_days,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  L_SUPPLEMENTAL_PREMIUM[8]=0;
+
+        Local Unsigned Ascii Number L_STATE[2]=0,
+                                    L_BUILDING_CODE_FACTOR[7]=0/decimals=3,
+                                    l_option5_terr_factor[5]=0/dec=4,
+                                    l_deductible_factor_1[6]=0/dec=4,
+                                    l_deductible_factor_2[6]=0/dec=4,
+                                    l_building_code_factor_1[7]=0/dec=3,
+                                    l_percent[2]=0,
+                                    L_BUILDING_CODE_PREM[6]=0,
+                                    L_PEAK_SEASON_FACTOR[7]=0/decimals=3,
+                                    L_PEAK_SEASON_PREM[6]=0,
+                                    l_rate[6]=0/dec=3,
+                                    l_bu2510_premium[6]=0,
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0,
+                                    l_specific_rate_adj[6]=0/dec=4,
+                                    l_theft_adj_rate[6]=0/dec=3,
+                                    l_county[3]=0,
+                                    l_construction[1]=0,
+                                    l_exclude_theft[1]=0,
+                                    l_rate_group[2]=0,
+                                    l_group_no[2]=0,
+                                    l_option5pp_charge[5]=0,
+                                    l_aop_base_rate[5]=0/dec=3,
+                                    l_irpm_deviation[4]=0/dec=2,
+                                    l_exp_factor[4]=0/dec=2,
+                                    l_deductible[5]=0,
+                                    l_mcp505_rate[5]=0/dec=3,
+                                    l_mcp505_per[4]=0,
+                                    l_deductible_factor[4]=0/dec=3,
+                                    l_number[9]=0,
+                                    l_antenna_sub_code[4],
+                                    l_antenna_class_code[5],
+                                    l_fire_prem[6],
+                                    l_coinsurance_factor[5]=0/dec=3,
+                                    l_ec_prem[6],
+                                    l_vmm_prem[6],
+                                    l_other_prem[6],
+                                    l_other_theft[6],
+                                    l_sl_prem[6],
+                                    l_eq_prem[6],
+                                    l_property_premium[8]=0,
+                                    l_property_others_limit[8]=0,
+                                    l_furs_limit[8]=0,
+                                    l_adj_premium[8]=0/dec=3,
+                                    l_signs_sub_code_1[4],
+                                    l_signs_sub_code_2[4],
+                                    l_signs_sub_code[4],
+                                    l_signs_class_code[5],
+                                    l_signs_fire_prem[6],
+                                    l_signs_ec_prem[6],
+                                    l_signs_vmm_prem[6],
+                                    l_signs_other_prem[6],
+                                    l_outdoor_sub_code[4],
+                                    l_outdoor_class_code[5],
+                                    l_fire_factor[5]=0/dec=3,
+                                    l_ec_factor[5]=0/dec=3,
+                                    l_vmm_factor[5]=0/dec=3,
+                                    l_other_factor[8]=0/dec=4,
+                                    l_eq_factor[5]=0/dec=3,
+                                    l_charge[6]=0,
+                                    l_end_factor[5]=0/dec=3,
+                                    l_end_limit[5]=0,
+                                    l_end_premium1[6]=0,
+                                    L_FACTOR[5]=0/decimals=3,
+                                    l_factor_1[5]=0/dec=3,
+                                    L_PER[4]=0,
+                                    l_debris_rate_1[4]=0/dec=3,
+                                    l_debris_rate_2[4]=0/dec=3,
+                                    l_debris_rate_3[4]=0/dec=3,
+                                    l_debris_rate_4[4]=0/dec=3,
+                                    l_debris_rate_5[4]=0/dec=3,
+                                    l_debris_rate_6[4]=0/dec=3,
+                                    l_debris_removal_prem_1[6]=0,
+                                    l_debris_removal_prem_2[6]=0,
+                                    l_debris_removal_prem_3[6]=0,
+                                    l_debris_removal_prem_4[6]=0,
+                                    l_debris_removal_prem_5[6]=0,
+                                    l_debris_removal_prem_6[6]=0,
+                                    L_UP_TO_LIMIT_1[8]=0,
+                                    L_UP_TO_LIMIT_2[8]=0,
+                                    L_UP_TO_LIMIT_RATE_1[4]=0/decimals=3,
+                                    L_UP_TO_LIMIT_RATE_2[4]=0/decimals=3,
+                                    L_UP_TO_LIMIT_PER_1[4]=0,
+                                    L_UP_TO_LIMIT_PER_2[4]=0,
+                                    l_water_backup_premium[6]=0,
+                                    l_water_backup_increase[6]=0,
+                                    L_LIMIT[8]=0,
+                                    l_basic_limit[8]=0,
+                                    l_limit_1[8]=0,
+                                    l_limit_2[8]=0;
+
+Initialisation
+G_policy_NO = Val(COMMANDLINE[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+l_number = g_policy_no
+l_filename = "cppup02b.log"
+
+include "loginitial.inc"
+
+Do RATE_OPTIONAL_COVERAGES
+
+Update
+
+screen exit
+include "logscreenexit.inc"
+
+errors
+include "logerrors.inc"
+
+Procedure Definition
+
+Procedure RATE_OPTIONAL_COVERAGES
+Begin
+Access cppproperty, Set cppproperty:policy_NO = G_policy_NO,
+                        cppproperty:pol_year = g_year,
+                        cppproperty:end_sequence = g_end_sequence, Generic
+
+While cppproperty:policy_NO = G_policy_NO and
+      cppproperty:pol_year = g_year and
+      cppproperty:end_sequence = g_end_sequence
+    Begin
+    access sfpname, set sfpname:policy_no = cppproperty:policy_no,
+                        sfpname:pol_Year = cppproperty:pol_year,
+                        sfpname:end_sequence = cppproperty:end_sequence, generic
+
+    access sfsline, set sfsline:company_id = sfpname:company_id,
+                        sfsline:line_of_business = sfpname:line_of_business,
+                        sfsline:lob_subline = "00", generic
+
+    l_line_of_business = sfsline:rating_line_of_business
+
+    access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+    access sfpmaster, set sfpmaster:policy_no = cppproperty:policy_no,
+                          sfpmaster:pol_year = cppproperty:pol_year ,
+                          sfpmaster:end_sequence = cppproperty:end_sequence, generic
+
+    access cppgeneral, set cppgeneral:policy_no = cppproperty:policy_no,
+                           cppgeneral:pol_year = cppproperty:pol_year,
+                           cppgeneral:end_sequence = cppproperty:end_sequence,
+                           cppgeneral:prem_no = cppproperty:prem_no,
+                           cppgeneral:build_no = cppproperty:build_no, generic
+
+    access cppexclusions, set cppexclusions:policy_no = cppgeneral:policy_no,
+                              cppexclusions:pol_year = cppgeneral:pol_year,
+                              cppexclusions:end_sequence = cppgeneral:end_sequence,
+                              cppexclusions:prem_no = cppgeneral:prem_no,
+                              cppexclusions:build_no = cppgeneral:build_no,
+                              cppexclusions:rate_type = cppgeneral:rate_type, generic
+
+    do rate_ar
+    if sfscompany:boiler_rating <> 4 then
+        do rate_inflation_factor
+    do rate_peak_season
+    do rate_glass
+    do rate_signs_not_attached
+    do rate_signs_attached
+    Do rate_building_code
+    do rate_utility
+    do rate_mechanical_breakdown
+    do rate_debris_removal
+    do rate_other_locations
+    do rate_in_transit
+    do rate_outdoor_property
+    do rate_personal_effects
+    do rate_personal_property_others
+    do rate_valuable_papers
+    do rate_precious_metals
+    do rate_water_backup
+    do rate_loss_assessment
+    do rate_furs
+
+    Access sfpEND, Set sfpEND:policy_NO = cppproperty:policy_NO,
+                       sfpend:pol_year = cppproperty:pol_year,
+                       sfpend:end_sequence = cppproperty:end_sequence,
+                       sfpEND:PREM_NO = cppproperty:PREM_NO,
+                       sfpEND:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+    L_END_PREMIUM = 0
+    L_UPDATE_SFPEND_PREMIUM = 0
+    While sfpEND:policy_NO = cppproperty:policy_NO And
+          sfpend:pol_Year = cppproperty:pol_year and
+          sfpend:end_sequence = cppproperty:end_sequence and
+          sfpEND:PREM_NO = cppproperty:PREM_NO And
+          sfpEND:BUILD_NO = cppproperty:BUILD_NO
+           Begin
+           If sfpEND:LOB_END_CODE = "P" Then
+                Begin
+                L_UPDATE_SFPEND_PREMIUM = 0
+                L_CODE = sfpEND:CODE
+                If sfpEND:MANUAL_PREMIUM = 0 Then
+                    Do RATE_ENDORSEMENTS
+
+                End
+
+           Next sfpEND
+           End
+
+    Access sfpMISC, Set sfpMISC:policy_NO = G_policy_NO,
+                        sfpmisc:pol_year = g_Year,
+                        sfpmisc:end_sequence = g_end_sequence, Generic
+
+    L_MISC_PREMIUM = 0
+    If L_MISC <> "Y" Then
+        Begin
+        While sfpMISC:policy_NO = G_policy_NO and
+              sfpmisc:pol_year = g_year and
+              sfpmisc:end_sequence = g_end_sequence
+            Begin
+            If sfpMISC:LOB_END_CODE = "P" Then
+                Begin
+                L_MISC_PREMIUM = L_MISC_PREMIUM + sfpMISC:PREMIUM
+                L_MISC = "Y"
+
+                L_END_PREMIUM = L_END_PREMIUM + L_MISC_PREMIUM
+                End
+
+            Next sfpMISC
+            End
+        End
+
+    Next cppproperty
+    End
+
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+L_END_PREMIUM = 0
+L_UPDATE_SFPEND_PREMIUM = 0
+While sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_Year = g_year and
+      sfpend:end_sequence = g_end_sequence
+    Begin
+    If sfpEND:LOB_END_CODE = "P" and
+       sfpend:policy_wide_form = 1 Then
+        Begin
+        L_UPDATE_SFPEND_PREMIUM = 0
+        L_CODE = sfpEND:CODE
+        If sfpEND:MANUAL_PREMIUM = 0 Then
+            Do RATE_ENDORSEMENTS
+        End
+
+    Next sfpEND
+    End
+
+access sfpend, set sfpend:policy_no = g_policy_no,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence, generic
+
+while sfpend:policy_no = g_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence
+    begin
+    if sfpend:lob_end_code = "P" then
+        begin
+        access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                               cppendorse:pol_Year = sfpend:pol_year,
+                               cppendorse:end_sequence = sfpend:end_sequence,
+                               cppendorse:prem_no = sfpend:prem_no,
+                               cppendorse:build_no = sfpend:build_no,
+                               cppendorse:code = sfpend:code, generic
+
+        change sfpend
+            begin
+            sfpend:premium = cppendorse:total_premium
+            end
+
+        end
+
+    next sfpend
+    end
+
+End
+
+procedure rate_inflation_factor
+begin
+if cppproperty:inflation_guard[1] > 0 then
+begin
+L_STATE = cppGENERAL:STATE
+l_percent = cppproperty:inflation_guard[1]
+Access sfsinflation, Set sfsinflation:COMPANY_ID = sfpNAME:COMPANY_ID,
+                         sfsinflation:STATE = L_STATE,
+                         sfsinflation:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                         sfsinflation:percent = l_percent, Generic
+
+Repeat Begin
+    Exit If sfsinflation:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            sfsinflation:STATE <> L_STATE Or
+            sfsinflation:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS or
+            sfsinflation:percent <> l_percent
+
+    If sfpNAME:EFF_DATE >= sfsinflation:EFF_DATE Then
+        Begin
+        l_factor = sfsinflation:factor
+        End
+
+    Next sfsinflation
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        L_BUILDING_CODE_PREM = ((cppgeneral:PREMIUM[1] +
+                               cppgeneral:PREMIUM[2] +
+                               cppgeneral:PREMIUM[3] +
+                               cppgeneral:PREMIUM[4] +
+                               cppgeneral:PREMIUM[5] +
+                               cppgeneral:premium[6]) *
+                               l_factor)
+        cppproperty_alias:inflation_premium[1] = (L_BUILDING_CODE_PREM -
+                                               (cppgeneral:PREMIUM[1] +
+                                               cppgeneral:PREMIUM[2] +
+                                               cppgeneral:PREMIUM[3] +
+                                               cppgeneral:PREMIUM[4] +
+                                               cppgeneral:PREMIUM[5] +
+                                               cppgeneral:PREMIUM[6]))
+        End
+    end
+
+if cppproperty:inflation_guard[2] > 0 then
+begin
+L_STATE = cppGENERAL:STATE
+l_percent = cppproperty:inflation_guard[2]
+Access sfsinflation, Set sfsinflation:COMPANY_ID = sfpNAME:COMPANY_ID,
+                         sfsinflation:STATE = L_STATE,
+                         sfsinflation:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                         sfsinflation:percent = l_percent, Generic
+
+l_factor = 0
+Repeat Begin
+    Exit If sfsinflation:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            sfsinflation:STATE <> L_STATE Or
+            sfsinflation:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS or
+            sfsinflation:percent <> l_percent
+
+    If sfpNAME:EFF_DATE >= sfsinflation:EFF_DATE Then
+        Begin
+        l_factor = sfsinflation:factor
+        End
+
+    Next sfsinflation
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        L_BUILDING_CODE_PREM = ((cppgeneral:PREMIUM[7] +
+                               cppgeneral:PREMIUM[8] +
+                               cppgeneral:PREMIUM[9] +
+                               cppgeneral:PREMIUM[10] +
+                               cppgeneral:PREMIUM[11] +
+                               cppgeneral:premium[12]) *
+                               l_factor)
+        cppproperty_alias:inflation_premium[2] = (L_BUILDING_CODE_PREM -
+                                               (cppgeneral:PREMIUM[7] +
+                                               cppgeneral:PREMIUM[8] +
+                                               cppgeneral:PREMIUM[9] +
+                                               cppgeneral:PREMIUM[10] +
+                                               cppgeneral:PREMIUM[11] +
+                                               cppgeneral:PREMIUM[12]))
+        End
+    end
+
+end
+
+Procedure DEDUCTIBLE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppgeneral:STATE
+L_DEDUCTIBLE = cppproperty:signs_deductible
+if l_deductible = 0 then
+    l_deductible = cppgeneral:deductible
+L_LIMIT = 0
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsdeduct.pro"
+
+End
+
+Procedure RATE_AR
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_LIMIT = CPSPROPRATE:AR_BASIC_LIMIT
+            L_PER = CPSPROPRATE:AR_PER
+            L_FACTOR = CPSPROPRATE:AR_RATE
+            End
+
+        Next CPSPROPRATE
+        End
+
+Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                              cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+   cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppPROPERTY_ALIAS
+        begin
+        If cppPROPERTY_ALIAS:AR_LIMIT > L_LIMIT Then
+            cppPROPERTY_ALIAS:AR_PREM = (((cppPROPERTY_ALIAS:AR_LIMIT - L_LIMIT)
+                                        Divide L_PER) * L_FACTOR)
+        Else
+            cppPROPERTY_ALIAS:AR_PREM = 0
+        end
+
+End
+
+procedure rate_peak_season
+begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_FACTOR = CPSPROPRATE:peak_season_factor
+        L_PER = CPSPROPRATE:peak_season_increment
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        L_PEAK_SEASON_FACTOR = (((cppproperty_alias:peak_season Divide L_PER) *
+                               L_FACTOR) + 1)
+        L_peak_season_PREM = ((cppgeneral:PREMIUM[1] +
+                             cppgeneral:PREMIUM[2] +
+                             cppgeneral:PREMIUM[3] +
+                             cppgeneral:PREMIUM[4] +
+                             cppgeneral:PREMIUM[5] +
+                             cppgeneral:PREMIUM[6]) * L_PEAK_SEASON_FACTOR)
+        cppproperty_alias:peak_season_prem = (L_PEAK_SEASON_PREM -
+                                             (cppgeneral:PREMIUM[1] +
+                                             cppgeneral:PREMIUM[2] +
+                                             cppgeneral:PREMIUM[3] +
+                                             cppgeneral:PREMIUM[4] +
+                                             cppgeneral:PREMIUM[5] +
+                                             cppgeneral:PREMIUM[6]))
+        End
+End
+
+Procedure RATE_GLASS
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_LIMIT = CPSPROPRATE:GLASS_LIMIT
+            L_CHARGE = CPSPROPRATE:GLASS_CHARGE
+            End
+
+        Next CPSPROPRATE
+        End
+
+Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                              cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+   cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppPROPERTY_ALIAS
+        begin
+        If cppPROPERTY_ALIAS:GLASS_LIMIT > L_LIMIT Then
+            cppPROPERTY_ALIAS:GLASS_PREM = L_CHARGE
+        Else
+            cppPROPERTY_ALIAS:GLASS_PREM = 0
+        end
+
+End
+
+Procedure RATE_SIGNS_NOT_ATTACHED
+Begin
+if sfscompany:boiler_rating <> 4 then
+    begin
+    L_STATE = cppGENERAL:STATE
+    Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSPROPRATE:STATE = L_STATE,
+                            CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSPROPRATE:STATE = L_STATE And
+          CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_LIMIT = CPSPROPRATE:signs_not_attached_limit
+            L_signs_sub_code_1 = cpsproprate:signs_perpetual_sub_code[1]
+            l_signs_sub_code_2 = cpsproprate:signs_perpetual_sub_code[2]
+            l_signs_class_code = cpsproprate:signs_perpetual_class
+            End
+
+        Next CPSPROPRATE
+        End
+
+    if cppproperty:signs_metal = 1 then
+        l_signs_sub_code = l_signs_sub_code_1
+    else
+        l_signs_sub_code = l_signs_sub_code_2
+    access cpsperpetual, set cpsperpetual:company_id = sfpname:company_id,
+                             cpsperpetual:state = l_state,
+                             cpsperpetual:line_of_business = l_line_of_business,
+                             cpsperpetual:class_code = l_signs_class_code,
+                             cpsperpetual:sub_code = l_signs_sub_code, generic
+
+    while cpsperpetual:company_id = sfpname:company_id and
+          cpsperpetual:state = l_state and
+          cpsperpetual:line_of_business = l_line_of_business and
+          cpsperpetual:class_code = l_signs_class_code and
+         cpsperpetual:sub_code = l_signs_sub_code
+        begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            l_fire_factor = cpsperpetual:fire_factor
+            l_ec_factor = cpsperpetual:ec_factor
+            l_vmm_factor = cpsperpetual:vmm_factor
+
+            end
+
+        next cpsperpetual
+        end
+
+    Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                                  cppproperty_alias:pol_year = cppproperty:pol_year,
+                                  cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                                  cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                                  cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+    If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+       cppproperty_alias:pol_year = cppproperty:pol_year and
+       cppproperty_alias:end_sequence = cppproperty:end_sequence and
+       cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+       cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+        Change cppPROPERTY_ALIAS
+            begin
+            If cppPROPERTY_ALIAS:SIGNS_NOT_ATTACHED > L_LIMIT Then
+                begin
+                L_SIGNS_FIRE_PREM = (((cppPROPERTY_ALIAS:signs_not_attached -
+                                    L_LIMIT) Divide 100) * L_fire_FACTOR)
+                l_signs_ec_prem = (((cppproperty_alias:signs_not_attached -
+                                  l_limit) divide 100) * l_ec_factor)
+                l_signs_vmm_prem = (((cppproperty_alias:signs_not_attached -
+                                   l_limit) divide 100) * l_vmm_factor)
+                cppproperty_alias:signs_not_attached_prem = l_signs_fire_prem +
+                                                            l_signs_ec_prem +
+                                                            l_signs_vmm_prem
+                end
+            Else
+                cppPROPERTY_ALIAS:SIGNS_NOT_ATTACHED_PREM = 0
+            end
+    end
+else
+if sfscompany:boiler_rating = 4 then
+    begin
+    L_STATE = cppGENERAL:STATE
+    if cppproperty:signs_deductible <> cppgeneral:deductible and
+       cppproperty:signs_deductible <> 0 then
+        do deductible
+    else
+        l_deductible_factor_1 = cppgeneral:deductible_factor[1]
+    Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSPROPRATE:STATE = L_STATE,
+                            CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSPROPRATE:STATE = L_STATE And
+          CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            if cppgeneral:res_condo = 1 and
+               sfscompany:boiler_Rating = 4 then
+                L_LIMIT = CPSPROPRATE:condo_signs_not_attached
+            else
+                l_limit = cpsproprate:signs_not_attached_limit
+            L_signs_sub_code_1 = cpsproprate:signs_perpetual_sub_code[1]
+            l_signs_sub_code_2 = cpsproprate:signs_perpetual_sub_code[2]
+            l_signs_class_code = cpsproprate:signs_perpetual_class
+            End
+
+        Next CPSPROPRATE
+        End
+
+    if cppproperty:signs_metal = 1 then
+        l_signs_sub_code = l_signs_sub_code_1
+    else
+        l_signs_sub_code = l_signs_sub_code_2
+    access cpsperpetual, set cpsperpetual:company_id = sfpname:company_id,
+                             cpsperpetual:state = l_state,
+                             cpsperpetual:line_of_business = l_line_of_business,
+                             cpsperpetual:class_code = l_signs_class_code,
+                             cpsperpetual:sub_code = l_signs_sub_code, generic
+
+    while cpsperpetual:company_id = sfpname:company_id and
+          cpsperpetual:state = l_state and
+          cpsperpetual:line_of_business = l_line_of_business and
+          cpsperpetual:class_code = l_signs_class_code and
+          cpsperpetual:sub_code = l_signs_sub_code
+        begin
+        If sfpNAME:EFF_DATE >= cpsperpetual:EFF_DATE Then
+            Begin
+            l_fire_factor = cpsperpetual:fire_factor
+            l_ec_factor = cpsperpetual:ec_factor
+            l_vmm_factor = cpsperpetual:vmm_factor
+
+            end
+
+        next cpsperpetual
+        end
+
+    do package_mod
+    do company_deviation
+
+    Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                                  cppproperty_alias:pol_year = cppproperty:pol_year,
+                                  cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                                  cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                                  cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+    If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+       cppproperty_alias:pol_year = cppproperty:pol_year and
+       cppproperty_alias:end_sequence = cppproperty:end_sequence and
+       cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+       cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+        Change cppPROPERTY_ALIAS
+            begin
+            If cppPROPERTY_ALIAS:SIGNS_NOT_ATTACHED > L_LIMIT Then
+                begin
+                l_coinsurance_factor = cppgeneral:coinsurance_factor_b[2]
+                if l_coinsurance_factor = 0 then
+                    l_coinsurance_factor = cppgeneral:coinsurance_factor[2]
+
+                L_fire_factor = ((l_Fire_factor *
+                                l_coinsurance_factor *
+                                l_deductible_factor_1 *
+                                l_package_mod *
+                                l_deviation *
+                                cppgeneral:public_institute_factor[2] *
+                                cppgeneral:net_factor[2]) *
+                                l_irpm_deviation *
+                                l_exp_factor)
+                l_signs_fire_prem = (((cppPROPERTY_ALIAS:signs_not_attached -
+                                    L_LIMIT) Divide 100) * L_fire_FACTOR)
+                L_ec_factor   = ((l_ec_factor *
+                                l_coinsurance_factor *
+                                l_deductible_factor_1 *
+                                l_package_mod *
+                                l_deviation *
+                                cppgeneral:public_institute_factor[2] *
+                                cppgeneral:net_factor[2]) *
+                                l_irpm_deviation *
+                                l_exp_factor)
+                l_signs_ec_prem = (((cppproperty_alias:signs_not_attached -
+                                  l_limit) divide 100) * l_ec_factor)
+                L_vmm_factor  = ((l_vmm_factor *
+                                l_coinsurance_factor *
+                                l_deductible_factor_1 *
+                                l_package_mod *
+                                l_deviation *
+                                cppgeneral:public_institute_factor[2] *
+                                cppgeneral:net_factor[2]) *
+                                l_irpm_deviation *
+                                l_exp_factor)
+                l_signs_vmm_prem = (((cppproperty_alias:signs_not_attached -
+                                   l_limit) divide 100) * l_vmm_factor)
+
+                if cppgeneral:new_rate[10] = 0 then
+                    L_AOP_BASE_RATE = cppgeneral:BASE_RATE[10]
+                else
+                    l_aop_base_rate = cppgeneral:new_rate[10]
+
+                if cppgeneral:form one of 3 then
+                    begin
+                    l_other_factor = ((l_aop_base_rate *
+                                     l_coinsurance_factor *
+                                     l_deductible_factor_1 *
+                                     l_package_mod *
+                                     l_DEVIATION) *
+                                     l_irpm_deviation *
+                                     l_exp_factor)
+                    l_signs_other_prem = (((cppproperty_alias:signs_not_attached -
+                                         l_limit) divide 100) * l_other_factor)
+                    end
+                else
+                    begin
+                    if cppgeneral:group_no = 7 and
+                       cppgeneral:class_code one of 70 and
+                       cppgeneral:form = 5 then
+                        begin
+                        l_signs_other_prem = ((((cppgeneral:base_rate[10] *
+                                             (((cppproperty_alias:signs_not_attached -
+                                             l_limit) divide 100))) +
+                                             cppgeneral:brtheft) *
+                                             l_deductible_factor_1 *
+                                             l_package_mod *
+                                             l_deviation) *
+                                             l_irpm_deviation *
+                                             l_exp_factor)
+                        end
+                    else
+                        begin
+                        If (cppgeneral:FORM one of 5 And
+                           cppEXCLUSIONS:EXCLUDE_THEFT = 0 And
+                           (cppgeneral:GROUP_NO not one of 7 or
+                           (cppgeneral:group_no one of 9 and
+                           cppgeneral:cmp_symbol <> "A"))) then
+                            Begin
+                            l_limit = cppPROPERTY_ALIAS:SIGNS_NOT_ATTACHED -
+                                      l_limit
+                            l_option5_terr_factor = 0
+                            Do OPTION5_THEFT_RATING
+                            End
+
+                        l_limit = 1000
+                        L_THEFT_ADJ_RATE = l_aop_base_rate *
+                                           l_coinsurance_factor
+                        L_THEFT_ADJ_RATE = (((cppproperty_alias:signs_not_attached -
+                                           l_limit) Divide 100) *
+                                           L_THEFT_ADJ_RATE)
+
+                        If cppEXCLUSIONS:EXCLUDE_THEFT = 0 Then
+                            Begin
+                            l_signs_other_prem = ((((l_option5pp_charge *
+                                                 l_option5_terr_factor) +
+                                                 L_THEFT_ADJ_RATE) *
+                                                 l_deductible_factor_1 *
+                                                 l_package_mod *
+                                                 l_DEVIATION) *
+                                                 l_irpm_deviation *
+                                                 l_exp_factor)
+                            End
+                        Else
+                            Begin
+                            l_signs_other_prem = l_aop_base_rate *
+                                                 l_coinsurance_factor *
+                                                 l_deductible_factor_1 *
+                                                 l_package_mod *
+                                                 l_DEVIATION
+
+                            l_signs_other_prem = (((cppproperty_alias:signs_not_attached -
+                                                 l_limit) divide 100) * l_other_factor)
+                            End
+                        end
+
+                    end
+
+                cppproperty_alias:signs_not_attached_prem = l_signs_fire_prem +
+                                                            l_signs_ec_prem +
+                                                            l_signs_vmm_prem +
+                                                            l_signs_other_prem
+                end
+            Else
+                cppPROPERTY_ALIAS:SIGNS_NOT_ATTACHED_PREM = 0
+            end
+    end
+
+End
+
+Procedure RATE_SIGNS_ATTACHED
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            if cppgeneral:res_condo = 1 and
+               sfscompany:boiler_rating = 4 then
+                L_LIMIT = CPSPROPRATE:condo_signs_attached
+            else
+                L_LIMIT = CPSPROPRATE:signs_not_attached_limit
+            End
+
+        Next CPSPROPRATE
+        End
+
+Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                              cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+   cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppPROPERTY_ALIAS
+        begin
+        If cppPROPERTY_ALIAS:SIGNS_ATTACHED > L_LIMIT Then
+            begin
+            if cppgeneral:new_rate[1] <> 0 then
+                L_SIGNS_FIRE_PREM = (((cppPROPERTY_ALIAS:signs_attached -
+                                    L_LIMIT) Divide 100) *
+                                    cppgeneral:new_rate[1])
+            else
+                L_SIGNS_FIRE_PREM = (((cppPROPERTY_ALIAS:signs_attached -
+                                    L_LIMIT) Divide 100) * cppgeneral:base_rate[1])
+            if cppgeneral:new_rate[2] <> 0 then
+                l_signs_ec_prem = (((cppproperty_alias:signs_attached -
+                                  l_limit) divide 100) * cppgeneral:new_rate[2])
+            else
+                l_signs_ec_prem = (((cppproperty_alias:signs_attached -
+                                  l_limit) divide 100) * cppgeneral:base_rate[2])
+            if cppgeneral:new_rate[3] <> 0 then
+                l_signs_vmm_prem = (((cppproperty_alias:signs_attached -
+                                   l_limit) divide 100) * cppgeneral:new_rate[3])
+            else
+                l_signs_vmm_prem = (((cppproperty_alias:signs_attached -
+                                   l_limit) divide 100) * cppgeneral:base_rate[3])
+            cppproperty_alias:signs_attached_prem = l_signs_fire_prem +
+                                                    l_signs_ec_prem +
+                                                    l_signs_vmm_prem
+            end
+        Else
+            cppPROPERTY_ALIAS:SIGNS_ATTACHED_PREM = 0
+        end
+
+End
+
+Procedure RATE_BUILDING_CODE
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If (sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE and
+       (sfpname:eff_date <= cpsproprate:exp_date or
+       cpsproprate:exp_date = 0)) Then
+        Begin
+        If cppPROPERTY:BUILDING_CODE_PERCENT = 0 Then
+            L_FACTOR = CPSPROPRATE:BUILDING_CODE_DELETE_FACTOR
+        Else
+            Begin
+            L_FACTOR = CPSPROPRATE:BUILDING_LAW_RATES[2]
+            l_factor_1 = cpsproprate:building_law_rates[1]
+            L_LIMIT = CPSPROPRATE:BUILDING_LAW_PERCENT
+            if (sfpname:company_id = "NWIC" and
+               (cppgeneral:condo = 1 or
+               cppgeneral:unit_owner = 1)) then
+                begin
+                if cpsproprate:condo_building_code_percent <> 0 then
+                    l_limit = cpsproprate:condo_building_code_percent
+                end
+            L_PER = CPSPROPRATE:BUILDING_LAW_INCREASE[1]
+            End
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        If cppproperty_alias:BUILDING_CODE_PERCENT = 0 Then
+            begin
+            L_BUILDING_CODE_PREM = ((cppgeneral:premium[1] +
+                                   cppgeneral:premium[2] +
+                                   cppgeneral:premium[3] +
+                                   cppgeneral:premium[4] +
+                                   cppgeneral:premium[5] +
+                                   cppgeneral:premium[6]) *
+                                   L_FACTOR)
+            cppproperty_alias:BUILDING_CODE_PREM = (L_BUILDING_CODE_PREM -
+                                                   (cppgeneral:PREMIUM[1] +
+                                                   cppgeneral:PREMIUM[2] +
+                                                   cppgeneral:PREMIUM[3] +
+                                                   cppgeneral:PREMIUM[4] +
+                                                   cppgeneral:PREMIUM[5] +
+                                                   cppgeneral:PREMIUM[6]))
+            end
+        Else
+            Begin
+            L_BUILDING_CODE_FACTOR   = ((((cppproperty_alias:BUILDING_CODE_PERCENT -
+                                       L_LIMIT) Divide L_PER) * L_FACTOR) + 1)
+            L_BUILDING_CODE_FACTOR_1 = ((((cppproperty_alias:BUILDING_CODE_PERCENT -
+                                       L_LIMIT) Divide L_PER) * L_FACTOR_1) + 1)
+            L_BUILDING_CODE_PREM = ((cppgeneral:PREMIUM[1] +
+                                   cppgeneral:PREMIUM[2] +
+                                   cppgeneral:PREMIUM[3] +
+                                   cppgeneral:PREMIUM[4] +
+                                   cppgeneral:PREMIUM[5]) *
+                                   l_building_code_factor)
+            l_building_code_prem = (l_building_code_prem +
+                                   (cppgeneral:PREMIUM[6] *
+                                   L_BUILDING_CODE_FACTOR_1))
+            cppproperty_alias:BUILDING_CODE_PREM = (L_BUILDING_CODE_PREM -
+                                                   (cppgeneral:PREMIUM[1] +
+                                                   cppgeneral:PREMIUM[2] +
+                                                   cppgeneral:PREMIUM[3] +
+                                                   cppgeneral:PREMIUM[4] +
+                                                   cppgeneral:PREMIUM[5] +
+                                                   cppgeneral:PREMIUM[6]))
+            End
+        End
+End
+
+Procedure RATE_UTILITY
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_FACTOR = CPSPROPRATE:UTILITY_RATE
+        L_LIMIT = CPSPROPRATE:UTILITY_LIMIT
+        L_PER = CPSPROPRATE:UTILITY_PER
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        If cppPROPERTY_ALIAS:LOSS_UTILITY > L_LIMIT Then
+            cppPROPERTY_ALIAS:LOSS_UTILITY_PREM = (((cppPROPERTY_ALIAS:LOSS_UTILITY -
+                                                  L_LIMIT) Divide
+                                                  L_PER) * L_FACTOR)
+        Else
+            cppPROPERTY_ALIAS:LOSS_UTILITY_PREM = 0
+        end
+
+End
+
+Procedure RATE_MECHANICAL_BREAKDOWN
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_FACTOR = CPSPROPRATE:MECHANICAL_RATE
+        L_LIMIT = CPSPROPRATE:MECHANICAL_LIMIT
+        L_PER = CPSPROPRATE:MECHANICAL_PER
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        If cppPROPERTY_ALIAS:MECHANICAL_BREAKDOWN > L_LIMIT Then
+            cppPROPERTY_ALIAS:MECHANICAL_BREAKDOWN_PREM = (((cppPROPERTY_ALIAS:MECHANICAL_BREAKDOWN -
+                                                          L_LIMIT) Divide
+                                                          L_PER) * L_FACTOR)
+        Else
+            cppPROPERTY_ALIAS:MECHANICAL_BREAKDOWN_PREM = 0
+        end
+
+End
+
+Procedure RATE_DEBRIS_REMOVAL
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_LIMIT = CPSPROPRATE:DEBRIS_LIMIT
+            L_debris_rate_1 = cpsproprate:debris_rate[1]
+            L_debris_rate_2 = cpsproprate:debris_rate[2]
+            L_debris_rate_3 = cpsproprate:debris_rate[3]
+            L_debris_rate_4 = cpsproprate:debris_rate[4]
+            L_debris_rate_5 = cpsproprate:debris_rate[5]
+            L_debris_rate_6 = cpsproprate:debris_rate[6]
+            l_per = 100
+            End
+
+        Next CPSPROPRATE
+        End
+
+l_debris_removal_prem_1 = 0
+l_debris_removal_prem_2 = 0
+l_debris_removal_prem_3 = 0
+l_debris_removal_prem_4 = 0
+l_debris_removal_prem_5 = 0
+l_debris_removal_prem_6 = 0
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppproperty_alias
+        Begin
+        If cppPROPERTY_ALIAS:DEBRIS_REMOVAL > L_LIMIT Then
+            begin
+            if cppgeneral:new_rate[1] <> 0 then
+                L_DEBRIS_REMOVAL_PREM_1 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                          Divide L_PER) * (cppgeneral:new_rate[1] *
+                                          l_debris_rate_1))
+            else
+                L_DEBRIS_REMOVAL_PREM_1 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                          Divide L_PER) * (cppgeneral:base_rate[1] *
+                                          l_debris_rate_1))
+            if cppgeneral:new_rate[2] <> 0 then
+                begin
+                if cppgeneral:form > 1 then
+                    L_DEBRIS_REMOVAL_PREM_2 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                              Divide L_PER) * (cppgeneral:new_rate[2] *
+                                              l_debris_rate_2))
+                else
+                    L_DEBRIS_REMOVAL_PREM_2 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                              Divide L_PER) * (cppgeneral:base_rate[2] *
+                                              l_debris_rate_2))
+                end
+            if cppgeneral:new_rate[3] <> 0 then
+                begin
+                if cppgeneral:form > 1 and
+                   cppexclusions:exclude_vandalism = 0 then
+                    L_DEBRIS_REMOVAL_PREM_3 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                              Divide L_PER) * (cppgeneral:new_rate[3] *
+                                              l_debris_rate_3))
+                else
+                    L_DEBRIS_REMOVAL_PREM_3 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                              Divide L_PER) * (cppgeneral:base_rate[3] *
+                                              l_debris_rate_3))
+                end
+            if cppgeneral:sprinkler_leakage = 1 and
+               cppgeneral:form not one of 5 then
+                L_DEBRIS_REMOVAL_PREM_4 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                          Divide L_PER) * l_debris_rate_4)
+            if cppgeneral:form one of 3, 5 then
+                L_DEBRIS_REMOVAL_PREM_5 = (((cppPROPERTY_ALIAS:DEBRIS_REMOVAL - L_LIMIT)
+                                          Divide L_PER) * l_debris_rate_5)
+            cppproperty_alias:debris_removal_prem = l_debris_removal_prem_1 +
+                                                    l_debris_removal_prem_2 +
+                                                    l_debris_removal_prem_3 +
+                                                    l_debris_removal_prem_4 +
+                                                    l_debris_removal_prem_5
+            end
+        Else
+            cppPROPERTY_ALIAS:DEBRIS_REMOVAL_PREM = 0
+        end
+
+End
+
+procedure rate_other_locations
+begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_LIMIT = CPSPROPRATE:off_prem_loc_limit
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        if cppproperty_alias:off_prem_other_location <> l_limit then
+            begin
+            l_property_premium = 0
+            l_property_others_limit = cppproperty:off_prem_other_location -
+                                      l_limit
+            if cppgeneral:new_rate[7] <> 0 then
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:new_rate[7])
+            else
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:base_rate[7])
+
+            l_property_premium = l_property_premium + l_adj_premium
+
+            if cppgeneral:form > 1 then
+                begin
+                if cppgeneral:new_rate[8] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[8])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[8])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form > 1 and
+               cppexclusions:exclude_vandalism = 0 then
+                begin
+                if cppgeneral:new_rate[9] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[9])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[9])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form one of 3, 5 then
+                begin
+                if cppgeneral:new_rate[10] <> 0 then
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:new_rate[10])
+                else
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:base_rate[10])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                End
+
+            cppPROPERTY_alias:off_prem_other_loc_prem = L_property_premium
+            end
+        Else
+            cppPROPERTY_ALIAS:off_prem_other_loc_prem = 0
+        End
+
+end
+
+procedure rate_furs
+begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_LIMIT = CPSPROPRATE:furs_mcp017
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        if cppproperty_alias:furs <> l_limit then
+            begin
+            l_property_premium = 0
+            l_furs_limit = cppproperty:furs -
+                           l_limit
+            if cppgeneral:new_rate[7] <> 0 then
+                l_adj_premium = ((l_furs_limit Divide 100) *
+                                cppgeneral:new_rate[7])
+            else
+                l_adj_premium = ((l_furs_limit Divide 100) *
+                                cppgeneral:base_rate[7])
+
+            l_property_premium = l_property_premium + l_adj_premium
+
+            if cppgeneral:form > 1 then
+                begin
+                if cppgeneral:new_rate[8] <> 0 then
+                    l_ADJ_PREMIUM = ((l_furs_limit Divide 100) *
+                                    cppgeneral:new_rate[8])
+                else
+                    l_ADJ_PREMIUM = ((l_furs_limit Divide 100) *
+                                    cppgeneral:base_rate[8])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form > 1 and
+               cppexclusions:exclude_vandalism = 0 then
+                begin
+                if cppgeneral:new_rate[9] <> 0 then
+                    l_ADJ_PREMIUM = ((l_furs_limit Divide 100) *
+                                    cppgeneral:new_rate[9])
+                else
+                    l_ADJ_PREMIUM = ((l_furs_limit Divide 100) *
+                                    cppgeneral:base_rate[9])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form one of 3, 5 then
+                begin
+                if cppgeneral:new_rate[10] <> 0 then
+                    l_adj_premium = ((l_furs_limit divide 100) *
+                                    cppgeneral:new_rate[10])
+                else
+                    l_adj_premium = ((l_furs_limit divide 100) *
+                                    cppgeneral:base_rate[10])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                End
+
+            cppPROPERTY_alias:furs_prem = L_property_premium
+            end
+        Else
+            cppPROPERTY_ALIAS:furs_prem = 0
+        End
+
+end
+
+Procedure RATE_IN_TRANSIT
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_FACTOR = CPSPROPRATE:in_transit_rate
+        if cppgeneral:res_condo = 1 and
+           sfscompany:boiler_Rating = 4 then
+            L_LIMIT = CPSPROPRATE:condo_in_transit
+        else
+            L_LIMIT = CPSPROPRATE:off_prem_transit_limit
+        L_PER = CPSPROPRATE:in_transit_per
+        l_mcp505_rate = cpsproprate:mcp505_rate
+        l_mcp505_per = cpsproprate:mcp505_per
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        If cppPROPERTY_ALIAS:off_prem_in_transit > L_LIMIT and
+           cppproperty_alias:off_prem_in_transit_manual = 0 then
+            begin
+            cppPROPERTY_ALIAS:off_prem_in_transit_prem = (((cppPROPERTY_ALIAS:off_prem_in_transit -
+                                                         L_LIMIT) Divide
+                                                         L_PER) * L_FACTOR)
+            if cppproperty:mcp505_option = 1 then
+                cppproperty_alias:mcp505_premium = (((cppPROPERTY_ALIAS:off_prem_in_transit -
+                                                   L_LIMIT) Divide
+                                                   L_MCP505_PER) * L_MCP505_rate)
+            end
+        Else
+        if cppproperty_alias:off_prem_in_transit_manual <> 0 then
+            cppproperty_alias:off_prem_in_transit_prem = cppproperty_alias:off_prem_in_transit_manual
+        else
+        if cppproperty_alias:off_prem_in_transit_manual = 0 then
+            cppPROPERTY_ALIAS:off_prem_in_transit_prem = 0
+        end
+
+End
+
+Procedure RATE_OUTDOOR_PROPERTY
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            if cppgeneral:res_condo = 1 and
+               sfscompany:boiler_rating = 4 then
+                L_LIMIT = CPSPROPRATE:condo_outdoor_limit
+            else
+                L_LIMIT = CPSPROPRATE:outdoor_basic_limit
+            L_outdoor_sub_code = cpsproprate:outdoor_property_sub_code
+            l_outdoor_class_code = cpsproprate:outdoor_property_class_code
+            End
+
+        Next CPSPROPRATE
+        End
+
+access cpsperpetual, set cpsperpetual:company_id = sfpname:company_id,
+                         cpsperpetual:state = l_state,
+                         cpsperpetual:line_of_business = l_line_of_business,
+                         cpsperpetual:class_code = l_outdoor_class_code,
+                         cpsperpetual:sub_code = l_outdoor_sub_code, generic
+
+while cpsperpetual:company_id = sfpname:company_id and
+      cpsperpetual:state = l_state and
+      cpsperpetual:line_of_business = l_line_of_business and
+      cpsperpetual:class_code = l_outdoor_class_code and
+      cpsperpetual:sub_code = l_outdoor_sub_code
+        begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            l_fire_factor = cpsperpetual:fire_factor
+            l_ec_factor = cpsperpetual:ec_factor
+            l_vmm_factor = cpsperpetual:vmm_factor
+
+            end
+
+        next cpsperpetual
+        end
+
+Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                              cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+   cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppPROPERTY_ALIAS
+        begin
+        If cppPROPERTY_ALIAS:outdoor_property > L_LIMIT Then
+            begin
+            L_SIGNS_FIRE_PREM = (((cppPROPERTY_ALIAS:outdoor_property -
+                                L_LIMIT) Divide 100) * L_fire_FACTOR)
+            l_signs_ec_prem = (((cppproperty_alias:outdoor_property -
+                              l_limit) divide 100) * l_ec_factor)
+            l_signs_vmm_prem = (((cppproperty_alias:outdoor_property -
+                               l_limit) divide 100) * l_vmm_factor)
+            cppproperty_alias:outdoor_property_prem = l_signs_fire_prem +
+                                                      l_signs_ec_prem +
+                                                      l_signs_vmm_prem
+            end
+        Else
+            cppPROPERTY_ALIAS:outdoor_property_prem = 0
+        end
+
+End
+
+procedure rate_personal_effects
+begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_LIMIT = CPSPROPRATE:personal_effects_limit
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        if cppproperty_alias:personal_effects <> l_limit then
+            begin
+            l_property_premium = 0
+            l_property_others_limit = cppproperty:personal_effects -
+                                      l_limit
+            if cppgeneral:new_rate[7] <> 0 then
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:new_rate[7])
+            else
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:base_rate[7])
+
+            l_property_premium = l_property_premium + l_adj_premium
+
+            if cppgeneral:form > 1 then
+                begin
+                if cppgeneral:new_rate[8] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[8])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[8])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form > 1 and
+               cppexclusions:exclude_vandalism = 0 then
+                begin
+                if cppgeneral:new_rate[9] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[9])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[9])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form one of 3, 5 then
+                begin
+                if cppgeneral:new_rate[10] <> 0 then
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:new_rate[10])
+                else
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:base_rate[10])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                End
+
+            cppPROPERTY_alias:personal_effects_prem = L_property_premium
+            end
+        Else
+            cppPROPERTY_ALIAS:personal_effects_prem = 0
+        End
+
+end
+
+procedure rate_personal_property_others
+begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        l_limit_1 = cpsproprate:property_others_limit
+        l_limit_2 = cpsproprate:condo_property_of_others
+        End
+
+    Next CPSPROPRATE
+    End
+
+if cppgeneral:res_condo = 1 and
+   l_limit_2 <> 0 then
+    l_limit = l_limit_2
+else
+    l_limit = l_limit_1
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        if cppproperty_alias:personal_property_of_others <> l_limit then
+            begin
+            l_property_premium = 0
+            l_property_others_limit = cppproperty:personal_property_of_others -
+                                      l_limit
+            if cppgeneral:new_rate[7] <> 0 then
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:new_rate[7])
+            else
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:base_rate[7])
+
+            l_property_premium = l_property_premium + l_adj_premium
+
+            if cppgeneral:form > 1 then
+                begin
+                if cppgeneral:new_rate[8] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[8])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[8])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form > 1 and
+               cppexclusions:exclude_vandalism = 0 then
+                begin
+                if cppgeneral:new_rate[9] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[9])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[9])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form one of 3, 5 then
+                begin
+                if cppgeneral:new_rate[10] <> 0 then
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:new_rate[10])
+                else
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:base_rate[10])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                End
+
+            cppPROPERTY_alias:personal_property_other_prem = L_property_premium
+            end
+        Else
+            cppPROPERTY_ALIAS:personal_property_other_prem = 0
+        End
+
+end
+
+Procedure RATE_VALUABLE_PAPERS
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_LIMIT = CPSPROPRATE:VALUABLE_LIMIT
+            L_PER = CPSPROPRATE:VALUABLE_PER
+            L_FACTOR = CPSPROPRATE:VALUABLE_RATE
+            End
+
+        Next CPSPROPRATE
+        End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        If cppPROPERTY_ALIAS:VALUABLE_PAPERS > L_LIMIT Then
+            cppPROPERTY_ALIAS:VALUABLE_PAPERS_PREM = (((cppPROPERTY_ALIAS:VALUABLE_PAPERS
+                                                     - L_LIMIT)
+                                                     Divide L_PER) * L_FACTOR)
+        Else
+            cppPROPERTY_ALIAS:VALUABLE_PAPERS_PREM = 0
+        end
+
+End
+
+procedure rate_precious_metals
+begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        l_limit = cpsproprate:metals_limit
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppproperty_alias:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO Then
+    change cppproperty_alias
+        begin
+        if cppproperty_alias:precious_metals <> l_limit then
+            begin
+            l_property_premium = 0
+            l_property_others_limit = cppproperty:precious_metals -
+                                      l_limit
+            if cppgeneral:new_rate[7] <> 0 then
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:new_rate[7])
+            else
+                l_adj_premium = ((l_property_others_limit Divide 100) *
+                                cppgeneral:base_rate[7])
+
+            l_property_premium = l_property_premium + l_adj_premium
+
+            if cppgeneral:form > 1 then
+                begin
+                if cppgeneral:new_rate[8] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[8])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[8])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form > 1 and
+               cppexclusions:exclude_vandalism = 0 then
+                begin
+                if cppgeneral:new_rate[9] <> 0 then
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:new_rate[9])
+                else
+                    l_ADJ_PREMIUM = ((l_property_others_limit Divide 100) *
+                                    cppgeneral:base_rate[9])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                end
+
+            if cppgeneral:form one of 3, 5 then
+                begin
+                if cppgeneral:new_rate[10] <> 0 then
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:new_rate[10])
+                else
+                    l_adj_premium = ((l_property_others_limit divide 100) *
+                                    cppgeneral:base_rate[10])
+
+                l_property_premium = l_property_premium + l_adj_premium
+                End
+
+            cppPROPERTY_alias:precious_metals_prem = L_property_premium
+            end
+        Else
+            cppPROPERTY_ALIAS:precious_metals_prem = 0
+        End
+
+end
+
+Procedure RATE_WATER_BACKUP
+Begin
+access sfpend, set sfpend:policy_no    = g_policy_no,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no      = cppproperty:prem_no,
+                   sfpend:build_no     = cppproperty:build_no, generic
+
+l_mcp507_exists = "N"
+while sfpend:policy_no    = g_policy_no and
+      sfpend:pol_year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpend:prem_no      = cppproperty:prem_no and
+      sfpend:build_no     = cppproperty:build_no
+    begin
+    if sfpend:code = "MCP507" then
+        l_mcp507_exists = "Y"
+
+    next sfpend
+    end
+
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_CHARGE = CPSPROPRATE:WATER_BACKUP_BASIC_CHARGE
+        L_basic_LIMIT = CPSPROPRATE:WATER_BACKUP_BASIC_LIMIT
+        L_UP_TO_LIMIT_1 = CPSPROPRATE:UP_TO_LIMIT[1]
+        L_UP_TO_LIMIT_2 = CPSPROPRATE:UP_TO_LIMIT[2]
+        L_UP_TO_LIMIT_RATE_1 = CPSPROPRATE:UP_TO_LIMIT_RATE[1]
+        L_UP_TO_LIMIT_RATE_2 = CPSPROPRATE:UP_TO_LIMIT_RATE[2]
+        L_UP_TO_LIMIT_PER_1 = CPSPROPRATE:UP_TO_LIMIT_PER[1]
+        L_UP_TO_LIMIT_PER_2 = CPSPROPRATE:UP_TO_LIMIT_PER[2]
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppproperty_alias, Set cppproperty_alias:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppproperty_alias:PREM_NO = cppproperty:PREM_NO,
+                              cppproperty_alias:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+l_prem_no  = 0
+l_build_no = 0
+If cppproperty_alias:policy_NO    = cppproperty:policy_NO And
+   cppproperty_alias:pol_year     = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppproperty_alias:PREM_NO      = cppproperty:PREM_NO And
+   cppproperty_alias:BUILD_NO     = cppproperty:BUILD_NO Then
+    begin
+    if l_prem_no <> cppproperty_alias:prem_no or
+       l_build_no <> cppproperty_alias:build_no then
+        begin
+        l_prem_no  = cppproperty_alias:prem_no
+        l_build_no = cppproperty_alias:build_no
+        change cppproperty_alias
+            begin
+            if sfscompany:boiler_rating = 4 then
+                begin
+                If cppPROPERTY_alias:WATER_BACKUP = L_basic_LIMIT and
+                   cppgeneral:res_condo <> 1 Then
+                    cppPROPERTY_alias:WATER_BACKUP_PREMIUM = L_CHARGE
+                else
+                If cppPROPERTY_alias:WATER_BACKUP > L_basic_LIMIT Then
+                    Begin
+                    l_water_backup_premium = l_charge
+                    l_limit = cppproperty_alias:water_backup - l_basic_limit
+                    if cppproperty_alias:water_backup >= l_basic_limit then
+                        begin
+                        if l_limit > l_up_to_limit_1 then
+                            l_limit = l_up_to_limit_1 - l_basic_limit
+                        L_WATER_BACKUP_PREMIUM = (l_water_backup_premium +
+                                                 ((l_limit divide
+                                                 L_UP_TO_LIMIT_PER_1) *
+                                                L_UP_TO_LIMIT_RATE_1))
+                        l_limit = cppproperty_alias:water_backup - l_up_to_limit_1 -
+                                  l_basic_limit
+                        if l_limit <> 0 then
+                            L_WATER_BACKUP_PREMIUM = (l_water_backup_premium +
+                                                     ((l_limit divide
+                                                     L_UP_TO_LIMIT_PER_2) *
+                                                     L_UP_TO_LIMIT_RATE_2))
+                        end
+
+                    cppproperty_alias:water_backup_premium = l_water_backup_premium
+                    end
+                else
+                    cppproperty_alias:water_backup_premium = 0
+                end
+            else
+            if sfscompany:company_id = "FARMERS" and
+               l_mcp507_exists = "Y" and
+               sfpname:eff_date >= 05.15.2012 then
+                begin
+                if cppgeneral:limit[1] <> 0 then
+                    l_limit = cppgeneral:limit[1]
+                else
+                    l_limit = cppgeneral:limit[2]
+                L_WATER_BACKUP_PREMIUM = ((l_limit divide
+                                         l_up_to_limit_per_2) *
+                                         l_up_to_limit_rate_2)
+                cppproperty_alias:water_backup_premium = l_water_backup_premium
+                end
+            else
+                begin
+                If cppPROPERTY_alias:WATER_BACKUP = L_LIMIT Then
+                    cppPROPERTY_alias:WATER_BACKUP_PREMIUM = L_CHARGE
+                else
+                If cppPROPERTY_alias:WATER_BACKUP > L_LIMIT Then
+                    Begin
+                    if cppproperty_alias:water_backup <= l_up_to_limit_1 then
+                        L_WATER_BACKUP_PREMIUM = (((cppPROPERTY_alias:WATER_BACKUP -
+                                                 L_BASIC_LIMIT) divide
+                                                 L_UP_TO_LIMIT_PER_1) *
+                                                 L_UP_TO_LIMIT_RATE_1)
+                    else
+                        L_WATER_BACKUP_PREMIUM = (((l_up_to_limit_1 -
+                                                 L_basic_limit) divide
+                                                 L_UP_TO_LIMIT_PER_1) *
+                                                 L_UP_TO_LIMIT_RATE_1)
+
+
+                    if cppproperty_alias:water_backup > l_up_to_limit_1 then
+                        L_WATER_BACKUP_increase = (((cppPROPERTY_alias:WATER_BACKUP -
+                                                  L_UP_TO_LIMIT_1) divide
+                                                  L_UP_TO_LIMIT_PER_2) *
+                                                  L_UP_TO_LIMIT_RATE_2)
+                    cppproperty_alias:water_backup_premium = l_charge +
+                                                             l_water_backup_premium +
+                                                             l_water_backup_increase
+                    end
+                else
+                    cppproperty_alias:water_backup_premium = 0
+                end
+            end
+        end
+    end
+
+End
+
+Procedure RATE_loss_assessment
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_LIMIT = CPSPROPRATE:loss_assessment
+            L_PER = CPSPROPRATE:loss_assessment_per
+            L_charge = CPSPROPRATE:loss_assessment_charge
+            End
+
+        Next CPSPROPRATE
+        End
+
+Access cppPROPERTY_ALIAS, Set cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO,
+                              cppproperty_alias:pol_year = cppproperty:pol_year,
+                              cppproperty_alias:end_sequence = cppproperty:end_sequence,
+                              cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO,
+                              cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO, Generic
+
+If cppPROPERTY_ALIAS:policy_NO = cppproperty:policy_NO And
+   cppproperty_alias:pol_year = cppproperty:pol_year and
+   cppproperty_alias:end_sequence = cppproperty:end_sequence and
+   cppPROPERTY_ALIAS:PREM_NO = cppproperty:PREM_NO And
+   cppPROPERTY_ALIAS:BUILD_NO = cppproperty:BUILD_NO Then
+    Change cppPROPERTY_ALIAS
+        begin
+        If cppPROPERTY_ALIAS:loss_assessment > L_LIMIT Then
+            cppPROPERTY_ALIAS:loss_assessment_PREM = (((cppPROPERTY_ALIAS:loss_assessment -
+                                                     L_LIMIT) Divide L_PER) *
+                                                     L_charge)
+        Else
+            cppPROPERTY_ALIAS:loss_assessment_PREM = 0
+        end
+
+End
+
+Procedure RATE_ENDORSEMENTS
+Begin
+l_state = cppgeneral:state
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_END_FACTOR = SFSOPTEND:PREMIUM_1[1]
+        L_END_LIMIT = SFSOPTEND:LIMIT[1]
+        L_END_PREMIUM1 = SFSOPTEND:PREMIUM_1[1]
+        End
+
+        if l_code one of "MCP140", "MCP141" then
+            begin
+            Access cppENDORSE, Set cppENDORSE:policy_NO    = sfpend:policy_NO,
+                                   cppendorse:pol_year     = sfpend:pol_year,
+                                   cppendorse:end_sequence = sfpend:end_sequence,
+                                   cppENDORSE:PREM_NO      = sfpend:PREM_NO,
+                                   cppENDORSE:BUILD_NO     = sfpend:BUILD_NO,
+                                   cppENDORSE:CODE         = SFpEND:CODE, Generic
+
+            if sfsoptend:limit[1] = cppendorse:limit[1] then
+                l_end_premium1 = sfsoptend:premium_1[1]
+            if sfsoptend:limit[2] = cppendorse:limit[1] then
+                l_end_premium1 = sfsoptend:premium_1[2]
+            if sfsoptend:limit[3] = cppendorse:limit[1] then
+                l_end_premium1 = sfsoptend:premium_1[3]
+
+            change cppendorse
+                begin
+                cppendorse:total_premium = l_end_premium1
+                end
+
+            end
+
+        If L_CODE one of "BU2510" Then
+            Begin
+            Access cppENDORSE, Set cppENDORSE:policy_NO = G_policy_NO,
+                                   cppendorse:pol_year = g_year,
+                                   cppendorse:end_sequence = g_end_sequence, generic
+
+            while cppendorse:policy_no = g_policy_no and
+                  cppendorse:pol_year = g_year and
+                  cppendorse:end_sequence = g_end_sequence
+                begin
+                if cppendorse:code = "BU2510" then
+                    begin
+                    if cppendorse:no_units <= sfsoptend:limit[7] then
+                        l_rate = ((100 - sfsoptend:premium_1[7]) divide 100)
+                    else
+                    if cppendorse:no_units > sfsoptend:limit[7] and
+                       cppendorse:no_units <= sfsoptend:limit[8] then
+                        l_rate = ((100 - sfsoptend:premium_1[8]) divide 100)
+                    else
+                    if cppendorse:no_units > sfsoptend:limit[8] and
+                       cppendorse:no_units <= sfsoptend:limit[9] then
+                        l_rate = ((100 - sfsoptend:premium_1[9]) divide 100)
+                    else
+                    if cppendorse:no_units > sfsoptend:limit[9] and
+                       cppendorse:no_units <= sfsoptend:limit[10] then
+                        l_rate = ((100 - sfsoptend:premium_1[10]) divide 100)
+
+                    l_bu2510_mp = "N"
+                    Switch(cppliablimits:occurrence)
+                      Case 1 : Begin
+                               l_end_premium1 = ((cppENDORSE:no_units *
+                                                SFSOPTEND:PREMIUM_1[1]) *
+                                                l_rate)
+                               if sfsoptend:premium_1[2] <> 0 and
+                                  l_end_premium1 <= sfsoptend:premium_1[2] then
+                                   begin
+                                   l_bu2510_mp = "Y"
+                                   l_end_premium1 = sfsoptend:premium_1[2]
+                                   end
+                               End
+                      Case 2 : Begin
+                               l_end_premium1 = ((cppENDORSE:no_units *
+                                                SFSOPTEND:PREMIUM_1[3]) *
+                                                l_rate)
+                               if sfsoptend:premium_1[4] <> 0 and
+                                  l_end_premium1 <= sfsoptend:premium_1[4] then
+                                   begin
+                                  l_bu2510_mp = "Y"
+                                  l_end_premium1 = sfsoptend:premium_1[4]
+                                  end
+                               End
+                      Case 3 : Begin
+                               l_end_premium1 = ((cppENDORSE:no_units *
+                                                SFSOPTEND:PREMIUM_1[5]) *
+                                                l_rate)
+                               if sfsoptend:premium_1[6] <> 0 and
+                                  l_end_premium1 <= sfsoptend:premium_1[6] then
+                                   begin
+                                   l_bu2510_mp = "Y"
+                                   l_end_premium1 = sfsoptend:premium_1[6]
+                                   end
+                               End
+                      End
+
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[1] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[1] * 0.01)))
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[2] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[2] * 0.01)))
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[3] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[3] * 0.01)))
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[4] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[4] * 0.01)))
+                    end
+
+                next cppendorse
+                end
+
+            l_bu2510_premium = l_end_premium1
+            End
+
+    Next SFSOPTEND
+    End
+
+if l_code one of "MCP105" then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    change cppendorse
+        begin
+        cppendorse:total_premium = ((cppendorse:limit[1] divide l_end_limit) *
+                                   l_end_premium1)
+        end
+
+    end
+
+if l_code one of "MCP716" then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    change cppendorse
+        begin
+        cppendorse:total_premium = l_end_premium1
+        end
+
+    end
+
+if l_code one of "MCP109" then
+    begin
+    L_STATE = cppGENERAL:STATE
+    Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSPROPRATE:STATE = L_STATE,
+                            CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSPROPRATE:STATE = L_STATE And
+          CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+                Begin
+                L_antenna_sub_code = cpsproprate:outdoor_antenna_sub_code
+                l_antenna_class_code = cpsproprate:outdoor_antenna_class_code
+                End
+
+        Next CPSPROPRATE
+        End
+
+    access cpsperpetual, set cpsperpetual:company_id = sfpname:company_id,
+                             cpsperpetual:state = l_state,
+                             cpsperpetual:line_of_business = l_line_of_business,
+                             cpsperpetual:class_code = l_antenna_class_code,
+                             cpsperpetual:sub_code = l_antenna_sub_code, generic
+
+    while cpsperpetual:company_id = sfpname:company_id and
+          cpsperpetual:state = l_state and
+          cpsperpetual:line_of_business = l_line_of_business and
+          cpsperpetual:class_code = l_antenna_class_code and
+          cpsperpetual:sub_code = l_antenna_sub_code
+            begin
+            If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+                Begin
+                l_fire_factor = cpsperpetual:fire_factor
+                l_ec_factor = cpsperpetual:ec_factor
+                l_vmm_factor = cpsperpetual:vmm_factor
+
+                end
+
+            next cpsperpetual
+            end
+
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    do package_mod
+    do company_deviation
+
+    access cppgeneral, set cppgeneral:policy_no = sfpend:policy_no,
+                           cppgeneral:pol_year = sfpend:pol_year,
+                           cppgeneral:end_sequence = sfpend:end_sequence,
+                           cppgeneral:prem_no = sfpend:prem_no,
+                           cppgeneral:build_no = sfpend:build_no, generic
+
+    L_fire_prem = ((cppendorse:limit[1] Divide 100) *
+                  L_fire_FACTOR *
+                  cppgeneral:deductible_factor[1] *
+                  cppgeneral:coinsurance_factor[1] *
+                  cppgeneral:net_factor[1] *
+                  cppgeneral:public_institute_factor[1] *
+                  l_package_mod *
+                  l_deviation)
+    l_ec_prem = ((cppendorse:limit[1] divide 100) *
+                l_ec_factor *
+                cppgeneral:deductible_factor[2] *
+                cppgeneral:wind_deductible_factor[2] *
+                cppgeneral:net_factor[2] *
+                cppgeneral:public_institute_factor[2] *
+                cppgeneral:coinsurance_factor[2] *
+                l_package_mod *
+                l_deviation)
+    l_vmm_prem = ((cppendorse:limit[1] divide 100) *
+                 l_vmm_factor *
+                 cppgeneral:deductible_factor[3] *
+                 cppgeneral:coinsurance_factor[3] *
+                 cppgeneral:net_factor[3] *
+                 cppgeneral:public_institute_factor[3] *
+                 l_package_mod *
+                 l_deviation)
+    if cppgeneral:form one of 3, 5 then
+        begin
+        if cppgeneral:new_rate[4] <> 0 then
+            begin
+            l_other_prem = ((cppendorse:limit[1] divide 100) *
+                           cppgeneral:new_rate[4] *
+                           cppgeneral:deductible_factor[4] *
+                           cppgeneral:net_factor[4] *
+                           cppgeneral:public_institute_factor[4] *
+                           cppgeneral:coinsurance_factor[4] *
+                           l_package_mod *
+                           l_deviation)
+            end
+        else
+            begin
+            l_other_prem = ((cppendorse:limit[1] divide 100) *
+                           cppgeneral:base_rate[4] *
+                           cppgeneral:deductible_factor[4] *
+                           cppgeneral:net_factor[4] *
+                           cppgeneral:public_institute_factor[4] *
+                           cppgeneral:coinsurance_factor[4] *
+                           l_package_mod *
+                           l_deviation)
+            end
+        end
+
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    change cppendorse
+        begin
+        cppendorse:total_premium = l_fire_prem +
+                                   l_ec_prem +
+                                   l_vmm_prem +
+                                   l_other_prem
+        cppendorse:fire_premium = l_fire_prem
+        cppendorse:ec_premium = l_ec_prem
+        cppendorse:vmm_premium = l_vmm_prem
+        cppendorse:other_premium = l_other_prem
+        cppendorse:fire_factor = l_fire_factor
+        cppendorse:ec_factor = l_ec_factor
+        cppendorse:vmm_factor = l_vmm_factor
+        if cppgeneral:new_rate[4] <> 0 then
+            cppendorse:other_factor = cppgeneral:new_rate[4]
+        else
+        if cppgeneral:base_rate[4] <> 0 then
+            cppendorse:other_factor = cppgeneral:base_rate[4]
+        end
+
+    end
+
+if l_code one of "MCP115" then
+    begin
+    L_STATE = cppGENERAL:STATE
+    Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSPROPRATE:STATE = L_STATE,
+                            CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSPROPRATE:STATE = L_STATE And
+          CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+                Begin
+                l_fire_factor = cpsproprate:pollution_rate[1]
+                l_ec_factor = cpsproprate:pollution_rate[2]
+                l_vmm_factor = cpsproprate:pollution_rate[3]
+                if cppgeneral:form one of 3 then
+                    l_other_factor = cpsproprate:pollution_rate[4]
+                if cppgeneral:form one of 5 then
+                    l_other_factor = cpsproprate:pollution_rate[5]
+                l_eq_factor = cpsproprate:pollution_rate[6]
+                End
+
+        Next CPSPROPRATE
+        End
+
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    access cppgeneral, set cppgeneral:policy_no = sfpend:policy_no,
+                           cppgeneral:pol_year = sfpend:pol_year,
+                           cppgeneral:end_sequence = sfpend:end_sequence,
+                           cppgeneral:prem_no = sfpend:prem_no,
+                           cppgeneral:build_no = sfpend:build_no, generic
+
+    switch(cppgeneral:deductible)
+      case 100, 250, 500, 1000 : l_deductible = 1000
+      case 1500, 2000, 2500    : l_deductible = 2500
+      default                  : l_deductible = cppgeneral:deductible
+      end
+
+    change cppendorse
+        begin
+        cppendorse:deductible[1] = l_deductible
+        end
+
+    access cpspolluteded, set cpspolluteded:company_id = sfpname:company_id,
+                              cpspolluteded:state = l_state,
+                              cpspolluteded:line_of_business = l_line_of_business,
+                              cpspolluteded:deductible = l_deductible, generic
+
+    while cpspolluteded:company_id = sfpname:company_id and
+          cpspolluteded:state = l_state and
+          cpspolluteded:line_of_business = l_line_of_business and
+          cpspolluteded:deductible = l_deductible
+            begin
+            if sfpname:eff_date >= cpspolluteded:eff_date then
+                begin
+                l_deductible_factor = cpspolluteded:factor
+
+                end
+
+            next cpspolluteded
+            end
+
+    if cppgeneral:new_rate[1] <> 0 then
+        begin
+        L_fire_prem = ((cppendorse:limit[1] Divide 100) *
+                      cppgeneral:new_rate[1] *
+                      L_fire_FACTOR *
+                      l_deductible_factor)
+        end
+    else
+        begin
+        L_fire_prem = ((cppendorse:limit[1] Divide 100) *
+                      cppgeneral:base_rate[1] *
+                      L_fire_FACTOR *
+                      l_deductible_factor)
+        end
+
+    if cppgeneral:new_rate[2] <> 0 then
+        begin
+        l_ec_prem = ((cppendorse:limit[1] divide 100) *
+                    cppgeneral:new_rate[2] *
+                    l_ec_factor *
+                    l_deductible_factor)
+        end
+    else
+    if cppgeneral:base_rate[2] <> 0 then
+        begin
+        l_ec_prem = ((cppendorse:limit[1] divide 100) *
+                    cppgeneral:base_rate[2] *
+                    l_ec_factor *
+                    l_deductible_factor)
+        end
+
+    if cppgeneral:new_rate[3] <> 0 then
+        begin
+        l_vmm_prem = ((cppendorse:limit[1] divide 100) *
+                     cppgeneral:new_rate[3] *
+                     l_vmm_factor *
+                     l_deductible_factor)
+        end
+    else
+    if cppgeneral:base_rate[3] <> 0 then
+        begin
+        l_vmm_prem = ((cppendorse:limit[1] divide 100) *
+                     cppgeneral:base_rate[3] *
+                     l_vmm_factor *
+                     l_deductible_factor)
+        end
+
+    if cppgeneral:new_rate[4] <> 0 or
+       cppgeneral:base_rate[4] <> 0 then
+        begin
+        l_other_prem = ((cppendorse:limit[1] divide 100) *
+                       l_other_factor *
+                       l_deductible_factor)
+        end
+
+    if cppgeneral:new_rate[5] <> 0 then
+        begin
+        l_eq_prem = ((cppendorse:limit[1] divide 100) *
+                    cppgeneral:new_rate[5] *
+                    l_eq_factor *
+                    l_deductible_factor)
+        end
+    else
+    if cppgeneral:base_rate[5] <> 0 then
+        begin
+        l_eq_prem = ((cppendorse:limit[1] divide 100) *
+                    cppgeneral:base_rate[5] *
+                    l_eq_factor *
+                    l_deductible_factor)
+        end
+
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    change cppendorse
+        begin
+        cppendorse:total_premium = l_fire_prem +
+                                   l_ec_prem +
+                                   l_vmm_prem +
+                                   l_other_prem +
+                                   l_eq_prem
+        cppendorse:fire_premium = l_fire_prem
+        cppendorse:ec_premium = l_ec_prem
+        cppendorse:vmm_premium = l_vmm_prem
+        cppendorse:other_premium = l_other_prem
+        cppendorse:eq_premium = l_eq_prem
+        cppendorse:fire_factor = l_fire_factor
+        cppendorse:ec_factor = l_ec_factor
+        cppendorse:vmm_factor = l_vmm_factor
+        cppendorse:other_factor = l_other_factor
+        cppendorse:eq_factor = l_eq_factor
+        end
+
+    end
+
+if l_code one of "MCP117" then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    if sfpend:policy_wide_form = 1 then
+        begin
+        access cppgeneral, set cppgeneral:policy_no = sfpend:policy_no,
+                               cppgeneral:pol_year = sfpend:pol_year,
+                               cppgeneral:end_sequence = sfpend:end_sequence, generic
+
+        access cppexclusions, set cppexclusions:policy_no = sfpend:policy_no,
+                                  cppexclusions:pol_year = sfpend:pol_year,
+                                  cppexclusions:end_sequence = sfpend:end_sequence, generic
+        end
+    else
+        begin
+        access cppgeneral, set cppgeneral:policy_no = sfpend:policy_no,
+                               cppgeneral:pol_year = sfpend:pol_year,
+                               cppgeneral:end_sequence = sfpend:end_sequence,
+                               cppgeneral:prem_no = sfpend:prem_no,
+                               cppgeneral:build_no = sfpend:build_no, generic
+
+        access cppexclusions, set cppexclusions:policy_no = sfpend:policy_no,
+                                  cppexclusions:pol_year = sfpend:pol_year,
+                                  cppexclusions:end_sequence = sfpend:end_sequence,
+                                  cppexclusions:prem_no = sfpend:prem_no,
+                                  cppexclusions:build_no = sfpend:build_no, generic
+        end
+
+    access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                           cpsdefault:line_of_business = l_line_of_business, generic
+
+    do package_mod
+    do company_deviation
+
+    L_EFF_DATE_1 = cppendorse:EFF_DATE
+    L_EXP_DATE = cppendorse:EXP_DATE
+    L_DAYS = ((L_EFF_DATE_1 - L_EXP_DATE) * -1)
+    if cppgeneral:new_rate[7] <> 0 then
+        l_fire_factor = cppgeneral:new_rate[7]
+    else
+        l_fire_factor = cppgeneral:base_rate[7]
+    if cppgeneral:specific_rate_adjustment[2] <> 0 then
+        l_specific_rate_adj = cppgeneral:specific_rate_adjustment[2]
+    else
+        l_specific_rate_adj = 1.00
+    L_fire_prem = (l_Fire_factor *
+                  l_specific_rate_adj *
+                  cppgeneral:coinsurance_factor_b[2] *
+                  cppgeneral:public_institute_factor[2] *
+                  cppgeneral:net_factor[2] *
+                  cppgeneral:contents_deduct_factor[2] *
+                  l_deviation *
+                  (L_DAYS Divide 365) *
+                  (cppendorse:LIMIT[1] Divide 100) *
+                  cppgeneral:rating_territory_factor *
+                  l_package_mod)
+
+    if cppgeneral:form > 1 then
+        begin
+        if cppgeneral:new_rate[8] <> 0 then
+            l_ec_factor = cppgeneral:new_rate[8]
+        else
+            l_ec_factor = cppgeneral:base_rate[8]
+        L_ec_prem = (l_ec_factor *
+                     cppgeneral:coinsurance_factor_b[2] *
+                     cppgeneral:public_institute_factor[2] *
+                     cppgeneral:net_factor[2] *
+                     cppgeneral:contents_deduct_factor[2] *
+                     l_deviation *
+                    (L_DAYS Divide 365) *
+                    (cppendorse:LIMIT[1] Divide 100) *
+                    cppgeneral:rating_territory_factor *
+                    l_package_mod)
+        end
+
+    if cppgeneral:form > 1 and
+       cppexclusions:exclude_vandalism = 0 then
+        begin
+        if cppgeneral:new_rate[9] <> 0 then
+            l_vmm_factor = cppgeneral:new_rate[9]
+        else
+            l_vmm_factor = cppgeneral:base_rate[9]
+
+        L_vmm_prem = (l_vmm_factor *
+                     cppgeneral:coinsurance_factor_b[3] *
+                     cppgeneral:public_institute_factor[3] *
+                     cppgeneral:net_factor[3] *
+                     cppgeneral:contents_deduct_factor[3] *
+                     l_deviation *
+                     (L_DAYS Divide 365) *
+                     (cppendorse:LIMIT[1] Divide 100) *
+                     cppgeneral:rating_territory_factor *
+                     l_package_mod)
+        end
+
+    if cppgeneral:form one of 3, 5 then
+        begin
+        if cppgeneral:new_rate[10] <> 0 then
+            l_other_factor = cppgeneral:new_rate[10]
+        else
+            l_other_factor = cppgeneral:base_rate[10]
+        L_other_prem = (l_other_factor *
+                       cppgeneral:coinsurance_factor_b[4] *
+                       cppgeneral:public_institute_factor[4] *
+                       cppgeneral:net_factor[4] *
+                       cppgeneral:contents_deduct_factor[4] *
+                       l_deviation *
+                       (L_DAYS Divide 365) *
+                       (cppendorse:LIMIT[1] Divide 100) *
+                       cppgeneral:rating_territory_factor *
+                       l_package_mod)
+        end
+
+/*    if cppgeneral:sprinkler_leakage = 1 and
+       cppgeneral:form <> 5 then
+        begin
+        l_sl_prem = (cppgeneral:adj_rate1[12] *
+                    (L_DAYS Divide 365) *
+                    (cppendorse:LIMIT[1] Divide 100) *
+                    cppgeneral:rating_territory_factor *
+                    l_package_mod)
+        end
+
+    if cppgeneral:earthquake = 1 then
+        begin
+        L_eq_prem = (cppgeneral:adj_rate1[11] *
+                    (L_DAYS Divide 365) *
+                    (cppendorse:LIMIT[1] Divide 100) *
+                    cppgeneral:rating_territory_factor *
+                    l_package_mod)
+        end*/
+
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    change cppendorse
+        begin
+        cppendorse:total_premium = l_fire_prem +
+                                   l_ec_prem +
+                                   l_vmm_prem +
+                                   l_other_prem
+--                                   l_sl_prem +
+--                                   l_eq_prem
+        cppendorse:peak_season_pro_rata[1] = l_days divide 365
+        cppendorse:fire_premium = l_Fire_prem
+        cppendorse:ec_premium = l_ec_prem
+        cppendorse:vmm_premium = l_vmm_prem
+        cppendorse:other_premium = l_other_prem
+--        cppendorse:sl_premium = l_sl_prem
+--        cppendorse:eq_premium= l_eq_prem
+        end
+
+    if cppendorse:eff_date_1[1] <> 0 then
+        begin
+        L_EFF_DATE_1 = cppendorse:EFF_DATE_1[1]
+        L_EXP_DATE = cppendorse:EXP_DATE_1[1]
+        L_DAYS = ((L_EFF_DATE_1 - L_EXP_DATE) * -1)
+        if cppgeneral:new_rate[7] <> 0 then
+            l_fire_factor = cppgeneral:new_rate[7]
+        else
+            l_fire_factor = cppgeneral:base_rate[7]
+        L_fire_prem = (l_Fire_factor *
+                      cppgeneral:coinsurance_factor_b[2] *
+                      cppgeneral:public_institute_factor[2] *
+                      cppgeneral:net_factor[2] *
+                      cppgeneral:contents_deduct_factor[2] *
+                      l_deviation *
+                      (L_DAYS Divide 365) *
+                      (cppendorse:LIMIT[1] Divide 100) *
+                      cppgeneral:rating_territory_factor *
+                      l_package_mod)
+
+        if cppgeneral:form > 1 then
+            begin
+            if cppgeneral:new_rate[8] <> 0 then
+                l_ec_factor = cppgeneral:new_rate[8]
+            else
+                l_ec_factor = cppgeneral:base_rate[8]
+            L_ec_prem = (l_ec_factor *
+                         cppgeneral:coinsurance_factor_b[2] *
+                         cppgeneral:public_institute_factor[2] *
+                         cppgeneral:net_factor[2] *
+                         cppgeneral:contents_deduct_factor[2] *
+                         l_deviation *
+                        (L_DAYS Divide 365) *
+                        (cppendorse:LIMIT[1] Divide 100) *
+                         cppgeneral:rating_territory_factor *
+                         l_package_mod)
+            end
+
+        if cppgeneral:form > 1 and
+           cppexclusions:exclude_vandalism = 0 then
+            begin
+            if cppgeneral:new_rate[9] <> 0 then
+                l_vmm_factor = cppgeneral:new_rate[9]
+            else
+                l_vmm_factor = cppgeneral:base_rate[9]
+
+            L_vmm_prem = (l_vmm_factor *
+                         cppgeneral:coinsurance_factor_b[3] *
+                         cppgeneral:public_institute_factor[3] *
+                         cppgeneral:net_factor[3] *
+                         cppgeneral:contents_deduct_factor[3] *
+                         l_deviation *
+                         (L_DAYS Divide 365) *
+                         (cppendorse:LIMIT[1] Divide 100) *
+                         cppgeneral:rating_territory_factor *
+                         l_package_mod)
+            end
+
+        if cppgeneral:form one of 3, 5 then
+            begin
+            if cppgeneral:new_rate[10] <> 0 then
+                l_other_factor = cppgeneral:new_rate[10]
+            else
+                l_other_factor = cppgeneral:base_rate[10]
+            L_other_prem = (l_other_factor *
+                           cppgeneral:coinsurance_factor_b[4] *
+                           cppgeneral:public_institute_factor[4] *
+                           cppgeneral:net_factor[4] *
+                           cppgeneral:contents_deduct_factor[4] *
+                           l_deviation *
+                          (L_DAYS Divide 365) *
+                          (cppendorse:LIMIT[1] Divide 100) *
+                           cppgeneral:rating_territory_factor *
+                           l_package_mod)
+            end
+
+/*        if cppgeneral:sprinkler_leakage = 1 and
+           cppgeneral:form <> 5 then
+            begin
+            l_sl_prem = (cppgeneral:adj_rate1[12] *
+                        (L_DAYS Divide 365) *
+                        (cppendorse:LIMIT[1] Divide 100) *
+                        cppgeneral:rating_territory_factor *
+                        l_package_mod)
+            end
+
+        if cppgeneral:earthquake = 1 then
+            begin
+            L_eq_prem = (cppgeneral:adj_rate1[11] *
+                        (L_DAYS Divide 365) *
+                        (cppendorse:LIMIT[1] Divide 100) *
+                        cppgeneral:rating_territory_factor *
+                        l_package_mod)
+            end*/
+
+        access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                               cppendorse:pol_year = sfpend:pol_year,
+                               cppendorse:end_sequence = sfpend:end_sequence,
+                               cppendorse:prem_no = sfpend:prem_no,
+                               cppendorse:build_no = sfpend:build_no,
+                               cppendorse:code = l_code, generic
+
+        change cppendorse
+            begin
+            cppendorse:total_premium = cppendorse:total_premium +
+                                       l_fire_prem +
+                                       l_ec_prem +
+                                       l_vmm_prem +
+                                       l_other_prem-- +
+--                                       l_sl_prem +
+--                                       l_eq_prem
+            cppendorse:peak_season_pro_rata[2] = l_days divide 365
+            cppendorse:fire_premium = l_Fire_prem + cppendorse:fire_premium
+            cppendorse:ec_premium = l_ec_prem + cppendorse:ec_premium
+            cppendorse:vmm_premium = l_vmm_prem + cppendorse:vmm_premium
+            cppendorse:other_premium = l_other_prem + cppendorse:other_premium
+--            cppendorse:sl_premium = l_sl_prem + cppendorse:sl_premium
+--            cppendorse:eq_premium= l_eq_prem + cppendorse:eq_premium
+            end
+        end
+
+    if cppendorse:eff_date_1[2] <> 0 then
+        begin
+        L_EFF_DATE_1 = cppendorse:EFF_DATE_1[2]
+        L_EXP_DATE = cppendorse:EXP_DATE_1[2]
+        L_DAYS = ((L_EFF_DATE_1 - L_EXP_DATE) * -1)
+        if cppgeneral:new_rate[7] <> 0 then
+            l_fire_factor = cppgeneral:new_rate[7]
+        else
+            l_fire_factor = cppgeneral:base_rate[7]
+        L_fire_prem = (l_Fire_factor *
+                      cppgeneral:coinsurance_factor_b[2] *
+                      cppgeneral:public_institute_factor[2] *
+                      cppgeneral:net_factor[2] *
+                      cppgeneral:contents_deduct_factor[2] *
+                      l_deviation *
+                      (L_DAYS Divide 365) *
+                      (cppendorse:LIMIT[1] Divide 100) *
+                      cppgeneral:rating_territory_factor *
+                      l_package_mod)
+
+        if cppgeneral:form > 1 then
+            begin
+            if cppgeneral:new_rate[8] <> 0 then
+                l_ec_factor = cppgeneral:new_rate[8]
+            else
+                l_ec_factor = cppgeneral:base_rate[8]
+            L_ec_prem = (l_ec_factor *
+                         cppgeneral:coinsurance_factor_b[2] *
+                         cppgeneral:public_institute_factor[2] *
+                         cppgeneral:net_factor[2] *
+                         cppgeneral:contents_deduct_factor[2] *
+                         l_deviation *
+                        (L_DAYS Divide 365) *
+                        (cppendorse:LIMIT[1] Divide 100) *
+                         cppgeneral:rating_territory_factor *
+                         l_package_mod)
+            end
+
+        if cppgeneral:form > 1 and
+           cppexclusions:exclude_vandalism = 0 then
+            begin
+            if cppgeneral:new_rate[9] <> 0 then
+                l_vmm_factor = cppgeneral:new_rate[9]
+            else
+                l_vmm_factor = cppgeneral:base_rate[9]
+
+            L_vmm_prem = (l_vmm_factor *
+                         cppgeneral:coinsurance_factor_b[3] *
+                         cppgeneral:public_institute_factor[3] *
+                         cppgeneral:net_factor[3] *
+                         cppgeneral:contents_deduct_factor[3] *
+                         l_deviation *
+                         (L_DAYS Divide 365) *
+                         (cppendorse:LIMIT[1] Divide 100) *
+                         cppgeneral:rating_territory_factor *
+                         l_package_mod)
+            end
+
+        if cppgeneral:form one of 3, 5 then
+            begin
+            if cppgeneral:new_rate[10] <> 0 then
+                l_other_factor = cppgeneral:new_rate[10]
+            else
+                l_other_factor = cppgeneral:base_rate[10]
+            L_other_prem = (l_other_factor *
+                           cppgeneral:coinsurance_factor_b[4] *
+                           cppgeneral:public_institute_factor[4] *
+                           cppgeneral:net_factor[4] *
+                           cppgeneral:contents_deduct_factor[4] *
+                           l_deviation *
+                          (L_DAYS Divide 365) *
+                          (cppendorse:LIMIT[1] Divide 100) *
+                           cppgeneral:rating_territory_factor *
+                           l_package_mod)
+            end
+
+/*        if cppgeneral:sprinkler_leakage = 1 and
+           cppgeneral:form <> 5 then
+            begin
+            l_sl_prem = (cppgeneral:adj_rate1[12] *
+                        (L_DAYS Divide 365) *
+                        (cppendorse:LIMIT[1] Divide 100) *
+                        cppgeneral:rating_territory_factor *
+                        l_package_mod)
+            end
+
+        if cppgeneral:earthquake = 1 then
+            begin
+            L_eq_prem = (cppgeneral:adj_rate1[11] *
+                        (L_DAYS Divide 365) *
+                        (cppendorse:LIMIT[1] Divide 100) *
+                        cppgeneral:rating_territory_factor *
+                        l_package_mod)
+            end*/
+
+        access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                               cppendorse:pol_year = sfpend:pol_year,
+                               cppendorse:end_sequence = sfpend:end_sequence,
+                               cppendorse:prem_no = sfpend:prem_no,
+                               cppendorse:build_no = sfpend:build_no,
+                               cppendorse:code = l_code, generic
+
+        change cppendorse
+            begin
+            cppendorse:total_premium = cppendorse:total_premium +
+                                       l_fire_prem +
+                                       l_ec_prem +
+                                       l_vmm_prem +
+                                       l_other_prem-- +
+--                                       l_sl_prem +
+--                                       l_eq_prem
+            cppendorse:peak_season_pro_rata[3] = l_days divide 365
+            cppendorse:fire_premium = l_Fire_prem + cppendorse:fire_premium
+            cppendorse:ec_premium = l_ec_prem + cppendorse:ec_premium
+            cppendorse:vmm_premium = l_vmm_prem + cppendorse:vmm_premium
+            cppendorse:other_premium = l_other_prem + cppendorse:other_premium
+--            cppendorse:sl_premium = l_sl_prem + cppendorse:sl_premium
+--            cppendorse:eq_premium= l_eq_prem + cppendorse:eq_premium
+            end
+        end
+
+    end
+
+if l_code one of "MCP123" then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    access cppgeneral, set cppgeneral:policy_no = sfpend:policy_no,
+                           cppgeneral:pol_year = sfpend:pol_year,
+                           cppgeneral:end_sequence = sfpend:end_sequence,
+                           cppgeneral:prem_no = sfpend:prem_no,
+                           cppgeneral:build_no = sfpend:build_no, generic
+
+    access cppexclusions, set cppexclusions:policy_no = sfpend:policy_no,
+                              cppexclusions:pol_year = sfpend:pol_year,
+                              cppexclusions:end_sequence = sfpend:end_sequence,
+                              cppexclusions:prem_no = sfpend:prem_no,
+                              cppexclusions:build_no = sfpend:build_no, generic
+
+    access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                           cpsdefault:line_of_business = l_line_of_business, generic
+
+    do package_mod
+    do company_deviation
+
+    L_fire_prem = (cppgeneral:adj_rate1[7] *
+                  (cppendorse:LIMIT[1] Divide 100) *
+                  cppgeneral:rating_territory_factor *
+                  l_package_mod)
+
+    if cppgeneral:form > 1 then
+        begin
+        L_ec_prem = (cppgeneral:adj_rate1[8] *
+                    (cppendorse:LIMIT[1] Divide 100) *
+                    cppgeneral:rating_territory_factor *
+                    l_package_mod)
+        end
+
+    if cppgeneral:form > 1 and
+       cppexclusions:exclude_vandalism = 0 then
+        begin
+        if cppgeneral:new_rate[9] <> 0 then
+            l_vmm_factor = cppgeneral:new_rate[9]
+        else
+            l_vmm_factor = cppgeneral:base_rate[9]
+
+        L_vmm_prem = (l_vmm_factor *
+                     cppgeneral:coinsurance_factor_b[3] *
+                     cppgeneral:public_institute_factor[3] *
+                     cppgeneral:net_factor[3] *
+                     cppgeneral:contents_deduct_factor[3] *
+                     l_deviation *
+                     (cppendorse:LIMIT[1] Divide 100) *
+                     cppgeneral:rating_territory_factor *
+                     l_package_mod)
+        end
+
+    if cppgeneral:form one of 3 then
+        begin
+        L_other_prem = (cppgeneral:adj_rate1[10] *
+                       (cppendorse:LIMIT[1] Divide 100) *
+                       cppgeneral:rating_territory_factor *
+                       l_package_mod)
+        end
+
+    if cppgeneral:form one of 5 then
+        begin
+        l_company_id = sfpname:company_id
+        l_state = cppgeneral:state
+        l_eff_date = sfpname:eff_date
+        Access CPSOPTION5, Set CPSOPTION5:COMPANY_ID = L_COMPANY_ID,
+                               CPSOPTION5:STATE = L_STATE,
+                               CPSOPTION5:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While CPSOPTION5:COMPANY_ID = L_COMPANY_ID And
+              CPSOPTION5:STATE = L_STATE And
+              CPSOPTION5:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If L_EFF_DATE >= CPSOPTION5:EFF_DATE Then
+                    Begin
+                    If cppexclusions:exclude_theft = 1 Then
+                        Begin
+                        L_other_factor = CPSOPTION5:COVERAGE_B_NO_THEFT
+                        End
+                    Else
+                        begin
+                        L_other_factor = CPSOPTION5:COVERAGE_B_RESIDENTIAL
+                        end
+                    end
+
+                Next CPSOPTION5
+                End
+
+        l_other_prem = (((l_other_factor *
+                        cppgeneral:coinsurance_factor_b[4] *
+                        cppgeneral:contents_deduct_factor[4] *
+                        l_deviation) *
+                        (cppendorse:limit[1] divide 100)) *
+                        cppgeneral:rating_territory_factor *
+                        l_package_mod)
+        end
+
+    if cppgeneral:sprinkler_leakage = 1 and
+       cppgeneral:form <> 5 then
+        begin
+        l_sl_prem = (cppgeneral:adj_rate1[12] *
+                    (cppendorse:LIMIT[1] Divide 100) *
+                    cppgeneral:rating_territory_factor *
+                    l_package_mod)
+        end
+
+    if cppgeneral:earthquake = 1 then
+        begin
+        L_eq_prem = (cppgeneral:adj_rate1[11] *
+                    (cppendorse:LIMIT[1] Divide 100) *
+                    cppgeneral:rating_territory_factor *
+                    l_package_mod)
+        end
+
+    access cppendorse, set cppendorse:policy_no = sfpend:policy_no,
+                           cppendorse:pol_year = sfpend:pol_year,
+                           cppendorse:end_sequence = sfpend:end_sequence,
+                           cppendorse:prem_no = sfpend:prem_no,
+                           cppendorse:build_no = sfpend:build_no,
+                           cppendorse:code = l_code, generic
+
+    change cppendorse
+        begin
+        cppendorse:total_premium = l_fire_prem +
+                                   l_ec_prem +
+                                   l_vmm_prem +
+                                   l_other_prem +
+                                   l_sl_prem +
+                                   l_eq_prem
+        cppendorse:fire_premium = l_Fire_prem
+        cppendorse:ec_premium = l_ec_prem
+        cppendorse:vmm_premium = l_vmm_prem
+        cppendorse:other_premium = l_other_prem
+        cppendorse:sl_premium = l_sl_prem
+        cppendorse:eq_premium= l_eq_prem
+        end
+
+    end
+
+end
+
+Procedure OPTION5_THEFT_RATING
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_CONSTRUCTION = cppGENERAL:CONSTRUCTION
+L_EXCLUDE_THEFT = cppEXCLUSIONS:EXCLUDE_THEFT
+L_GROUP_NO = cppGENERAL:GROUP_NO
+L_COUNTY = cppGENERAL:COUNTY
+L_RATE_GROUP = cppGENERAL:RATE_GROUP
+L_CMP_SYMBOL = cppGENERAL:CMP_SYMBOL
+
+Include "cpsoption5pp.pro"
+include "cpsoption5terr.pro"
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+if cppgeneral:company_deviation[1] = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[1] <> 1.00 then
+        l_deviation = (1 + (cppgeneral:company_deviation[1] * 0.01))
+    else
+        l_deviation = cppgeneral:company_deviation[1]
+
+if sfscompany:boiler_Rating = 4 then
+    begin
+    if cppgeneral:company_deviation[2] = 0 then
+        l_irpm_deviation = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[2] <> 1.00 then
+        l_irpm_deviation = (1 + (cppgeneral:company_deviation[2] * 0.01))
+    else
+        l_irpm_deviation = cppgeneral:company_deviation[2]
+    end
+else
+    l_irpm_deviation = 1.00
+
+if sfscompany:boiler_Rating = 4 then
+    begin
+    if cppgeneral:company_deviation[3] = 0 then
+        l_exp_factor = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[3] <> 1.00 then
+        l_exp_factor = (1 + (cppgeneral:company_deviation[3] * 0.01))
+    else
+        l_exp_factor = cppgeneral:company_deviation[3]
+    end
+else
+    l_exp_Factor = 1.00
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                       cpsdefault:line_of_business = l_line_of_business, generic
+
+if cppgeneral:package_mod[1] = 0 then
+    begin
+    l_package_mod = 1.00
+    end
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:package_mod[1] <> 1.00 then
+        l_package_mod = (1 + (cppgeneral:package_mod[1] * 0.01))
+    else
+        l_package_mod = cppgeneral:package_mod[1]
+    end
+
+End
+
+End

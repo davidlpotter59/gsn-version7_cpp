@@ -1,0 +1,157 @@
+%%
+Screen
+        Name            = "cppmtmso08b";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Territorial Rating     7.00 %m";
+        Domain          = "cppliability" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries boqisolib boqmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_STATE[2],
+                                     G_RATE_TYPE[2],
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     G_LOSS_INCOME_FACTOR[4]/decimals=3 ,
+                                     g_class_code[5] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_RATING_TERRITORY[3]=0 ,
+                                    l_line_of_business[4]=0008 ,
+                                    l_group_1[5]=0/dec=3,
+                                    l_group_2[5]=0/dec=3 ;
+
+        local wdate l_eff_date ;
+
+        Access cppliability, Set cppliability:policy_NO = G_policy_NO ,
+                                 cppliability:pol_year = g_year,
+                                 cppliability:end_sequence = g_end_sequence,
+                                 cppliability:PREM_NO = G_PREM_NO,
+                                 cppliability:BUILD_NO = G_BUILD_NO ,
+                                 cppliability:class_code = g_class_code ;
+
+        Include "stdkeys7.inc"
+--        !F8="G"/function/icon="Terr" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+--        "G" Display/noreturn "cppmtmso08a" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppliability:policy_NO <> G_policy_NO Or
+   cppliability:pol_year <> g_year or
+   cppliability:end_sequence <> g_EnD_sequence or
+   cppliability:PREM_NO <> G_PREM_NO Or
+   cppliability:BUILD_NO <> G_BUILD_NO or
+   cppliability:class_code <> g_class_code Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Territory:  ___              [R _~~Group~1      ______                       |
+|                                 _~~Group~2      ______                       |
+|                                 _~~Other R]     ______                       |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+            l_eff_date = sfpname:eff_date
+        end
+        cppliability:RATING_TERRITORY/displayonly ;
+302     cppliability:RATING_TERRITORY_GROUP/values="1,2,3" ;
+303     Begin
+        Access CPSRATINGTERR, Set CPSRATINGTERR:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                  CPSRATINGTERR:STATE = cppliability:STATE,
+                                  CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                  CPSRATINGTERR:COUNTY = cppliability:COUNTY,
+                                  CPSRATINGTERR:TERRITORY = cppliability:RATING_TERRITORY, Generic
+
+        while CPSRATINGTERR:COMPANY_ID = SFPNAME:COMPANY_ID and
+              CPSRATINGTERR:STATE = cppliability:STATE and
+              CPSRATINGTERR:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+              CPSRATINGTERR:COUNTY = cppliability:COUNTY and
+              CPSRATINGTERR:TERRITORY = cppliability:RATING_TERRITORY
+                begin
+                if (l_eff_date >= cpsratingterr:eff_date and
+                   (l_eff_date <= cpsratingterr:exp_date or
+                   cpsratingterr:exp_date = 0)) then
+                    begin
+                    l_group_1 = cpsratingterr:group_1
+                    l_group_2 = cpsratingterr:group_2
+                    end
+
+                next cpsratingterr
+                end
+        End
+        L_GROUP_1/displayonly
+        If cppliability:RATING_TERRITORY_GROUP = 1 Then
+            cppliability:RATING_TERRITORY_FACTOR = L_GROUP_1 ;
+401     L_GROUP_2/displayonly
+        If cppliability:RATING_TERRITORY_GROUP = 2 Then
+            cppliability:RATING_TERRITORY_FACTOR = L_GROUP_2 ;
+501     cppliability:RATING_TERRITORY_FACTOR
+        Hide If cppliability:RATING_TERRITORY_GROUP <> 3 ;
+
+}
+
+}
+
+
+End
+/* end of file */

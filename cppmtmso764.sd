@@ -1,0 +1,300 @@
+%%
+Screen
+        Name            = "cppmtmso764" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Installation Floater     Ver 7.00 %m" ;
+        Domain          = "cppENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4] ;
+        global unsigned ascii number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_sub_code[4] ;
+        global unsigned ascii number g_state[2] ;
+
+--        Global Signed Ascii Number G_PREMIUM1[9]/decimals=2 ;
+
+        Global String G_CODE[7] ,
+                      g_business_description[100];
+
+        Local Signed Ascii Number L_PREMIUM[9]=0 ,
+                                  l_deviation[4]=0/dec=2,
+                                  l_package[4]=0/dec=2 ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0 ,
+                                    l_rate[8]=0/dec=4 ,
+                                    l_per[8]=0 ,
+                                    l_deductible[5]=0,
+                                    l_limit[8]=0,
+                                    l_newly_acquired_property[8]=0,
+                                    l_property_of_others[8],
+                                    l_debris[4]=0/dec=3,
+                                    l_debris_limit[5]=0,
+                                    l_fire_department[6]=0,
+                                    l_pollution[6]=0,
+                                    l_pollution_deductible[5]=0,
+                                    l_storage[8]=0,
+                                    l_transit[8]=0,
+                                    l_earthquake[8]=0,
+                                    l_flooding[8]=0,
+                                    l_policy_deductible[5]=0,
+                                    l_earthquake_deductible[5]=0,
+                                    l_flooding_deductible[5]=0,
+                                    l_other_deductible[5]=0,
+                                    l_line_of_business[4],
+                                    l_state[2] ;
+
+        local string l_code[7] ,
+                     l_other_description[25]="",
+                     l_covered_property[500] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+        !F8="G"/function/icon="Opt" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "G" display "cppmtmso764a" ;
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+l_line_of_business = sfsline:rating_line_of_business
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Covered Property:                                                            |
+| ___________________________________________________________________________  |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+| Limit of Liability: __________          Deductible: _____                    |
+| Rate:               _______             Premium:    ___________              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+401     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_Year = g_Year
+            cppendorse:end_sequence = g_end_sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE
+            g_sub_code = cppendorse:sub_code
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            do access_cpsbldrisk
+            cppendorse:description      = l_covered_property
+            cppendorse:limit[1]         = l_limit
+            cppendorse:deductible[1]    = l_deductible
+            cppendorse:limit[2]         = l_newly_acquired_property
+            cppendorse:limit[3]         = l_property_of_others
+            cppendorse:rate[2]          = l_debris
+            cppendorse:limit[4]         = l_debris_limit
+            cppendorse:limit[5]         = l_fire_department
+            cppendorse:limit[6]         = l_pollution
+            cppendorse:deductible[2]    = l_pollution_deductible
+            cppendorse:limit[7]         = l_storage
+            cppendorse:limit[8]         = l_transit
+            cppendorse:limit[9]         = l_earthquake
+            cppendorse:limit[10]        = l_flooding
+            cppendorse:deductible[3]    = l_policy_deductible
+            cppendorse:deductible[4]    = l_earthquake_deductible
+            cppendorse:deductible[5]    = l_flooding_deductible
+            cppendorse:deductible[6]    = l_other_deductible
+            cppendorse:address1[1]      = l_other_description
+            cppendorse:description      = g_business_description
+            End
+        End
+        cppENDORSE:Description/freetextlines=10/default ;
+1401    cppENDORSE:LIMIT[1]/default;
+1402    cppendorse:deductible[1]/default ;
+1501    begin
+        if function one of "ADD" then
+            begin
+            do access_sfsoptend
+            if l_per = 0 then
+                l_per = 100
+            cppendorse:rate[1] = l_rate
+            end
+        end
+        cppENDORSE:RATE[1]/default ;
+1502    Begin
+        If FUNCTION One Of "ADD", "CHANGE" Then
+            Begin
+            L_PREMIUM = ((cppENDORSE:LIMIT[1] Divide 100) *
+                        cppENDORSE:RATE[1])
+            cppENDORSE:PREMIUM[1] = L_PREMIUM
+            End
+        End
+        cppENDORSE:PREMIUM[1]/displayonly ;
+
+}
+
+}
+
+
+screen exit
+g_sub_code = cppendorse:sub_code ;
+
+Procedure Definition
+
+procedure access_cpsbldrisk
+begin
+access cpsbldrisk, set cpsbldrisk:company_id = sfpname:company_id,
+                       cpsbldrisk:state = g_state,
+                       cpsbldrisk:line_of_business = l_line_of_business, generic
+
+while cpsbldrisk:company_id = sfpname:company_id and
+      cpsbldrisk:state = g_state and
+      cpsbldrisk:line_of_business = l_line_of_business
+        begin
+        if sfpname:eff_date >= cpsbldrisk:rate_date then
+            begin
+            l_covered_property = cpsbldrisk:covered_property
+            l_limit = cpsbldrisk:limit
+            l_deductible = cpsbldrisk:deductible
+            l_newly_acquired_property = cpsbldrisk:newly_acquired_property
+            l_property_of_others = cpsbldrisk:property_of_others
+            l_debris = cpsbldrisk:debris_removal
+            l_debris_limit = cpsbldrisk:debris_removal_limit
+            l_fire_department = cpsbldrisk:fire_department
+            l_pollution = cpsbldrisk:pollution_cleanup
+            l_pollution_deductible = cpsbldrisk:pollution_cleanup_deductible
+            l_storage = cpsbldrisk:property_in_storage
+            l_transit = cpsbldrisk:property_in_transit
+            l_earthquake = cpsbldrisk:earthquake
+            l_flooding = cpsbldrisk:flooding
+            l_policy_deductible = cpsbldrisk:policy_deductible
+            l_earthquake_deductible = cpsbldrisk:earthquake_deductible
+            l_flooding_deductible = cpsbldrisk:flooding_deductible
+            l_other_deductible = cpsbldrisk:other_deductible
+            l_other_description = cpsbldrisk:other_description
+            end
+
+        next cpsbldrisk
+        end
+
+end
+
+procedure access_sfsoptend
+begin
+l_code = cppendorse:code
+access sfsoptend, set sfsoptend:company_id = sfpname:company_id,
+                      sfsoptend:state = G_state,
+                      sfsoptend:line_of_business = sfpname:line_of_business,
+                      sfsoptend:code = l_code, generic
+
+l_rate = 0
+l_per = 0
+while sfsoptend:company_id = sfpname:company_id and
+      sfsoptend:state = g_state and
+      sfsoptend:line_of_business = sfpname:line_of_business and
+      sfsoptend:code = l_code
+        begin
+        if sfpname:eff_date >= sfsoptend:eff_date then
+            begin
+            l_per = sfsoptend:limit[1]
+            l_rate = sfsoptend:premium_1[1]
+            end
+
+        next sfsoptend
+        end
+
+end
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS, Set cppENDORSE_ALIAS:policy_NO = G_policy_NO,
+                             cppendorse_alias:pol_Year = g_year,
+                             cppendorse_alias:end_sequence = g_end_sequence,
+                             cppENDORSE_ALIAS:PREM_NO = G_PREM_NO,
+                             cppENDORSE_ALIAS:BUILD_NO = G_BUILD_NO,
+                             cppENDORSE_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO = G_policy_NO And
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppENDORSE_ALIAS:PREM_NO = G_PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

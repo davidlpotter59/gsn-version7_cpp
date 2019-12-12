@@ -1,0 +1,160 @@
+%% 
+Screen
+        Name            = "cppmtmso501a" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Money and Securities (Form C)     Ver 7.00 %m" ;
+        Domain          = "CPPCRIME" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CRIME_FORM[1];
+
+        Local String L_DESC[50] ,
+                     L_SCREEN[11] ;
+
+        Include "scipsprint.var"
+
+        Access CPPCRIME,
+           Set CPPCRIME:POLICY_NO = G_POLICY_NO ,
+               CPPCRIME:POL_YEAR = G_YEAR,
+               CPPCRIME:END_SEQUENCE = G_END_SEQUENCE,
+               CPPCRIME:PREM_NO = G_PREM_NO ,
+               CPPCRIME:BUILD_NO = G_BUILD_NO ,
+               CPPCRIME:CRIME_FORM = G_CRIME_FORM ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "func1" display "" tagged employee_fn ;
+        "func2" display "" tagged forgery_fn ;
+        "func3" display "" tagged money_fn ;
+        "func4" display "" tagged robbery_fn ;
+        "func5" display "" tagged prem_burglary_fn ;
+        "func6" display "" tagged guests_fn ;
+        "func7" display "" tagged worship_fn ;
+
+        Include "STDFUNC7.INC"
+
+        Include "cppmsocrfunc7.inc"
+
+        "popup" Display/noreturn L_SCREEN ;
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        include "cppmsocrmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPCRIME:POLICY_NO <> G_POLICY_NO Or
+   CPPCRIME:POL_YEAR <> G_YEAR Or
+   CPPCRIME:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPCRIME:PREM_NO <> G_PREM_NO Or
+   CPPCRIME:BUILD_NO <> G_BUILD_NO Or
+   CPPCRIME:CRIME_FORM <> G_CRIME_FORM Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+| Crime Form:  __                                                              |
+*------------------------------------------------------------------------------*
+|                          Inside                    Outside                   |
+*------------------------------------------------------------------------------*
+| Limit:                 __________     Limit:               __________        |
+| Base Rate:             __________     Per Messenger:       __                |
+| Territory Factor:      __________                                            |
+| Watch Person:          __________                                            |
+| Guard Service:         __________                                            |
+| Alarm Service:         __________                                            |
+| Safe/Vault:            __________                                            |
+| Holdup Alarms:         __________                                            |
+| Gas Systems:           __________                                            |
+| Bullet Enclosures:     __________                                            |
+| Conveyance Safeguards: __________                                            |
+| Adjusted Rate:         __________                                            |
+| Premium first 1000:    __________   Premium first MSG:     __________        |
+| Deductible Factor:     __________   Deductible Factor:     __________        |
+| Total:                 __________   Total:                 __________        |
+|                                                                              |
+| Total Premium:         __________   Total Premium:         __________        |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPCRIME:POLICY_NO/displayonly ;
+302     CPPCRIME:POL_YEAR/displayonly;
+303     CPPCRIME:END_SEQUENCE/displayonly;
+401     CPPCRIME:PREM_NO/displayonly ;
+501     CPPCRIME:BUILD_NO/displayonly ;
+601     CPPCRIME:CRIME_FORM/displayonly ;
+1001    CPPCRIME:LIMIT[1]/displayonly ;
+1002    CPPCRIME:LIMIT[2]/displayonly;
+1101    CPPCRIME:SAFE_CHARGE/displayonly/mask="ZZZ,ZZZ.99" ;
+1102    CPPCRIME:GUARD_CHARGE[1]/displayonly ;
+1201    CPPCRIME:TERRITORY_FACTOR/displayonly ;
+1301    CPPCRIME:WATCHPERSON_FACTOR/displayonly ;
+1401    CPPCRIME:GUARD_SERVICE_FACTOR/displayonly ;
+1501    CPPCRIME:ALARM_SERVICE_FACTOR/displayonly ;
+1601    CPPCRIME:SAFE_SERVICE_FACTOR/displayonly ;
+1701    CPPCRIME:HOLDUP_ALARMS_FACTOR/displayonly ;
+1801    CPPCRIME:GAS_SYSTEMS_FACTOR/displayonly ;
+1901    CPPCRIME:BULLET_FACTOR/displayonly ;
+2001    CPPCRIME:CONVEYANCE_FACTOR/displayonly ;
+2101    CPPCRIME:ADJUSTED_RATE[1]/displayonly;
+2201    CPPCRIME:TOTAL_FIRST_1000[1]/displayonly/mask="ZZZ,ZZZ.99";
+2202    CPPCRIME:TOTAL_FIRST_1000[2]/displayonly/mask="ZZZ,ZZZ.99";
+2301    CPPCRIME:DEDUCTIBLE_FACTOR/displayonly ;
+2302    CPPCRIME:DEDUCTIBLE_FACTOR/displayonly ;
+2401    CPPCRIME:CRIME_TOTAL_1[1]/displayonly/mask="ZZZ,ZZZ.99" ;
+2402    CPPCRIME:CRIME_TOTAL_1[2]/displayonly/mask="ZZZ,ZZZ.99" ;
+2601    CPPCRIME:CRIME_TOTAL[1]/displayonly/mask="ZZZ,ZZZ.99";
+2602    CPPCRIME:CRIME_TOTAL[2]/displayonly/mask="ZZZ,ZZZ.99";
+
+}
+
+}
+
+
+End

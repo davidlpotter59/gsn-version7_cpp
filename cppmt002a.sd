@@ -1,0 +1,2532 @@
+%%
+Screen
+        Name = "cppMT002a" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppisoblanket";
+        Windowtitle = "%a     %s Blanket Property Information - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_CHECK_REFERENCE[7],
+                                     G_AGENT_NO[4],
+                                     G_OPT[2];
+
+        Global String G_COMPANY[10] ,
+                      G_COMPANY_ID[10] ,
+                      G_FUNCTION[10] ,
+                      G_FIRST[1],
+                      G_FIRST_1[1] ;
+
+        global MMDDYYYY date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date ,
+                             g_exp_date ;
+
+        global string g_lib_1[10] ,
+                      g_name[50] ,
+                      g_inquiry[1] ,
+                      g_fob[1],
+                      g_fob_description[75] ,
+                      g_que[10] ;
+
+        global unsigned ascii number g_state[2] ,
+                                     g_rate_type[2] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        Local String l_desc[50] ,
+                     l_coverage[1] ,
+                     l_bceg_type[1] ,
+                     l_dec[15],
+                     l_csexec_application[25],
+                     l_app[3],
+                     L_ADD_ENDORSEMENT[1],
+                     l_company_id[10] ,
+                     L_FORM_EDITION[25],
+                     l_username[15],
+                     L_DESCRIPTION[50] ,
+                     l_symbol[2],
+                     l_code[7] ,
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_system_id[15],
+                     l_community[30] ;
+
+        local signed ascii number l_location_credit[4]=0/dec=2 ;
+
+        Local Unsigned Ascii Number l_prem_no[4],
+                                    l_build_no[4],
+                                    l_abort_program[1],
+                                    l_symbol_no[2] ,
+                                    l_symbol_number[2],
+                                    l_construction[1],
+                                    l_csexec_number[12],
+                                    l_reinforced[1],
+                                    l_steel[1],
+                                    l_high[1],
+                                    l_sub_code[4]=0;
+
+        Local Unsigned Ascii Number l_class[1]=0,
+                                    l_rate[6]=0/dec=4,
+                                    l_selling_price[5]=0/dec=3,
+                                    l_class_code[5]=0,
+                                    l_short_rate[4]=0/dec=2,
+                                    l_vmm_exclusion_factor[5]=0/dec=4,
+                                    l_wind_exclusion_factor[5]=0/dec=4,
+                                    l_peak_factor[5]=0/dec=3,
+                                    l_peak_group_1[8]=0,
+                                    l_peak_group_2[8]=0,
+                                    l_peak_group_3[8]=0,
+                                    l_peak_group_4[8]=0,
+                                    l_bceg_factor[5]=0/dec=3,
+                                    l_minimum[4]=0,
+                                    l_minimum_boiler[4]=0,
+                                    l_terror_line_of_business[4]=0011,
+                                    l_pro_rata_premium[8]=0/dec=3,
+                                    l_form[1] ,
+                                    l_agreed_factor[5]=0/dec=3,
+                                    l_end_factor[5]=0/dec=3,
+                                    l_end_limit[5]=0,
+                                    l_end_premium1[6]=0,
+                                    l_surcharge_factor[8]=0/dec=6,
+                                    l_surcharge_minimum[2]=0,
+                                    l_days_rate[5]=0/dec=3,
+                                    l_business_total[8]=0,
+                                    l_state[2],
+                                    l_line_of_business[4] ,
+                                    l_group_i[8]=0/dec=5,
+                                    l_group_ii[8]=0/dec=5,
+                                    l_special[8]=0/dec=5,
+                                    l_broad[8]=0/dec=5,
+                                    l_special_office[3]=0,
+                                    l_special_relativities[4]=0,
+                                    l_special_theft[8]=0/dec=5,
+                                    l_theft_rate[10]=0/dec=5,
+                                    l_territory_factor[6]=0/dec=4,
+                                    l_protection_factor[5]=0/dec=3,
+                                    l_coinsurance_factor[5]=0/dec=3,
+                                    l_deductible_factor_1[6]=0/dec=4,
+                                    l_deductible_factor_2[6]=0/dec=4,
+                                    l_deductible_factor_3[6]=0/dec=4,
+                                    l_deductible_factor[6]=0/dec=4,
+                                    l_limit[8]=0,
+                                    l_limit_1[8]=0,
+                                    l_limit_2[8]=0,
+                                    l_rate_group[2]=0,
+                                    l_adj_rate_1[6]=0/dec=3,
+                                    l_adj_rate_2[6]=0/dec=3,
+                                    l_adj_rate_3[6]=0/dec=3,
+                                    l_adj_rate_4[6]=0/dec=3,
+                                    l_adj_rate_5[6]=0/dec=3,
+                                    l_adj_rate_6[6]=0/dec=3,
+                                    l_adj_rate_7[6]=0/dec=3,
+                                    l_adj_rate_8[6]=0/dec=3,
+                                    l_premium[8]=0,
+                                    l_premium_1[8]=0,
+                                    l_premium_2[8]=0,
+                                    l_premium_3[8]=0,
+                                    l_premium_4[8]=0,
+                                    l_premium_5[8]=0,
+                                    l_premium_6[8]=0,
+                                    l_premium_7[8]=0,
+                                    l_premium_8[8]=0,
+                                    l_deductible_limit[8]=0,
+                                    l_inflation_factor[4]=0/dec=2,
+                                    l_loss_cost[6]=0/dec=4 ,
+                                    l_base_rate_1[6]=0/dec=3,
+                                    l_total_premium[8]=0,
+                                    l_building_total[8]=0,
+                                    l_contents_total[8]=0;
+
+        Access cppisoblanket, Set cppisoblanket:policy_NO = G_policy_NO,
+                                  cppisoblanket:pol_year = g_year,
+                                  cppisoblanket:end_sequence = g_end_sequence,
+                                  cppisoblanket:prem_no = g_prem_no,
+                                  cppisoblanket:build_no = g_build_no,
+                                  cppisoblanket:rate_type = g_rate_type, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "redisplay" display/noreturn "cppmt002a" ;
+
+        "add" sequence "new|redisplay"  tagged add_fn;
+        "new" add/hidden ;
+
+        "change" sequence "chg|redisplay"   tagged change_fn ;
+        "chg" change/hidden ;
+
+        "func1" display "cppmt296a"   tagged deviations_fn ;
+
+        "func2" sequence "blanket"    tagged final_fn ;
+        "blanket" continue begin
+                           if g_inquiry = "N" then
+                               begin
+                               do update_final_rating
+                               end
+                           function = "popup"
+                           end ;
+        "popup" display "cppmt002b" ;
+
+        "func3" display ""            tagged misc_fn ;
+        "func4" display ""            tagged notes_fn ;
+        "func5" display "cppmt002e"   tagged totals_fn ;
+
+        Include "stdfunc7b.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+        include "cppmenublanket7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cppisoblankettoolbar7.inc"
+
+}
+
+screen entry
+l_system_id = "cpp"/spacefill
+if g_company_id = "" then
+    g_company_id = sfsdefault:company_id/spacefill
+
+include "rating_security.inc"
+
+if function one of "LINE_OF_BUSINESS_SCREEN" and
+   g_inquiry = "N" then
+    function = "update_totals"
+
+if G_first = "Y" and
+   g_inquiry = "N" then
+    begin
+    G_first  = "N"
+    function = g_Function
+    end
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+l_username = username
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppisoblanket:policy_NO <> G_policy_NO or
+   cppisoblanket:pol_year <> g_year or
+   cppisoblanket:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen at 2,1 to 25, 81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        cppisoblanket:COMPANY_ID = sfpNAME:COMPANY_ID
+        cppisoblanket:rating_line_of_business = 0008
+
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            cppisoblanket:policy_NO = G_policy_NO
+            cppisoblanket:pol_year = g_year
+            cppisoblanket:end_sequence = g_end_sequence
+            end
+
+        End
+        cppisoblanket:policy_NO/displayonly  ;
+302     cppisoblanket:pol_year/displayonly ;
+303     cppisoblanket:end_sequence/displayonly ;
+401     Begin
+        l_prem_no  = cppisoblanket:prem_no
+        l_build_no = cppisoblanket:build_no
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppisoblanket:PREM_NO = 1
+            cppisoblanket:BUILD_NO = 1
+            End
+        End
+        cppisoblanket:PREM_NO/default                  Mandatory
+        If cppisoblanket:PREM_NO = 0 Then
+            Error 1286 ;
+501     cppisoblanket:BUILD_NO/default                 Mandatory
+        If cppisoblanket:BUILD_NO = 0 Then
+            Error 1287 ;
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Rating Information"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Business Description: _________________________________________________      |
+|                       _________________________________________________      |
+*------------------------------------------------------------------------------*
+| State: __  ____________________   County:  ___  ________________________     |
+| Community: ______________________________                                    |
+*------------------------------------------------------------------------------*
+| Rate Type:        __  __________________________________________________     |
+| Form:             _  _________        Type:             ___                  |
+| Class Code:       __________________________________________________  _____  |
+| Construction:     _  Reinforced: _    Light Steel:      _  High Rise:     _  |
+| Rate Group:       __                  Exclude VMM:            _              |
+| Protection:       ___                 Exclude Windstorm/Hail: _              |
+| BCEG Individual:  _  ___              Exclude Sprinkler Leak: _              |
+| Deductible:       _____               Sprinklered:            _              |
+| Coinsurance:      ___                 Replacement Cost:       _              |
+| Inflation Guard:  __                  Exclude Theft:          _              |
+| Symbol:           ___  __             Agreed Value:           _              |
+| Crime Limit:      __________          Boilers:                _              |
+*------------------------------------------------------------------------------*
+| Limit:            __________                                                 |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     Begin
+        g_prem_no = cppisoblanket:prem_no
+        g_build_no = cppisoblanket:build_no
+        g_rate_type = cppisoblanket:rate_Type
+        cppisoblanket:line_of_business = cpsdefault:property_line_of_business
+
+        Access cppisoblanket_ALIAS, Set cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO,
+                                        cppisoblanket_alias:pol_year = cppisoblanket:pol_year,
+                                        cppisoblanket_alias:end_sequence = cppisoblanket:end_Sequence, Generic
+
+        Access cppisoblanket_ALT, Set cppisoblanket_ALT:policy_NO = cppisoblanket:policy_NO,
+                                      cppisoblanket_alt:pol_year = cppisoblanket:pol_year,
+                                      cppisoblanket_alt:end_sequence = cppisoblanket:end_sequence,
+                                      cppisoblanket_alt:prem_no  = cppisoblanket:prem_no,
+                                      cppisoblanket_alt:build_no = cppisoblanket:build_no, Generic
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            if cppisoblanket_alt:prem_no  = cppisoblanket:prem_no and
+               cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                begin
+                cppisoblanket:business_desc[1] = cppisoblanket_alt:business_desc[1]
+                cppisoblanket:business_desc[2] = cppisoblanket_alt:business_desc[2]
+                end
+            else
+                begin
+                cppisoblanket:business_desc[1] = cppisoblanket_alias:business_desc[1]
+                cppisoblanket:business_desc[2] = cppisoblanket_alias:business_desc[2]
+                end
+            End
+        End
+        cppisoblanket:BUSINESS_DESC[1]/uppercase/default ;
+301     cppisoblanket:BUSINESS_DESC[2]/uppercase/default ;
+
+501     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:state = cppisoblanket_alt:state
+                else
+                    cppisoblanket:STATE = cppisoblanket_ALIAS:STATE
+                end
+            Else
+                cppisoblanket:STATE = CPSDEFAULT:STATE
+            End
+        End
+        cppisoblanket:STATE/default mandatory
+        Include "statehlp.inc"
+502     SFSSTATE:DESCRIPTION ;
+503     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:county = cppisoblanket_alt:county
+                else
+                    cppisoblanket:COUNTY = cppisoblanket_ALIAS:COUNTY
+                end
+            Else
+                cppisoblanket:COUNTY = CPSDEFAULT:COUNTY
+            End
+        End
+        cppisoblanket:COUNTY/default    mandatory
+        Include "countyhlp.inc"
+504     begin
+        access sfsterritory, set sfsterritory:company_id       = sfpname:company_id,
+                                 sfsterritory:state            = cppisoblanket:state,
+                                 sfsterritory:line_of_business = cppisoblanket:rating_line_of_business,
+                                 sfsterritory:county           = cppisoblanket:county, generic
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:community = cppisoblanket_alt:community
+                else
+                    cppisoblanket:community = cppisoblanket_alias:community
+                end
+            End
+
+        cppisoblanket:territory = sfsterritory:territory_group[1]
+        end
+        SFSSTATE_ALIAS:DESCRIPTION ;
+601     begin
+            l_community = cppisoblanket:community
+        end
+        cppisoblanket:community/uppercase/default
+
+        if function one of "ADD", "NEW" or
+           l_community <> cppisoblanket:community then
+            begin
+            cppisoblanket:bceg       = sfsisoprotect_alias:coml_bcegs
+            cppisoblanket:protection = sfsisoprotect_alias:protection_1
+            end
+
+        activehelp sfsisoprotect_alias:community ;
+
+801     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:rate_type = cppisoblanket_alt:rate_type
+                else
+                    cppisoblanket:rate_type = cppisoblanket_ALIAS:rate_type
+                end
+            Else
+                cppisoblanket:RATE_TYPE = CPSDEFAULT:RATE_TYPE
+            end
+        End
+        cppisoblanket:RATE_TYPE/default
+        If cppisoblanket:RATE_TYPE <> CPSRATETYPE:RATE_TYPE Then
+            Error 1202
+
+        Activehelp CPSRATETYPE_ALIAS:RATE_TYPE,
+                   CPSRATETYPE_ALIAS:DESCRIPTION   ;
+802     CPSRATETYPE:DESCRIPTION;
+901     Begin
+        L_FORM = cppisoblanket:FORM
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = G_policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:form = cppisoblanket_alt:form
+                else
+                    cppisoblanket:FORM = cppisoblanket_ALIAS:FORM
+                end
+            Else
+                cppisoblanket:FORM = CPSDEFAULT:FORM
+            End
+        End
+        cppisoblanket:FORM/default
+        If cppisoblanket:FORM <> SFSFORM:POLICY_FORM Then
+            Error 1205
+
+        Activehelp SFSFORM_ALIAS:POLICY_FORM ,
+                   SFSFORM_ALIAS:DESCRIPTION ;
+902     SFSFORM:DESCRIPTION ;
+903     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:type = cppisoblanket_alt:type
+                else
+                    cppisoblanket:type = cppisoblanket_ALIAS:type
+                end
+            Else
+                cppisoblanket:type = CPSDEFAULT:type
+            End
+        End
+        cppisoblanket:type/default/uppercase
+        if cppisoblanket:type <> cpstype:type then
+            error "Invalid Type Entered"
+
+        activehelp cpstype_alias:type,
+                   cpstype_alias:description ;
+1001    Begin
+        Access cpsclass_ALIAS, Set cpsclass_ALIAS:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                   cpsclass_ALIAS:STATE            = cppisoblanket:STATE,
+                                   cpsclass_ALIAS:LINE_OF_BUSINESS = cppisoblanket:rating_LINE_OF_BUSINESS,
+                                   cpsclass_ALIAS:ALPHA_LOOK       = cppisoblanket:description, Approximate
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:description = cppisoblanket_alt:description
+                end
+            end
+
+        If FUNCTION one of "ADD", "NEW" And
+           SECURITY < 65 Then
+            Activehelp()
+
+        End
+        cppisoblanket:description/upper/default    Mandatory
+        l_desc = cppisoblanket:description
+
+        cppisoblanket:CLASS_CODE          = cpsclass_ALIAS:CLASS_CODE
+        cppisoblanket:SUB_CODE            = cpsclass_ALIAS:SUB_CODE
+        cppisoblanket:GROUP_NO            = cpsclass_ALIAS:GROUP_NO
+        cppisoblanket:SUB_GROUP           = cpsclass_ALIAS:SUB_GROUP
+        if cpsclass_alias:rate_group = 0 then
+            cppisoblanket:RATE_GROUP      = cpsclass_ALIAS:crime_RATE_GROUP
+        else
+            cppisoblanket:rate_group      = cpsclass_alias:rate_group
+        cppisoblanket:crime_limit         = cpsclass_alias:crime_class_limit
+        cppisoblanket:CMP_SYMBOL          = cpsclass_ALIAS:CMP_SYMBOL
+        cppisoblanket:perpetual_rated     = cpsclass_alias:prepetual_rated
+
+        Activehelp if cpsclass_alias:property_only = 1 then
+                       cpsclass_ALIAS:ALPHA_LOOK
+                   else
+                       null/width=50 ,
+                   if cpsclass_alias:property_only = 1 then
+                       cpsclass_ALIAS:CLASS_CODE
+                   else
+                       null/width=10 ;
+1001    Begin
+        Access cpsclass, Set cpsclass:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                             cpsclass:STATE            = cppisoblanket:STATE,
+                             cpsclass:LINE_OF_BUSINESS = cppisoblanket:rating_LINE_OF_BUSINESS,
+                             cpsclass:GROUP_NO         = cppisoblanket:GROUP_NO,
+                             cpsclass:SUB_GROUP        = cppisoblanket:SUB_GROUP ,
+                             cpsclass:CLASS_CODE       = cppisoblanket:CLASS_CODE,
+                             cpsclass:SUB_CODE         = cppisoblanket:SUB_CODE, Generic
+
+        While cpsclass:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsclass:STATE            = cppisoblanket:STATE And
+              cpsclass:LINE_OF_BUSINESS = cppisoblanket:rating_LINE_OF_BUSINESS And
+              cpsclass:GROUP_NO         = cppisoblanket:GROUP_NO And
+              cpsclass:SUB_GROUP        = cppisoblanket:SUB_GROUP And
+              cpsclass:CLASS_CODE       = cppisoblanket:CLASS_CODE And
+              cpsclass:SUB_CODE         = cppisoblanket:SUB_CODE
+                Begin
+                If sfpNAME:EFF_DATE >= cpsclass:EFF_DATE Then
+                    L_DESC = cpsclass:ALPHA_LOOK
+
+                Next cpsclass
+                End
+
+        cppisoblanket:description = l_desc
+        End
+        cppisoblanket:description/displayonly/uppercase ;
+1002    cppisoblanket:CLASS_CODE/displayonly/mask="9999" ;
+
+1101    Begin
+        l_construction = cppisoblanket:construction
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    begin
+                    cppisoblanket:CONSTRUCTION = cppisoblanket_alt:CONSTRUCTION
+                    cppisoblanket:reinforced   = cppisoblanket_alt:reinforced
+                    cppisoblanket:steel        = cppisoblanket_alt:steel
+                    cppisoblanket:high         = cppisoblanket_alt:high
+                    end
+                else
+                    begin
+                    cppisoblanket:CONSTRUCTION = cppisoblanket_ALIAS:CONSTRUCTION
+                    cppisoblanket:reinforced   = cppisoblanket_alias:reinforced
+                    cppisoblanket:steel        = cppisoblanket_alias:steel
+                    cppisoblanket:high         = cppisoblanket_alias:high
+                    end
+                end
+            Else
+                cppisoblanket:CONSTRUCTION = CPSDEFAULT:CONSTRUCTION
+            End
+        End
+        cppisoblanket:CONSTRUCTION/default
+        If cppisoblanket:CONSTRUCTION <> SFSCONSTRUCTION:CONSTRUCTION Then
+            Error 1203
+
+        cppisoblanket:CONSTRUCTION_CODE = SFSCONSTRUCTION:CODE
+
+        Activehelp SFSCONSTRUCTION_ALIAS:CONSTRUCTION,
+                   SFSCONSTRUCTION_ALIAS:DESCRIPTION ;
+1101    begin
+        if g_inquiry = "N" then
+            do access_cpsconstruction
+        end
+        cppisoblanket:construction/displayonly ;
+1102    cppisoblanket:reinforced/checkbox/values="0,1"/default
+        hide if l_reinforced = 0 ;
+1103    cppisoblanket:steel/checkbox/values="0,1"/default
+        hide if l_steel = 0 ;
+1104    cppisoblanket:high/checkbox/values="0,1"/default
+        hide if l_high = 0 ;
+1201    cppisoblanket:rate_group/default ;
+1301    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:protection = cppisoblanket_alt:protection
+                else
+                    cppisoblanket:protection = cppisoblanket_alias:protection
+                end
+            end
+        end
+        cppisoblanket:PROTECTION/default
+        if cppisoblanket:protection <> sfsprotection:protection then
+            error "Invalid Protection Code"
+
+        Activehelp SFSISOPROTECT_ALIAS:PROTECTION_1,
+                   sfsisoprotect_alias:protection_2 ;
+1401    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    begin
+                    cppisoblanket:bceg_individual = cppisoblanket_alt:bceg_individual
+                    cppisoblanket:bceg            = cppisoblanket_alt:bceg
+                    end
+                else
+                    begin
+                    cppisoblanket:bceg_individual = cppisoblanket_alias:bceg_individual
+                    cppisoblanket:bceg            = cppisoblanket_alias:bceg
+                    end
+                end
+            end
+        end
+        cppisoblanket:bceg_individual/checkbox/values="0,1"/default ;
+1402    begin
+        switch(cppisoblanket:bceg_individual)
+          case 1  : l_bceg_type = "I"
+          default : l_bceg_type = "C"
+          end
+        access sfsisobceg_alias, set sfsisobceg_alias:company_id       = sfpname:company_id,
+                                     sfsisobceg_alias:state            = cppisoblanket:state,
+                                     sfsisobceg_alias:line_of_business = cppisoblanket:rating_line_of_business,
+                                     sfsisobceg_alias:type             = l_bceg_type, generic
+        end
+        cppisoblanket:bceg/default
+        access sfsisobceg, set sfsisobceg:company_id       = sfpname:company_id,
+                               sfsisobceg:state            = cppisoblanket:state,
+                               sfsisobceg:line_of_business = cppisoblanket:rating_line_of_business,
+                               sfsisobceg:type             = l_bceg_type,
+                               sfsisobceg:bceg             = cppisoblanket:bceg, generic
+
+        if cppisoblanket:bceg <> sfsisobceg:bceg then
+            error "Invalid BCEG code entered"
+
+        activehelp sfsisobceg_alias:bceg ,
+                   sfsisobceg_alias:description ;
+1501    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:DEDUCTIBLE = cppisoblanket_ALT:DEDUCTIBLE
+                else
+                    cppisoblanket:DEDUCTIBLE = cppisoblanket_ALIAS:DEDUCTIBLE
+                end
+            Else
+                cppisoblanket:DEDUCTIBLE = CPSDEFAULT:DEDUCTIBLE
+            End
+        End
+        cppisoblanket:DEDUCTIBLE/default
+        Access SFSDEDUCTIBLE, Set SFSDEDUCTIBLE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                  SFSDEDUCTIBLE:STATE = cppisoblanket:STATE,
+                                  SFSDEDUCTIBLE:LINE_OF_BUSINESS = cppisoblanket:rating_LINE_OF_BUSINESS,
+                                  SFSDEDUCTIBLE:DEDUCTIBLE = cppisoblanket:DEDUCTIBLE, Generic
+
+        If cppisoblanket:DEDUCTIBLE <> SFSDEDUCTIBLE:DEDUCTIBLE Then
+            Error 1207
+
+        Activehelp if sfsdeductible_alias:show_in_activehelp = 1 then
+                       SFSDEDUCTIBLE_ALIAS:DEDUCTIBLE
+                   else
+                       null       ;
+1601    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:COINSURANCE = cppisoblanket_ALT:COINSURANCE
+                else
+                    cppisoblanket:COINSURANCE = cppisoblanket_ALIAS:COINSURANCE
+                end
+            Else
+                cppisoblanket:COINSURANCE = CPSDEFAULT:BLANKET_COINSURANCE
+            End
+        End
+        cppisoblanket:COINSURANCE/default
+        Hide If cppisoblanket:BUILDERS_RISK = 1
+        Access CPSCOINSURANCE, Set CPSCOINSURANCE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                   CPSCOINSURANCE:STATE = cppisoblanket:STATE,
+                                   CPSCOINSURANCE:LINE_OF_BUSINESS = cppisoblanket:rating_LINE_OF_BUSINESS,
+                                   CPSCOINSURANCE:OPTION = cppisoblanket:FORM,
+                                   CPSCOINSURANCE:COINSURANCE = cppisoblanket:COINSURANCE, Generic
+
+        If cppisoblanket:COINSURANCE <> CPSCOINSURANCE:COINSURANCE or
+           cppisoblanket:coinsurance < cpsdefault:blanket_coinsurance Then
+            Error 1208
+
+        Activehelp CPSCOINSURANCE_ALIAS:COINSURANCE ;
+1701    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:inflation_guard = cppisoblanket_alt:inflation_guard
+                else
+                    cppisoblanket:inflation_guard = cppisoblanket_ALIAS:inflation_guard
+                end
+            Else
+                cppisoblanket:inflation_guard = CPSDEFAULT:inflation_guard
+            End
+        End
+        cppisoblanket:inflation_guard/default ;
+1801    begin
+        if function one of "ADD", "NEW" or
+           cppisoblanket:construction <> l_construction and
+           g_inquiry = "N" then
+            begin
+            do get_symbol
+            cppisoblanket:symbol        = l_symbol
+            cppisoblanket:symbol_number = l_symbol_no
+            end
+        end
+        cppisoblanket:symbol/default/uppercase ;
+1802    cppisoblanket:symbol_number/default ;
+1901    cppisoblanket:crime_limit/default ;
+
+1202    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = G_policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:vmm_exclusion = cppisoblanket_alt:vmm_exclusion
+                else
+                    cppisoblanket:vmm_exclusion = cppisoblanket_ALIAS:vmm_exclusion
+                end
+            End
+        End
+        cppisoblanket:vmm_exclusion/checkbox/values="0,1"/default ;
+1302    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = G_policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:exclusions = cppisoblanket_alt:exclusions
+                else
+                    cppisoblanket:exclusions = cppisoblanket_ALIAS:exclusions
+                end
+            End
+        End
+        cppisoblanket:exclusions/checkbox/values="0,1"/default ;
+1403    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = G_policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:sprinkler_leakage = cppisoblanket_alt:sprinkler_leakage
+                else
+                    cppisoblanket:SPRINKLER_leakage = cppisoblanket_ALIAS:SPRINKLER_leakage
+                end
+            End
+        End
+        cppisoblanket:SPRINKLER_leakage/checkbox/values="0,1"/default ;
+1502    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = G_policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:sprinklered = cppisoblanket_alt:sprinklered
+                else
+                    cppisoblanket:SPRINKLERED = cppisoblanket_ALIAS:SPRINKLERED
+                end
+            End
+        End
+        cppisoblanket:SPRINKLERED/checkbox/values="0,1"/default ;
+1602    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:replacement_cost = cppisoblanket_alt:replacement_cost
+                else
+                    cppisoblanket:replacement_cost = cppisoblanket_ALIAS:replacement_cost
+                end
+            Else
+                cppisoblanket:replacement_cost = CPSDEFAULT:replacement_cost
+            End
+        End
+        cppisoblanket:REPLACEMENT_COST/checkbox/values="0,1"/default ;
+1702    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:theft = cppisoblanket_alt:theft
+                else
+                    cppisoblanket:theft = cppisoblanket_ALIAS:theft
+                end
+            Else
+                cppisoblanket:theft = CPSDEFAULT:exclude_theft
+            End
+        End
+        cppisoblanket:theft/checkbox/values="0,1"/default ;
+1803    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:agreed_value = cppisoblanket_alt:agreed_value
+                else
+                    cppisoblanket:agreed_value = cppisoblanket_ALIAS:agreed_value
+                end
+            Else
+                cppisoblanket:agreed_value = CPSDEFAULT:agreed_value
+            End
+        End
+        cppisoblanket:agreed_value/checkbox/values="0,1"/default ;
+1902    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppisoblanket_ALIAS:policy_NO = cppisoblanket:policy_NO and
+               cppisoblanket_alias:pol_year = cppisoblanket:pol_year and
+               cppisoblanket_alias:end_sequence = cppisoblanket:end_sequence Then
+                begin
+                if cppisoblanket_alt:prem_no = cppisoblanket:prem_no and
+                   cppisoblanket_alt:build_no = cppisoblanket:build_no then
+                    cppisoblanket:boilers = cppisoblanket_alt:boilers
+                else
+                    cppisoblanket:boilers = cppisoblanket_ALIAS:boilers
+                end
+            Else
+                cppisoblanket:boilers = CPSDEFAULT:boilers
+            End
+        End
+        cppisoblanket:boilers/checkbox/values="0,1"/default ;
+
+2101    cppisoblanket:limit[1] ;
+
+}
+
+}
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "ADD", "NEW" then
+        begin
+        g_prem_no   = cppisoblanket:prem_no
+        g_build_no  = cppisoblanket:build_no
+        g_rate_type = cppisoblanket:rate_type
+
+        display modal screen "cppmt296a"
+        with initial function "CHANGE|BACK"
+        end
+
+    end
+
+Screen Exit
+If cppisoblanket:PREM_NO > 0 Then G_PREM_NO = cppisoblanket:PREM_NO ;
+If cppisoblanket:BUILD_NO > 0 Then G_BUILD_NO = cppisoblanket:BUILD_NO ;
+if cppisoblanket:rate_type > 0 then g_rate_type = cppisoblanket:rate_type ;
+
+Procedure Definition
+
+procedure update_final_rating
+begin
+access cppisoblanket_alt, set cppisoblanket_alt:policy_no = cppisoblanket:policy_no,
+                              cppisoblanket_alt:pol_year = cppisoblanket:pol_year,
+                              cppisoblanket_alt:end_sequence = cppisoblanket:end_sequence, generic
+
+while cppisoblanket_alt:policy_no = cppisoblanket:policy_no and
+      cppisoblanket_alt:pol_year = cppisoblanket:pol_year and
+      cppisoblanket_alt:end_sequence = cppisoblanket:end_sequence
+    begin
+    l_premium_1 = 0
+    l_premium_2 = 0
+    l_premium_3 = 0
+    l_premium_4 = 0
+    l_limit_1 = cppisoblanket_alt:limit[1] divide 100
+    if sfsline:lob_code one of "CPORTFOLIO" then
+        begin
+        access sfpmastsupp, set sfpmastsupp:policy_no = cppisoblanket_alt:policy_no,
+                                sfpmastsupp:pol_year = cppisoblanket_alt:pol_Year,
+                                sfpmastsupp:end_sequence = cppisoblanket_alt:end_sequence,
+                                sfpmastsupp:line_of_business = g_line_of_business, generic
+
+        l_location_credit = sfpmastsupp:irpm
+        if l_location_credit = 0 then
+            begin
+            l_location_credit = 1.00
+            change sfpmastsupp
+                begin
+                sfpmastsupp:irpm = l_location_credit
+                end
+            end
+        end
+    else
+        begin
+        access sfpmaster, set sfpmaster:policy_no = cppisoblanket_alt:policy_no,
+                              sfpmaster:pol_year = cppisoblanket_alt:pol_Year,
+                              sfpmaster:end_sequence = cppisoblanket_alt:end_sequence, generic
+
+        l_location_credit = sfpmaster:irpm
+        if l_location_credit = 0 then
+            begin
+            l_location_credit = 1.00
+            change sfpmaster
+                begin
+                sfpmaster:irpm = l_location_credit
+                end
+            end
+        end
+
+    switch(cppisoblanket_alt:rate_type)
+      case 1, 8, 9, 10  : l_coverage = "B"
+      default           : l_coverage = "C"
+      end
+    do base_rate_1
+    l_premium_1 = l_adj_rate_1 * l_limit_1
+    do base_rate_2
+    l_premium_2 = l_adj_rate_2 * l_limit_1
+    switch(cppisoblanket_alt:form)
+      case 2  : do broad_rating
+      case 3  : do special_rating
+      end
+    l_limit_1 = cppisoblanket_alt:limit[1] divide 100
+    if cppisoblanket_alt:form = 1 then
+        begin
+        l_premium_3  = 0
+        l_adj_rate_3 = 0
+        l_premium_4  = 0
+        l_theft_rate = 0
+        end
+    else
+        begin
+        l_premium_3 = l_adj_rate_3 * l_limit_1
+        if l_coverage not one of "B" then
+            l_premium_4 = l_theft_rate * l_limit_1
+        end
+
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    if cppisoblanket_alias:policy_no = cppisoblanket_alt:policy_no and
+       cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year and
+       cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence and
+       cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no and
+       cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no and
+       cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type then
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:inflation_factor[1]     = l_inflation_factor
+        cppisoblanket_alias:deductible_factor[1]    = l_deductible_factor_1
+        cppisoblanket_alias:protection_factor       = l_protection_factor
+        cppisoblanket_alias:rating_territory_factor = l_territory_factor
+        cppisoblanket_alias:coinsurance_factor[1]   = l_coinsurance_factor
+        cppisoblanket_alias:loss_cost               = l_loss_cost
+        cppisoblanket_alias:blanket_premium[1] = ((cppisoblanket_alt:limit[1] divide
+                                                 100) *
+                                                 l_adj_rate_1)
+        cppisoblanket_alias:blanket_premium[2] = ((cppisoblanket_alt:limit[1] divide
+                                                 100) *
+                                                 l_adj_rate_2)
+        cppisoblanket_alias:blanket_premium[3] = ((cppisoblanket_alt:limit[1] divide
+                                                 100) *
+                                                 l_adj_rate_3)
+        if cppisoblanket_alias:form = 1 then
+            begin
+            cppisoblanket_alias:adj_rate[3] = 0
+            cppisoblanket_alias:adj_rate[4] = 0
+            end
+        if cppisoblanket_alias:form = 2 then
+            begin
+            cppisoblanket_alias:adj_rate[4] = 0
+            end
+        if cppisoblanket_alias:rate_type not one of 1, 8, 9, 10 then
+            cppisoblanket_alias:blanket_premium[4] = ((cppisoblanket_alt:limit[1] divide
+                                                     100) *
+                                                     l_theft_rate)
+        else
+            cppisoblanket_alias:blanket_premium[4] = 0
+        end
+
+    next cppisoblanket_alt
+    end
+end
+
+procedure base_rate_1
+begin
+if cppisoblanket_alt:perpetual_rated = 0 then
+    begin
+    l_company_id = sfpname:company_id
+    access cpsgroupi, set cpsgroupi:company_id       = l_company_id,
+                          cpsgroupi:state            = cppisoblanket_alt:state,
+                          cpsgroupi:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                          cpsgroupi:class_code       = cppisoblanket_alt:class_code, generic
+
+    while cpsgroupi:company_id       = l_company_id and
+          cpsgroupi:state            = cppisoblanket_alt:state and
+          cpsgroupi:line_of_business = cppisoblanket_alt:rating_line_of_business and
+          cpsgroupi:class_code       = cppisoblanket_alt:class_code
+            begin
+            if sfpname:eff_date >= cpsgroupi:rate_date then
+                begin
+                switch(l_coverage)
+                  case "B" : switch(cppisoblanket_alt:construction)
+                               case 1  : l_group_i = cpsgroupi:rate[1]
+                               case 2  : l_group_i = cpsgroupi:rate[2]
+                               case 3  : l_group_i = cpsgroupi:rate[3]
+                               case 4  : l_group_i = cpsgroupi:rate[4]
+                               default : l_group_i = cpsgroupi:rate[5]
+                               end
+                  default  : switch(cppisoblanket_alt:construction)
+                               case 1  : l_group_i = cpsgroupi:rate[6]
+                               case 2  : l_group_i = cpsgroupi:rate[7]
+                               case 3  : l_group_i = cpsgroupi:rate[8]
+                               case 4  : l_group_i = cpsgroupi:rate[9]
+                               default : l_group_i = cpsgroupi:rate[10]
+                               end
+                  end
+                end
+
+            next cpsgroupi
+            end
+    end
+else
+    begin
+    l_company_id = sfpname:company_id
+    access cpsperpetual, set cpsperpetual:company_id       = l_company_id,
+                             cpsperpetual:state            = cppisoblanket_alt:state,
+                             cpsperpetual:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                             cpsperpetual:class_code       = cppisoblanket_alt:class_code,
+                             cpsperpetual:sub_code         = cppisoblanket_alt:sub_code, generic
+
+    while cpsperpetual:company_id       = l_company_id and
+          cpsperpetual:state            = cppisoblanket_alt:state and
+          cpsperpetual:line_of_business = cppisoblanket_alt:rating_line_of_business and
+          cpsperpetual:class_code       = cppisoblanket_alt:class_code and
+          cpsperpetual:sub_code         = cppisoblanket_alt:sub_code
+            begin
+            if sfpname:eff_date >= cpsperpetual:eff_date then
+                begin
+                switch(cppisoblanket_alt:protection)
+                  case 1, 2, 3, 4 : l_group_i = cpsperpetual:fire_factor
+                  case 5, 6, 7, 8 : l_group_i = cpsperpetual:ec_factor
+                  default         : l_group_i = cpsperpetual:vmm_factor
+                  end
+                end
+
+            next cpsperpetual
+            end
+    end
+
+if cppisoblanket_alt:vmm_exclusion = 1 then
+    begin
+    do vmm_exclusion_factor
+    l_group_i = l_group_i - l_vmm_exclusion_factor
+    end
+do loss_cost
+do protection
+do territory
+if cppisoblanket_alt:coinsurance > 90 then
+    do coinsurance
+if l_coinsurance_factor = 0 then
+    l_coinsurance_factor = 1.00
+do deductible
+do inflation_guard
+do agreed_factor
+
+if l_coverage = "B" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:theft_territory_factor = l_territory_factor
+        if cppisoblanket_alias:new_rate[1] = 0 then
+            begin
+            if cppisoblanket_alias:perpetual_rated = 0 then
+                begin
+                cppisoblanket_alias:base_rate[1] = l_group_i *
+                                                   l_protection_factor *
+                                                   l_territory_factor
+                cppisoblanket_alias:adj_rate[1]  = l_group_i *
+                                                   l_protection_factor *
+                                                   l_territory_factor *
+                                                   l_coinsurance_factor *
+                                                   l_deductible_factor_1 *
+                                                   l_inflation_factor *
+                                                   l_agreed_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alt:company_deviation[1] *
+                                                   cppisoblanket_alt:package_mod[1] *
+                                                   l_location_credit
+                end
+            else
+                begin
+                cppisoblanket_alias:base_rate[1] = l_group_i
+                cppisoblanket_alias:adj_rate[1]  = l_group_i *
+                                                   l_coinsurance_factor *
+                                                   l_deductible_factor_1 *
+                                                   l_inflation_factor *
+                                                   l_agreed_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alt:company_deviation[1] *
+                                                   cppisoblanket_alt:package_mod[1] *
+                                                   l_location_credit
+                end
+            end
+        else
+            begin
+            if cppisoblanket_alias:perpetual_Rated = 0 then
+                begin
+                cppisoblanket_alias:base_rate[1] = l_group_i *
+                                                   l_protection_factor *
+                                                   l_territory_factor
+                cppisoblanket_alias:adj_rate[1]  = cppisoblanket_alias:new_rate[1] *
+                                                   l_coinsurance_factor *
+                                                   l_deductible_factor_1 *
+                                                   l_inflation_factor *
+                                                   l_agreed_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alt:company_deviation[1] *
+                                                   cppisoblanket_alt:package_mod[1] *
+                                                   l_location_credit
+                end
+            else
+                begin
+                cppisoblanket_alias:base_rate[1] = l_group_i
+                cppisoblanket_alias:adj_rate[1]  = cppisoblanket_alias:new_rate[1] *
+                                                   l_coinsurance_factor *
+                                                   l_deductible_factor_1 *
+                                                   l_inflation_factor *
+                                                   l_agreed_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alt:company_deviation[1] *
+                                                   cppisoblanket_alt:package_mod[1] *
+                                                   l_location_credit
+                end
+            end
+        end
+
+    l_adj_rate_1 = cppisoblanket_alias:adj_rate[1]
+    end
+else
+if l_coverage = "C" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[1] = l_group_i *
+                                           l_protection_factor *
+                                           l_territory_Factor
+        if cppisoblanket_alt:new_rate[1] = 0 then
+            begin
+            cppisoblanket_alias:adj_rate[1]  = l_group_i *
+                                               l_protection_factor *
+                                               l_territory_factor *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_1 *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alt:company_deviation[1] *
+                                               cppisoblanket_alt:package_mod[1]
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[1]  = cppisoblanket_alias:new_rate[1] *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_1 *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alt:company_deviation[1] *
+                                               cppisoblanket_alt:package_mod[1]
+            end
+        end
+
+    l_adj_rate_1 = cppisoblanket_alias:adj_rate[1]
+    end
+
+end
+
+procedure base_rate_2
+begin
+l_company_id = sfpname:company_id
+access cpssymbolrates, set cpssymbolrates:company_id       = l_company_id,
+                           cpssymbolrates:state            = cppisoblanket_alt:state,
+                           cpssymbolrates:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                           cpssymbolrates:symbol           = cppisoblanket_alt:symbol, generic
+
+while cpssymbolrates:company_id       = l_company_id and
+      cpssymbolrates:state            = cppisoblanket_alt:state and
+      cpssymbolrates:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpssymbolrates:symbol           = cppisoblanket_alt:symbol
+        begin
+        if (sfpname:eff_date >= cpssymbolrates:eff_date and
+           (sfpname:eff_date <= cpssymbolrates:exp_date or
+           cpssymbolrates:exp_date = 0)) then
+            begin
+            l_group_ii = cpssymbolrates:factor
+
+            end
+
+        next cpssymbolrates
+        end
+
+if cppisoblanket_alt:exclusions = 1 then
+    begin
+    do wind_exclusion_factor
+    l_group_ii = l_group_ii * l_wind_exclusion_factor
+    end
+
+if cppisoblanket_alt:symbol_number <> 0 then
+    l_group_ii = l_group_ii * cppisoblanket_alt:symbol_number
+
+switch(cppisoblanket_alt:bceg_individual)
+  case 1  : l_bceg_type = "I"
+  default : l_bceg_type = "C"
+  end
+
+l_company_id = sfpname:company_id
+access sfsisobceg, set sfsisobceg:company_id       = l_company_id,
+                       sfsisobceg:state            = cppisoblanket_alt:state,
+                       sfsisobceg:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                       sfsisobceg:type             = l_bceg_type,
+                       sfsisobceg:bceg             = cppisoblanket_alt:bceg, generic
+
+l_bceg_factor = 0
+while sfsisobceg:company_id       = l_company_id and
+      sfsisobceg:state            = cppisoblanket_alt:state and
+      sfsisobceg:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      sfsisobceg:type             = l_bceg_type and
+      sfsisobceg:bceg             = cppisoblanket_alt:bceg
+        begin
+        if (sfpname:eff_date >= sfsisobceg:eff_date and
+           (sfpname:eff_date <= sfsisobceg:exp_date or
+           sfsisobceg:exp_date = 0)) then
+            l_bceg_factor = sfsisobceg:factor
+
+        next sfsisobceg
+        end
+
+if l_bceg_factor = 0 then
+    l_bceg_factor = 1.00
+
+do loss_cost
+if cppisoblanket_alt:coinsurance > 90 then
+    do coinsurance
+if l_coinsurance_factor = 0 then
+    l_coinsurance_factor = 1.00
+do deductible
+do inflation_guard
+do agreed_factor
+
+access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+change cppisoblanket_alias
+    begin
+    cppisoblanket_alias:coinsurance_factor[1] = l_coinsurance_factor
+    end
+
+if l_coverage = "B" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[2] = l_group_ii
+        if cppisoblanket_alias:new_rate[2] = 0 then
+            begin
+            cppisoblanket_alias:adj_rate[2]  = l_group_ii *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_2 *
+                                               l_bceg_factor *
+                                               l_inflation_factor *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1] *
+                                               l_location_credit
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[2]  = cppisoblanket_alias:new_rate[2] *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_2 *
+                                               l_bceg_factor *
+                                               l_inflation_factor *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1] *
+                                               l_location_credit
+            end
+        end
+
+    l_adj_rate_2 = cppisoblanket_alias:adj_rate[2]
+    end
+else
+if l_coverage = "C" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[2] = l_group_ii
+        if cppisoblanket_alias:new_rate[2] = 0 then
+            begin
+            if cppisoblanket_alias:rate_type one of 2 then
+                cppisoblanket_alias:adj_rate[2]  = l_group_ii *
+                                                   l_coinsurance_factor *
+                                                   l_deductible_factor_2 *
+                                                   l_agreed_factor *
+                                                   l_bceg_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alias:company_deviation[1] *
+                                                   cppisoblanket_alias:package_mod[1]
+            else
+                cppisoblanket_alias:adj_rate[2]  = l_group_ii *
+                                                   l_deductible_factor_2 *
+                                                   l_agreed_factor *
+                                                   l_bceg_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alias:company_deviation[1] *
+                                                   cppisoblanket_alias:package_mod[1]
+            end
+        else
+            begin
+            if cppisoblanket_alias:rate_type one of 2 then
+                cppisoblanket_alias:adj_rate[2]  = cppisoblanket_alias:new_rate[2] *
+                                                   l_coinsurance_factor *
+                                                   l_deductible_factor_2 *
+                                                   l_agreed_factor *
+                                                   l_bceg_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alias:company_deviation[1] *
+                                                   cppisoblanket_alias:package_mod[1]
+            else
+                cppisoblanket_alias:adj_rate[2]  = cppisoblanket_alias:new_rate[2] *
+                                                   l_deductible_factor_2 *
+                                                   l_agreed_factor *
+                                                   l_bceg_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alias:company_deviation[1] *
+                                                   cppisoblanket_alias:package_mod[1]
+            end
+        end
+
+    l_adj_rate_2 = cppisoblanket_alias:adj_rate[2]
+    end
+
+end
+
+procedure broad_rating
+begin
+l_company_id = sfpname:company_id
+access cpsoption3, set cpsoption3:company_id       = l_company_id,
+                       cpsoption3:state            = cppisoblanket_alt:state,
+                       cpsoption3:line_of_business = cppisoblanket_alt:rating_line_of_business, generic
+
+while cpsoption3:company_id       = l_company_id and
+      cpsoption3:state            = cppisoblanket_alt:state and
+      cpsoption3:line_of_business = cppisoblanket_alt:rating_line_of_business
+        begin
+        if sfpname:eff_date >= cpsoption3:eff_date then
+            begin
+            switch(l_coverage)
+              case "B" : switch(cppisoblanket_alt:construction)
+                           case 5, 6 : l_broad = cpsoption3:rates[2]
+                           default   : l_broad = cpsoption3:rates[1]
+                           end
+              default  : switch(cppisoblanket_alt:construction)
+                           case 5, 6 : l_broad = cpsoption3:rates[4]
+                           default   : l_broad = cpsoption3:rates[3]
+                           end
+              end
+
+            end
+
+        next cpsoption3
+        end
+
+if l_coverage = "B" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[3] = l_broad
+        if cppisoblanket_alias:new_rate[3] = 0 then
+            begin
+            cppisoblanket_alias:adj_rate[3]  = l_broad *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_inflation_factor *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1] *
+                                               l_location_credit
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[3]  = cppisoblanket_alias:new_rate[3] *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_inflation_factor *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1] *
+                                               l_location_credit
+            end
+        end
+
+    l_adj_rate_3 = cppisoblanket_alias:adj_rate[3]
+    end
+else
+if l_coverage = "C" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[3] = l_broad
+        if cppisoblanket_alias:new_rate[3] = 0 then
+            begin
+            cppisoblanket_alias:adj_rate[3]  = l_broad *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1]
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[3]  = cppisoblanket_alias:new_rate[3] *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1]
+            end
+        end
+
+    l_adj_rate_3 = cppisoblanket_alias:adj_rate[3]
+    end
+
+end
+
+procedure special_rating
+begin
+if l_code not one of "CP1440", "CP0405" then
+    l_limit_1 = cppisoblanket_alt:limit[1]
+l_company_id = sfpname:company_id
+access cpsoption5, set cpsoption5:company_id       = l_company_id,
+                       cpsoption5:state            = cppisoblanket_alt:state,
+                       cpsoption5:line_of_business = cppisoblanket_alt:rating_line_of_business, generic
+
+while cpsoption5:company_id       = l_company_id and
+      cpsoption5:state            = cppisoblanket_alt:state and
+      cpsoption5:line_of_business = cppisoblanket_alt:rating_line_of_business
+        begin
+        if sfpname:eff_date >= cpsoption5:eff_date then
+            begin
+            switch(l_coverage)
+              case "B" : switch(cppisoblanket_alt:theft)
+                           case 1  : switch(cppisoblanket_alt:construction)
+                                       case 5, 6 : l_special = cpsoption5:coverage_a_rates[4]
+                                       default   : l_special = cpsoption5:coverage_a_rates[2]
+                                       end
+                           default : switch(cppisoblanket_alt:construction)
+                                       case 5, 6 : l_special = cpsoption5:coverage_a_rates[3]
+                                       default   : l_special = cpsoption5:coverage_a_rates[1]
+                                       end
+                           end
+              default  : begin
+                         l_special = cpsoption5:coverage_b_no_theft
+                         if cppisoblanket_alt:theft = 0 then
+                             begin
+                             if cppisoblanket_alt:type = "A" then
+                                 l_special_theft = cpsoption5:coverage_b_residential
+                             else
+                             if cppisoblanket_alt:type = "O" then
+                                 begin
+                                 l_special_theft = cpsoption5:coverage_b_charge
+                                 end
+                             else
+                                 do special_other
+                             end
+                         end
+              end
+
+            end
+
+        next cpsoption5
+        end
+
+if l_coverage = "B" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[3] = l_special
+        if cppisoblanket_alias:new_rate[3] = 0 then
+            begin
+            cppisoblanket_alias:adj_rate[3]  = l_special *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_inflation_factor *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1] *
+                                               l_location_credit
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[3]  = cppisoblanket_alias:new_rate[3] *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_inflation_factor *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1] *
+                                               l_location_credit
+            end
+        end
+
+    l_adj_rate_3 = cppisoblanket_alias:adj_rate[3]
+    end
+else
+if l_coverage = "C" and
+   l_code not one of "CP0405", "CP1440" then
+    begin
+    access cppisoblanket_alias, set cppisoblanket_alias:policy_no  = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence,
+                                    cppisoblanket_alias:prem_no   = cppisoblanket_alt:prem_no,
+                                    cppisoblanket_alias:build_no  = cppisoblanket_alt:build_no,
+                                    cppisoblanket_alias:rate_type = cppisoblanket_alt:rate_type, generic
+
+    change cppisoblanket_alias
+        begin
+        cppisoblanket_alias:base_rate[3] = l_special
+        if cppisoblanket_alias:new_rate[3] = 0 then
+            begin
+            cppisoblanket_alias:adj_rate[3]  = l_special *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1]
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[3]  = cppisoblanket_alias:new_rate[3] *
+                                               l_coinsurance_factor *
+                                               l_deductible_factor_3 *
+                                               l_agreed_factor *
+                                               l_loss_cost *
+                                               cppisoblanket_alias:company_deviation[1] *
+                                               cppisoblanket_alias:package_mod[1]
+            end
+
+        if cppisoblanket_alt:theft = 0 then
+            begin
+            if cppisoblanket_alt:type not one of "A", "O" then
+                cppisoblanket_alias:base_rate[4] = l_special_theft *
+                                                l_special_relativities
+            else
+                begin
+                l_special_relativities        = 1.00
+                cppisoblanket_alias:base_rate[4] = l_special_theft
+                end
+            end
+
+        if l_code not one of "CP1440", "CP0405" then
+            l_limit_1 = cppisoblanket_alt:limit[1] divide 100
+        if cppisoblanket_alt:theft = 0 then
+            begin
+            if cppisoblanket_alias:new_rate[4] = 0 then
+                begin
+                cppisoblanket_alias:adj_rate[4]  = ((l_special_theft *
+                                                   l_special_relativities *
+                                                   l_deductible_factor_3 *
+                                                   l_agreed_factor)
+                                                   divide l_limit_1)
+                cppisoblanket_alias:adj_rate[4]  = cppisoblanket_alias:adj_rate[4] *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alias:company_deviation[1] *
+                                                   cppisoblanket_alias:package_mod[1]
+                end
+            else
+                begin
+                cppisoblanket_alias:adj_rate[4]  = cppisoblanket_alias:new_rate[4] *
+                                                   l_deductible_factor_3 *
+                                                   l_agreed_factor *
+                                                   l_loss_cost *
+                                                   cppisoblanket_alias:company_deviation[1] *
+                                                   cppisoblanket_alias:package_mod[1]
+                end
+            end
+        else
+            begin
+            cppisoblanket_alias:adj_rate[4]  = 0
+            cppisoblanket_alias:base_rate[4] = 0
+            cppisoblanket_alias:new_rate[4]  = 0
+            end
+        end
+
+    l_adj_rate_3 = cppisoblanket_alias:adj_rate[3]
+    l_theft_rate = cppisoblanket_alias:adj_rate[4]
+    end
+
+if l_code = "CP1440" then
+    begin
+    l_theft_rate  = ((l_special_theft *
+                    l_special_relativities *
+                    l_deductible_factor_3 *
+                    l_agreed_factor) divide l_limit_1)
+    l_theft_rate  = l_theft_rate *
+                    l_loss_cost *
+                    cppisoblanket_alias:company_deviation[1] *
+                    cppisoblanket_alias:package_mod[1]
+    end
+
+end
+
+procedure special_other
+begin
+l_company_id = sfpname:company_id
+access cpsoption5terr, set cpsoption5terr:company_id       = l_company_id,
+                           cpsoption5terr:state            = cppisoblanket_alt:state,
+                           cpsoption5terr:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                           cpsoption5terr:county           = cppisoblanket_alt:county, generic
+
+while cpsoption5terr:company_id       = l_company_id and
+      cpsoption5terr:state            = cppisoblanket_alt:state and
+      cpsoption5terr:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpsoption5terr:county           = cppisoblanket_alt:county
+        begin
+        if sfpname:eff_date >= cpsoption5terr:eff_date then
+            begin
+            switch(cppisoblanket_alt:type)
+              case "M", "MH", "I" : l_special_theft = cpsoption5terr:factors[1]
+              default             : l_special_theft = cpsoption5terr:factors[2]
+              end
+            end
+
+        next cpsoption5terr
+        end
+
+l_rate_group = cppisoblanket_alt:rate_group
+l_company_id = sfpname:company_id
+access cpsspecialrates, set cpsspecialrates:company_id       = l_company_id,
+                            cpsspecialrates:state            = cppisoblanket_alt:state,
+                            cpsspecialrates:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                            cpsspecialrates:limit            = l_limit_1, approximate
+
+l_limit = cpsspecialrates:limit
+access cpsspecialrates, set cpsspecialrates:company_id       = l_company_id,
+                            cpsspecialrates:state            = cppisoblanket_alt:state,
+                            cpsspecialrates:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                            cpsspecialrates:limit            = l_limit,
+                            cpsspecialrates:rate_group       = l_rate_group, generic
+
+while cpsspecialrates:company_id       = sfpname:company_id and
+      cpsspecialrates:state            = cppisoblanket_alt:state and
+      cpsspecialrates:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpsspecialrates:limit            = l_limit and
+      cpsspecialrates:rate_group       = l_rate_group
+        begin
+        if (sfpname:eff_date >= cpsspecialrates:eff_date and
+           (sfpname:eff_date <= cpsspecialrates:exp_date or
+           cpsspecialrates:exp_date = 0)) then
+            begin
+            switch(cppisoblanket_alt:crime_limit)
+              case  5000 : l_special_relativities = cpsspecialrates:charge[1]
+              case 15000 : l_special_relativities = cpsspecialrates:charge[2]
+              case 25000 : l_special_relativities = cpsspecialrates:charge[3]
+              default    : l_special_relativities = cpsspecialrates:charge[4]
+              end
+            end
+
+        next cpsspecialrates
+        end
+
+end
+
+procedure vmm_exclusion_factor
+begin
+l_company_id = sfpname:company_id
+access cpsvmm, set cpsvmm:company_id       = l_company_id,
+                   cpsvmm:state            = cppisoblanket_alt:state,
+                   cpsvmm:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                   cpsvmm:class_code       = cppisoblanket_alt:class_code, generic
+
+if cpsvmm:class_code <> cppisoblanket_alt:class_code then
+    l_class_code = 99999
+else
+    l_class_code = cppisoblanket_alt:class_code
+
+access cpsvmm, set cpsvmm:company_id       = l_company_id,
+                   cpsvmm:state            = cppisoblanket_alt:state,
+                   cpsvmm:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                   cpsvmm:class_code       = l_class_code, generic
+
+while cpsvmm:company_id       = l_company_id and
+      cpsvmm:state            = cppisoblanket_alt:state and
+      cpsvmm:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpsvmm:class_code       = l_class_code
+        begin
+        if (sfpname:eff_date >= cpsvmm:eff_date and
+           (sfpname:eff_date <= cpsvmm:exp_date or
+           cpsvmm:exp_date = 0)) then
+            begin
+            l_vmm_exclusion_factor = cpsvmm:factor
+
+            end
+
+        next cpsvmm
+        end
+
+end
+
+procedure wind_exclusion_factor
+begin
+l_company_id = sfpname:company_id
+access cpswind, set cpswind:company_id       = l_company_id,
+                    cpswind:state            = cppisoblanket_alt:state,
+                    cpswind:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                    cpswind:symbol           = cppisoblanket_alt:symbol, generic
+
+while cpswind:company_id       = l_company_id and
+      cpswind:state            = cppisoblanket_alt:state and
+      cpswind:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpswind:symbol           = cppisoblanket_alt:symbol
+        begin
+        if (sfpname:eff_date >= cpswind:eff_date and
+           (sfpname:eff_date <= cpswind:exp_date or
+           cpswind:exp_date = 0)) then
+            begin
+            l_wind_exclusion_factor = cpswind:factor
+
+            end
+
+        next cpswind
+        end
+
+end
+
+procedure loss_cost
+begin
+l_company_id = sfpname:company_id
+access sfslosscost, set sfslosscost:company_id       = l_company_id,
+                        sfslosscost:state            = cppisoblanket_alt:state,
+                        sfslosscost:line_of_business = cppisoblanket_alt:line_of_business, generic
+
+l_loss_cost = 0
+while sfslosscost:company_id       = l_company_id and
+      sfslosscost:state            = cppisoblanket_alt:state and
+      sfslosscost:line_of_business = cppisoblanket_alt:line_of_business
+        begin
+        if sfpname:eff_date >= sfslosscost:eff_date then
+            l_loss_cost = sfslosscost:rate
+
+        next sfslosscost
+        end
+
+end
+
+procedure protection
+begin
+l_company_id = sfpname:company_id
+access cpsprotfact, set cpsprotfact:company_id       = l_company_id,
+                        cpsprotfact:state            = cppisoblanket_alt:state,
+                        cpsprotfact:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                        cpsprotfact:protection       = cppisoblanket_alt:protection, generic
+
+while cpsprotfact:company_id       = l_company_id and
+      cpsprotfact:state            = cppisoblanket_alt:state and
+      cpsprotfact:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpsprotfact:protection       = cppisoblanket_alt:protection
+        begin
+        if sfpname:eff_date >= cpsprotfact:rate_date then
+            begin
+            switch(cppisoblanket_alt:construction)
+              case 1, 2, 3 : l_protection_factor = cpsprotfact:rate[1]
+              default      : l_protection_factor = cpsprotfact:rate[2]
+              end
+            end
+
+        next cpsprotfact
+        end
+end
+
+procedure territory
+begin
+l_company_id = sfpname:company_id
+access sfsterrfactors, set sfsterrfactors:company_id       = l_company_id,
+                           sfsterrfactors:state            = cppisoblanket_alt:state,
+                           sfsterrfactors:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                           sfsterrfactors:territory        = cppisoblanket_alt:territory, generic
+
+while sfsterrfactors:company_id       = l_company_id and
+      sfsterrfactors:state            = cppisoblanket_alt:state and
+      sfsterrfactors:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      sfsterrfactors:territory        = cppisoblanket_alt:territory
+        begin
+        if sfpname:eff_date >= sfsterrfactors:eff_date then
+            begin
+            l_territory_factor = sfsterrfactors:factor[1]
+            end
+
+        next sfsterrfactors
+        end
+
+end
+
+procedure coinsurance
+begin
+l_company_id = sfpname:company_id
+access cpscoinsurance, set cpscoinsurance:company_id       = l_company_id,
+                           cpscoinsurance:state            = cppisoblanket_alt:state,
+                           cpscoinsurance:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                           cpscoinsurance:option           = cppisoblanket_alt:form,
+                           cpscoinsurance:coinsurance      = cppisoblanket_alt:coinsurance, generic
+
+while cpscoinsurance:company_id       = l_company_id and
+      cpscoinsurance:state            = cppisoblanket_alt:state and
+      cpscoinsurance:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      cpscoinsurance:option           = cppisoblanket_alt:form and
+      cpscoinsurance:coinsurance      = cppisoblanket_alt:coinsurance
+        begin
+        if sfpname:eff_date >= cpscoinsurance:eff_date then
+            begin
+            l_coinsurance_factor = cpscoinsurance:factor[1]
+            end
+
+        next cpscoinsurance
+        end
+end
+
+procedure deductible
+begin
+l_company_id = sfpname:company_id
+access sfsdeductible, set sfsdeductible:company_id       = l_company_id,
+                          sfsdeductible:state            = cppisoblanket_alt:state,
+                          sfsdeductible:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                          sfsdeductible:deductible       = cppisoblanket_alt:deductible, generic
+
+if sfsdeductible:limit = 0 then
+    begin
+    while sfsdeductible:company_id       = l_company_id and
+          sfsdeductible:state            = cppisoblanket_alt:state and
+          sfsdeductible:line_of_business = cppisoblanket_alt:rating_line_of_business and
+          sfsdeductible:deductible       = cppisoblanket_alt:deductible
+            begin
+            if sfpname:eff_date >= sfsdeductible:eff_date then
+                begin
+                l_deductible_factor_1 = sfsdeductible:rate_1
+                l_deductible_factor_2 = sfsdeductible:rate_2
+                l_deductible_factor_3 = sfsdeductible:rate_3
+                end
+
+            next sfsdeductible
+            end
+    end
+else
+    begin
+/*    access cppisoblanket_alias, set cppisoblanket_alias:policy_no    = cppisoblanket_alt:policy_no,
+                                    cppisoblanket_alias:pol_year     = cppisoblanket_alt:pol_year,
+                                    cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence, generic
+
+    l_limit = 0
+    while cppisoblanket_alias:policy_no    = cppisoblanket_alt:policy_No and
+          cppisoblanket_alias:pol_year     = cppisoblanket_alt:pol_year and
+          cppisoblanket_alias:end_sequence = cppisoblanket_alt:end_sequence
+        begin
+        if cppisoblanket_alias:prem_no = cppisoblanket_alt:prem_no then
+            l_limit = cppisoblanket_alias:limit[1] +
+                      l_limit
+
+        next cppisoblanket_alias
+        end*/
+
+    l_limit = cppisoblanket_alt:limit[1]
+    l_company_id = sfpname:company_id
+    access sfsdeductible, set sfsdeductible:company_id       = l_company_id,
+                              sfsdeductible:state            = cppisoblanket_alt:state,
+                              sfsdeductible:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                              sfsdeductible:deductible       = cppisoblanket_alt:deductible,
+                              sfsdeductible:limit            = l_limit, approximate
+
+    l_deductible_limit = sfsdeductible:limit
+
+    access sfsdeductible, set sfsdeductible:company_id       = l_company_id,
+                              sfsdeductible:state            = cppisoblanket_alt:state,
+                              sfsdeductible:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                              sfsdeductible:deductible       = cppisoblanket_alt:deductible,
+                              sfsdeductible:limit            = l_deductible_limit, generic
+
+
+    while sfsdeductible:company_id       = l_company_id and
+          sfsdeductible:state            = cppisoblanket_alt:state and
+          sfsdeductible:line_of_business = cppisoblanket_alt:rating_line_of_business and
+          sfsdeductible:deductible       = cppisoblanket_alt:deductible and
+          sfsdeductible:limit            = l_deductible_limit
+            begin
+            if sfpname:eff_date >= sfsdeductible:eff_date then
+                begin
+                l_deductible_factor_1 = sfsdeductible:rate_1
+                l_deductible_factor_2 = sfsdeductible:rate_2
+                l_deductible_factor_3 = sfsdeductible:rate_3
+                end
+
+            next sfsdeductible
+            end
+    end
+end
+
+procedure inflation_guard
+begin
+l_company_id = sfpname:company_id
+access sfsinflation, set sfsinflation:company_id       = l_company_id,
+                         sfsinflation:state            = cppisoblanket_alt:state,
+                         sfsinflation:line_of_business = cppisoblanket_alt:rating_line_of_business,
+                         sfsinflation:percent          = cppisoblanket_alt:inflation_guard, generic
+
+while sfsinflation:company_id       = l_company_id and
+      sfsinflation:state            = cppisoblanket_alt:state and
+      sfsinflation:line_of_business = cppisoblanket_alt:rating_line_of_business and
+      sfsinflation:percent          = cppisoblanket_alt:inflation_guard
+        begin
+        if sfpname:eff_date >= sfsinflation:eff_date then
+            begin
+            l_inflation_factor = sfsinflation:factor
+
+            end
+
+        next sfsinflation
+        end
+
+end
+
+procedure agreed_factor
+begin
+l_company_id = sfpname:company_id
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID       = L_COMPANY_ID,
+                        CPSPROPRATE:STATE            = cppisoblanket_alt:STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = cppisoblanket_alt:RATING_LINE_OF_BUSINESS, Generic
+
+while CPSPROPRATE:COMPANY_ID       = L_COMPANY_ID and
+      CPSPROPRATE:STATE            = cppisoblanket_alt:STATE and
+      CPSPROPRATE:LINE_OF_BUSINESS = cppisoblanket_alt:RATING_LINE_OF_BUSINESS
+    begin
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        l_agreed_factor  = cpsproprate:agreed_value_factor
+        End
+
+    Next cpsproprate
+    End
+
+if cppisoblanket_alt:agreed_value = 0 then
+    l_agreed_factor = 1.00
+
+end
+
+procedure access_cpsconstruction
+begin
+access cpsconstruction, set cpsconstruction:company_id       = sfpname:company_id,
+                            cpsconstruction:state            = cppisoblanket:state,
+                            cpsconstruction:line_of_business = cppisoblanket:rating_line_of_business,
+                            cpsconstruction:construction     = cppisoblanket:construction, generic
+
+l_reinforced = 0
+l_steel      = 0
+l_high       = 0
+while cpsconstruction:company_id       = sfpname:company_id and
+      cpsconstruction:state            = cppisoblanket:state and
+      cpsconstruction:line_of_business = cppisoblanket:rating_line_of_business and
+      cpsconstruction:construction     = cppisoblanket:construction
+        begin
+        if (sfpname:eff_date >= cpsconstruction:eff_date and
+           (sfpname:exp_date <= cpsconstruction:exp_date or
+           cpsconstruction:exp_date = 0)) then
+            begin
+            l_reinforced = cpsconstruction:reinforced
+            l_steel      = cpsconstruction:light_steel
+            l_high       = cpsconstruction:high
+            end
+
+        next cpsconstruction
+        end
+
+end
+
+procedure get_symbol
+begin
+if cppisoblanket:perpetual_rated = 0 then
+    begin
+    access cpsconstruction, set cpsconstruction:company_id       = sfpname:company_id,
+                                cpsconstruction:state            = cppisoblanket:state,
+                                cpsconstruction:line_of_business = cppisoblanket:rating_line_of_business,
+                                cpsconstruction:construction     = cppisoblanket:construction, generic
+
+    while cpsconstruction:company_id       = sfpname:company_id and
+          cpsconstruction:state            = cppisoblanket:state and
+          cpsconstruction:line_of_business = cppisoblanket:rating_line_of_business and
+          cpsconstruction:construction     = cppisoblanket:construction
+            begin
+            if (sfpname:eff_date >= cpsconstruction:eff_date and
+               (sfpname:exp_date <= cpsconstruction:exp_date or
+               cpsconstruction:exp_date = 0)) then
+                begin
+                if cpsconstruction:light_steel = 1 and
+                   cpsconstruction:reinforced  = 1 and
+                   cpsconstruction:high        = 1 then
+                    begin
+                    switch(cppisoblanket:reinforced)
+                      case 1  : switch(cppisoblanket:steel)
+                                  case 1  : switch(cppisoblanket:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[4]
+                                              default : l_symbol = cpsconstruction:symbol[3]
+                                              end
+                                  default : switch(cppisoblanket:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[8]
+                                              default : l_symbol = cpsconstruction:symbol[7]
+                                              end
+                                  end
+                      default : switch(cppisoblanket:steel)
+                                  case 1  : switch(cppisoblanket:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[2]
+                                              default : l_symbol = cpsconstruction:symbol[1]
+                                              end
+                                  default : switch(cppisoblanket:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[6]
+                                              default : l_symbol = cpsconstruction:symbol[5]
+                                              end
+                                  end
+                      end
+
+                    end
+                else
+                if cpsconstruction:reinforced  = 1 and
+                   cpsconstruction:light_steel = 0 and
+                   cpsconstruction:high        = 1 then
+                    begin
+                    switch(cppisoblanket:reinforced)
+                      case 1  : switch(cppisoblanket:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[4]
+                                  default : l_symbol = cpsconstruction:symbol[3]
+                                  end
+                      default : switch(cppisoblanket:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[2]
+                                  default : l_symbol = cpsconstruction:symbol[1]
+                                  end
+                      end
+                    end
+
+                else
+                if cpsconstruction:reinforced  = 0 and
+                   cpsconstruction:light_steel = 1 and
+                   cpsconstruction:high        = 1 then
+                    begin
+                    switch(cppisoblanket:steel)
+                      case 1  : switch(cppisoblanket:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[2]
+                                  default : l_symbol = cpsconstruction:symbol[1]
+                                  end
+                      default : switch(cppisoblanket:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[4]
+                                  default : l_symbol = cpsconstruction:symbol[3]
+                                  end
+                      end
+                    end
+                else
+                    begin
+                    l_symbol = cpsconstruction:symbol[1]
+                    end
+
+                end
+
+            next cpsconstruction
+            end
+
+    end
+else
+if cppisoblanket:perpetual_rated = 1 then
+    begin
+    access cpsperpetual, set cpsperpetual:company_id       = sfpname:company_id,
+                             cpsperpetual:state            = cppisoblanket:state,
+                             cpsperpetual:line_of_business = cppisoblanket:rating_line_of_business,
+                             cpsperpetual:class_code       = cppisoblanket:class_code,
+                             cpsperpetual:sub_code         = cppisoblanket:sub_code, generic
+
+    while cpsperpetual:company_id       = sfpname:company_id and
+          cpsperpetual:state            = cppisoblanket:state and
+          cpsperpetual:line_of_business = cppisoblanket:rating_line_of_business and
+          cpsperpetual:class_code       = cppisoblanket:class_code and
+          cpsperpetual:sub_code         = cppisoblanket:sub_code
+            begin
+            if sfpname:eff_date >= cpsperpetual:eff_date then
+                begin
+                l_symbol    = cpsperpetual:group_ii_symbol
+                l_symbol_no = cpsperpetual:group_ii_no
+                end
+
+            next cpsperpetual
+            end
+    end
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> g_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppisoblanket_ALIAS, Set cppisoblanket_ALIAS:policy_NO = G_policy_NO,
+                                cppisoblanket_alias:pol_year = g_year,
+                                cppisoblanket_alias:end_sequence = g_end_sequence,
+                                cppisoblanket_ALIAS:PREM_NO = g_PREM_NO,
+                                cppisoblanket_ALIAS:BUILD_NO = g_BUILD_NO, Generic
+
+L_STATE = cppisoblanket_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = cppisoblanket:rating_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> cppisoblanket:rating_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       g_PREM_NO
+    sfpEND:BUILD_NO             =       g_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "P"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = g_PREM_NO,
+                   sfpEND:BUILD_NO = g_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> g_PREM_NO Or
+            sfpEND:BUILD_NO <> g_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no = 0000
+l_build_no = 0000
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no = l_prem_no,
+                   sfpend:build_no = l_build_no, generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpend:prem_no <> l_prem_no or
+            sfpend:build_no <> l_build_no
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppisoblanket:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = cppisoblanket:rating_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> cppisoblanket:rating_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       0000
+    sfpEND:BUILD_NO             =       0000
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    sfpend:terrorism_form       =       0
+    sfpend:manual_premium       =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+End

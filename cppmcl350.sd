@@ -1,0 +1,190 @@
+%%
+/*
+Date Written: Sept 9, 2003
+
+Name: cppmcl350.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+09/09/2003            DWR
+
+===========================
+*/
+
+Program
+  Name = "cppmcl350";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcl350.cq";
+ string l_font[35] ;
+ unsigned ascii number l_max_lines;
+ unsigned ascii number l_line_counter;
+-- string l_newpage_wording;
+
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+   include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCL350 "
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+{
+  If SFPEND:CODE = "MCL350" Then
+    {
+      Access cppendorse,
+         Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+             cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+             cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+             cppendorse:prem_no      = sfpend:prem_no,
+             cppendorse:build_no     = sfpend:build_no,
+             cppendorse:code         = sfpend:code, Generic
+
+      While  cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+             cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+             cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+             cppendorse:prem_no      = sfpend:prem_no and
+             cppendorse:build_no     = sfpend:build_no and
+             cppendorse:code         = sfpend:code
+       {
+
+          Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+          Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+          Writefile(L_FILE_NAME,"%s"," 2000 MSO, Inc.")
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+          Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+          Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+          Writefile(L_FILE_NAME,"%s"," ")
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+          Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+          Writefile(L_FILE_NAME,"%s","<NL>")
+
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","ADDITIONAL ")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_bold_9)
+          Writefile(L_FILE_NAME,"%s","INSUREDS ")
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%s","- SUPPLEMENTAL DECLARATIONS")
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h+14V")
+          Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+          Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a+30h-14V")
+          Writefile(L_FILE_NAME,"%s"," PART II")
+          Writefile(L_FILE_NAME,"%s",l_arial_italic_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","MCL 350 is used with one or more of the additional insured endorsements to list the designated additional insureds.")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+40V")
+          Writefile(L_FILE_NAME,"%s","<033>*c5400h5v0p") --Horizontal line
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","Policy # ")
+          Writefile(L_FILE_NAME,"%n",cppendorse:policy_no)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","SCHEDULE")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","")
+          Writefile(L_FILE_NAME,"%s","<033>&a270h+120V")
+          Writefile(L_FILE_NAME,"%s","Applicable")
+          Writefile(L_FILE_NAME,"%s",l_underline_start)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s","Endorsements")
+          Writefile(L_FILE_NAME,"%s",l_underline_end)
+          Writefile(L_FILE_NAME,"%s","<033>&a1100h+0V")
+          Writefile(L_FILE_NAME,"%s",l_underline_start)
+          Writefile(L_FILE_NAME,"%s","Designated Insureds")
+          Writefile(L_FILE_NAME,"%s",l_underline_end)
+          Writefile(L_FILE_NAME,"%s","<033>&a3200h+0V")
+          Writefile(L_FILE_NAME,"%s",l_underline_start)
+          Writefile(L_FILE_NAME,"%s","Additional Information")
+          Writefile(L_FILE_NAME,"%s",l_underline_end)
+          Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+          Writefile(L_FILE_NAME,"%s",cppendorse:code)
+
+          l_max_lines        = 60
+          L_FONT             = l_arial_bold_9
+          L_V_POSITION       = "+0"
+          L_H_POSITION       = "1100"
+          L_CHARACTER_STRING = cppendorse:name[1]
+          L_MAX_CHAR         = 35
+          include "line_spacing.inc"
+
+          l_max_lines        = 60
+          L_FONT             = l_arial_bold_9
+          L_V_POSITION       = "+100"
+          L_H_POSITION       = "1100"
+          L_CHARACTER_STRING = cppendorse:name[2]
+          L_MAX_CHAR         = 35
+          include "line_spacing.inc"
+
+          l_max_lines        = 60
+          L_FONT             = l_arial_bold_9
+          L_V_POSITION       = "+100"
+          L_H_POSITION       = "1100"
+          L_CHARACTER_STRING = cppendorse:name[3]
+          L_MAX_CHAR         = 35
+          include "line_spacing.inc"
+
+          Writefile(L_FILE_NAME,"%s","<033>&a3500h1630V")
+
+          l_max_lines        = 60
+          L_FONT             = l_arial_bold_9
+          L_V_POSITION       = "+100"
+          L_H_POSITION       = "3200"
+          L_CHARACTER_STRING = cppendorse:description
+          L_MAX_CHAR         = 40
+          include "line_spacing.inc"
+          Writefile(L_FILE_NAME,"%s","<FF>")
+        next cppendorse
+       }--while for cppendorse
+
+    }
+  Next SFPEND
+}
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

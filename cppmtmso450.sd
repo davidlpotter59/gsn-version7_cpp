@@ -1,0 +1,531 @@
+%%
+Screen
+        Name            = "cppmtmso450";
+        Type            = "Multiline" ;
+        Repeat line_items, 10 Times ;
+        Screensize      = "dynamic" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Domain          = "SFPEND" ;
+        Windowtitle = "%a    %s Optional Endorsements     Ver 7.00 %m" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_CODE[7] ,
+                      G_END_SCREEN[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008,
+                                    L_AUTO_RATE[1] ;
+
+        Local String L_SCREEN[11] ,
+                     L_CODE[7] ,
+                     L_COMPANY_ID[10] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO,
+                           SFPEND:POL_YEAR = G_YEAR,
+                           SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                           SFPEND:PREM_NO = G_PREM_NO,
+                           SFPEND:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+
+        "redisplay" Display/noreturn "cpqmtmso450" ;
+        "Chg" Sequence "Change|popup" ;
+        "popup" Continue Begin
+                         Do SETSCREEN
+                         G_CODE = SFPEND:CODE
+                         G_SUB_CODE = SFPEND:SUB_CODE
+                         If L_SCREEN <> "" Then
+                             FUNCTION = "disscn"
+                         End ;
+        "disscn" Display L_SCREEN ;
+
+        Include "stdfunc7m.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7m.inc"
+
+}
+
+Access Validation
+If SFPEND:POLICY_NO <> G_POLICY_NO Or
+   SFPEND:POL_YEAR <> G_YEAR Or
+   SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+   SFPEND:PREM_NO <> G_PREM_NO Or
+   SFPEND:BUILD_NO <> G_BUILD_NO Then
+    Error 1000
+
+Skip If SFPEND:LOB_END_CODE <> "G" ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Loc No:    ____                                                              |
+| Build No:  ____                                                              |
+*------------------------------------------------------------------------------*
+|         Form/Edition                   Description                 Premium   |
+*------------------------------------------------------------------------------*
+| ____________________________ _________________________________ _____________ |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" Then
+            Begin
+            SFPEND:POLICY_NO = G_POLICY_NO
+            SFPEND:POL_YEAR = G_YEAR
+            SFPEND:END_SEQUENCE = G_END_SEQUENCE
+            SFPEND:PREM_NO = G_PREM_NO
+            If G_PREM_NO = 0 Then
+                SFPEND:PREM_NO = 1
+            SFPEND:BUILD_NO = G_BUILD_NO
+            If G_BUILD_NO = 0 Then
+                SFPEND:BUILD_NO = 1
+            End
+        End
+        SFPEND:POLICY_NO/displayonly ;
+302     SFPEND:POL_YEAR/displayonly;
+303     SFPEND:END_SEQUENCE/displayonly;
+401     SFPEND:PREM_NO/displayonly ;
+501     SFPEND:BUILD_NO/displayonly ;
+901     Begin
+        If FUNCTION = "APPEND" Or
+           FUNCTION = "ADD" Or
+           FUNCTION = "NEW" Then
+            Begin
+            Do SUBCODE
+            SFPEND:SUB_CODE = L_SUB_CODE + 10
+            SFPEND:LOB_END_CODE = "G"
+            End
+        L_EFF_DATE = SFPNAME:EFF_DATE
+        L_COMPANY_ID = SFPNAME:COMPANY_ID
+        L_STATE = CPPGENERAL:STATE
+
+        Access SFSOPTEND_ALIAS, Set SFSOPTEND_ALIAS:COMPANY_ID = L_COMPANY_ID,
+                                    SFSOPTEND_ALIAS:STATE = L_STATE,
+                                    SFSOPTEND_ALIAS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        End
+        SFPEND:CODE/uppercase tagged line_items
+        Do ACCESS_KEY
+        If SFPEND:CODE <> SFSOPTEND:CODE Then
+            Error 1264
+
+        Activehelp If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE >= L_EFF_DATE) Or
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0) And
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "G") Then
+                       SFSOPTEND_ALIAS:CODE
+                   Else
+                       NULL/width=8 ,
+                   If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE >= L_EFF_DATE) Or
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0) And
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "G") Then
+                       SFSOPTEND_ALIAS:FORM_EDITION
+                   Else
+                       NULL/width=25 ,
+                   If ((L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE >= L_EFF_DATE) Or
+                      (L_EFF_DATE >= SFSOPTEND_ALIAS:EFF_DATE And
+                      SFSOPTEND_ALIAS:EXP_DATE = 0) And
+                      SFSOPTEND_ALIAS:END_LOB_CODE = "G") Then
+                       SFSOPTEND_ALIAS:DESCRIPTION
+                   Else
+                       NULL/width=75 ;
+901     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "APPEND" Or
+           FUNCTION = "NEW" Then
+            Do ACCESS_ENDORSEMENT
+        If SFPEND:CODE = "" Then
+            Abort()
+        End
+        SFPEND:FORM_EDITION/displayonly tagged line_items ;
+902     SFPEND:DESCRIPTION/displayonly tagged line_items ;
+903     Begin
+        If L_SCREEN <> "" Then
+            Begin
+            If FUNCTION = "ADD" Or
+               FUNCTION = "APPEND" Or
+               FUNCTION = "NEW" Then
+                Begin
+                G_CODE = SFPEND:CODE
+                G_SUB_CODE = SFPEND:SUB_CODE
+                G_END_SCREEN = "Y"
+                Display Modal Screen L_SCREEN
+                End
+            End
+        End
+        SFPEND:MANUAL_PREMIUM  tagged line_items
+        Hide If L_AUTO_RATE = 1 ;
+903     Begin
+        If L_SCREEN <> "" Then
+            Begin
+            If FUNCTION = "ADD" Or
+               FUNCTION = "APPEND" Or
+               FUNCTION = "NEW" Then
+                Begin
+                G_CODE = SFPEND:CODE
+                G_SUB_CODE = SFPEND:SUB_CODE
+                G_END_SCREEN = "Y"
+                Display Modal Screen L_SCREEN
+                End
+            End
+        End
+        SFPEND:MANUAL_PREMIUM/displayonly  tagged line_items
+        Hide If L_AUTO_RATE = 0 ;
+
+}
+
+}
+
+Update
+Begin
+If ((FUNCTION = "ADD" Or
+   FUNCTION = "APPEND" Or
+   FUNCTION = "NEW") And
+   Abort = "NO" And
+   UPDATEOK = "YES") Then
+    Begin
+    Switch(SFPEND:CODE)
+      Case "MCP530" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:OPTIONAL_LOSS_PAYMENT = 1
+                              End
+                      End
+      Case "MCP535" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:RETENTION = 1
+                              End
+                      End
+      Case "MCP531" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:VACANCY_UNOCCUPANCY = 1
+                              End
+                      End
+      Case "MCP532",
+           "MCP533" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:DEDUCTIBLE_PERCENT = 1
+                              End
+                      End
+      Case "MCP133" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:DAMAGED_GLASS_EXCLUSION = 1
+                              End
+                      End
+      End
+    End
+
+If FUNCTION = "DELETE" And
+   Abort = "NO" And
+   UPDATEOK = "YES" Then
+    Begin
+    Switch(SFPEND:CODE)
+      Case "MCP530" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:OPTIONAL_LOSS_PAYMENT = 0
+                              CPPGLASS:PLATE_LIMITATION = 0
+                              End
+                      End
+      Case "MCP535" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:RETENTION = 0
+                              CPPGLASS:RETENTION_AMOUNT = 0
+                              End
+                      End
+      Case "MCP531" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:VACANCY_UNOCCUPANCY = 0
+                              End
+                      End
+      Case "MCP532",
+           "MCP533" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:DEDUCTIBLE_PERCENT = 0
+                              End
+                      End
+      Case "MCP133" : Begin
+                      Access CPPGLASS, Set CPPGLASS:POLICY_NO = SFPEND:POLICY_NO,
+                                           CPPGLASS:POL_YEAR = SFPEND:POL_YEAR,
+                                           CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                                           CPPGLASS:PREM_NO = SFPEND:PREM_NO,
+                                           CPPGLASS:BUILD_NO = SFPEND:BUILD_NO, Generic
+
+                      If CPPGLASS:POLICY_NO = SFPEND:POLICY_NO And
+                         CPPGLASS:POL_YEAR = SFPEND:POL_YEAR And
+                         CPPGLASS:END_SEQUENCE = SFPEND:END_SEQUENCE And
+                         CPPGLASS:PREM_NO = SFPEND:PREM_NO And
+                         CPPGLASS:BUILD_NO = SFPEND:BUILD_NO Then
+                          Change CPPGLASS
+                              Begin
+                              CPPGLASS:DAMAGED_GLASS_EXCLUSION = 0
+                              End
+                      End
+      End
+    End
+
+End
+
+Screen Exit
+G_END_SCREEN = "N"
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access SFPEND_ALIAS, Set SFPEND_ALIAS:POLICY_NO = SFPEND:POLICY_NO,
+                         SFPEND_ALIAS:POL_YEAR = SFPEND:POL_YEAR,
+                         SFPEND_ALIAS:END_SEQUENCE = SFPEND:END_SEQUENCE,
+                         SFPEND_ALIAS:PREM_NO = SFPEND:PREM_NO,
+                         SFPEND_ALIAS:BUILD_NO = SFPEND:BUILD_NO,Approximate
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If SFPEND_ALIAS:POLICY_NO <> SFPEND:POLICY_NO Or
+            SFPEND_ALIAS:POL_YEAR <> SFPEND:POL_YEAR Or
+            SFPEND_ALIAS:END_SEQUENCE <> SFPEND:END_SEQUENCE Or
+            SFPEND_ALIAS:PREM_NO <> SFPEND:PREM_NO Or
+            SFPEND_ALIAS:BUILD_NO <> SFPEND:BUILD_NO
+
+    L_SUB_CODE = SFPEND_ALIAS:SUB_CODE
+
+    Next SFPEND_ALIAS
+    End
+
+G_SUB_CODE = SFPEND:SUB_CODE
+
+End
+
+Procedure ACCESS_ENDORSEMENT
+Begin
+L_STATE = CPPGENERAL:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = SFPNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = SFPEND:CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> SFPNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> SFPEND:CODE
+
+    If SFPNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_CODE = SFPEND:CODE
+        G_CODE = SFPEND:CODE
+        SFPEND:FORM_EDITION = SFSOPTEND:FORM_EDITION
+        SFPEND:DESCRIPTION = SFSOPTEND:DESCRIPTION
+        L_SCREEN = SFSOPTEND:POLICY_SCREEN
+        L_AUTO_RATE = SFSOPTEND:AUTOMATICALLY_RATES
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+Procedure SETSCREEN
+Begin
+L_STATE = CPPGENERAL:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = SFPNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = SFPEND:CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> SFPNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> SFPEND:CODE
+
+    If SFPNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_SCREEN = SFSOPTEND:POLICY_SCREEN
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+Procedure ACCESS_KEY
+Begin
+L_STATE = CPPGENERAL:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = SFPNAME:COMPANY_ID ,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = SFPEND:CODE, Generic
+
+End
+
+End

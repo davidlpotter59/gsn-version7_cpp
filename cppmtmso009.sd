@@ -1,0 +1,1433 @@
+%%
+Screen
+        Name = "cppmtmso009" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Commercial Umbrella - Ver. 7.00     %m" ;
+        Domain = "cppUMBRELLA" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     g_check_reference[7],
+                                     g_agent_no[4],
+                                     g_opt[2] ;
+
+        Global String g_company[10] ,
+                      G_COMPANY_ID[10] ,
+                      g_function[10],
+                      g_first[1],
+                      g_first_1[1] ;
+
+        global mmddyyyy date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date,
+                             g_exp_date ;
+
+        global string g_lib_1[10],
+                      g_name[50],
+                      g_inquiry[1] ;
+
+        global string G_QUE[10] ,
+                      G_FOB[1] ,
+                      G_FOB_DESCRIPTION[75] ;
+
+        global unsigned ascii number G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Local Unsigned Ascii Number L_TYPE[1]=0 ,
+                                    L_FACTOR[4]=0/dec=2,
+                                    l_line_of_business[4]=0,
+                                    l_mm[2],
+                                    l_dd[2],
+                                    l_yy[4] ,
+                                    l_occurrence[8]=0,
+                                    i_csexec_number[12],
+                                    l_csexec_number[12],
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0,
+                                    l_sub_code[4]=0,
+                                    l_state[2]=0,
+                                    l_per_room[4]=0,
+                                    L_UM_UIM_SURCHARGE[3]=0,
+                                    l_abort_program[1],
+                                    i_trans_code[4],
+                                    L_LIMIT_1[8]=0,
+                                    L_LIMIT_2[8]=0,
+                                    l_minimum_premium[4]=0 ,
+                                    l_no_vehicles[3]=0,
+                                    l_sub[1]=0,
+                                    l_stories[1]=0,
+                                    l_repeat[1]=0,
+                                    l_hotel_total[6]=0,
+                                    l_apt_charge[3]=0,
+                                    l_hotel_charge[3]=0,
+                                    l_increased_total[6]=0,
+                                    l_hotel_each_addl[4]=0/dec=2,
+                                    l_directors_charge[4]=0,
+                                    l_motel_maximum[3]=0,
+                                    l_motel_stories[2]=0,
+                                    l_apt_stories[2]=0,
+                                    l_apt_per[1]=0,
+                                    l_directors_per[1]=0,
+                                    l_hotel_increase[4]=0/dec=2,
+                                    l_each_addl_minimum[4]=0,
+                                    l_increase_million[1]=0,
+                                    l_irpm[4]=0/dec=2,
+                                    l_increased_factor[4]=0/dec=2 ;
+
+        Local String L_TABLE[1]="" ,
+                     L_FORM_EDITION[25],
+                     l_add_endorsement[1],
+                     l_screen[8],
+                     L_DESCRIPTION[75],
+                     L_CODE[7],
+                     l_system_id[15],
+                     l_csexec_application[25],
+                     l_cancellation_string[28],
+                     l_policy_update_string[17],
+                     l_continue_1[3]="",
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_dec[15]="",
+                     l_app[3]="cup" ;
+
+        local signed ascii number l_irpm_total[6]=0;
+
+        include "print.var"
+
+        include "virtualdecs.var"
+
+        Access cppUMBRELLA,
+           Set cppUMBRELLA:policy_NO    = G_policy_NO ,
+               cppumbrella:pol_year     = g_year,
+               cppumbrella:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "redisplay" display/noreturn "cppmtmso009" ;
+
+        "J" Display "cppmtmso999a" tagged trans_eff_fn;
+
+        "func99" sequence "updatefiles" tagged update_fn ;
+        "updatefiles" Continue Begin
+                               access sfsline, set sfsline:company_id = sfpname:company_id,
+                                                   sfsline:line_of_business = sfpname:line_of_business,
+                                                   sfsline:lob_subline = "00", generic
+
+                               if sfsline:lob_code not one of "CPORTFOLIO" then
+                                   begin
+                                   if g_opt not one of 99 then
+                                       begin
+                                       l_continue_1 = dialog("UPDATE","warning.bmp","You are about to update your changes, do you wish to continue?","Yes", "No")
+                                       switch(l_continue_1)
+                                         case "Yes" : begin
+                                                      do update_files
+                                                      l_screen = "sfplib"
+                                                      FUNCTION = "returntoscreen"
+                                                      end
+                                         end
+                                       end
+                                   else
+                                       error "Your are not allowed to update in inquiry"
+                                   end
+                               End ;
+
+        "Exit" sequence "mnt_inq"  tagged exit_fn ;
+        "Back" sequence "mnt_inq"  tagged back_fn ;
+        "mnt_inq" continue begin
+                           access sfsline, set sfsline:company_id = sfpname:company_id,
+                                               sfsline:line_of_business = sfpname:line_of_business,
+                                               sfsline:lob_subline = "00", generic
+
+                           if sfsline:lob_code one of "CPORTFOLIO" then
+                               l_screen = "lmplib"
+                           else
+                               begin
+                               if g_inquiry = "N" then
+                                   l_screen = "sfplib"
+                               else
+                                   l_screen = "sfplibi"
+                               end
+                           function = "returntoscreen"
+                           end ;
+        "returntoscreen" Screenlib l_screen ;
+
+        "add" sequence "new|final|redisplay" tagged add_fn ;
+        "new" add/hidden ;
+
+        "change" sequence "chg|final|redisplay" tagged change_fn ;
+        "chg" change/hidden ;
+
+        "loc" sequence "addloc|add|back" ;
+        "addloc" display "sfpmt004" ;
+
+        "update_totals" sequence "final|redisplay" ;
+
+        "final" continue begin
+                         do update_final_rating
+                         end ;
+
+        "func1" sequence "worksheet"  tagged worksheet_fn ;
+        "worksheet" continue begin
+                             do create_macro
+                             end ;
+        "func2" display "sfpmt004"    tagged location_fn ;
+        "func3" display "cppmtmso950" tagged opt_end_fn ;
+        "func4" display "sfpmt002"    tagged mtg_fn ;
+        "func5" display "sfpmt003"    tagged misc_fn ;
+        "func6" display "sfpmt005"    tagged notes_fn ;
+        "func7" display "cppmtmso009d" tagged master_fn ;
+        "func8" display "cppmtmso009a" tagged auto_fn ;
+        "func9" display "cppmtmso009b" tagged premises_fn ;
+        "func10" display "cppmtmso009c" tagged products_fn ;
+        "func11" display "cppmtmso900"  tagged detail_fn ;
+        "func12" display "cppmtmso997"  tagged minimum_premiums_fn ;
+        "func13" display "cppmtmso998"  tagged increased_limits_fn ;
+        "func14" display "cppmtmso009f" tagged auto_mp_fn ;
+        "func15" display "cppmtmso009g" tagged business_desc_fn ;
+
+        Include "stdfunc7b.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+        include "cupmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cuptoolbar7.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "stdupdatetoolbar7.inc"
+
+}
+
+screen entry
+if g_end_sequence = 9999 then
+disable(update_fn)
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                      sfpmaster:pol_year     = g_year,
+                      sfpmaster:end_sequence = g_end_sequence, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+if g_line_of_business = 0 then
+    g_line_of_business = sfpname:line_of_business
+
+l_username = username
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+l_system_id = "cup"
+include "rating_security.inc"
+
+if sfpname:company_id = "LEBINS" then
+    hide(misc_rating_fn)
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+if sfscompany:boiler_rating <> 4 then
+    hide(risk_type_fn)
+
+if function one of "LINE_OF_BUSINESS_SCREEN", "UP" and
+   g_inquiry not one of "Y" and
+   sfpmaster:trans_code not one of 11 then
+    begin
+    function = "update_totals"
+    end
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+raisecard(final_rating)
+
+access validation
+if cppumbrella:policy_no    <> g_policy_no or
+   cppumbrella:pol_Year     <> g_year or
+   cppumbrella:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+screen at 2,1 to 25, 81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppUMBRELLA:policy_NO    = G_policy_NO
+            cppumbrella:pol_year     = g_year
+            cppumbrella:end_sequence = g_end_sequence
+            End
+        End
+        cppUMBRELLA:policy_NO/displayonly ;
+302     cppumbrella:pol_year/displayonly ;
+303     cppumbrella:end_sequence/displayonly ;
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Rating Information"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| State: __  _______________   County:   ___  ______________________________   |
+*------------------------------------------------------------------------------*
+| Business Desc: ______________________________ ______________________________ |
+*---------------------------------------------*--------------------------------*
+| Each Occurrence:                __________  | Receipts:     ___________      |
+| Personal/Advertising Injury:    __________  | Payroll:      ___________      |
+| Products/Completed Operations:  __________  | No Vehicles:  ____             |
+| General Aggregate Limit:        __________  | Office:       _                |
+|                                             | Liquor:       _                |
+*---------------------------------------------*--------------------------------*
+
+%%
+
+components
+
+fields
+201     begin
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            if cpsumdefault:line_of_business = sfpname:line_of_business and
+               cpsumdefault:lob_state <> 0 then
+                cppumbrella:state = cpsumdefault:lob_state
+            else
+                cppUMBRELLA:STATE = CPSUMDEFAULT:STATE
+            end
+        end
+        cppUMBRELLA:STATE/default
+        Include "statehlp.inc"
+202     SFSSTATE:DESCRIPTION;
+203     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            cppumbrella:line_of_business = g_line_of_business
+            if sfsline:lob_code one of "CPORTFOLIO" then
+                begin
+                access sfpmastsupp, set sfpmastsupp:policy_no        = g_policy_no,
+                                        sfpmastsupp:pol_year         = g_year,
+                                        sfpmastsupp:end_sequence     = g_end_Sequence,
+                                       sfpmastsupp:line_of_business = g_line_of_business, generic
+
+                if sfpmastsupp:policy_no        <> g_policy_no or
+                   sfpmastsupp:pol_year         <> g_year or
+                   sfpmastsupp:end_sequence     <> g_end_sequence or
+                   sfpmastsupp:line_of_business <> g_line_of_business then
+                    begin
+                    add sfpmastsupp
+                        begin
+                        sfpmastsupp:policy_no        = g_policy_no
+                        sfpmastsupp:pol_Year         = g_year
+                        sfpmastsupp:end_sequence     = g_end_sequence
+                        sfpmastsupp:line_of_business = g_line_of_business
+                        end
+                    end
+                end
+            else
+                begin
+                access sfpmaster, set sfpmaster:policy_no    = g_policy_no,
+                                      sfpmaster:pol_year     = g_year,
+                                      sfpmaster:end_sequence = g_end_sequence, generic
+
+                if sfpmaster:policy_no    <> g_policy_no or
+                   sfpmaster:pol_year     <> g_year or
+                   sfpmaster:end_sequence <> g_end_sequence then
+                    begin
+                    add sfpmaster
+                        begin
+                        sfpmaster:policy_no    = g_policy_no
+                        sfpmaster:pol_Year     = g_year
+                        sfpmaster:end_sequence = g_end_sequence
+                        end
+                    display modal screen "cppmtmso009d"
+                    with initial function "CHANGE|BACK"
+                    end
+                end
+            end
+
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            if cpsumdefault:line_of_business = sfpname:line_of_business and
+               cpsumdefault:lob_county <> 0 then
+                cppumbrella:county = cpsumdefault:lob_county
+            else
+                cppUMBRELLA:COUNTY = CPSUMDEFAULT:COUNTY
+            end
+        End
+        cppUMBRELLA:COUNTY/default
+        Include "countyhlp.inc"
+204     SFSSTATE_ALIAS:DESCRIPTION;
+
+401     cppumbrella:business_desc[1]/uppercase ;
+402     cppumbrella:business_desc[2]/uppercase ;
+
+601     Begin
+        cppumbrella:territory = cpsumterritory:territory
+        l_occurrence = cppumbrella:occurrence
+        If FUNCTION one of "ADD", "NEW" Then
+            cppUMBRELLA:OCCURRENCE = CPSUMDEFAULT:OCCURRENCE
+        End
+        cppUMBRELLA:OCCURRENCE/default/mask="ZZZ,ZZZ,ZZZ"
+        If cppUMBRELLA:OCCURRENCE <> CPSUMLIMITS:LIMIT Then
+            Error 1238
+
+        Activehelp CPSUMLIMITS_ALIAS:LIMIT ;
+701     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppUMBRELLA:PERSONAL_ADD_INJURY = cppUMBRELLA:OCCURRENCE
+            cppUMBRELLA:PRODUCTS = cppUMBRELLA:OCCURRENCE
+            cppUMBRELLA:GENERAL_AGGREGATE = cppUMBRELLA:OCCURRENCE
+            End
+        if function one of "CHANGE", "CHG" and
+           cppumbrella:occurrence <> l_occurrence then
+            begin
+            cppUMBRELLA:PERSONAL_ADD_INJURY = cppUMBRELLA:OCCURRENCE
+            cppUMBRELLA:PRODUCTS = cppUMBRELLA:OCCURRENCE
+            cppUMBRELLA:GENERAL_AGGREGATE = cppUMBRELLA:OCCURRENCE
+            End
+        End
+        cppUMBRELLA:PERSONAL_ADD_INJURY/default/mask="ZZZ,ZZZ,ZZZ"
+        Activehelp CPSUMLIMITS_ALIAS:LIMIT ;
+801     cppUMBRELLA:PRODUCTS/default/mask="ZZZ,ZZZ,ZZZ"
+        Activehelp CPSUMLIMITS_ALIAS:LIMIT ;
+901     cppUMBRELLA:GENERAL_AGGREGATE/default/mask="ZZZ,ZZZ,ZZZ"
+        Activehelp CPSUMLIMITS_ALIAS:LIMIT ;
+
+602     cppUMBRELLA:RECEIPTS/mask="ZZZ,ZZZ,ZZZ"
+        hide if sfscompany:boiler_rating <> 4
+        if cppumbrella:receipts = 0 and
+           sfpname:eff_date >= 11.01.2008 then
+            error "You must enter receipts" ;
+602     cppumbrella:receipts/mask="ZZZ,ZZZ,ZZZ"
+        hide if sfscompany:boiler_rating = 4 ;
+702     cppUMBRELLA:PAYROLL/mask="ZZZ,ZZZ,ZZZ" ;
+802     cppumbrella:no_vehicles ;
+902     cppumbrella:office/checkbox/values="0,1" ;
+1001    cppumbrella:liquor/checkbox/values="0,1" ;
+
+}
+
+Panel tagged misc_rating_fn
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Other Rating Information"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| MOTEL/HOTEL:          No Rooms: ____ Stories: _   Pool:      _               |
+| DIRECTORS/OFFICER:              _    Premium: ________                       |
+| HABITATIONAL: Low     Units:    ___  Age:     ___ Stories:   _               |
+|                       Pool:     _    Urban:   _   Charge:    ___             |
+| HABITATIONAL: Medium  Units:    ___  Age:     ___ Stories:   _               |
+|                       Pool:     _    Urban:   _   Charge:    ___             |
+| HABITATIONAL: High    Units:    ___  Age:     ___ Stories:   _               |
+|                       Pool:     _    Urban:   _   Charge:    ___             |
+*------------------------------------------------------------------------------*
+| Motel/Hotel:     __________         Directors/Officer:      ___________      |
+| Habitational:    __________                                                  |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     begin
+        if function one of "ADD", "NEW", "CHANGE", "CHG" then
+            begin
+            do umbrella_maximums
+            end
+        end
+        cppumbrella:per_room
+        l_per_room= cppumbrella:per_room
+        if cppumbrella:per_room > l_motel_maximum then
+            warning "Your are over the maximum allowed rooms"
+        if cppumbrella:per_room = 0 then
+            begin
+            cppumbrella:stories[1] = 0
+            cppumbrella:pool[1] = 0
+            cppumbrella:total_premium[1] = 0
+            end ;
+202     cppumbrella:stories[1]
+        if cppumbrella:stories[1] > l_motel_stories then
+            warning "Your are over the maximum allowed stories"
+        hide if cppumbrella:per_room = 0 ;
+203     cppumbrella:pool[1]/checkbox/values="0,1"
+        hide if cppumbrella:per_room = 0 ;
+
+-- directors/officers
+301     cppumbrella:directors_officer/checkbox/values="0,1"
+        if cppumbrella:directors_officer = 0 then
+            cppumbrella:director_premium = 0 ;
+302     cppumbrella:director_premium
+        hide if cppumbrella:directors_officer = 0 ;
+
+-- habitational low
+401     cppumbrella:apt_units
+        if cppumbrella:directors_officer = 0 then
+            cppumbrella:total_premium[2] = 0
+        if cppumbrella:apt_units = 0 then
+            begin
+            cppumbrella:age = 0
+            cppumbrella:stories[2] = 0
+            cppumbrella:pool[2] = 0
+            cppumbrella:urban = 0
+            cppumbrella:apt_charge = 0
+            end ;
+402     cppumbrella:age
+        hide if cppumbrella:apt_units = 0 ;
+403     begin
+            l_stories = cppumbrella:stories[2]
+        end
+        cppumbrella:stories[2]
+        if cppumbrella:stories[2] > l_apt_stories then
+            warning "Your are over the maximum allowed stories"
+        hide if cppumbrella:apt_units = 0 ;
+501     cppumbrella:pool[2]/checkbox/values="0,1"
+        hide if cppumbrella:apt_units = 0 ;
+502     cppumbrella:urban/checkbox/values="0,1"
+        hide if cppumbrella:apt_units = 0 ;
+503     begin
+        if function one of "ADD", "NEW" or
+           l_stories <> cppumbrella:stories[2] then
+            begin
+            do apt_charge
+            cppumbrella:apt_charge = l_apt_charge
+            end
+        end
+        cppumbrella:apt_charge/default
+        hide if cppumbrella:apt_units = 0 ;
+
+-- habitational medium
+601     cppumbrella:apt_units_1[1]
+        if cppumbrella:apt_units_1[1] = 0 then
+            begin
+            cppumbrella:age_1[1] = 0
+            cppumbrella:stories_1[1] = 0
+            cppumbrella:pool_1[1] = 0
+            cppumbrella:urban_1[1] = 0
+            cppumbrella:apt_charge_1[1] = 0
+            end ;
+602     cppumbrella:age_1[1]
+        hide if cppumbrella:apt_units_1[1] = 0 ;
+603     begin
+            l_stories = cppumbrella:stories_1[1]
+        end
+        cppumbrella:stories_1[1]
+        if cppumbrella:stories_1[1] > l_apt_stories then
+            warning "Your are over the maximum allowed stories"
+        hide if cppumbrella:apt_units_1[1] = 0 ;
+701     cppumbrella:pool_1[1]/checkbox/values="0,1"
+        hide if cppumbrella:apt_units_1[1] = 0 ;
+702     cppumbrella:urban_1[1]/checkbox/values="0,1"
+        hide if cppumbrella:apt_units_1[1] = 0 ;
+703     begin
+        if function one of "ADD", "NEW" or
+           l_stories <> cppumbrella:stories_1[1] then
+            begin
+            do apt_charge_1
+            cppumbrella:apt_charge_1[1] = l_apt_charge
+            end
+        end
+        cppumbrella:apt_charge_1[1]/default
+        hide if cppumbrella:apt_units_1[1] = 0 ;
+
+-- habitational high
+801     cppumbrella:apt_units_1[2]
+        if cppumbrella:apt_units_1[2] = 0 then
+            begin
+            cppumbrella:age_1[2] = 0
+            cppumbrella:stories_1[2] = 0
+            cppumbrella:pool_1[2] = 0
+            cppumbrella:urban_1[2] = 0
+            cppumbrella:apt_charge_1[2] = 0
+            end ;
+802     cppumbrella:age_1[2]
+        hide if cppumbrella:apt_units_1[2] = 0 ;
+803     begin
+            l_stories = cppumbrella:stories_1[2]
+        end
+        cppumbrella:stories_1[2]
+        if cppumbrella:stories_1[2] > l_apt_stories then
+            warning "Your are over the maximum allowed stories"
+        hide if cppumbrella:apt_units_1[2] = 0 ;
+901     cppumbrella:pool_1[2]/checkbox/values="0,1"
+        hide if cppumbrella:apt_units_1[2] = 0 ;
+902     cppumbrella:urban_1[2]/checkbox/values="0,1"
+        hide if cppumbrella:apt_units_1[2] = 0 ;
+903     begin
+        if function one of "ADD", "NEW" or
+           l_stories <> cppumbrella:stories_1[2] then
+            begin
+            do apt_charge_2
+            cppumbrella:apt_charge_1[2] = l_apt_charge
+            end
+        end
+        cppumbrella:apt_charge_1[2]/default
+        hide if cppumbrella:apt_units_1[2] = 0 ;
+
+1101    begin
+        do umbrella_rates
+        if l_per_room <> 0 then
+            begin
+            cppumbrella:total_premium[1] = l_hotel_charge * l_per_room
+            if cppumbrella:occurrence > cpsumdefault:occurrence then
+                begin
+                l_hotel_total = cppumbrella:total_premium[1]
+                l_repeat = ((cppumbrella:occurrence - cpsumdefault:occurrence)
+                           divide cpsumdefault:occurrence)
+
+                l_sub = 1
+                while l_sub <= l_repeat
+                     begin
+                     l_hotel_total = l_hotel_total *
+                                     l_hotel_each_addl
+                     cppumbrella:total_premium[1] = cppumbrella:total_premium[1] +
+                                                  l_hotel_total
+                     l_sub = l_sub + 1
+                     end
+                end
+            end
+
+        l_repeat = cppumbrella:occurrence divide cpsumdefault:occurrence
+        if cppumbrella:directors_officer = 1 and
+           cppumbrella:director_premium = 0 then
+            cppumbrella:total_premium[2] = (cppumbrella:director_premium +
+                                           (l_directors_charge *
+                                           l_repeat))
+        if cppumbrella:directors_officer = 1 and
+           cppumbrella:director_premium <> 0 then
+            cppumbrella:total_premium[2] = cppumbrella:director_premium
+        cppumbrella:total_premium[3] = 0
+        if cppumbrella:apt_units <> 0 then
+            cppumbrella:total_premium[3] = cppumbrella:apt_charge *
+                                           cppumbrella:apt_units
+        if cppumbrella:apt_units_1[1] <> 0 then
+            cppumbrella:total_premium[3] = ((cppumbrella:apt_charge_1[1] *
+                                           cppumbrella:apt_units_1[1]) +
+                                           cppumbrella:total_premium[3])
+        if cppumbrella:apt_units_1[2] <> 0 then
+            cppumbrella:total_premium[3] = ((cppumbrella:apt_charge_1[2] *
+                                           cppumbrella:apt_units_1[2]) +
+                                           cppumbrella:total_premium[3])
+        end
+        cppumbrella:total_premium[1]/displayonly ;
+1102    cppumbrella:total_premium[2]/displayonly ;
+1201    cppumbrella:total_premium[3]/displayonly ;
+
+}
+
+Panel tagged risk_type_fn
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Risk Type"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Risk Type: __  ___________________________________________________________   |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     cppumbrella:risk_type
+        if cppumbrella:risk_type <> cpsumrisk:risk_type or
+           cpsumrisk:risk_type = 0 then
+            error "Invalid Code Entered"
+
+        activehelp cpsumrisk_alias:risk_type,
+                   cpsumrisk_alias:description ;
+202     cpsumrisk:description ;
+
+}
+
+panel tagged final_rating
+properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Totals"
+        }
+{
+%%
+
+%%
+
+components
+        subscreen at 1,1 to 26, 80
+                properties
+                        {
+                        screen = "cppmtmso999"
+                        }
+
+}
+
+}
+
+}
+
+Update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "ADD", "NEW" then
+        begin
+        g_state = cppumbrella:state
+        display modal screen "cppmtmso009a"
+
+        display modal screen "cppmtmso009b"
+
+        display modal screen "cppmtmso009c"
+
+        display modal screen "cppmtmso900"
+        end
+
+    if function one of "ADD", "NEW", "CHANGE", "CHG" then
+        begin
+        access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                               cpsumrates:state = cppumbrella:state,
+                               cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+        l_code_1 = ""
+        l_code_2 = ""
+        l_code_3 = ""
+        l_code_4 = ""
+        l_code_5 = ""
+        l_code_6 = ""
+        while cpsumrates:company_id = sfpname:company_id and
+              cpsumrates:state = cppumbrella:state and
+              cpsumrates:line_of_business = cppumbrella:line_of_business
+                begin
+                if sfpname:eff_date => cpsumrates:eff_date then
+                    begin
+                    l_code_1 = cpsumrates:trigger_codes[5] -- MCL722
+                    l_code_2 = cpsumrates:trigger_codes[6] -- MCL723
+                    l_code_3 = cpsumrates:trigger_codes[7] -- MCL724
+                    l_code_4 = cpsumrates:trigger_codes[8] -- MCL725
+                    l_code_5 = cpsumrates:trigger_codes[10] -- LMIC802
+                    l_code_6 = cpsumrates:trigger_codes[12] -- MCL753
+                    end -- end of eff_date
+
+                next cpsumrates
+                end -- end of while
+
+        if l_code_1 <> "" then
+            begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If l_add_endorsement = "Y" and
+               cppumbrella:personal_add_injury <> 0 Then
+                Do ADD_sfpEND
+            end
+
+        if l_code_2 <> "" then
+            begin
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND
+            If l_add_endorsement = "Y" and
+               cppumbrella:personal_add_injury = 0 Then
+                Do ADD_sfpEND
+            end
+
+        if l_code_3 <> "" then
+            begin
+            L_CODE = L_CODE_3
+            Do ACCESS_sfpEND
+            If l_add_endorsement = "Y" and
+               cppumbrella:products <> 0 Then
+                Do ADD_sfpEND
+            end
+
+        if l_code_4 <> "" then
+            begin
+            L_CODE = L_CODE_4
+            Do ACCESS_sfpEND
+            If l_add_endorsement = "Y" and
+               cppumbrella:products = 0 Then
+                Do ADD_sfpEND
+            end
+
+        if l_code_5 <> "" then
+            begin
+            L_CODE = L_CODE_5
+            Do ACCESS_sfpEND
+            If l_add_endorsement = "Y" and
+               sfpname:bill_plan = "DB" Then
+                Do ADD_sfpEND
+            If l_add_endorsement = "N" and
+               sfpname:bill_plan <> "DB" Then
+                Do DELETE_sfpEND
+            end
+
+        if l_code_6 <> "" then
+            begin
+            L_CODE = L_CODE_6
+            Do ACCESS_sfpEND
+            If l_add_endorsement = "Y" and
+               cppumbrella:liquor = 1 Then
+                Do ADD_sfpEND
+            If l_add_endorsement = "N" and
+               cppumbrella:liquor = 0 Then
+                Do DELETE_sfpEND
+            end
+
+        if cppumbrella:personal_add_injury = 0 then
+            begin
+            if l_code_1 <> "" then
+                begin
+                L_CODE = L_CODE_1
+                do delete_sfpend
+                end
+            end
+        else
+            begin
+            if l_code_2 <> "" then
+                begin
+                l_code = l_code_2
+                do delete_sfpend
+                end
+            end
+
+        if cppumbrella:products = 0 then
+            begin
+            if l_code_3 <> "" then
+                begin
+                L_CODE = L_CODE_3
+                do delete_endorsement
+                end
+            end
+        else
+            begin
+            if l_code_4 <> "" then
+                begin
+                l_code = l_code_4
+                do delete_endorsement
+                end
+            end
+
+        end
+
+    end
+
+screen exit
+g_state = cppumbrella:state ;
+
+procedure definition
+
+procedure update_final_rating
+begin
+
+postevent("cppmtmso999","reload")
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = G_PREM_NO,
+                   sfpEND:BUILD_NO     = G_BUILD_NO, Generic
+
+l_add_endorsement = "Y"
+while sfpEND:policy_NO    = G_policy_NO and
+      sfpend:pol_year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO      = G_PREM_NO and
+      sfpEND:BUILD_NO     = G_BUILD_NO
+        begin
+        If sfpEND:CODE = L_CODE and
+           sfpend:lob_end_code = "U" Then
+            l_add_Endorsement = "N"
+
+        Next sfpEND
+        End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = G_PREM_NO,
+                   sfpEND:BUILD_NO     = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+while sfpEND:policy_NO    = G_policy_NO and
+      sfpend:pol_year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO      = G_PREM_NO and
+      sfpEND:BUILD_NO     = G_BUILD_NO
+        begin
+        L_SUB_CODE = sfpEND:SUB_CODE
+
+        Next sfpEND
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppumbrella_ALIAS, Set cppumbrella_ALIAS:policy_NO    = G_policy_NO,
+                              cppumbrella_alias:pol_Year     = g_year,
+                              cppumbrella_alias:end_sequence = g_end_sequence, generic
+
+L_STATE = cppumbrella:state
+l_line_of_business = cppumbrella:line_of_business
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+While SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID and
+      SFSOPTEND:STATE = L_STATE and
+      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+      SFSOPTEND:CODE = L_CODE
+        begin
+        If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+           (sfpname:eff_date <= sfsoptend:exp_date or
+           sfsoptend:exp_date = 0)) Then
+            Begin
+            L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+            L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+            End
+
+        Next SFSOPTEND
+        End
+
+if l_form_edition <> "" then
+begin
+add sfpEND
+    Begin
+    sfpend:policy_no            =       cppumbrella:policy_no
+    sfpend:pol_Year             =       cppumbrella:pol_year
+    sfpend:end_sequence         =       cppumbrella:end_sequence
+    sfpend:prem_no              =       1
+    sfpend:build_no             =       1
+    sfpend:sub_code             =       l_sub_code
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:lob_end_code         =       "U"
+    sfpend:terrorism_Form       =       0
+    end
+end
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND_alt, Set sfpEND_alt:policy_NO    = cppumbrella:policy_NO ,
+                       sfpend_alt:pol_year     = cppumbrella:pol_year,
+                       sfpend_alt:end_sequence = cppumbrella:end_sequence,
+                       sfpEND_alt:PREM_NO      = L_PREM_NO,
+                       sfpEND_alt:BUILD_NO     = L_BUILD_NO, Generic
+
+while sfpEND_alt:policy_NO    = cppumbrella:policy_NO and
+      sfpend_alt:pol_year     = cppumbrella:pol_year and
+      sfpend_alt:end_sequence = cppumbrella:end_sequence and
+      sfpEND_alt:PREM_NO      = L_PREM_NO and
+      sfpEND_alt:BUILD_NO     = L_BUILD_NO
+        begin
+        If sfpEND_alt:CODE = L_CODE Then
+            Delete sfpEND_alt
+
+        Next sfpEND_alt
+        End
+
+End
+
+Procedure DELETE_ENDORSEMENT
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND_alias, Set sfpEND_alias:policy_NO    = cppumbrella:policy_NO ,
+                         sfpend_alias:pol_year     = cppumbrella:pol_year,
+                         sfpend_alias:end_sequence = cppumbrella:end_sequence,
+                         sfpEND_alias:PREM_NO      = L_PREM_NO,
+                         sfpEND_alias:BUILD_NO     = L_BUILD_NO, Generic
+
+while sfpEND_alias:policy_NO    = cppumbrella:policy_NO and
+      sfpend_alias:pol_year     = cppumbrella:pol_year and
+      sfpend_alias:end_sequence = cppumbrella:end_sequence and
+      sfpEND_alias:PREM_NO      = L_PREM_NO and
+      sfpEND_alias:BUILD_NO     = L_BUILD_NO
+        begin
+        If sfpEND_alias:CODE = L_CODE Then
+            Delete sfpEND_alias
+
+        Next sfpEND_alias
+        End
+
+End
+
+procedure apt_charge
+begin
+access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                       cpsumrates:state = cppumbrella:state,
+                       cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumrates:company_id = sfpname:company_id and
+      cpsumrates:state = cppumbrella:state and
+      cpsumrates:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date >= cpsumrates:eff_date then
+            begin
+            if cppumbrella:state = 19 then
+                l_apt_charge = cpsumrates:apt_rate[1]
+            else
+                begin
+                if cppumbrella:stories[2] <= cpsumrates:apt_stories[1] then
+                    l_apt_charge = cpsumrates:apt_rate[1]
+                else
+                if cppumbrella:stories[2] > cpsumrates:apt_stories[1] and
+                   cppumbrella:stories[2] <= cpsumrates:apt_stories[2] then
+                    l_apt_charge = cpsumrates:apt_rate[2]
+                else
+                if cppumbrella:stories[2] > cpsumrates:apt_stories[2] then
+                    l_apt_charge = cpsumrates:apt_rate[3]
+                end
+            end
+
+        next cpsumrates
+        end
+
+end
+
+procedure apt_charge_1
+begin
+access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                       cpsumrates:state = cppumbrella:state,
+                       cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumrates:company_id = sfpname:company_id and
+      cpsumrates:state = cppumbrella:state and
+      cpsumrates:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date >= cpsumrates:eff_date then
+            begin
+            if cppumbrella:state = 19 then
+                l_apt_charge = cpsumrates:apt_rate[2]
+            else
+                begin
+                if cppumbrella:stories_1[1] <= cpsumrates:apt_stories[1] then
+                    l_apt_charge = cpsumrates:apt_rate[1]
+                else
+                if cppumbrella:stories_1[1] > cpsumrates:apt_stories[1] and
+                   cppumbrella:stories_1[1] <= cpsumrates:apt_stories[2] then
+                    l_apt_charge = cpsumrates:apt_rate[2]
+                else
+                if cppumbrella:stories_1[1] > cpsumrates:apt_stories[2] then
+                    l_apt_charge = cpsumrates:apt_rate[3]
+                end
+            end
+
+        next cpsumrates
+        end
+
+end
+
+procedure apt_charge_2
+begin
+access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                       cpsumrates:state = cppumbrella:state,
+                       cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumrates:company_id = sfpname:company_id and
+      cpsumrates:state = cppumbrella:state and
+      cpsumrates:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date >= cpsumrates:eff_date then
+            begin
+            if cppumbrella:state = 19 then
+                l_apt_charge = cpsumrates:apt_rate[3]
+            else
+                begin
+                if cppumbrella:stories_1[2] <= cpsumrates:apt_stories[1] then
+                    l_apt_charge = cpsumrates:apt_rate[1]
+                else
+                if cppumbrella:stories_1[2] > cpsumrates:apt_stories[1] and
+                   cppumbrella:stories_1[2] <= cpsumrates:apt_stories[2] then
+                    l_apt_charge = cpsumrates:apt_rate[2]
+                else
+                if cppumbrella:stories_1[2] > cpsumrates:apt_stories[2] then
+                    l_apt_charge = cpsumrates:apt_rate[3]
+                end
+            end
+
+        next cpsumrates
+        end
+
+end
+
+procedure umbrella_maximums
+begin
+access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                       cpsumrates:state = cppumbrella:state,
+                       cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumrates:company_id = sfpname:company_id and
+      cpsumrates:state = cppumbrella:state and
+      cpsumrates:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date >= cpsumrates:eff_date then
+            begin
+            l_motel_maximum = cpsumrates:motel_maximum
+            l_motel_stories = cpsumrates:motel_stories
+            l_apt_stories = cpsumrates:apt_stories[3]
+            end
+
+        next cpsumrates
+        end
+
+end
+
+procedure umbrella_rates
+begin
+access cpsumrates, set cpsumrates:company_id = sfpname:company_id,
+                       cpsumrates:state = cppumbrella:state,
+                       cpsumrates:line_of_business = cppumbrella:line_of_business, generic
+
+while cpsumrates:company_id = sfpname:company_id and
+      cpsumrates:state = cppumbrella:state and
+      cpsumrates:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date >= cpsumrates:eff_date then
+            begin
+            switch(cppumbrella:pool[1])
+              case 0  : switch(cppumbrella:territory)
+                          case 1  : l_hotel_charge = cpsumrates:hotel_no_pool[1]
+                          default : l_hotel_charge = cpsumrates:hotel_no_pool[2]
+                          end
+              default : switch(cppumbrella:territory)
+                          case 1  : l_hotel_charge = cpsumrates:hotel_pool[1]
+                          default : l_hotel_charge = cpsumrates:hotel_pool[2]
+                          end
+              end
+
+            l_hotel_increase = cpsumrates:hotel_each_addl
+            l_directors_charge = cpsumrates:directors_surcharge
+            l_directors_per = cpsumrates:directors_per
+            l_apt_per = cpsumrates:apt_per
+            end
+
+        next cpsumrates
+        end
+
+end
+
+Procedure UPDATE_FILES
+Begin
+Access SFPMASTER, Set SFPMASTER:POLICY_NO    = G_POLICY_NO,
+                      SFPMASTER:POL_YEAR     = G_YEAR,
+                      SFPMASTER:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    Access sfpmastsupp, Set sfpmastsupp:POLICY_NO        = G_POLICY_NO,
+                            sfpmastsupp:POL_YEAR         = G_YEAR,
+                            sfpmastsupp:END_SEQUENCE     = G_END_SEQUENCE,
+                            sfpmastsupp:line_of_business = g_line_of_business, Generic
+
+    i_trans_code = sfpmaster:trans_code
+    If SFPMASTER:TRANS_CODE = 12 And
+       sfpmastsupp:AMT_DUE_TOTAL[20] < 0 Then
+        I_TRANS_CODE = 13
+
+    If SFPMASTER:TRANS_CODE = 13 And
+       sfpmastsupp:amt_due_total[20] > 0 Then
+        I_TRANS_CODE = 12
+    end
+else
+    begin
+    i_trans_code = sfpmaster:trans_code
+    If SFPMASTER:TRANS_CODE = 12 And
+       sfpmaster:AMT_DUE_TOTAL[20] < 0 Then
+        I_TRANS_CODE = 13
+
+    If SFPMASTER:TRANS_CODE = 13 And
+       sfpmaster:amt_due_total[20] > 0 Then
+        I_TRANS_CODE = 12
+    end
+
+If SFPMASTER:POLICY_NO    = G_POLICY_NO And
+   SFPMASTER:POL_YEAR     = G_YEAR And
+   SFPMASTER:END_SEQUENCE = G_END_SEQUENCE Then
+    Change SFPMASTER
+        Begin
+        SFPMASTER:TRANS_CODE          = I_TRANS_CODE
+        SFPMASTER:POLICY_UPDATED      = "Y"
+        SFPMASTER:PREMIUM_TRANS_DATE  = TODAYSDATE
+        End
+
+L_POLICY_UPDATE_STRING = Str(G_POLICY_NO,9) + Str(G_YEAR,4) + Str(G_END_SEQUENCE,4)
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Proc("cli csbatch cupup300 %s",L_POLICY_UPDATE_STRING)/noconsole
+Else
+    Proc("cli csbatch cupup300 %s",L_POLICY_UPDATE_STRING)
+
+Access SFPMASTER, Set SFPMASTER:POLICY_NO    = G_POLICY_NO,
+                      SFPMASTER:POL_YEAR     = G_YEAR,
+                      SFPMASTER:END_SEQUENCE = G_END_SEQUENCE, Exact
+
+If SFPMASTER:TRANS_CODE = 11 Then
+    Begin
+    Do DELETE_SFPRENEWSUS
+
+    If SFPMASTER:RENEWAL_PROCESS = "Y" Then
+        Begin
+        Change SFPMASTER
+            Begin
+            SFPMASTER:RENEWAL_PROCESS  = "N"
+            SFPMASTER:RENEWED          = "N"
+            SFPMASTER:RENEWAL_OVERRIDE = "N"
+            SFPMASTER:RENEWAL_MANUAL   = "N"
+            End
+        End
+
+    G_COMPANY_ID = SFPNAME:COMPANY_ID
+    Display Modal Screen "sfsmt118"
+
+    L_MM = Month(TODAYSDATE)
+    L_DD = Day(TODAYSDATE)
+    L_YY = Year(TODAYSDATE)
+    L_CANCELLATION_STRING = "1" + Str(G_POLICY_NO,9) + Str(L_MM,2) +
+                            Str(L_DD,2) + Str(L_YY,4) + G_QUE
+    Proc("cli csbatch arsup920 %s",L_CANCELLATION_STRING)/noconsole  --added june 9th 2006
+
+    End
+
+If SFPMASTER:TRANS_CODE = 12 Or
+   SFPMASTER:TRANS_CODE = 13 Then
+    Begin
+    Display Modal Screen "sfpmt006"
+    End
+
+End
+
+Procedure DELETE_SFPRENEWSUS
+Begin
+Access SFPRENEWSUS, Set SFPRENEWSUS:POLICY_NO = G_POLICY_NO,
+                        SFPRENEWSUS:POL_YEAR  = G_YEAR, Generic
+
+If SFPRENEWSUS:POLICY_NO = G_POLICY_NO And
+   SFPRENEWSUS:POL_YEAR  = G_YEAR Then
+    Begin
+    Delete SFPRENEWSUS
+    End
+
+End
+
+Procedure CREATE_MACRO
+Begin
+Do REFRESH_WORK_FILES
+L_CSEXEC_APPLICATION = "PRINT"/raw
+
+Access SFSCSEXEC, Set SFSCSEXEC:APPLICATION = L_CSEXEC_APPLICATION , Exact
+
+If SFSCSEXEC:APPLICATION_NUMBER = 0 Then
+    Begin
+    L_CSEXEC_NUMBER = 99999
+    End
+Else
+    Begin
+    L_CSEXEC_NUMBER = SFSCSEXEC:APPLICATION_NUMBER + 1
+
+    Change SFSCSEXEC
+        Begin
+        SFSCSEXEC:APPLICATION_NUMBER = L_CSEXEC_NUMBER
+        End
+    End
+
+L_USERNAME = USERNAME
+I_REPORTA = "cuppr100"
+I_REPORT = "cuppr100.cq"
+I_REPORT_CQE = "cuppr100.cqe"
+I_APP = "cup"
+I_CSEXEC_NUMBER = L_CSEXEC_NUMBER
+L_DEC = L_APP+Str(I_CSEXEC_NUMBER)+".cq"
+L_DEC_PDF = L_APP+Str(I_CSEXEC_NUMBER)+".txt"
+I_PARAMETER = I_APP+Str(I_CSEXEC_NUMBER)+".par"
+I_MACROA = I_APP+Str(I_CSEXEC_NUMBER)
+I_MACRO = I_APP+Str(I_CSEXEC_NUMBER)+".mf"
+
+access sfpprint8, set sfpprint8:policy_no = g_policy_no,
+                      sfpprint8:pol_year = g_year,
+                      sfpprint8:end_sequence = g_end_sequence, generic
+
+if sfpprint8:policy_no <> g_policy_no or
+   sfpprint8:pol_Year <> g_year or
+   sfpprint8:end_sequence <> g_end_sequence then
+    begin
+    Add sfpprint8
+        Begin
+        sfpprint8:policy_NO = cppumbrella:policy_NO
+        sfpprint8:pol_year = cppumbrella:pol_year
+        sfpprint8:end_sequence = cppumbrella:end_sequence
+        end
+    End
+else
+    begin
+    delete sfpprint8
+    Add sfpprint8
+        Begin
+        sfpprint8:policy_NO = cppumbrella:policy_NO
+        sfpprint8:pol_year = cppumbrella:pol_year
+        sfpprint8:end_sequence = cppumbrella:end_sequence
+        end
+    End
+
+Deletefile(I_MACRO)
+Writefile(I_MACRO,"clear list<nl>")
+Writefile(I_MACRO,"clear find<nl>")
+Writefile(I_MACRO,"clear sum<nl>")
+Writefile(I_MACRO,"run cuppr100<nl>")
+Writefile(I_MACRO,"cli rm cuppr100.cq<nl>")
+Writefile(I_MACRO,"rsave cuppr100<nl>")
+Writefile(I_MACRO,"cli joinit cuppr100.cq %s<nl>",L_DEC)
+Closefile(I_MACRO)
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Proc("cli cq %s",I_MACRO)/noconsole
+Else
+    Proc("cli cq %s",I_MACRO)
+
+L_USERNAME = Trun(USERNAME)
+
+Access SFSPROFILE, Set SFSPROFILE:USER_ID = L_USERNAME, Exact
+
+If SFSPROFILE:USER_ID <> L_USERNAME Then
+    Begin
+    L_USERNAME = "default"
+    Access SFSPROFILE, Set SFSPROFILE:USER_ID = L_USERNAME, Exact
+    End
+
+L_UNIX_PATH   = SFSPROFILE:UNIX_PATH/raw
+L_UNIX_SERVER = SFSPROFILE:UNIX_SERVER/raw
+L_CLIENT_PATH = SFSPROFILE:CLIENT_PATH/raw
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Begin
+    Proc("cli mv %s %s",L_DEC,L_DEC_PDF)/noconsole
+    Proc("cli chmod 777 %s ",L_DEC_PDF)/noconsole
+    Proc("cli rm %s",L_DEC)/noconsole
+    Proc("cli mv %s %s %s", L_DEC_PDF," ",Trun(L_UNIX_PATH))/noconsole
+    End
+Else
+    Begin
+    Proc("cli mv %s %s",L_DEC,L_DEC_PDF)
+    Proc("cli chmod 777 %s ",L_DEC_PDF)
+    Proc("cli rm %s",L_DEC)
+    Proc("cli mv %s %s %s", L_DEC_PDF," ",Trun(L_UNIX_PATH))
+    End
+
+Proc("%s %s%s",L_CLIENT_PATH,Trun(L_UNIX_SERVER),Trun(L_DEC_PDF))/client/noconsole
+
+access sfpprint8, set sfpprint8:policy_no = g_policy_no,
+                      sfpprint8:pol_year = g_year,
+                      sfpprint8:end_sequence = g_end_sequence, generic
+
+delete sfpprint8
+
+Do REFRESH_WORK_FILES
+End
+
+Procedure REFRESH_WORK_FILES
+Begin
+Proc ("cli sfpprint8.mk")/noconsole
+End
+
+End

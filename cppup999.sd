@@ -1,0 +1,492 @@
+%%
+Program
+        Name = "cppup999" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat" ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_prem_no[4],
+                                     g_build_no[4];
+
+        Local Unsigned Ascii Number l_prem_no[4],
+                                    l_build_no[4],
+                                    l_state[2],
+                                    l_line_of_business[4]=0,
+                                    l_sub_code[4] ;
+
+        Local String L_FORM_EDITION[25],
+                     l_add_endorsement[1],
+                     l_company_id[10],
+                     L_DESCRIPTION[75],
+                     L_coverage[1],
+                     l_deleted[1]="N",
+                     L_CODE[7],
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_code_7[7],
+                     l_code_8[7],
+                     l_code_9[7],
+                     l_code_10[7],
+                     l_wc_1[1]="N",
+                     l_wc_2[1]="N",
+                     l_auto_1[1]="N",
+                     l_auto_2[1]="N",
+                     l_hired_1[1]="N",
+                     l_hired_2[1]="N",
+                     l_pi_1[1]="N",
+                     l_pi_2[1]="N",
+                     l_prod_1[1]="N",
+                     l_prod_2[1]="N",
+                     l_endorsement_exists[1]="N",
+                     l_change_code[7] ;
+
+        local date l_eff_date_1[8] ;
+
+initialisation
+g_policy_no = val(commandline[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+g_prem_no = 1
+g_build_no = 1
+
+do update_triggers
+
+update
+
+procedure definition
+
+procedure update_triggers
+begin
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access cppumbrella, set cppumbrella:policy_no = g_policy_no,
+                        cppumbrella:pol_year = g_year,
+                        cppumbrella:end_sequence = g_end_sequence, generic
+
+l_company_id = sfpname:company_id
+l_state = cppumbrella:state
+l_line_of_business = sfpname:line_of_business
+
+access cpsumrates, set cpsumrates:company_id = l_company_id,
+                       cpsumrates:state = l_state,
+                       cpsumrates:line_of_business = l_line_of_business, generic
+
+l_code_3 = ""
+l_code_4 = ""
+l_code_5 = ""
+l_code_6 = ""
+l_code_7 = ""
+while cpsumrates:company_id = l_company_id and
+      cpsumrates:state = l_state and
+      cpsumrates:line_of_business = l_line_of_business
+        begin
+        if sfpname:eff_date => cpsumrates:eff_date then
+            begin
+            l_code_3  = cpsumrates:trigger_codes[1] -- MCL703
+            l_code_4  = cpsumrates:trigger_codes[2] -- MCL704
+            l_code_5  = cpsumrates:trigger_codes[3] -- MCL705
+            l_code_6  = cpsumrates:trigger_codes[4] -- MCL706
+            l_code_7  = cpsumrates:trigger_codes[9] -- MCL731
+            end -- end of eff_date
+
+        next cpsumrates
+        end -- end of while
+
+-- delete this everytime and only add back if needed below
+L_CODE = L_CODE_4
+Do ACCESS_sfpEND
+if l_add_endorsement = "N" and
+   l_code_4 <> "" then
+    do delete_sfpend
+L_CODE = L_CODE_3
+Do ACCESS_sfpEND
+if l_add_endorsement = "N" and
+   l_code_3 <> "" then
+    do delete_sfpend
+
+l_coverage = "A"
+access cppumdetail, set cppumdetail:policy_no = cppumbrella:policy_no,
+                        cppumdetail:pol_year = cppumbrella:pol_year,
+                        cppumdetail:end_sequence = cppumbrella:end_sequence,
+                        cppumdetail:coverage = l_coverage, generic
+
+if cppumdetail:policy_no = cppumbrella:policy_no and
+   cppumdetail:pol_Year = cppumbrella:pol_Year and
+   cppumdetail:end_sequence = cppumbrella:end_sequence and
+   cppumdetail:coverage = l_coverage then
+    begin
+    if cppumdetail:coverage_type[1] = 1 or
+       cppumdetail:coverage_type[2] = 1 or
+       cppumdetail:coverage_type[3] = 1 or
+       cppumdetail:coverage_type[4] = 1 then
+        begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If l_auto_1 = "N" and
+           l_auto_2 = "N" and
+           l_code_3 <> "" and
+           cppumdetail:hired_nonowned = "" Then
+            Do ADD_sfpEND
+        else
+        if l_auto_1 = "N" and
+           l_auto_2 = "Y" and
+           l_code_4 <> "" and
+           cppumdetail:hired_nonowned = "" then
+            begin
+            l_change_code = l_code_4
+            do change_sfpend
+            end
+        end
+
+    if cppumdetail:hired_nonowned one of "B" then
+        begin
+        L_CODE = L_CODE_5
+        Do ACCESS_sfpEND
+        If l_hired_1 = "N" and
+           l_hired_2 = "N" and
+           l_code_5 <> "" Then
+            begin
+            Do ADD_sfpEND
+            end
+        else
+        if l_hired_1 = "N" and
+           l_hired_2 = "Y" and
+           l_code_6 <> "" then
+            begin
+            l_change_code = l_code_6
+            do change_sfpend
+            end
+        end
+    else
+    if cppumdetail:hired_nonowned one of "N", "H" then
+        begin
+        L_CODE = L_CODE_6
+        Do ACCESS_sfpEND
+        If l_hired_1 = "N" and
+           l_hired_2 = "N" and
+           l_code_6 <> "" Then
+            begin
+            Do ADD_sfpEND
+            end
+        else
+        if l_hired_1 = "Y" and
+           l_hired_2 = "N" and
+           l_code_5 <> "" then
+            begin
+            l_change_code = l_code_5
+            do change_sfpend
+            end
+        end
+    else
+    if cppumdetail:hired_nonowned not one of "B", "H", "N" then
+        begin
+        l_code = l_code_5
+        Do ACCESS_sfpEND
+        If l_hired_1 = "Y" or
+           l_hired_2 = "Y" and
+           l_code_5 <> "" then
+            Do delete_sfpend_hired
+        end
+
+    end
+else
+    begin
+    L_CODE = L_CODE_4
+    Do ACCESS_sfpEND
+    If l_auto_1 = "N" and
+       l_auto_2 = "N" and
+       l_code_4 <> "" Then
+        Do ADD_sfpEND
+    else
+    if l_auto_1 = "Y" and
+       l_auto_2 = "N" and
+       l_code_3 <> "" then
+        begin
+        l_change_code = l_code_3
+        do change_sfpend
+        end
+
+    L_CODE = L_CODE_5
+    Do ACCESS_sfpEND
+    If l_hired_1 = "Y" or
+       l_hired_2 = "Y" and
+       l_code_5 <> "" then
+        Do delete_sfpend_hired
+
+    end
+
+l_eff_date_1 = dateadd(sfpname:eff_date,0,1)
+l_code = l_code_7
+do access_sfpend
+if l_add_endorsement = "Y" and
+   sfpname:exp_date < l_eff_date_1 and
+   l_code_7 <> "" then
+    do add_sfpend
+if l_add_endorsement = "N" and
+   sfpname:exp_date = l_eff_date_1 and
+   l_code_7 <> "" then
+    do delete_sfpend
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+l_add_endorsement = "Y"
+L_wc_1 = "N"
+l_wc_2 = "N"
+l_auto_1 = "N"
+l_auto_2 = "N"
+l_hired_1 = "N"
+l_hired_2 = "N"
+l_pi_1 = "N"
+l_pi_2 = "N"
+l_prod_1 = "N"
+l_prod_2 = "N"
+l_endorsement_exists = "N"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE_1 Then
+        L_WC_1 = "Y"
+    if sfpend:code = l_code_2 then
+        l_wc_2 = "Y"
+    If sfpEND:CODE = L_CODE_3 Then
+        L_auto_1 = "Y"
+    if sfpend:code = l_code_4 then
+        l_auto_2 = "Y"
+    If sfpEND:CODE = L_CODE_5 Then
+        L_hired_1 = "Y"
+    if sfpend:code = l_code_6 then
+        l_hired_2 = "Y"
+    If sfpEND:CODE = L_CODE_7 Then
+        L_pi_1 = "Y"
+    if sfpend:code = l_code_8 then
+        l_pi_2 = "Y"
+    If sfpEND:CODE = L_CODE_9 Then
+        L_prod_1 = "Y"
+    if sfpend:code = l_code_10 then
+        l_prod_2 = "Y"
+    If sfpEND:CODE = L_CODE Then
+        begin
+        L_endorsement_exists = "Y"
+        l_add_Endorsement = "N"
+        end
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppumbrella_ALIAS, Set cppumbrella_ALIAS:policy_NO = G_policy_NO,
+                              cppumbrella_alias:pol_Year = g_year,
+                              cppumbrella_alias:end_sequence = g_end_sequence, generic
+
+L_STATE = cppumbrella_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = sfpNAME:LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> sfpNAME:LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+access sfpend, set sfpend:policy_no = g_policy_no,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no = g_prem_no,
+                   sfpend:build_no = g_build_no, generic
+
+if l_form_edition <> "" then
+    begin
+    add sfpEND
+        Begin
+        sfpend:policy_no            =       g_policy_no
+        sfpend:pol_year             =       g_year
+        sfpend:end_sequence         =       g_end_sequence
+        sfpend:prem_no              =       1
+        sfpend:build_no             =       1
+        sfpend:sub_code             =       l_sub_code
+        sfpEND:CODE                 =       L_CODE
+        sfpEND:FORM_EDITION         =       L_FORM_EDITION
+        sfpEND:DESCRIPTION          =       L_DESCRIPTION
+        sfpEND:PREMIUM              =       0
+        sfpend:lob_end_code         =       "U"
+        sfpend:terrorism_Form       =       0
+        end
+    end
+
+
+End
+
+Procedure CHANGE_sfpEND
+Begin
+g_prem_no = 1
+g_build_no = 1
+Access cppumbrella_ALIAS, Set cppumbrella_ALIAS:policy_NO = G_policy_NO,
+                              cppumbrella_alias:pol_Year = g_year,
+                              cppumbrella_alias:end_sequence = g_end_sequence, generic
+
+L_STATE = cppumbrella_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = sfpNAME:LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> sfpNAME:LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+access sfpend, set sfpend:policy_no = g_policy_no,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no = g_prem_no,
+                   sfpend:build_no = g_build_no, generic
+
+while sfpend:policy_no = g_policy_no and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpend:prem_no = g_prem_no and
+      sfpend:build_no = g_build_no
+        begin
+        if sfpend:code = l_change_code then
+        change sfpEND
+            Begin
+            sfpEND:CODE                 =       L_CODE
+            sfpEND:FORM_EDITION         =       L_FORM_EDITION
+            sfpEND:DESCRIPTION          =       L_DESCRIPTION
+            sfpEND:PREMIUM              =       0
+            sfpend:lob_end_code         =       "U"
+            sfpend:terrorism_Form       =       0
+            end
+
+        next sfpend
+        End
+
+End
+
+Procedure DELETE_sfpEND_hired
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+while sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO = G_PREM_NO and
+      sfpEND:BUILD_NO = G_BUILD_NO
+        begin
+        If sfpEND:CODE = L_CODE_5 or
+           sfpend:code = L_code_6 Then
+            Delete sfpEND
+
+        Next sfpEND
+        End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+l_prem_no = 1
+l_build_no = 1
+Access sfpEND, Set sfpEND:policy_NO = cppumbrella:policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+l_deleted = "N"
+while sfpEND:policy_NO = cppumbrella:policy_NO and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO = L_PREM_NO and
+      sfpEND:BUILD_NO = L_BUILD_NO
+        begin
+        If sfpEND:CODE = L_CODE and
+           l_deleted = "N" Then
+            begin
+            l_deleted = "Y"
+            Delete sfpEND
+            end
+
+        Next sfpEND
+        End
+
+End
+
+End

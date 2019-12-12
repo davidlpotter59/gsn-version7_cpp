@@ -1,0 +1,164 @@
+%%
+Screen
+        Name = "cppmt996" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppartisan";
+        Windowtitle = "%a     %s Totals By Location - Ver. 7.00     %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Signed Ascii Number L_SUPPLEMENTAL_PREMIUM[8]=0 ,
+                                  L_END_PREMIUM[8]=0,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  l_total[8]=0;
+
+        Local String L_MISC[1] ,
+                     L_FIRST[1]="Y",
+                     L_FIRST_MISC[1]="Y" ;
+
+        Access cppartisan, Set cppartisan:policy_NO = G_policy_NO,
+                               cppartisan:pol_year = g_year,
+                               cppartisan:end_sequence = g_end_sequence, Generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+disable(add_fn)
+disable(change_fn)
+disable(delete_fn)
+
+Access Validation
+If cppartisan:policy_NO <> G_policy_NO or
+   cppartisan:pol_year <> g_year or
+   cppartisan:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*-------------------------------------------------------------------------------------*
+| Policy No:    _________  ____  ____                                                 |
+| Location No:  ____                                                                  |
+| Building No:  ____                                                                  |
+| Class Code:   _____                                                                 |
+*--------------*---------*----------*----------*----------*------------*--------------*
+| Peril        |   Rate  | Rate Adj | Exposure |   Per    |  Premium   |    Minimum   |
+*--------------*---------*----------*----------*----------*------------*--------------*
+| Prem/Ops:    | _______ | _______  | ________ | ________ | __________ |   ________   |
+| Products:    | _______ | _______  | ________ | ________ | __________ |   ________   |
+*--------------*---------*----------*----------*----------*------------*--------------*
+|                                       Premium:            __________                |
+|                                       Coverage Premium:   __________                |
+|                                       Total Endorsements: __________                |
+|                                       Total Misc:         __________                |
+|                                       Minimum Adjustment: __________                |
+|                                       Total Premium:      __________                |
+*-------------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppartisan:policy_NO/displayonly  ;
+302     cppartisan:pol_year/displayonly ;
+303     cppartisan:end_sequence/displayonly ;
+401     cppartisan:PREM_NO/displayonly ;
+501     cppartisan:BUILD_NO/displayonly ;
+601     cppartisan:CLASS_CODE/displayonly ;
+
+--prem/ops
+1001    Begin
+        Access cppartisan_ALIAS, Set cppartisan_ALIAS:policy_NO    = cppartisan:policy_NO,
+                                     cppartisan_alias:pol_year     = cppartisan:pol_year,
+                                     cppartisan_alias:end_sequence = cppartisan:end_sequence,
+                                     cppartisan_ALIAS:PREM_NO      = cppartisan:PREM_NO,
+                                     cppartisan_ALIAS:BUILD_NO     = cppartisan:BUILD_NO,
+                                     cppartisan_ALIAS:CLASS_CODE = cppartisan:CLASS_CODE, Generic
+        End
+        cppartisan_ALIAS:BASE_RATE[1];
+1002    cppartisan_ALIAS:ADJUSTED_RATE[1];
+1003    cppartisan_ALIAS:EXPOSURE[1]/mask="ZZ,ZZZ,ZZ9";
+1004    cppartisan_ALIAS:RATES_PER[1];
+1005    cppartisan_ALIAS:PREM[1];
+1006    cppartisan_alias:minimum_premium[1] ;
+
+--products
+1101    cppartisan_ALIAS:BASE_RATE[2] ;
+1102    cppartisan_ALIAS:ADJUSTED_RATE[2];
+1103    cppartisan_ALIAS:EXPOSURE[2]/mask="ZZ,ZZZ,ZZ9" ;
+1104    cppartisan_ALIAS:RATES_PER[2];
+1105    cppartisan_ALIAS:PREM[2] ;
+1106    cppartisan_alias:minimum_premium[2] ;
+
+-- final premium
+1301    cppartisan_alias:prem[1] +
+        cppartisan_alias:prem[2]/mask="Z,ZZZ,ZZZ.99-" ;
+1401    cppartisan_alias:fire_legal_premium/mask="Z,ZZZ,ZZZ.99-" ;
+1501    cppartisan_alias:total_endorsements/mask="Z,ZZZ,ZZZ.99-" ;
+1601    cppartisan_alias:total_misc/mask="Z,ZZZ,ZZZ.99-" ;
+1701    cppartisan_alias:minimum_premium_adjustment[1] +
+        cppartisan_alias:minimum_premium_adjustment[2]/mask="Z,ZZZ,ZZZ.99-"
+        hide if cppartisan_alias:prem[1] = 0 ;
+1801    l_total/mask="Z,ZZZ,ZZZ.99-"/displayonly
+        hide if cppartisan_alias:prem[1] <> 0 ;
+1801    cppartisan_alias:prem[1] +
+        cppartisan_alias:prem[2] +
+        cppartisan_alias:total_endorsements +
+        cppartisan_alias:total_misc +
+        cppartisan_alias:fire_legal_premium +
+        cppartisan_alias:minimum_premium_adjustment[1] +
+        cppartisan_alias:minimum_premium_adjustment[2]/mask="Z,ZZZ,ZZZ.99-"
+        hide if cppartisan_alias:prem[1] = 0 ;
+1801    cppartisan_alias:prem[1] +
+        cppartisan_alias:prem[2] +
+        cppartisan_alias:total_endorsements +
+        cppartisan_alias:fire_legal_premium +
+        cppartisan_alias:total_misc/mask="Z,ZZZ,ZZZ.99-"
+        hide if cppartisan_alias:prem[1] <> 0 ;
+
+}
+
+End

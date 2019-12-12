@@ -1,0 +1,123 @@
+%%
+Screen
+        Name            = "cppmtmso497" ;
+        Type            =  "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Special Conditions     Ver 7.00 %m" ;
+        Domain          = "CPPGLASS" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+
+        Access CPPGLASS,
+           Set CPPGLASS:POLICY_NO = G_POLICY_NO ,
+               CPPGLASS:POL_YEAR = G_YEAR,
+               CPPGLASS:END_SEQUENCE = G_END_SEQUENCE,
+               CPPGLASS:PREM_NO = G_PREM_NO ,
+               CPPGLASS:BUILD_NO = G_BUILD_NO ,
+               CPPGLASS:SUB_CODE = G_SUB_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPGLASS:POLICY_NO <> G_POLICY_NO Or
+   CPPGLASS:POL_YEAR <> G_YEAR Or
+   CPPGLASS:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPGLASS:PREM_NO <> G_PREM_NO Or
+   CPPGLASS:BUILD_NO <> G_BUILD_NO Or
+   CPPGLASS:SUB_CODE <> G_SUB_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*-----------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                                |
+| Location No: ____                                                                 |
+| Building No: ____                                                                 |
+*-----------------------------------------------------------------------------------*
+| 1. Factory built insulating glass that has been tempered:                  ______ |
+|                                                                                   |
+| 2. Glass protected by permanent exterior wire mesh shields; or wired              |
+|    glass covering the whole plate and maintained in position at all times: ______ |
+|                                                                                   |
+| 3. Underwriters' Laboratories, Inc. labeled Burglary Resistant Glazing            |
+|    Material:                                                               ______ |
+|                                                                                   |
+| 4. Exterior glass above the 2nd floor, provided all exterior glass in the         |
+|    building is insured:                                                    ______ |
+|                                                                                   |
+| 5. Interior glass above the 2nd floor, provided all interior glass in the         |
+|    building is insured:                                                    ______ |
+|                                                                                   |
+| 6. Convalescent homes, hospitals, museums, public libraries, sanitariums          |
+|    and buildings (or portions of buildings) used primarily for conducting         |
+|    religious or worship services:                                          ______ |
+|                                                                                   |
+| 7. Mausoleums                                                              ______ |
+*-----------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPGLASS:POLICY_NO/displayonly ;
+302     CPPGLASS:POL_YEAR/displayonly;
+303     CPPGLASS:END_SEQUENCE/displayonly;
+401     CPPGLASS:PREM_NO/displayonly ;
+501     CPPGLASS:BUILD_NO/displayonly ;
+701     CPPGLASS:SPECIAL_CONDITION_FACTOR[1]/displayonly ;
+1001    CPPGLASS:SPECIAL_CONDITION_FACTOR[2]/displayonly ;
+1301    CPPGLASS:SPECIAL_CONDITION_FACTOR[3]/displayonly ;
+1601    CPPGLASS:SPECIAL_CONDITION_FACTOR[4]/displayonly ;
+1901    CPPGLASS:SPECIAL_CONDITION_FACTOR[5]/displayonly ;
+2301    CPPGLASS:SPECIAL_CONDITION_FACTOR[6]/displayonly ;
+2501    CPPGLASS:SPECIAL_CONDITION_FACTOR[7]/displayonly ;
+
+}
+
+}
+
+
+End

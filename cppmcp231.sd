@@ -1,0 +1,908 @@
+%%
+/*
+Date Written: September 10, 2003
+
+Name: cppmcp231.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+09/10/2003            RMG
+12/22/2003            DWR     Updated and began completion of form
+===========================
+*/
+
+Program
+  Name = "cppmcp231";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppmcp231.cq";
+ String L_ZIP[10],
+        l_font[35];
+ string l_first[1]="Y" ;
+ Unsigned Ascii Number L_LOOP[2],
+         l_line_counter,
+         l_max_lines = 60;
+
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+  Include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+  l_first = "Y"
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppinland,
+       Set cppinland:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           cppinland:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           cppinland:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access cppendorse,
+       Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+   Include "swsut100.inc"
+   I_CODE = "MCP231"
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+        begin
+        If SFPEND:CODE one of "MCP231","MCP233","MCP235" and
+          l_first = "Y" Then
+          begin
+            l_First = "N"
+            Access CPPENDORSE, Set CPPENDORSE:POLICY_NO    = SFPPRINT1:POLICY_NO,
+                                   CPPENDORSE:POL_YEAR     = SFPPRINT1:POL_YEAR,
+                                   CPPENDORSE:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+                                   CPPENDORSE:PREM_NO      = SFPEND:PREM_NO,
+                                   CPPENDORSE:BUILD_NO     = SFPEND:BUILD_NO, generic
+
+            While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+                  cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+                  cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+                  cppendorse:prem_no      = sfpend:prem_no and
+                  cppendorse:build_no     = sfpend:build_no
+                begin
+                if cppendorse:code one of "MCP231", "MCP233", "MCP235" then
+                    begin
+                    L_ZIP =  If (Val(CPPENDORSE:STR_ZIPCODE[6,9]) = 0) Then
+                                 CPPENDORSE:STR_ZIPCODE[1,5]
+                             Else
+                                 CPPENDORSE:STR_ZIPCODE[1,5] + "-" + CPPENDORSE:STR_ZIPCODE[6,9]
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+            Writefile(L_FILE_NAME,"%s","Ed. 1.1")
+            Writefile(L_FILE_NAME,"%s","<033>&a420h+120V")
+            Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s"," 1991 MSO, Inc.")
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+            Writefile(L_FILE_NAME,"%s","<033>&a4300h90V")
+            Writefile(L_FILE_NAME,"%s","MCP 231/233/235 ")
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+            Writefile(L_FILE_NAME,"%s","09 89")
+            Writefile(L_FILE_NAME,"%s","<NL>")
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+            Writefile(L_FILE_NAME,"%s","LOSS PAYABLE SPECIAL CONDITIONS")
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+            Writefile(L_FILE_NAME,"%s","This endorsement establishes methods of payments to others who have an insurable interest in property covered in this policy.")
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+            Writefile(L_FILE_NAME,"%s","The required information may be shown below or elsewhere in this policy.")
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+            Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+60V")
+            Writefile(L_FILE_NAME,"%s","<033>*c5200h5v0P") --Horizontal line
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+        Writefile(L_FILE_NAME,"%s","SCHEDULE")
+       Writefile(L_FILE_NAME,"%s","<033>&a1100h+0V")
+      Writefile(L_FILE_NAME,"%s","Subject")
+      Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+      Writefile(L_FILE_NAME,"%s","Loss Payee")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","Number*")
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+0V")
+      Writefile(L_FILE_NAME,"%s","Property")
+      Writefile(L_FILE_NAME,"%s","<033>&a2200h+0V")
+      Writefile(L_FILE_NAME,"%s","Name/Address")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+      Writefile(L_FILE_NAME,"%s","Location ")
+      Writefile(L_FILE_NAME,"%n",cppendorse:prem_no)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","Building ")
+      Writefile(L_FILE_NAME,"%n",cppendorse:build_no)
+
+--      Writefile(L_FILE_NAME,"%s","<033>&a900h1080V")
+
+      L_max_lines        = 60
+      L_FONT             = l_arial_bold_9
+      L_V_POSITION       = "1080"
+      L_H_POSITION       = "800"
+      L_CHARACTER_STRING = cppendorse:description
+      L_MAX_CHAR         = 20
+      include "line_spacing.inc"
+
+-- The data fields are intentionally out of order to allow lower portion
+-- of the form to float with the name and address fields depending on
+-- the user making use of all 3 name fields and all 3 address field
+-- NOTE: the MCP231, 233, 235 field is entered here before the Name &
+-- Address fields but on form these are reversed
+
+      Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a4400h970V")
+      Writefile(L_FILE_NAME,"%s","MCP 231, 233 or 235")
+      Writefile(L_FILE_NAME,"%s",l_arial_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a4400h+110V")
+      Writefile(L_FILE_NAME,"%s",cppendorse:CODE)
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a2900h960V")
+      For L_LOOP = 1 to 3
+        {
+          If CPPENDORSE:name[L_LOOP] <> "" then
+            {
+              Writefile(L_FILE_NAME,"%s","<033>&a2200h+120V")
+              Writefile(L_FILE_NAME,"%s",CPPENDORSE:name[L_LOOP])
+            }
+        }
+
+      Writefile(L_FILE_NAME,"%s","<033>&a2200h+120V")
+      Writefile(L_FILE_NAME,"%s",cppendorse:address)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+
+      For L_LOOP = 1 to 2
+        {
+          If CPPENDORSE:address1[L_LOOP] <> "" then
+            {
+              Writefile(L_FILE_NAME,"%s","<033>&a2200h+120V")
+              Writefile(L_FILE_NAME,"%s",CPPENDORSE:address1[L_LOOP])
+            }
+        }
+
+      Writefile(L_FILE_NAME,"%s","<033>&a2200h+120V")
+      Writefile(L_FILE_NAME,"%s",trun(cppendorse:city))
+      Writefile(L_FILE_NAME,"%s",", ")
+      Writefile(L_FILE_NAME,"%s",cppendorse:str_state)
+      Writefile(L_FILE_NAME,"%s"," ")
+      Writefile(L_FILE_NAME,"%s",l_zip)
+--      Writefile(L_FILE_NAME,"%s","<033>&f1S")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","* Item No. or Location/Building Nos. as Shown in the Declarations")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+      Writefile(L_FILE_NAME,"%s","MCP 231 - LOSS PAYABLE")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","With regard to covered property in which both ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and a Loss Payee shown in the Schedule have an")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","insurable interest, we adjust loss with ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s",", and pay any claim for loss jointly to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the Loss")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","Payee, as such interests may appear.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+      Writefile(L_FILE_NAME,"%s","MCP 233 - CONTRACT OF SALE")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee shown in the Schedule is a person or organization ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","have entered a contract with for")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","the sale of covered property. With regard to covered property in which both ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the Loss Payee")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","have an insurable interest, we: adjust losses with ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s",", and pay any claim for loss jointly to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","Loss Payee, as such interests may appear.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+160V")
+      Writefile(L_FILE_NAME,"%s","The following is added to the Condition I. G:")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","With regard to covered property that is the subject of a contract of sale, the word ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","includes")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","the Loss Payee named in the Schedule.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+      Writefile(L_FILE_NAME,"%s","MCP 235 - LENDER'S LOSS PAYABLE")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","A.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee shown in the Schedule is a creditor (including a mortgageholder or trustee) ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","have entered a contract with for the sale of covered property. The interest in that covered property")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","is established by such written contracts as: bills of lading; contract for deed; financing statements,")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","or warehouse receipts.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+160V")
+      Writefile(L_FILE_NAME,"%s","B.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","With regard to covered property in which ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the Loss Payee have an insurable interest ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","pay any claim for loss to each Loss Payee in their order of precedence, as interests may appear.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee has the right to receive loss payment even if the Loss Payee has started")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","foreclosure or similar action on the covered property.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+160V")
+      Writefile(L_FILE_NAME,"%s","C.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","If ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","deny ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","claim because of ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","acts or because ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_Italic_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","failed to comply with any applicable")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","condition here, the Loss Payee retains the right to receive loss payment if the Loss Payee does all")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","of the following:")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","Pays any premium due at ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","our ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","request, if ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","fail to do so.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","Submits a signed, sworn proof of loss within 60 days after receiving notice from ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","us ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","of ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+      Writefile(L_FILE_NAME,"%s","failure to do so.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","Has notified ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","us ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","of any change in ownership, occupancy or substantial change in risk known")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+      Writefile(L_FILE_NAME,"%s","to the Loss Payee.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+160V")
+      Writefile(L_FILE_NAME,"%s","All the provisions here then apply to the Loss Payee.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+180V")
+      Writefile(L_FILE_NAME,"%s","D.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","If ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","pay the Loss Payee for any loss and deny payment to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","because of ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","acts or because")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","have failed to comply with any applicable condition here, the following apply:")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee's rights will be transferred to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","us ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","to the extent of the amount ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","pay.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee's right to recover the full amount of the Loss Payee's claim is not impaired.")
+
+                Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+                Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+                Writefile(L_FILE_NAME,"%s","At ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+                Writefile(L_FILE_NAME,"%s","our ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                Writefile(L_FILE_NAME,"%s","option, ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+                Writefile(L_FILE_NAME,"%s","we ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                Writefile(L_FILE_NAME,"%s","may pay the Loss Payee the whole principal on the debt plus any accrued")
+
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+                Writefile(L_FILE_NAME,"%s","interest and receive all of the Loss Payee's rights to payment of the debt.")
+                Writefile(l_file_name,"%s","<FF>")
+
+                end -- if cppendorse:code = "MCP231"
+
+            next cppendorse
+            end
+
+        end -- if sfpend:code = "MCP231"
+
+    Next SFPEND
+    end
+
+While cppinland:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      cppinland:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      cppinland:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+        begin
+        If cppinland:CODE one of "MCP231","MCP233","MCP235" and
+           l_first = "Y" Then
+            begin
+            l_First = "N"
+            Access CPPENDORSE, Set CPPENDORSE:POLICY_NO    = SFPPRINT1:POLICY_NO,
+                                   CPPENDORSE:POL_YEAR     = SFPPRINT1:POL_YEAR,
+                                   CPPENDORSE:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+                                   CPPENDORSE:PREM_NO      = cppinland:PREM_NO,
+                                   CPPENDORSE:BUILD_NO     = cppinland:BUILD_NO, generic
+
+            While cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+                  cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+                  cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+                  cppendorse:prem_no      = cppinland:prem_no and
+                  cppendorse:build_no     = cppinland:build_no
+                begin
+                if cppendorse:code one of "MCP231", "MCP233", "MCP235" then
+                    begin
+                    L_ZIP =  If (Val(CPPENDORSE:STR_ZIPCODE[6,9]) = 0) Then
+                                 CPPENDORSE:STR_ZIPCODE[1,5]
+                             Else
+                                 CPPENDORSE:STR_ZIPCODE[1,5] + "-" + CPPENDORSE:STR_ZIPCODE[6,9]
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+            Writefile(L_FILE_NAME,"%s","Ed. 1.1")
+            Writefile(L_FILE_NAME,"%s","<033>&a420h+120V")
+            Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_12)
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s"," 1991 MSO, Inc.")
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+            Writefile(L_FILE_NAME,"%s","<033>&a4300h90V")
+            Writefile(L_FILE_NAME,"%s","MCP 231/233/235 ")
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+            Writefile(L_FILE_NAME,"%s","09 89")
+            Writefile(L_FILE_NAME,"%s","<NL>")
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+            Writefile(L_FILE_NAME,"%s","LOSS PAYABLE SPECIAL CONDITIONS")
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+            Writefile(L_FILE_NAME,"%s","This endorsement establishes methods of payments to others who have an insurable interest in property covered in this policy.")
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+            Writefile(L_FILE_NAME,"%s","The required information may be shown below or elsewhere in this policy.")
+
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+            Writefile(L_FILE_NAME,"%s","Except as provided below, all other provisions in this policy are unchanged.")
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+60V")
+            Writefile(L_FILE_NAME,"%s","<033>*c5200h5v0P") --Horizontal line
+
+            Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+        Writefile(L_FILE_NAME,"%s","SCHEDULE")
+       Writefile(L_FILE_NAME,"%s","<033>&a1100h+0V")
+      Writefile(L_FILE_NAME,"%s","Subject")
+      Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+      Writefile(L_FILE_NAME,"%s","Loss Payee")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","Number*")
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+0V")
+      Writefile(L_FILE_NAME,"%s","Property")
+      Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+      Writefile(L_FILE_NAME,"%s","Name/Address")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+      Writefile(L_FILE_NAME,"%s","Location ")
+      Writefile(L_FILE_NAME,"%n",cppendorse:prem_no)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","Building ")
+      Writefile(L_FILE_NAME,"%n",cppendorse:build_no)
+
+      L_max_lines        = 60
+      L_FONT             = l_arial_bold_9
+      L_V_POSITION       = "1080"
+      L_H_POSITION       = "800"
+      L_CHARACTER_STRING = cppendorse:description
+      L_MAX_CHAR         = 20
+      include "line_spacing.inc"
+
+
+-- The data fields are intentionally out of order to allow lower portion
+-- of the form to float with the name and address fields depending on
+-- the user making use of all 3 name fields and all 3 address field
+-- NOTE: the MCP231, 233, 235 field is entered here before the Name &
+-- Address fields but on form these are reversed
+
+      Writefile(L_FILE_NAME,"%s",l_arial_bold_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a4400h970V")
+      Writefile(L_FILE_NAME,"%s","MCP 231, 233 or 235")
+      Writefile(L_FILE_NAME,"%s",l_arial_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a4400h+110V")
+      Writefile(L_FILE_NAME,"%s",cppendorse:CODE)
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1600h960V")
+      Writefile(L_FILE_NAME,"%s","<033>&f0S")
+      For L_LOOP = 1 to 3
+        {
+          If CPPENDORSE:name[L_LOOP] <> "" then
+            {
+              Writefile(L_FILE_NAME,"%s","<033>&a1600h+120V")
+              Writefile(L_FILE_NAME,"%s",CPPENDORSE:name[L_LOOP])
+            }
+        }
+
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1600h+120V")
+
+      Writefile(L_FILE_NAME,"%s",cppendorse:address)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&f0S")
+
+      For L_LOOP = 1 to 2
+        {
+          If CPPENDORSE:address1[L_LOOP] <> "" then
+            {
+              Writefile(L_FILE_NAME,"%s","<033>&a1600h+120V")
+              Writefile(L_FILE_NAME,"%s",CPPENDORSE:address1[L_LOOP])
+            }
+        }
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1600h+120V")
+      Writefile(L_FILE_NAME,"%s",trun(cppendorse:city))
+      Writefile(L_FILE_NAME,"%s",", ")
+      Writefile(L_FILE_NAME,"%s",cppendorse:str_state)
+      Writefile(L_FILE_NAME,"%s"," ")
+      Writefile(L_FILE_NAME,"%s",l_zip)
+--      Writefile(L_FILE_NAME,"%s","<033>&f1S")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","* Item No. or Location/Building Nos. as Shown in the Declarations")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+      Writefile(L_FILE_NAME,"%s","MCP 231 - LOSS PAYABLE")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","With regard to covered property in which both ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and a Loss Payee shown in the Schedule have an")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","insurable interest, we adjust loss with ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s",", and pay any claim for loss jointly to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the Loss")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","Payee, as such interests may appear.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+      Writefile(L_FILE_NAME,"%s","MCP 233 - CONTRACT OF SALE")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee shown in the Schedule is a person or organization ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","have entered a contract with for")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","the sale of covered property. With regard to covered property in which both ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the Loss Payee")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","have an insurable interest, we: adjust losses with ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s",", and pay any claim for loss jointly to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","Loss Payee, as such interests may appear.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+160V")
+      Writefile(L_FILE_NAME,"%s","The following is added to the Condition I. G:")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","With regard to covered property that is the subject of a contract of sale, the word ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","includes")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","the Loss Payee named in the Schedule.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+180V")
+      Writefile(L_FILE_NAME,"%s","MCP 235 - LENDER'S LOSS PAYABLE")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+      Writefile(L_FILE_NAME,"%s","COVERAGE MODIFICATION")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+120V")
+      Writefile(L_FILE_NAME,"%s","A.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee shown in the Schedule is a creditor (including a mortgageholder or trustee) ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","have entered a contract with for the sale of covered property. The interest in that covered property")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","is established by such written contracts as: bills of lading; contract for deed; financing statements,")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","or warehouse receipts.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+160V")
+      Writefile(L_FILE_NAME,"%s","B.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","With regard to covered property in which ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","and the Loss Payee have an insurable interest ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","pay any claim for loss to each Loss Payee in their order of precedence, as interests may appear.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee has the right to receive loss payment even if the Loss Payee has started")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","foreclosure or similar action on the covered property.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+160V")
+      Writefile(L_FILE_NAME,"%s","C.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","If ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","deny ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","claim because of ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","acts or because ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_Italic_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","failed to comply with any applicable")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","condition here, the Loss Payee retains the right to receive loss payment if the Loss Payee does all")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","of the following:")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","Pays any premium due at ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","our ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","request, if ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","fail to do so.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","Submits a signed, sworn proof of loss within 60 days after receiving notice from ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","us ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","of ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+      Writefile(L_FILE_NAME,"%s","failure to do so.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","Has notified ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","us ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","of any change in ownership, occupancy or substantial change in risk known")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+      Writefile(L_FILE_NAME,"%s","to the Loss Payee.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+160V")
+      Writefile(L_FILE_NAME,"%s","All the provisions here then apply to the Loss Payee.")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1100h+180V")
+      Writefile(L_FILE_NAME,"%s","D.")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+0V")
+      Writefile(L_FILE_NAME,"%s","If ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","pay the Loss Payee for any loss and deny payment to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","because of ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","your ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","acts or because")
+
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+120V")
+      Writefile(L_FILE_NAME,"%s","you ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","have failed to comply with any applicable condition here, the following apply:")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee's rights will be transferred to ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","us ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","to the extent of the amount ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+      Writefile(L_FILE_NAME,"%s","we ")
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","pay.")
+
+      Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+      Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+      Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+      Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+      Writefile(L_FILE_NAME,"%s","The Loss Payee's right to recover the full amount of the Loss Payee's claim is not impaired.")
+
+                Writefile(L_FILE_NAME,"%s","<033>&a1250h+134V")
+                Writefile(L_FILE_NAME,"%s",L_BULLET_6)
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h-14V")
+                Writefile(L_FILE_NAME,"%s","At ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+                Writefile(L_FILE_NAME,"%s","our ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                Writefile(L_FILE_NAME,"%s","option, ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+                Writefile(L_FILE_NAME,"%s","we ")
+                Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+                Writefile(L_FILE_NAME,"%s","may pay the Loss Payee the whole principal on the debt plus any accrued")
+
+                Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+                Writefile(L_FILE_NAME,"%s","interest and receive all of the Loss Payee's rights to payment of the debt.")
+                Writefile(l_file_name,"%s","<FF>")
+
+                end -- if cppendorse:code = "MCP231"
+
+            next cppendorse
+            end
+
+        end -- if cppinland:code = "MCP231"
+
+    Next cppinland
+    end
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

@@ -1,0 +1,135 @@
+%%
+Program
+        Name = "cppCV300a" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+    Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                 G_YEAR[4] ,
+                                 G_END_SEQUENCE[4] ,
+                                 G_QUOTE_NO[8] ;
+
+    Local String L_PROCEDURE[50] ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_QUOTE_NO = Val(COMMANDLINE[21,28])
+
+L_PROCEDURE = "cppartdeduct FILE UPDATE"
+
+Access CPPartdeduct, Set CPPartdeduct:POLICY_NO = G_POLICY_NO,
+                          CPPartdeduct:POL_YEAR = G_YEAR,
+                          CPPartdeduct:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartdeduct:POLICY_NO <> G_POLICY_NO Or
+            CPPartdeduct:POL_YEAR <> G_YEAR Or
+            CPPartdeduct:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPartdeduct
+
+    Next CPPartdeduct
+    End
+
+L_PROCEDURE = "cppartisan FILE UPDATE"
+
+Access CPPartisan, Set CPPartisan:POLICY_NO = G_POLICY_NO,
+                         CPPartisan:POL_YEAR = G_YEAR,
+                         CPPartisan:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartisan:POLICY_NO <> G_POLICY_NO Or
+            CPPartisan:POL_YEAR <> G_YEAR Or
+            CPPartisan:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPartisan
+
+    Next CPPartisan
+    End
+
+L_PROCEDURE = "cppartlimits FILE UPDATE"
+
+Access CPPartlimits, Set CPPartlimits:POLICY_NO = G_POLICY_NO,
+                          CPPartlimits:POL_YEAR = G_YEAR,
+                          CPPartlimits:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartlimits:POLICY_NO <> G_POLICY_NO Or
+            CPPartlimits:POL_YEAR <> G_YEAR Or
+            CPPartlimits:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPartlimits
+
+    Next CPPartlimits
+    End
+
+L_PROCEDURE = "cppartdeviation FILE UPDATE"
+
+Access CPPartdeviation, Set CPPartdeviation:POLICY_NO = G_POLICY_NO,
+                          CPPartdeviation:POL_YEAR = G_YEAR,
+                          CPPartdeviation:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartdeviation:POLICY_NO <> G_POLICY_NO Or
+            CPPartdeviation:POL_YEAR <> G_YEAR Or
+            CPPartdeviation:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPartdeviation
+
+    Next CPPartdeviation
+    End
+
+L_PROCEDURE = "cppisocrime FILE UPDATE"
+
+Access CPPisocrime, Set CPPisocrime:POLICY_NO = G_POLICY_NO,
+                         CPPisocrime:POL_YEAR = G_YEAR,
+                         CPPisocrime:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPisocrime:POLICY_NO <> G_POLICY_NO Or
+            CPPisocrime:POL_YEAR <> G_YEAR Or
+            CPPisocrime:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPisocrime
+
+    Next CPPisocrime
+    End
+
+L_PROCEDURE = "cppisoblanket FILE UPDATE"
+
+Access CPPisoblanket, Set CPPisoblanket:POLICY_NO = G_POLICY_NO,
+                          CPPisoblanket:POL_YEAR = G_YEAR,
+                          CPPisoblanket:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPisoblanket:POLICY_NO <> G_POLICY_NO Or
+            CPPisoblanket:POL_YEAR <> G_YEAR Or
+            CPPisoblanket:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPisoblanket
+
+    Next CPPisoblanket
+    End
+
+L_PROCEDURE = "cppgeneral1 FILE UPDATE"
+
+Access CPPgeneral1, Set CPPgeneral1:POLICY_NO = G_POLICY_NO,
+                        CPPgeneral1:POL_YEAR = G_YEAR,
+                        CPPgeneral1:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPgeneral1:POLICY_NO <> G_POLICY_NO Or
+            CPPgeneral1:POL_YEAR <> G_YEAR Or
+            CPPgeneral1:END_SEQUENCE <> G_END_SEQUENCE
+
+    Delete CPPgeneral1
+
+    Next CPPgeneral1
+    End
+
+Update
+
+End

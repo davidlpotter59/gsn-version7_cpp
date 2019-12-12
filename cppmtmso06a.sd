@@ -1,0 +1,135 @@
+%%
+Screen
+        Name            = "cppmtmso06a";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Territorial Rating     7.00 %m";
+        Domain          = "cppfarm" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries cppisolib cppmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_STATE[2],
+                                     G_RATE_TYPE[2] ,
+                                     G_LINE_OF_BUSINESS[4] ,
+                                     G_LOSS_INCOME_FACTOR[4]/decimals=3 ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_RATING_TERRITORY[3]=0 ;
+
+        local wdate l_eff_date ;
+
+        Access cppfarm, Set cppfarm:policy_NO = G_policy_NO ,
+                            cppfarm:pol_year = g_year,
+                            cppfarm:end_sequence = g_end_sequence,
+                            cppfarm:PREM_NO = G_PREM_NO,
+                            cppfarm:BUILD_NO = G_BUILD_NO ;
+
+        Include "stdkeys7.inc"
+--        !F8="G"/function/icon="Factor" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+--        "G" Display/noreturn "cppmtmso06b" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppfarm:policy_NO <> G_policy_NO Or
+   cppfarm:pol_year <> g_year or
+   cppfarm:end_sequence <> g_End_sequence or
+   cppfarm:PREM_NO <> G_PREM_NO Or
+   cppfarm:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                              Territory:  ___                                 |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     begin
+            l_eff_date = sfpname:eff_date
+        end
+        cppfarm:RATING_TERRITORY
+        If cppfarm:RATING_TERRITORY <> CPSRATINGTERR:TERRITORY Then
+            Error 1206
+
+        L_RATING_TERRITORY = cppfarm:RATING_TERRITORY
+        cppfarm:RATING_TERRITORY_SUB_CODE = CPSRATINGTERR_ALIAS:SUB_CODE
+
+        Activehelp if (l_eff_date >= cpsratingterr_alias:eff_date and
+                      (l_eff_date <= cpsratingterr_alias:exp_date or
+                      cpsratingterr_alias:exp_date = 0)) then
+                       CPSRATINGTERR_ALIAS:TERRITORY
+                   else
+                       null,
+                   if (l_eff_date >= cpsratingterr_alias:eff_date and
+                      (l_eff_date <= cpsratingterr_alias:exp_date or
+                      cpsratingterr_alias:exp_date = 0)) then
+                       CPSRATINGTERR_ALIAS:DESCRIPTION
+                   else
+                       null ;
+
+
+}
+
+}
+
+
+End
+/* end of file */

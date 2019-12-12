@@ -1,0 +1,3305 @@
+%%
+Program
+        Name = "cppup008" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_MISC[1]="N",
+                     l_enter[1],
+                     l_fire_legal_code[7]="",
+                     l_bu2510_mp[1]="N",
+                     l_fire_code[1]="N",
+                     L_FIRST[1]="Y",
+                     l_add_endorsement[1],
+                     l_form_edition[25],
+                     l_description[75],
+                     l_code_1[7],
+                     L_BUILDING_INCLUDED[1]="N",
+                     L_RATE_BOILERS[1]="N",
+                     L_DEDUCTIBLE_TYPE[2]="",
+                     L_CODE[7] ;
+
+        Local Signed Ascii Number L_END_PREMIUM[8]=0 ,
+                                  L_UPDATE_SFPEND_PREMIUM[6]=0,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  l_deviation[5]=0/dec=3,
+                                  l_irpm_deviation[5]=0/dec=3,
+                                  l_exp_factor[5]=0/dec=3,
+                                  l_package_mod[5]=0/dec=3,
+                                  l_rate[6]=0/dec=3,
+                                  L_SUPPLEMENTAL_PREMIUM[8]=0;
+
+        Local Unsigned Ascii Number L_SUB[2] ,
+                                    L_PREM_MINIMUM[8]=0,
+                                    l_flat_premium[8]=0,
+                                    L_PREM_NO[4]=0,
+                                    l_minimum_premium[3]=0,
+                                    L_BUILD_NO[4]=0,
+                                    l_bu2510_premium[5]=0,
+                                    l_independent_charge[3]=0,
+                                    l_independent_premium[8]=0,
+                                    l_policy_no[9]=0,
+                                    l_year[4]=0,
+                                    l_end_sequence[4]=0,
+                                    L_PROD_MINIMUM[8]=0 ,
+                                    l_coll_deductible[4]=0/dec=3,
+                                    l_comp_deductible[4]=0/dec=3,
+                                    l_comp_premium[6]=0,
+                                    l_coll_premium[6]=0,
+                                    l_comp_charge[5]=0,
+                                    l_coll_charge[5]=0,
+                                    L_PREM_TOTAL[8]=0,
+                                    L_PROD_TOTAL[8]=0,
+                                    l_liability_prem[8]=0,
+                                    l_liability_prod[8]=0,
+                                    l_days_seasonal[3]=0,
+                                    l_seasonal_1[6]=0/dec=3,
+                                    l_seasonal_2[6]=0/dec=3,
+                                    l_seasonal_rate_1[4]=0/dec=3,
+                                    l_seasonal_rate_2[4]=0/dec=3,
+                                    l_seasonal_rate[4]=0/dec=3,
+                                    l_add_prem[8]=0,
+                                    l_add_prod[8]=0,
+                                    l_total_minimum[8]=0,
+                                    l_total_policy[8]=0,
+                                    l_mcl589_premium[8]=0,
+                                    l_end_factor[4]=0/dec=3,
+                                    l_end_factor_1[4]=0/dec=3,
+                                    l_end_limit[5]=0,
+                                    l_end_premium1[6]=0,
+                                    l_end_premium2[6]=0,
+                                    l_end_limit_1[8]=0,
+                                    l_hired_premium[8]=0,
+                                    l_nonowned_premium[8]=0,
+                                    l_il_factor[5]=0/dec=3,
+                                    l_medical_surcharge[5]=0/dec=3,
+                                    l_escalator_1[5]=0,
+                                    l_escalator_2[5]=0,
+                                    l_mechanical[5]=0,
+                                    l_ski_lift[5]=0,
+                                    l_pool_1[5]=0,
+                                    l_pool_2[5]=0,
+                                    l_elevator_inspection_1[5]=0,
+                                    l_elevator_inspection_2[5]=0,
+                                    l_escalator_inspection_1[5]=0,
+                                    l_escalator_inspection_2[5]=0,
+                                    l_line_of_business[4],
+                                    l_fire_legal_charge[4]=0 ,
+                                    l_fire_legal_limit[8]=0;
+
+        Include "cpsrate.var"
+
+Initialisation
+G_policy_NO = Val(COMMANDLINE[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+
+Do RATE_LOCATION
+
+Update
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+Access cppLIABILITY_ALIAS, Set cppLIABILITY_ALIAS:policy_NO = G_policy_NO,
+                               cppliability_alias:pol_year = g_year,
+                               cppliability_alias:end_sequence = g_end_sequence, Generic
+
+l_prem_no = cppliability_alias:prem_no
+l_build_no = cppliability_alias:build_no
+l_class_code = cppliability_alias:class_code
+l_first = "Y"
+While cppLIABILITY_ALIAS:policy_NO = G_policy_NO and
+      cppliability_alias:pol_year = g_year and
+      cppliability_alias:end_sequence = g_end_sequence
+    Begin
+    If cppliability_alias:prem_no <> l_prem_no or
+       cppliability_alias:build_no <> l_build_no then
+        begin
+        l_first = "Y"
+        l_prem_no = cppliability_alias:prem_no
+        l_build_no = cppliability_alias:build_no
+        end
+
+    access cppgeneral, set cppgeneral:policy_no    = cppliability_alias:policy_no,
+                           cppgeneral:pol_year     = cppliability_alias:pol_year,
+                           cppgeneral:end_sequence = cppliability_alias:end_sequence,
+                           cppgeneral:prem_no      = cppliability_alias:prem_no,
+                           cppgeneral:build_no     = cppliability_alias:build_no, generic
+
+    Access sfpNAME, Set sfpNAME:policy_NO = cppLIABILITY_ALIAS:policy_NO,
+                        sfpname:pol_year = cppliability_alias:pol_year,
+                        sfpname:end_sequence = cppliability_alias:end_sequence, Generic
+
+    access sfsline, set sfsline:company_id = sfpname:company_id,
+                        sfsline:line_of_business = sfpname:line_of_business,
+                        sfsline:lob_subline = "00", generic
+
+    l_line_of_business = sfsline:rating_line_of_business
+    access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+    Access cppLIABLIMITS, Set cppLIABLIMITS:policy_NO = cppLIABILITY_ALIAS:policy_NO,
+                              cppliablimits:pol_year = cppliability_alias:pol_year,
+                              cppliablimits:end_sequence = cppliability_alias:end_sequence, Generic
+
+    L_STATE = cppLIABILITY_ALIAS:STATE
+    L_FORM_1 = cppLIABILITY_ALIAS:FORM
+    Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSLIABDEFAULT:STATE = L_STATE,
+                               CPSLIABDEFAULT:LIABILITY_FORM = L_FORM_1, Generic
+
+    l_territory_factor = 1.00
+    if sfscompany:boiler_rating <> 4 then
+        Do TERRITORY_FACTOR
+    else
+        l_territory_factor = cppliability_alias:territory_factor
+
+    If L_TERRITORY_FACTOR = 0 Then
+        L_TERRITORY_FACTOR = 1.00
+
+    if sfscompany:boiler_rating <> 4 then
+        begin
+        Change cppLIABILITY_ALIAS
+            Begin
+            cppLIABILITY_ALIAS:TERRITORY_FACTOR = L_TERRITORY_FACTOR
+            end
+        End
+
+    If cppLIABILITY_ALIAS:FORM = 3 Then
+        Do MCL030_FACTOR
+    else
+        l_mcl030_factor = 1.00
+    If L_MCL030_FACTOR = 0 Then
+        L_MCL030_FACTOR = 1.00
+
+    do rate_misc
+
+    Change cppLIABILITY_ALIAS
+        Begin
+        cppLIABILITY_ALIAS:MCL030_DISCOUNT = L_MCL030_FACTOR
+        End
+
+    do company_deviation
+    Do PACKAGE_MOD
+    l_fire_legal_limit = cppliablimits:fire_legal
+    Do AGGREGATE_SURCHARGE
+    do medical_payments
+
+    if l_first = "Y" and
+       sfscompany:boiler_rating <> 4 then
+        begin
+        if cppliablimits:Fire_legal <> cpsliabdefault:fire_legal then
+            begin
+            if sfscompany:boiler_rating = 2 then
+                begin
+                change cppliability_alias
+                    begin
+                    cppliability_alias:fire_legal_premium = l_fire_legal_charge
+                    end
+                end
+            else
+                do update_fire_legal
+            end
+        else
+            change cppliability_alias
+                begin
+                cppliability_alias:fire_legal_premium = 0
+                end
+        end
+    else
+    if sfscompany:boiler_Rating = 4 then
+        begin
+        if cppliablimits:Fire_legal <> cpsliabdefault:fire_legal or
+           cppliablimits:fire_legal_extended = 1 then
+            begin
+            do update_fire_legal
+            end
+        else
+            begin
+            change cppliability_alias
+                begin
+                cppliability_alias:fire_legal_premium = 0
+                end
+            end
+        end
+    else
+    if sfscompany:boiler_rating <> 4 and
+       l_first <> "Y" then
+        begin
+        change cppliability_alias
+            begin
+            cppliability_alias:fire_legal_premium = 0
+            end
+        end
+
+    Change cppLIABILITY_ALIAS
+        Begin
+        cppliability_alias:medical_payment_surcharge = l_medical_surcharge
+        if cppliability_alias:medical_payment_surcharge = 0 then
+            cppliability_alias:medical_payment_surcharge = 1.00
+        cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] = L_EMPLOY_ACT_FACTOR *
+                                                    L_CONTRACT_FACTOR_1 *
+                                                    L_CONTRACT_FACTOR_2 *
+                                                    L_CONTRACT_FACTOR_3 *
+                                                    L_EMPLOYEE_INSURED_FACTOR *
+                                                    L_FIRE_LEGAL_FACTOR *
+                                                    L_MED_PAY_FACTOR *
+                                                    L_ACQUIRED_ENTITY_FACTOR *
+                                                    L_PERSONAL_INJURY_FACTOR
+        If cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] = 0 Then
+            cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] = 1.00
+        cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[2] = 1.00
+        End
+
+    Do LIABILITY_DEDUCTIBLE
+    Change cppLIABILITY_ALIAS
+        Begin
+        cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1] = L_DEDUCTIBLE_FACTOR_1
+        cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2] = L_DEDUCTIBLE_FACTOR_2
+        End
+
+    Do INCREASE_LIMITS
+    If L_PREM_IL_FACTOR = 0 Then
+        L_PREM_IL_FACTOR = 1.00
+    If L_PROD_IL_FACTOR = 0 Then
+        L_PROD_IL_FACTOR = 1.00
+
+    Change cppLIABILITY_ALIAS
+        Begin
+        cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] =  L_PREM_IL_FACTOR
+        if cppliablimits:products <> 0 then
+            cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] = L_PROD_IL_FACTOR
+        End
+
+    Access CPSLIABMINIMUM, Set CPSLIABMINIMUM:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSLIABMINIMUM:STATE = L_STATE,
+                               CPSLIABMINIMUM:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSLIABMINIMUM:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSLIABMINIMUM:STATE = L_STATE And
+          CPSLIABMINIMUM:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSLIABMINIMUM:EFF_DATE Then
+                Begin
+                Switch(cppLIABILITY_ALIAS:FORM)
+                  Case 1  : L_PREM_MINIMUM = CPSLIABMINIMUM:MINIMUM_SUBLINE[1]
+                  Case 2  : L_PREM_MINIMUM = CPSLIABMINIMUM:MINIMUM_SUBLINE[2]
+                  Default : L_PREM_MINIMUM = CPSLIABMINIMUM:MINIMUM_SUBLINE[3]
+                  End
+                L_PROD_MINIMUM = CPSLIABMINIMUM:MINIMUM_SUBLINE[4]
+                End
+
+            Next CPSLIABMINIMUM
+            End
+
+    if cppliability_alias:rating_territory_factor = 0 then
+        change cppliability_alias
+            begin
+            cppliability_alias:rating_territory_factor = 1.00
+            end
+
+    Change cppLIABILITY_ALIAS
+        Begin
+    --prem/ops
+        if cppliability_alias:premium[1] <> 0 then
+            cppliability_alias:prem[1] = cppliability_alias:premium[1]
+        else
+        if cppliability_alias:seasonal_no_days <> 365 and
+           cppliability_alias:seasonal_no_days <> 0 then
+            begin
+            if sfscompany:boiler_rating <> 4 then
+                begin
+                cppLIABILITY_ALIAS:ADJUSTED_RATE[1] = (cppLIABILITY_ALIAS:BASE_RATE[1] *
+                                                      cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                      cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                      (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                      cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                      cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                      cppliability_alias:medical_payment_surcharge *
+                                                      l_PACKAGE_MOD *
+                                                      l_DEVIATION)
+                l_days_seasonal = 365 - cppliability_alias:seasonal_no_days
+                if cppliability_alias:group_no = 3 then
+                    l_seasonal_rate = l_seasonal_rate_2
+                else
+                    l_seasonal_rate = l_seasonal_rate_1
+                l_seasonal_1 = ((cppliability_alias:seasonal_no_days divide 365) *
+                               cppliability_alias:adjusted_rate[1])
+                l_seasonal_2 = (((l_seasonal_rate * l_days_seasonal) divide 365) *
+                               cppliability_alias:adjusted_rate[1])
+                cppliability_alias:prem[1] = ((l_seasonal_1 + l_seasonal_2) *
+                                             (cppliability_alias:exposure[1] divide
+                                             cppliability_alias:rates_per[1]))
+                end
+            else
+                begin
+                cppLIABILITY_ALIAS:ADJUSTED_RATE[1] = ((cppLIABILITY_ALIAS:BASE_RATE[1] *
+                                                      l_deviation *
+                                                      (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                      cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                      l_package_mod *
+                                                      cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                      cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                      cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                      cppliability_alias:medical_payment_surcharge) *
+                                                      l_irpm_deviation *
+                                                      l_exp_factor)
+                l_days_seasonal = 365 - cppliability_alias:seasonal_no_days
+                if cppliability_alias:group_no = 3 then
+                    l_seasonal_rate = l_seasonal_rate_2
+                else
+                    l_seasonal_rate = l_seasonal_rate_1
+                l_seasonal_1 = ((cppliability_alias:seasonal_no_days divide 365) *
+                               cppliability_alias:adjusted_rate[1])
+                l_seasonal_2 = (((l_seasonal_rate * l_days_seasonal) divide 365) *
+                               cppliability_alias:adjusted_rate[1])
+                cppliability_alias:seasonal_factor[1] = ((cppliability_alias:seasonal_no_days divide 365) +
+                                                        ((l_seasonal_rate * l_days_seasonal) divide 365))
+                cppliability_alias:prem[1] = ((l_seasonal_1 + l_seasonal_2) *
+                                             (cppliability_alias:exposure[1] divide
+                                             cppliability_alias:rates_per[1]))
+                end
+            end
+        else
+            begin
+            if sfscompany:boiler_rating <> 4 then
+                begin
+                cppLIABILITY_ALIAS:ADJUSTED_RATE[1] = (cppLIABILITY_ALIAS:BASE_RATE[1] *
+                                                      cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                      cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                      (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                      cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                      cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                      cppliability_alias:medical_payment_surcharge *
+                                                      l_PACKAGE_MOD *
+                                                     l_DEVIATION)
+                if l_first = "Y" then
+                    begin
+                    l_first = "N"
+                    cppLIABILITY_ALIAS:PREM[1] = ((cppLIABILITY_ALIAS:EXPOSURE[1] Divide
+                                                 cppLIABILITY_ALIAS:RATES_PER[1]) *
+                                                 cppLIABILITY_ALIAS:ADJUSTED_RATE[1] *
+                                                 cppliability_alias:rating_territory_factor) +
+                                                 cppliability_alias:fire_legal_premium +
+                                                 cppliability_alias:escalators_premium[1] +
+                                                 cppliability_alias:escalators_premium[2] +
+                                                 cppliability_alias:mechanical_devices_premium +
+                                                 cppliability_alias:ski_lifts_premium +
+                                                 cppliability_alias:pools_beaches_premium[1] +
+                                                 cppliability_alias:pools_beaches_premium[2] +
+                                                 cppliability_alias:escalator_inspection_premium
+                    end
+                else
+                    begin
+                    cppLIABILITY_ALIAS:PREM[1] = ((cppLIABILITY_ALIAS:EXPOSURE[1] Divide
+                                                 cppLIABILITY_ALIAS:RATES_PER[1]) *
+                                                 cppLIABILITY_ALIAS:ADJUSTED_RATE[1] *
+                                                 cppliability_alias:rating_territory_factor) +
+                                                 cppliability_alias:escalators_premium[1] +
+                                                 cppliability_alias:escalators_premium[2] +
+                                                 cppliability_alias:mechanical_devices_premium +
+                                                 cppliability_alias:ski_lifts_premium +
+                                                 cppliability_alias:pools_beaches_premium[1] +
+                                                 cppliability_alias:pools_beaches_premium[2] +
+                                                 cppliability_alias:escalator_inspection_premium
+                    end
+                end
+            else
+            if sfscompany:boiler_rating = 4 then
+                begin
+                if cppliability_alias:class_code one of 5922 then
+                    begin
+                    cppLIABILITY_ALIAS:ADJUSTED_RATE[1] = ((cppLIABILITY_ALIAS:BASE_RATE[1] *
+                                                          cppliability_alias:rates_per[1] *
+                                                          l_deviation *
+                                                          (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                          cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                          l_package_mod *
+                                                          cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                          cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                          cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                          cppliability_alias:medical_payment_surcharge) *
+                                                          l_irpm_deviation *
+                                                          l_exp_factor)
+                    cppLIABILITY_ALIAS:PREM[1] = cppLIABILITY_ALIAS:EXPOSURE[1] *
+                                                 cppLIABILITY_ALIAS:ADJUSTED_RATE[1]
+                    end
+                else
+                    begin
+                    cppLIABILITY_ALIAS:ADJUSTED_RATE[1] = ((cppLIABILITY_ALIAS:BASE_RATE[1] *
+                                                          l_deviation *
+                                                          (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                          cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                          l_package_mod *
+                                                          cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                          cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                          cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                          cppliability_alias:medical_payment_surcharge) *
+                                                          l_irpm_deviation *
+                                                          l_exp_factor)
+                    cppLIABILITY_ALIAS:PREM[1] = ((cppLIABILITY_ALIAS:EXPOSURE[1] Divide
+                                                 cppLIABILITY_ALIAS:RATES_PER[1]) *
+                                                 cppLIABILITY_ALIAS:ADJUSTED_RATE[1])
+                    end
+                if l_first = "Y" then
+                    begin
+                    l_first = "N"
+                    cppliability_alias:prem[1] = cppliability_alias:prem[1] +
+                                                 cppliability_alias:fire_legal_premium +
+                                                 cppliability_alias:escalators_premium[1] +
+                                                 cppliability_alias:escalators_premium[2] +
+                                                 cppliability_alias:mechanical_devices_premium +
+                                                 cppliability_alias:ski_lifts_premium +
+                                                 cppliability_alias:pools_beaches_premium[1] +
+                                                 cppliability_alias:pools_beaches_premium[2] +
+                                                 cppliability_alias:escalator_inspection_premium
+                    end
+                else
+                    begin
+                    cppliability_alias:prem[1] = cppliability_alias:prem[1] +
+                                                 cppliability_alias:escalators_premium[1] +
+                                                 cppliability_alias:escalators_premium[2] +
+                                                 cppliability_alias:mechanical_devices_premium +
+                                                 cppliability_alias:ski_lifts_premium +
+                                                 cppliability_alias:pools_beaches_premium[1] +
+                                                 cppliability_alias:pools_beaches_premium[2] +
+                                                 cppliability_alias:escalator_inspection_premium
+                    end
+
+                end
+        end
+
+        do independent_contractor
+        if cppliability_alias:Independent_contractor = 1 then
+            begin
+            l_independent_premium = ((cppLIABILITY_ALIAS:EXPOSURE[1] Divide
+                                    cppLIABILITY_ALIAS:RATES_PER[1]) *
+                                    cppLIABILITY_ALIAS:ADJUSTED_RATE[1] *
+                                    cppliability_alias:rating_territory_factor)
+            cppliability_alias:INDEPENDENT_CONTRACTOR_PREMIUM = ((l_independent_premium *
+                                                                ((L_INDEPENDENT_CHARGE Divide 100) + 1)) -
+                                                                l_independent_premium)
+            end
+
+        else
+            cppliability_alias:independent_contractor_premium = 0
+
+    -- products
+        If cppLIABLIMITS:PRODUCTS <> 0 Then
+            Begin
+            if sfscompany:boiler_rating <> 4 then
+                begin
+                If cppLIABILITY_ALIAS:PRODUCTS_FLAT = 0 Then
+                    Begin
+                    -- Flemington does not apply company deviation to products
+                    if sfscompany:special_territory_rating = 1 then
+                        cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = (cppLIABILITY_ALIAS:BASE_RATE[2] *
+                                                              (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                                                              cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]) *
+                                                              l_PACKAGE_MOD)
+                    else
+                        cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = (cppLIABILITY_ALIAS:BASE_RATE[2] *
+                                                              (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                                                              cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]) *
+                                                              l_PACKAGE_MOD *
+                                                              l_deviation)
+                    End
+                Else
+                    Begin
+                    if sfscompany:special_territory_rating = 1 then
+                        cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = (cppLIABILITY_ALIAS:BASE_RATE[2] *
+                                                              (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                                                              cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]) *
+                                                              l_PACKAGE_MOD)
+                    else
+                        cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = (cppLIABILITY_ALIAS:BASE_RATE[2] *
+                                                              (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                                                              cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]) *
+                                                              l_PACKAGE_MOD *
+                                                              l_DEVIATION)
+                    End
+                end
+            else
+            if sfscompany:boiler_Rating = 4 then
+                begin
+                If cppLIABILITY_ALIAS:PRODUCTS_FLAT = 0 Then
+                    Begin
+                    cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = ((cppLIABILITY_ALIAS:BASE_RATE[2] *
+                                                          l_deviation *
+                                                          (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                                                          cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]) *
+                                                          l_PACKAGE_MOD) *
+                                                          l_irpm_deviation *
+                                                          l_exp_factor)
+                    End
+                Else
+                    Begin
+                    cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = ((cppLIABILITY_ALIAS:BASE_RATE[2] *
+                                                          l_deviation *
+                                                          (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                                                          cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]) *
+                                                          l_PACKAGE_MOD) *
+                                                          l_irpm_deviation *
+                                                          l_exp_factor)
+                    End
+                end
+
+            if cppliability_alias:premium[2] <> 0 then
+                cppliability_alias:prem[2] = cppliability_alias:premium[2]
+            else
+            If cppLIABILITY_ALIAS:PRODUCTS_FLAT = 1 Then
+                cppLIABILITY_ALIAS:PREM[2] = cppLIABILITY_ALIAS:ADJUSTED_RATE[2]
+            Else
+            if cppliability_alias:seasonal_no_days <> 365 and
+               cppliability_alias:seasonal_no_days <> 0 and
+               sfscompany:boiler_rating <> 4 then
+                begin
+                l_days_seasonal = 365 - cppliability_alias:seasonal_no_days
+                if cppliability_alias:group_no = 3 then
+                    l_seasonal_rate = l_seasonal_rate_2
+                else
+                    l_seasonal_rate = l_seasonal_rate_1
+                l_seasonal_1 = ((cppliability_alias:seasonal_no_days divide 365) *
+                               cppliability_alias:adjusted_rate[2])
+                l_seasonal_2 = (((l_seasonal_rate * l_days_seasonal) divide 365) *
+                               cppliability_alias:adjusted_rate[2])
+                cppliability_alias:prem[2] = ((l_seasonal_1 + l_seasonal_2) *
+                                             (cppliability_alias:exposure[2] divide
+                                             cppliability_alias:rates_per[2]))
+                end
+/*                else
+                    begin
+                    l_days_seasonal = 365 - cppliability_alias:seasonal_no_days
+                    if cppliability_alias:group_no = 3 then
+                        l_seasonal_rate = l_seasonal_rate_2
+                    else
+                        l_seasonal_rate = l_seasonal_rate_1
+                    l_seasonal_1 = ((cppliability_alias:seasonal_no_days divide 365) *
+                                   cppliability_alias:adjusted_rate[2])
+                    l_seasonal_2 = (((l_seasonal_rate * l_days_seasonal) divide 365) *
+                                   cppliability_alias:adjusted_rate[2])
+                    cppliability_alias:seasonal_factor[2] = (cppliability_alias:seasonal_no_days divide 365 +
+                                                            ((l_seasonal_rate * l_days_seasonal) divide 365))
+                    cppliability_alias:prem[2] = ((l_seasonal_1 + l_seasonal_2) *
+                                                 (cppliability_alias:exposure[2] divide
+                                                 cppliability_alias:rates_per[2]))
+                    end
+                end*/
+            else
+                begin
+                if sfscompany:boiler_rating <> 4 then
+                    cppLIABILITY_ALIAS:PREM[2] = ((cppLIABILITY_ALIAS:EXPOSURE[2] Divide
+                                                 cppLIABILITY_ALIAS:RATES_PER[2]) *
+                                                 cppLIABILITY_ALIAS:ADJUSTED_RATE[2] *
+                                                 cppliability_alias:rating_territory_factor)
+                else
+                    cppLIABILITY_ALIAS:PREM[2] = ((cppLIABILITY_ALIAS:EXPOSURE[2] Divide
+                                                 cppLIABILITY_ALIAS:RATES_PER[2]) *
+                                                 cppLIABILITY_ALIAS:ADJUSTED_RATE[2])
+                end
+
+            End
+        Else
+            Begin
+            cppLIABILITY_ALIAS:ADJUSTED_RATE[2] = 1.00
+            cppLIABILITY_ALIAS:PREM[2] = 0
+            End
+
+        L_TOTAL_PREM = L_TOTAL_PREM + cppLIABILITY_ALIAS:PREM[1] +
+                       cppliability_alias:independent_contractor_premium
+        L_TOTAL_PROD = L_TOTAL_PROD + cppLIABILITY_ALIAS:PREM[2]
+        cppLIABILITY_ALIAS:TOTAL_PREMIUM = cppLIABILITY_ALIAS:PREM[1] +
+                                           cppLIABILITY_ALIAS:PREM[2] +
+                                           cppliability_alias:independent_contractor_premium
+        End
+
+    L_PREM_NO = cppLIABILITY_ALIAS:PREM_NO
+    L_BUILD_NO = cppLIABILITY_ALIAS:BUILD_NO
+
+    Next cppLIABILITY_ALIAS
+    End
+
+Access sfpEND_alias, Set sfpEND_alias:policy_NO = G_policy_NO,
+                         sfpend_alias:pol_year = g_Year,
+                         sfpend_alias:end_sequence = g_end_sequence, generic
+
+L_END_PREMIUM = 0
+L_UPDATE_SFPEND_PREMIUM = 0
+l_flat_premium = 0
+while sfpEND_alias:policy_NO = G_policy_NO and
+      sfpend_alias:pol_year = g_Year and
+      sfpend_alias:end_sequence = g_end_sequence
+        begin
+        If sfpEND_alias:LOB_END_CODE = "L" Then
+            begin
+            l_policy_no = sfpend_alias:policy_no
+            l_year = sfpend_alias:pol_year
+            l_end_sequence = sfpend_alias:end_sequence
+            l_prem_no = sfpend_alias:prem_no
+            l_build_no = sfpend_alias:build_no
+            L_UPDATE_SFPEND_PREMIUM = 0
+            L_CODE = sfpEND_alias:CODE
+            l_sub_code = sfpend_alias:sub_Code
+            if sfpend_alias:manual_premium = 0 then
+                begin
+                Do RATE_ENDORSEMENTS
+                if l_update_sfpend_premium <> 0 then
+                    begin
+                    Change sfpend_alias
+                        Begin
+                        sfpEND_alias:PREMIUM = L_UPDATE_SFPEND_PREMIUM
+                        end
+                    L_END_PREMIUM = L_END_PREMIUM + L_UPDATE_SFPEND_PREMIUM
+                    end
+                end
+            else
+                l_end_premium = l_end_premium + sfpend_alias:manual_premium
+
+            if sfpend_alias:code one of "MCL410", "MCL411", "MCL412" and
+               sfscompany:boiler_rating = 4 then
+                l_flat_premium = l_flat_premium + l_update_sfpend_premium
+
+            end
+
+        Next sfpEND_alias
+        End
+
+Access sfpMISC, Set sfpMISC:policy_NO = G_policy_NO,
+                    sfpmisc:pol_Year = g_year,
+                    sfpmisc:end_sequence = g_end_sequence, Generic
+
+L_MISC_PREMIUM = 0
+If L_MISC <> "Y" Then
+    Begin
+    Repeat Begin
+        Exit If sfpMISC:policy_NO <> G_policy_NO or
+                sfpmisc:pol_year <> g_year or
+                sfpmisc:end_sequence <> g_end_sequence
+
+        If sfpMISC:LOB_END_CODE = "L" Then
+            Begin
+            L_MISC_PREMIUM = L_MISC_PREMIUM + sfpMISC:PREMIUM
+            L_MISC = "Y"
+            End
+
+        L_supplemental_PREMIUM = L_supplemental_PREMIUM + L_MISC_PREMIUM
+
+        Next sfpMISC
+        End
+    End
+
+Access cppLIABILITY_ALIAS, Set cppLIABILITY_ALIAS:policy_NO = G_policy_NO,
+                               cppliability_alias:pol_year = g_year,
+                               cppliability_alias:end_sequence = g_end_sequence, Generic
+
+change cppliability_alias
+    begin
+    cppLIABILITY_ALIAS:TOTAL_ENDORSEMENTS = L_END_PREMIUM
+    cppLIABILITY_ALIAS:TOTAL_MISC = L_SUPPLEMENTAL_PREMIUM
+    end
+
+Access cppLIABILITY_ALIAS, Set cppLIABILITY_ALIAS:policy_NO = G_policy_NO,
+                               cppliability_alias:pol_year = g_year,
+                               cppliability_alias:end_sequence = g_end_sequence, Generic
+
+L_PREM_MINIMUM = (L_PREM_MINIMUM * (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                 cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]))
+L_PROD_MINIMUM = (L_PROD_MINIMUM * (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[2] -
+                 cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[2]))
+
+l_total_policy = l_total_prem + l_total_prod + l_supplemental_premium +
+                 l_end_premium - l_flat_premium
+
+if l_total_minimum < l_prem_minimum then
+    l_total_minimum = l_prem_minimum
+if l_total_minimum < l_prod_minimum and
+   l_total_prod <> 0 then
+    l_total_minimum = l_prod_minimum
+
+If L_TOTAL_POLICY < L_TOTAL_MINIMUM Then
+    Begin
+    access cppliability_alt, set cppliability_alt:policy_no = g_policy_no,
+                                 cppliability_alt:pol_year = g_year,
+                                 cppliability_alt:end_sequence = g_end_sequence, generic
+
+    while cppliability_alt:policy_no = g_policy_no and
+          cppliability_alt:pol_year = g_year and
+          cppliability_alt:end_sequence = g_end_sequence
+        begin
+        Change cppLIABILITY_ALT
+            Begin
+            cppLIABILITY_ALT:MINIMUM_PREMIUM[1] = L_TOTAL_MINIMUM +
+                                                  l_flat_premium
+            cppliability_alt:minimum_premium[2] = 0
+            End
+
+        next cppliability_alt
+        end
+    End
+Else
+    Begin
+    access cppliability_alt, set cppliability_alt:policy_no = g_policy_no,
+                                 cppliability_alt:pol_year = g_year,
+                                 cppliability_alt:end_sequence = g_end_sequence, generic
+
+    while cppliability_alt:policy_no = g_policy_no and
+          cppliability_alt:pol_year = g_year and
+          cppliability_alt:end_sequence = g_end_sequence
+        begin
+        Change cppLIABILITY_ALT
+            Begin
+            cppLIABILITY_ALT:MINIMUM_PREMIUM[1] = 0
+            cppliability_alt:minimum_premium[2] = 0
+            end
+
+        next cppliability_alt
+        End
+    End
+
+/*If L_TOTAL_PROD < L_PROD_MINIMUM And
+   cppLIABILITY_ALIAS:PRODUCTS_FLAT = 0 And
+   L_TOTAL_PROD <> 0 Then
+    Begin
+    Change cppLIABILITY_ALIAS
+        Begin
+        cppLIABILITY_ALIAS:MINIMUM_PREMIUM[2] = L_PROD_MINIMUM
+        End
+    End
+Else
+    Begin
+    Change cppLIABILITY_ALIAS
+        Begin
+        cppLIABILITY_ALIAS:MINIMUM_PREMIUM[2] = 0
+        End
+    End*/
+
+/*If cppLIABILITY_ALIAS:MINIMUM_PREMIUM[1] <> 0 Then
+    L_PREM_TOTAL = cppLIABILITY_ALIAS:MINIMUM_PREMIUM[1]
+Else
+    L_PREM_TOTAL = cppLIABILITY_ALIAS:PREM[1]
+
+If cppLIABILITY_ALIAS:MINIMUM_PREMIUM[2] <> 0 Then
+    L_PROD_TOTAL = cppLIABILITY_ALIAS:MINIMUM_PREMIUM[2]
+Else
+    L_PROD_TOTAL = cppLIABILITY_ALIAS:PREM[2]*/
+/*Change cppLIABILITY_ALIAS
+    Begin
+    If cppLIABILITY_ALIAS:MINIMUM_PREMIUM[1] <> 0 Then
+        cppLIABILITY_ALIAS:TOTAL_PREMIUM = L_PREM_TOTAL +
+                                           L_PROD_TOTAL +
+                                           l_end_premium +
+                                           l_misc_premium
+
+    End*/
+
+do add_cpsliabtrigger
+End
+
+procedure add_cpsliabtrigger
+begin
+l_state = cppliability_alias:state
+Access CPSLIABTRIGGER, Set CPSLIABTRIGGER:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                           CPSLIABTRIGGER:STATE            = l_STATE,
+                           CPSLIABTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+l_code_1 = ""
+While CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABTRIGGER:STATE = l_STATE And
+      CPSLIABTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If (sfpNAME:EFF_DATE >= CPSLIABTRIGGER:EFF_DATE and
+           (sfpname:eff_date < cpsliabtrigger:exp_date or
+           cpsliabtrigger:exp_date = 0)) Then
+            Begin
+            l_code_1 = cpsliabtrigger:trigger_endorsement[20] -- MCN883
+            End
+
+        Next CPSLIABTRIGGER
+        End
+
+If L_CODE_1 <> "" Then
+    Begin
+    L_CODE = L_CODE_1
+    Do ACCESS_sfpEND_1
+    If L_ADD_ENDORSEMENT = "Y" then
+        begin
+        Do ADD_sfpEND_1
+        do add_cppendorse
+        end
+    end
+
+end
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = l_prem_no,
+                   sfpEND:BUILD_NO = l_build_no, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> l_prem_no Or
+            sfpEND:BUILD_NO <> l_build_no
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_No = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppliability_alias:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       L_PREM_NO
+    sfpEND:BUILD_NO             =       L_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "L"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_Year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+end
+
+procedure add_cppendorse
+begin
+l_prem_no = 0
+l_build_no = 0
+access cppendorse, set cppendorse:policy_no = g_policy_no,
+                       cppendorse:pol_Year = g_year,
+                       cppendorse:end_sequence = g_end_sequence,
+                       cppendorse:prem_no  = l_prem_no,
+                       cppendorse:build_no = l_build_no,
+                       cppendorse:code     = l_code, generic
+
+if cppendorse:policy_no <> g_policy_no or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:prem_no <> l_prem_no or
+   cppendorse:build_no <> l_build_no or
+   cppendorse:code <> l_code then
+    begin
+    L_STATE = cppliability_alias:STATE
+    Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                          SFSOPTEND:STATE            = L_STATE,
+                          SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                          SFSOPTEND:CODE             = L_CODE, Generic
+
+    while SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID and
+          SFSOPTEND:STATE            = L_STATE and
+          SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+          SFSOPTEND:CODE             = L_CODE
+        begin
+        If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+           (sfpname:eff_date < sfsoptend:exp_date or
+           sfsoptend:exp_date = 0)) Then
+            Begin
+            l_limit = sfsoptend:limit[1]
+            End
+
+        Next SFSOPTEND
+        End
+
+    add cppendorse
+        begin
+        cppendorse:policy_no    =       g_policy_no
+        cppendorse:pol_year     =       g_year
+        cppendorse:end_sequence =       g_end_sequence
+        cppendorse:prem_no      =       l_prem_no
+        cppendorse:build_no     =       l_build_no
+        cppendorse:code         =       l_code
+        cppendorse:sub_code     =       10
+        cppendorse:limit[1]     =       l_limit
+        end
+
+    end
+
+end
+
+procedure independent_contractor
+begin
+L_STATE = cppliability_alias:state
+Access cpsliabmiscrates, Set cpsliabmiscrates:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             cpsliabmiscrates:STATE = L_STATE,
+                             cpsliabmiscrates:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While cpsliabmiscrates:COMPANY_ID = sfpNAME:COMPANY_ID And
+      cpsliabmiscrates:STATE = L_STATE And
+      cpsliabmiscrates:LINE_OF_BUSINESS = sfpNAME:LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= cpsliabmiscrates:EFF_DATE Then
+            L_INDEPENDENT_CHARGE = cpsliabmiscrates:INDEPENDENT_CHARGE
+
+        Next cpsliabmiscrates
+        End
+
+end
+
+Procedure RATE_ENDORSEMENTS
+Begin
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> l_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_END_FACTOR = SFSOPTEND:PREMIUM_1[1]
+        l_end_factor_1 = sfsoptend:premium_1[2]
+        L_END_LIMIT = SFSOPTEND:LIMIT[1]
+        L_END_PREMIUM1 = SFSOPTEND:PREMIUM_1[1]
+        l_end_premium2 = sfsoptend:premium_1[2]
+        l_end_limit_1 = sfsoptend:limit[2]
+
+        if l_code one of "MCL338", "MCL335" then
+            l_end_premium1 = sfsoptend:premium_1[1]
+
+        If L_CODE one of "BU2510" Then
+            Begin
+            Access cppENDORSE, Set cppENDORSE:policy_NO = G_policy_NO,
+                                   cppendorse:pol_year = g_year,
+                                   cppendorse:end_sequence = g_end_sequence, generic
+
+            while cppendorse:policy_no = g_policy_no and
+                  cppendorse:pol_year = g_year and
+                  cppendorse:end_sequence = g_end_sequence
+                begin
+                if cppendorse:code = "BU2510" then
+                    begin
+                    if cppendorse:no_units <= sfsoptend:limit[7] then
+                        l_rate = ((100 - sfsoptend:premium_1[7]) divide 100)
+                    else
+                    if cppendorse:no_units > sfsoptend:limit[7] and
+                       cppendorse:no_units <= sfsoptend:limit[8] then
+                        l_rate = ((100 - sfsoptend:premium_1[8]) divide 100)
+                    else
+                    if cppendorse:no_units > sfsoptend:limit[8] and
+                       cppendorse:no_units <= sfsoptend:limit[9] then
+                        l_rate = ((100 - sfsoptend:premium_1[9]) divide 100)
+                    else
+                    if cppendorse:no_units > sfsoptend:limit[9] and
+                       cppendorse:no_units <= sfsoptend:limit[10] then
+                        l_rate = ((100 - sfsoptend:premium_1[10]) divide 100)
+
+                    l_bu2510_mp = "N"
+                    Switch(cppendorse:limit[1])
+                      Case 300000 : Begin
+                                    l_end_premium1 = ((cppENDORSE:no_units *
+                                                     SFSOPTEND:PREMIUM_1[1]) *
+                                                     l_rate)
+                                    if sfsoptend:premium_1[2] <> 0 and
+                                       l_end_premium1 <= sfsoptend:premium_1[2] then
+                                        begin
+                                        l_bu2510_mp = "Y"
+                                        l_end_premium1 = sfsoptend:premium_1[2]
+                                        end
+                                    End
+                      Case 500000 : Begin
+                                    l_end_premium1 = ((cppENDORSE:no_units *
+                                                     SFSOPTEND:PREMIUM_1[3]) *
+                                                     l_rate)
+                                    if sfsoptend:premium_1[4] <> 0 and
+                                       l_end_premium1 <= sfsoptend:premium_1[4] then
+                                        begin
+                                        l_bu2510_mp = "Y"
+                                        l_end_premium1 = sfsoptend:premium_1[4]
+                                        end
+                                    End
+                      Case 1000000 : Begin
+                                     l_end_premium1 = ((cppENDORSE:no_units *
+                                                      SFSOPTEND:PREMIUM_1[5]) *
+                                                      l_rate)
+                                     if sfsoptend:premium_1[6] <> 0 and
+                                        l_end_premium1 <= sfsoptend:premium_1[6] then
+                                        begin
+                                        l_bu2510_mp = "Y"
+                                        l_end_premium1 = sfsoptend:premium_1[6]
+                                        end
+                                     End
+                      End
+
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[1] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[1] * 0.01)))
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[2] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[2] * 0.01)))
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[3] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[3] * 0.01)))
+                    if l_bu2510_mp = "N" and
+                       cppendorse:experience_schedule[4] <> 0 then
+                        l_end_premium1 = (l_end_premium1 *
+                                         (1 + (cppendorse:experience_schedule[4] * 0.01)))
+                    end
+
+                next cppendorse
+                end
+
+            l_bu2510_premium = l_end_premium1
+            End
+
+        if l_code one of "MCL433" then
+            begin
+            access cppendorse, set cppendorse:policy_no = l_policy_no,
+                                   cppendorse:pol_year = l_year,
+                                   cppendorse:end_sequence = l_end_sequence,
+                                   cppendorse:prem_no = l_prem_no,
+                                   cppendorse:build_no = l_build_no,
+                                   cppendorse:code = l_code, generic
+
+            l_update_sfpend_premium = cppendorse:premium[1]
+            end
+
+        if l_code one of "MCL420" and
+           l_state <> 19 then
+            begin
+            access cppendorse, set cppendorse:policy_no = l_policy_no,
+                                   cppendorse:pol_year = l_year,
+                                   cppendorse:end_sequence = l_end_sequence,
+                                   cppendorse:prem_no = l_prem_no,
+                                   cppendorse:build_no = l_build_no,
+                                   cppendorse:code = l_code, generic
+
+            l_update_sfpend_premium = 0
+            while cppendorse:policy_no = l_policy_no and
+                  cppendorse:pol_year = l_year and
+                  cppendorse:end_sequence = l_end_sequence and
+                  cppendorse:prem_no = l_prem_no and
+                  cppendorse:build_no = l_build_no and
+                  cppendorse:code = l_code
+                    begin
+                    l_end_premium1 = 0
+                    if cppliablimits:occurrence = sfsoptend:limit[1] then
+                        l_update_sfpend_premium = cppendorse:no_ministers *
+                                                  sfsoptend:premium_1[1]
+                    else
+                    if cppliablimits:occurrence = sfsoptend:limit[2] then
+                        l_update_sfpend_premium = cppendorse:no_ministers *
+                                                  sfsoptend:premium_1[2]
+                    else
+                    if cppliablimits:occurrence = sfsoptend:limit[3] then
+                        l_update_sfpend_premium = cppendorse:no_ministers *
+                                                  sfsoptend:premium_1[3]
+                    else
+                    if cppliablimits:occurrence = sfsoptend:limit[4] then
+                        l_update_sfpend_premium = cppendorse:no_ministers *
+                                                  sfsoptend:premium_1[4]
+                    next cppendorse
+                    end
+
+            end
+        else
+        if l_state = 19 and
+           l_code = "MCL420" then
+            begin
+            access cppendorse, set cppendorse:policy_no = l_policy_no,
+                                   cppendorse:pol_year = l_year,
+                                   cppendorse:end_sequence = l_end_sequence,
+                                   cppendorse:prem_no = l_prem_no,
+                                   cppendorse:build_no = l_build_no,
+                                   cppendorse:code = l_code, generic
+
+            access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                         cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                         cppliability_alt:end_sequence = sfpend_alias:end_sequence, generic
+
+            while cppliability_alt:policy_no = sfpend_alias:policy_no and
+                  cppliability_alt:pol_year = sfpend_alias:pol_year and
+                  cppliability_alt:end_sequence = sfpend_alias:end_sequence
+                begin
+                if l_il_factor < cppliability_alt:increase_limits_factor[1] then
+                    l_il_factor = cppliability_alt:increase_limits_factor[1]
+                if l_il_factor < cppliability_alt:increase_limits_factor[2] then
+                    l_il_factor = cppliability_alt:increase_limits_factor[2]
+
+                next cppliability_alt
+                end
+
+            l_update_sfpend_premium = 0
+            while cppendorse:policy_no = l_policy_no and
+                  cppendorse:pol_year = l_year and
+                  cppendorse:end_sequence = l_end_sequence and
+                  cppendorse:prem_no = l_prem_no and
+                  cppendorse:build_no = l_build_no and
+                  cppendorse:code = l_code
+                    begin
+                    l_update_sfpend_premium = sfsoptend:premium_1[1] *
+                                              cppendorse:no_ministers *
+                                              l_il_factor
+                    next cppendorse
+                    end
+            end
+
+        End
+    Next SFSOPTEND
+    End
+
+if l_code = "MCL202" then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = cppendorse:total_premium
+    end
+
+if l_end_premium1 <> 0 and
+   l_update_sfpend_premium = 0 then
+    l_update_sfpend_premium = l_end_premium1
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+if l_code one of "MCL422" and
+   sfscompany:boiler_rating one of 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                begin
+                l_update_sfpend_premium = cppendorse:total_premium +
+                                          l_update_sfpend_premium
+                end
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL192" then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            l_limit = cppendorse:limit[1]
+            access cpsliabsexabuse, set cpsliabsexabuse:company_id        = sfpname:company_id,
+                                        cpsliabsexabuse:state             = l_state,
+                                        cpsliabsexabuse:line_of_business  = l_line_of_business,
+                                        cpsliabsexabuse:general_aggregate = l_limit, generic
+
+            while cpsliabsexabuse:company_id        = sfpname:company_id and
+                  cpsliabsexabuse:state             = l_state and
+                  cpsliabsexabuse:line_of_business  = l_line_of_business and
+                  cpsliabsexabuse:general_aggregate = l_limit
+                    begin
+                    if sfpname:eff_date >= cpsliabsexabuse:eff_date then
+                        begin
+                        if cppendorse:option1[1] = 1 then
+                            l_end_factor = cpsliabsexabuse:rates[1]
+                        else
+                        if cppendorse:option1[2] = 1 then
+                            l_end_factor = cpsliabsexabuse:rates[2]
+                        else
+                        if cppendorse:option1[3] = 1 then
+                            l_end_factor = cpsliabsexabuse:rates[3]
+                        else
+                        if cppendorse:option1[4] = 1 then
+                            l_end_factor = cpsliabsexabuse:rates[4]
+
+                        l_minimum_premium = cpsliabsexabuse:minimum_premium
+                        end
+
+                    next cpsliabsexabuse
+                    end
+
+            if cppendorse:prem_no <> 0 or
+               cppendorse:build_no <> 0 then
+                begin
+                access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                             cppliability_alt:pol_year = cppendorse:pol_year,
+                                             cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                             cppliability_alt:prem_no = cppendorse:prem_no,
+                                             cppliability_alt:build_no = cppendorse:build_no, generic
+
+                if sfscompany:boiler_rating = 1 then
+                    begin
+                    l_add_prem = ((cppliability_alt:base_rate[1] *
+                                 (cppliability_alt:exposure[1] divide
+                                 cppliability_alt:rates_per[1]) *
+                                 cppliability_alt:territory_factor) *
+                                 l_end_factor)
+                    end
+                else
+                    begin
+                    if l_end_factor <> 0 then
+                        l_add_prem = cppliability_alt:prem[1] * l_end_factor
+                    else
+                        l_add_prem = 0
+                    end
+                end
+            else
+                begin
+                access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                             cppliability_alt:pol_year = cppendorse:pol_year,
+                                             cppliability_alt:end_sequence = cppendorse:end_sequence, generic
+
+                l_liability_prem = 0
+                l_liability_prod = 0
+                while cppliability_alt:policy_no = cppendorse:policy_no and
+                      cppliability_alt:pol_year = cppendorse:pol_year and
+                      cppliability_alt:end_sequence = cppendorse:end_sequence
+                    begin
+                    if sfscompany:boiler_rating = 1 then
+                        l_liability_prem = (l_liability_prem +
+                                           (cppliability_alt:base_rate[1] *
+                                           (cppliability_alt:exposure[1] divide
+                                           cppliability_alt:rates_per[1]) *
+                                           cppliability_alt:territory_factor))
+                    else
+                        l_liability_prem = cppliability_alt:prem[1] +
+                                           l_liability_prem
+
+                    next cppliability_alt
+                    end
+
+                if l_end_factor <> 0 then
+                    l_add_prem = l_liability_prem * l_end_factor
+                else
+                    l_add_prem = 0
+
+                end
+
+            if l_add_prem < l_minimum_premium then
+                l_add_prem = l_minimum_premium
+
+            l_update_sfpend_premium = l_update_sfpend_premium +
+                                      l_add_prem
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL883", "MCL884" then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no  = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code     = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no  = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code     = l_code
+            begin
+            access sfsoptend, set sfsoptend:company_id        = sfpname:company_id,
+                                  sfsoptend:state             = l_state,
+                                  sfsoptend:line_of_business  = l_line_of_business,
+                                  sfsoptend:code              = l_code, generic
+
+            while sfsoptend:company_id        = sfpname:company_id and
+                  sfsoptend:state             = l_state and
+                  sfsoptend:line_of_business  = l_line_of_business and
+                  sfsoptend:code              = l_code
+                    begin
+                    if sfpname:eff_date >= sfsoptend:eff_date then
+                        begin
+                        if sfsoptend:limit[1] = cppendorse:limit[1] then
+                            l_end_factor = sfsoptend:premium_1[1]
+                        if sfsoptend:limit[2] = cppendorse:limit[1] then
+                            l_end_factor = sfsoptend:premium_1[2]
+                        l_minimum_premium  = sfsoptend:premium_1[3]
+                        end
+
+                    next sfsoptend
+                    end
+
+            if cppendorse:prem_no <> 0 or
+               cppendorse:build_no <> 0 then
+                begin
+                access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                             cppliability_alt:pol_year = cppendorse:pol_year,
+                                             cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                             cppliability_alt:prem_no  = cppendorse:prem_no,
+                                             cppliability_alt:build_no = cppendorse:build_no, generic
+
+                if cppliability_alt:group_no = 2 then
+                    begin
+                   if sfscompany:boiler_rating = 1 then
+                        begin
+                        l_add_prod = (cppliability_alt:base_rate[2] *
+                                     (cppliability_alt:exposure[2] divide
+                                     cppliability_alt:rates_per[2]) *
+                                     l_end_factor)
+                        end
+                    else
+                        begin
+                        l_add_prod = ((cppliability_alt:base_rate[2] *
+                                     (cppliability_alt:exposure[2] divide
+                                     cppliability_alt:rates_per[2]) *
+                                     cppliability_alt:territory_factor) *
+                                     l_end_factor)
+                        end
+                    end
+                else
+                    begin
+                    if sfscompany:boiler_rating = 1 then
+                        begin
+                        l_add_prem = (cppliability_alt:base_rate[1] *
+                                     (cppliability_alt:exposure[1] divide
+                                     cppliability_alt:rates_per[1]) *
+                                     l_end_factor)
+                        end
+                    else
+                        begin
+                        l_add_prem = ((cppliability_alt:base_rate[1] *
+                                     (cppliability_alt:exposure[1] divide
+                                     cppliability_alt:rates_per[1]) *
+                                     cppliability_alt:territory_factor) *
+                                     l_end_factor)
+                        end
+                    end
+                end
+            else
+                begin
+                access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                             cppliability_alt:pol_year = cppendorse:pol_year,
+                                             cppliability_alt:end_sequence = cppendorse:end_sequence, generic
+
+                l_liability_prem = 0
+                l_liability_prod = 0
+                while cppliability_alt:policy_no = cppendorse:policy_no and
+                      cppliability_alt:pol_year = cppendorse:pol_year and
+                      cppliability_alt:end_sequence = cppendorse:end_sequence
+                    begin
+                    if sfscompany:boiler_rating = 1 then
+                        begin
+                        if cppliability_alt:group_no = 2 then
+                            begin
+                            l_liability_prod = (l_liability_prod +
+                                               (cppliability_alt:base_rate[2] *
+                                               (cppliability_alt:exposure[2] divide
+                                               cppliability_alt:rates_per[2]) *
+                                               l_end_factor))
+                            if l_liability_prod < l_minimum_premium then
+                                l_liability_prod = l_minimum_premium
+                            end
+                        else
+                            begin
+                            l_liability_prem = (l_liability_prem +
+                                               (cppliability_alt:base_rate[1] *
+                                               (cppliability_alt:exposure[1] divide
+                                               cppliability_alt:rates_per[1]) *
+                                               l_end_factor))
+                            if l_liability_prem < l_minimum_premium then
+                                l_liability_prem = l_minimum_premium
+                            end
+                        end
+                    else
+                        begin
+                        l_liability_prem = (l_liability_prem +
+                                           (cppliability_alt:base_rate[1] *
+                                           (cppliability_alt:exposure[1] divide
+                                           cppliability_alt:rates_per[1]) *
+                                           cppliability_alt:territory_factor))
+                        l_liability_prod = (l_liability_prod +
+                                           (cppliability_alt:base_rate[2] *
+                                           (cppliability_alt:exposure[2] divide
+                                           cppliability_alt:rates_per[2]) *
+                                           cppliability_alt:territory_factor))
+                        end
+
+                    next cppliability_alt
+                    end
+
+                if l_end_factor <> 0 and
+                   sfscompany:boiler_rating <> 1 then
+                    begin
+                    if cppliability_alt:group_no = 2 then
+                        begin
+                        l_add_prem = 0
+                        l_add_prod = l_liability_prod * l_end_factor
+                        end
+                    else
+                        begin
+                        l_add_prod = 0
+                        l_add_prem = l_liability_prem * l_end_factor
+                        end
+                    end
+                else
+                if l_end_factor = 0 then
+                    begin
+                    l_add_prem = 0
+                    l_add_prod = 0
+                    end
+
+                end
+
+            if cppliability_alt:group_no = 2 then
+                begin
+                if l_add_prod < l_minimum_premium then
+                    l_add_prod = l_minimum_premium
+                l_add_prem = 0
+                end
+            else
+                begin
+                if l_add_prem < l_minimum_premium then
+                    l_add_prem = l_minimum_premium
+                l_add_prod = 0
+                end
+
+            if sfscompany:boiler_rating = 1 then
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_liability_prem +
+                                          l_liability_prod
+            else
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_add_prem +
+                                          l_add_prod
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL325" and
+   sfscompany:boiler_rating one of 1, 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                begin
+                l_update_sfpend_premium = cppendorse:total_premium +
+                                          l_update_sfpend_premium
+                end
+            else
+            if cppendorse:total_premium = 0 then
+                begin
+                if cppendorse:prem_no <> 0 or
+                   cppendorse:build_no <> 0 then
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                                 cppliability_alt:prem_no = cppendorse:prem_no,
+                                                 cppliability_alt:build_no = cppendorse:build_no, generic
+
+                    if l_end_factor <> 0 then
+                        l_add_prem = (cppliability_alt:prem[1] -
+                                     (cppliability_alt:prem[1] * l_end_factor))
+                    else
+                        l_add_prem = 0
+                    if l_end_factor_1 <> 0 then
+                        l_add_prod = (cppliability_alt:prem[2] -
+                                     (cppliability_alt:prem[2] * l_end_factor))
+                    else
+                        l_add_prod = 0
+                    end
+                else
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence,  generic
+
+                    l_liability_prem = 0
+                    l_liability_prod = 0
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence
+                        begin
+                        l_liability_prem = cppliability_alt:prem[1] +
+                                           l_liability_prem
+                        l_liability_prod = cppliability_alt:prem[2] +
+                                           l_liability_prod
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        l_add_prem = (l_liability_prem -
+                                     (l_liability_prem * l_end_factor))
+                    else
+                        l_add_prem = 0
+
+                    if l_end_factor_1 <> 0 then
+                        l_add_prod = (l_liability_prod -
+                                     (l_liability_prod * l_end_factor))
+                    else
+                        l_add_prod = 0
+                    end
+
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_add_prem + l_add_prod
+                end
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL313", "MCL320" and
+   sfscompany:boiler_rating = 1 then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                begin
+                l_update_sfpend_premium = cppendorse:total_premium +
+                                          l_update_sfpend_premium
+                end
+            else
+            if cppendorse:total_premium = 0 then
+                begin
+                if sfpend_alias:policy_wide_form = 0 and
+                   cppendorse:prem_no <> 0 and
+                   cppendorse:build_no <> 0 then
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                                 cppliability_alt:prem_no = cppendorse:prem_no,
+                                                 cppliability_alt:build_no = cppendorse:build_no, generic
+
+                    if l_end_factor <> 0 then
+                        begin
+                        if cppliability_alt:minimum_premium[1] <> 0 then
+                            l_add_prem = ((cppliability_alt:minimum_premium[1] *
+                                         l_end_factor) -
+                                         cppliability_alt:minimum_premium[1])
+                        else
+                            l_add_prem = ((cppliability_alt:prem[1] *
+                                         l_end_factor) -
+                                         cppliability_alt:prem[1])
+                        end
+                    else
+                        l_add_prem = 0
+                    if l_end_factor_1 <> 0 then
+                        begin
+                        if cppliability_alt:minimum_premium[2] <> 0 then
+                            l_add_prod = ((cppliability_alt:minimum_premium[2] *
+                                         l_end_factor) -
+                                         cppliability_alt:minimum_premium[2])
+                        else
+                            l_add_prod = ((cppliability_alt:prem[2] *
+                                         l_end_factor) -
+                                         cppliability_alt:prem[2])
+                        end
+                    else
+                        l_add_prod = 0
+                    end
+                else
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence, generic
+
+                    l_liability_prem = 0
+                    l_liability_prod = 0
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence
+                        begin
+                        if cppliability_alt:minimum_premium[1] <> 0 then
+                            l_liability_prem = cppliability_alt:minimum_premium[1] +
+                                               l_liability_prem
+                        else
+                            l_liability_prem = cppliability_alt:prem[1] +
+                                               l_liability_prem
+                        if cppliability_alt:minimum_premium[2] <> 0 then
+                            l_liability_prod = cppliability_alt:minimum_premium[2] +
+                                               l_liability_prod
+                        else
+                            l_liability_prod = cppliability_alt:prem[2] +
+                                               l_liability_prod
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        l_add_prem = ((l_liability_prem * l_end_factor) -
+                                     l_liability_prem)
+                    else
+                        l_add_prem = 0
+
+                    if l_end_factor_1 <> 0 then
+                        l_add_prod = ((l_liability_prod * l_end_factor) -
+                                     l_liability_prod)
+                    else
+                        l_add_prod = 0
+                    end
+
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_add_prem + l_add_prod
+                end
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL338", "MCL335" and
+   sfscompany:boiler_rating = 4 then
+    begin
+/*    l_liability_prem = 0
+    l_liability_prod = 0
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                begin
+                l_update_sfpend_premium = cppendorse:total_premium +
+                                          l_update_sfpend_premium
+                end
+            else
+            if cppendorse:total_premium = 0 then
+                begin
+                if sfpend_alias:policy_wide_form = 0 and
+                   cppendorse:prem_no <> 0 and
+                   cppendorse:build_no <> 0 then
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                                 cppliability_alt:prem_no = cppendorse:prem_no,
+                                                 cppliability_alt:build_no = cppendorse:build_no, generic
+
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence and
+                          cppliability_alt:prem_no = cppendorse:prem_no and
+                          cppliability_alt:build_no = cppendorse:build_no
+                        begin
+                        if cppliability_alt:minimum_premium[1] <> 0 then
+                            l_liability_prem = cppliability_alt:minimum_premium[1] +
+                                               l_liability_prem
+                        else
+                            l_liability_prem = ((cppliability_alt:prem[1] -
+                                               cppliability_alt:fire_legal_premium) +
+                                               l_liability_prem)
+
+                        if cppliability_alt:minimum_premium[2] <> 0 then
+                            l_liability_prod = cppliability_alt:minimum_premium[2] +
+                                               l_liability_prod
+                        else
+                            l_liability_prod = cppliability_alt:prem[2] +
+                                               l_liability_prod
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        begin
+                        l_add_prem = (l_liability_prem -
+                                     (l_liability_prem *
+                                     l_end_factor))
+                        l_add_prod = (l_liability_prod -
+                                     (l_liability_prod *
+                                     l_end_factor))
+                        end
+                    else
+                        begin
+                        l_add_prem = 0
+                        l_add_prod = 0
+                        end
+
+                    end
+                else
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence, generic
+
+                    l_liability_prem = 0
+                    l_liability_prod = 0
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence
+                        begin
+                        if cppliability_alt:minimum_premium[1] <> 0 then
+                            l_liability_prem = cppliability_alt:minimum_premium[1] +
+                                               l_liability_prem
+                        else
+                            l_liability_prem = ((cppliability_alt:prem[1] -
+                                               cppliability_alt:fire_legal_premium) +
+                                               l_liability_prem)
+
+                        if cppliability_alt:minimum_premium[2] <> 0 then
+                            l_liability_prod = cppliability_alt:minimum_premium[2] +
+                                               l_liability_prod
+                        else
+                            l_liability_prod = cppliability_alt:prem[2] +
+                                               l_liability_prod
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        begin
+                        l_add_prem = (l_liability_prem -
+                                     (l_liability_prem *
+                                     l_end_factor))
+                        l_add_prod = (l_liability_prod -
+                                     (l_liability_prod *
+                                     l_end_factor))
+                        end
+                    else
+                        begin
+                        l_add_prem = 0
+                        l_add_prod = 0
+                        end
+
+                    end
+
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_add_prem + l_add_prod
+                end
+
+            next cppendorse
+            end*/
+
+    l_update_sfpend_premium = l_end_premium1
+    end
+
+if l_code one of "MCL313" and
+   sfscompany:boiler_rating = 4 then
+    begin
+    l_liability_prem = 0
+    l_liability_prod = 0
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                begin
+                l_update_sfpend_premium = cppendorse:total_premium +
+                                          l_update_sfpend_premium
+                end
+            else
+            if cppendorse:total_premium = 0 then
+                begin
+                if sfpend_alias:policy_wide_form = 0 and
+                   cppendorse:prem_no <> 0 and
+                   cppendorse:build_no <> 0 then
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                                 cppliability_alt:prem_no = cppendorse:prem_no,
+                                                 cppliability_alt:build_no = cppendorse:build_no, generic
+
+                    l_liability_prem = 0
+                    l_add_prem = 0
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence and
+                          cppliability_alt:prem_no = cppendorse:prem_no and
+                          cppliability_alt:build_no = cppendorse:build_no
+                        begin
+                        if cppliability_alt:minimum_premium[1] <> 0 then
+                            l_liability_prem = cppliability_alt:minimum_premium[1] +
+                                               l_liability_prem
+                        else
+                            l_liability_prem = ((cppliability_alt:prem[1] -
+                                               cppliability_alt:fire_legal_premium) +
+                                               l_liability_prem)
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        l_add_prem = (l_liability_prem -
+                                     (l_liability_prem *
+                                     l_end_factor))
+                    else
+                        l_add_prem = 0
+
+                    end
+                else
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence, generic
+
+                    l_liability_prem = 0
+                    l_liability_prod = 0
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence
+                        begin
+                        if cppliability_alt:minimum_premium[1] <> 0 then
+                            l_liability_prem = cppliability_alt:minimum_premium[1] +
+                                               l_liability_prem
+                        else
+                            l_liability_prem = ((cppliability_alt:prem[1] -
+                                               cppliability_alt:fire_legal_premium) +
+                                               l_liability_prem)
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        l_add_prem = (l_liability_prem -
+                                     (l_liability_prem *
+                                     l_end_factor))
+                    else
+                        l_add_prem = 0
+
+                    end
+
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_add_prem
+                end
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL426", "MCL428", "MCL433", "MCL415" then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = cppendorse:premium[1]
+    end
+
+if l_code one of "MCL315", "MCL316", "MCL317", "MCL324", "MCL326" and
+   sfscompany:boiler_rating one of 1, 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = l_policy_no,
+                           cppendorse:pol_year = l_year,
+                           cppendorse:end_sequence = l_end_sequence,
+                           cppendorse:prem_no = l_prem_no,
+                           cppendorse:build_no = l_build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = l_policy_no and
+          cppendorse:pol_year = l_year and
+          cppendorse:end_sequence = l_end_sequence and
+          cppendorse:prem_no = l_prem_no and
+          cppendorse:build_no = l_build_no and
+          cppendorse:code = l_code
+            begin
+            if sfpend_alias:policy_wide_form = 0 then
+                begin
+                if cppendorse:total_premium <> 0 then
+                    begin
+                    l_update_sfpend_premium = cppendorse:total_premium +
+                                              l_update_sfpend_premium
+                    end
+                else
+                    begin
+                    access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                                 cppliability_alt:pol_year = cppendorse:pol_year,
+                                                 cppliability_alt:end_sequence = cppendorse:end_sequence,
+                                                 cppliability_alt:prem_no = cppendorse:prem_no,
+                                                 cppliability_alt:build_no = cppendorse:build_no, generic
+
+                    l_update_sfpend_premium = 0
+                    while cppliability_alt:policy_no    = cppendorse:policy_no and
+                          cppliability_alt:pol_year     = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence and
+                          cppliability_alt:prem_no      = cppendorse:prem_no and
+                          cppliability_alt:build_no     = cppendorse:build_no
+                        begin
+                        if l_end_factor <> 0 then
+                            l_add_prem = ((cppliability_alt:prem[1] * l_end_factor) -
+                                         cppliability_alt:prem[1])
+                        else
+                            l_add_prem = 0
+                        if l_end_factor_1 <> 0 then
+                            l_add_prod = ((cppliability_alt:prem[2] * l_end_factor_1) -
+                                        cppliability_alt:prem[2])
+                        else
+                            l_add_prod = 0
+
+                        l_update_sfpend_premium = l_update_sfpend_premium +
+                                                  l_add_prem + l_add_prod
+
+                        next cppliability_alt
+                        end
+                    end
+                end
+            else
+                begin
+                access cppliability_alt, set cppliability_alt:policy_no = cppendorse:policy_no,
+                                             cppliability_alt:pol_year = cppendorse:pol_year,
+                                             cppliability_alt:end_sequence = cppendorse:end_sequence, generic
+
+                l_liability_prem = 0
+                l_liability_prod = 0
+                if cppendorse:total_premium <> 0 then
+                    begin
+                    l_update_sfpend_premium = cppendorse:total_premium +
+                                              l_update_sfpend_premium
+                    end
+                else
+                    begin
+                    while cppliability_alt:policy_no = cppendorse:policy_no and
+                          cppliability_alt:pol_year = cppendorse:pol_year and
+                          cppliability_alt:end_sequence = cppendorse:end_sequence
+                        begin
+                        l_liability_prem = l_liability_prem +
+                                           cppliability_alt:prem[1]
+                        l_liability_prod = l_liability_prod +
+                                           cppliability_alt:prem[2]
+
+                        next cppliability_alt
+                        end
+
+                    if l_end_factor <> 0 then
+                        l_add_prem = ((l_liability_prem * l_end_factor) -
+                                     l_liability_prem)
+                    else
+                        l_add_prem = 0
+                    if l_end_factor_1 <> 0 then
+                        l_add_prod = ((l_liability_prod * l_end_factor_1) -
+                                    l_liability_prod)
+                    else
+                        l_add_prod = 0
+
+                    l_update_sfpend_premium = l_update_sfpend_premium +
+                                              l_add_prem + l_add_prod
+
+                    end
+
+                end
+
+            next cppendorse
+            end
+    end
+
+if l_code one of "MCL300", "MCL301", "MCL302", "MCL303", "MCL304", "MCL305",
+                 "MCL309", "MCL310", "MCL311", "MCL312", "MCL313", "MCL314",
+                 "MCL315", "MCL316", "MCL317", "MCL318", "MCL319", "MCL320",
+                 "MCL321", "MCL322", "MCL323", "MCL324", "MCL325", "MCL326",
+                 "MCL327", "MCL328", "MCL330", "MCL350"  and
+                 sfscompany:boiler_rating not one of 1, 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = sfpend_alias:policy_no and
+          cppendorse:pol_year = sfpend_alias:pol_year and
+          cppendorse:end_sequence = sfpend_alias:end_sequence and
+          cppendorse:prem_no = sfpend_alias:prem_no and
+          cppendorse:build_no = sfpend_alias:build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                l_update_sfpend_premium = cppendorse:total_premium
+            else
+            if l_end_premium1 <> 0 then
+                l_update_sfpend_premium = l_update_sfpend_premium +
+                                          l_end_premium1
+            next cppendorse
+            end
+
+    end
+
+if l_code one of "MCL300", "MCL301", "MCL302", "MCL303", "MCL304", "MCL305",
+                 "MCL309", "MCL310", "MCL311", "MCL312", "MCL314",
+                 "MCL318", "MCL319", "MCL320", "MCL321", "MCL322", "MCL323",
+                 "MCL327", "MCL328", "MCL330", "MCL350"  and
+                 sfscompany:boiler_rating one of 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    l_update_sfpend_premium = 0
+    while cppendorse:policy_no = sfpend_alias:policy_no and
+          cppendorse:pol_year = sfpend_alias:pol_year and
+          cppendorse:end_sequence = sfpend_alias:end_sequence and
+          cppendorse:prem_no = sfpend_alias:prem_no and
+          cppendorse:build_no = sfpend_alias:build_no and
+          cppendorse:code = l_code
+            begin
+            if cppendorse:total_premium <> 0 then
+                l_update_sfpend_premium = cppendorse:total_premium
+
+            next cppendorse
+            end
+
+    end
+
+if l_code one of "MCL410" and
+   sfscompany:boiler_rating = 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    access cpsliabhired, set cpsliabhired:company_id = sfpname:company_id,
+                             cpsliabhired:state = l_state,
+                             cpsliabhired:line_of_business = l_line_of_business, generic
+
+    if sfpname:eff_date >= cpsliabhired:eff_date then
+        begin
+        l_hired_premium = ((cppendorse:limit[1] divide cpsliabhired:hired_per) *
+                          cpsliabhired:hired_rate)
+        if l_hired_premium < cpsliabhired:hired_minimum then
+            l_hired_premium = cpsliabhired:hired_minimum
+        end
+
+    access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                 cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                 cppliability_alt:end_sequence = sfpend_alias:end_sequence, generic
+
+    while cppliability_alt:policy_no = sfpend_alias:policy_no and
+          cppliability_alt:pol_year = sfpend_alias:pol_year and
+          cppliability_alt:end_sequence = sfpend_alias:end_sequence
+            begin
+            if l_il_factor < cppliability_alt:increase_limits_factor[1] then
+                l_il_factor = cppliability_alt:increase_limits_factor[1]
+            if l_il_factor < cppliability_alt:increase_limits_factor[2] then
+                l_il_factor = cppliability_alt:increase_limits_factor[2]
+
+            next cppliability_alt
+            end
+
+    l_hired_premium = l_hired_premium * l_il_factor
+    l_update_sfpend_premium = l_hired_premium
+    end
+
+if l_code one of "MCL411" and
+   sfscompany:boiler_rating = 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    access cpsliabhired, set cpsliabhired:company_id = sfpname:company_id,
+                             cpsliabhired:state = l_state,
+                             cpsliabhired:line_of_business = l_line_of_business, generic
+
+    if sfpname:eff_date >= cpsliabhired:eff_date then
+        begin
+        if cppendorse:no_employees <= cpsliabhired:nonowned_employees[1] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[1]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[1] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[2] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[2]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[2] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[3] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[3]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[3] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[4] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[4]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[4] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[5] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[5]
+        end
+
+    access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                 cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                 cppliability_alt:end_sequence = sfpend_alias:end_sequence, generic
+
+    while cppliability_alt:policy_no = sfpend_alias:policy_no and
+          cppliability_alt:pol_year = sfpend_alias:pol_year and
+          cppliability_alt:end_sequence = sfpend_alias:end_sequence
+            begin
+            if l_il_factor < cppliability_alt:increase_limits_factor[1] then
+                l_il_factor = cppliability_alt:increase_limits_factor[1]
+            if l_il_factor < cppliability_alt:increase_limits_factor[2] then
+                l_il_factor = cppliability_alt:increase_limits_factor[2]
+
+            next cppliability_alt
+            end
+
+    l_nonowned_premium = l_nonowned_premium * l_il_factor
+    l_update_sfpend_premium = l_nonowned_premium
+    end
+
+if l_code one of "MCL412" and
+   sfscompany:boiler_rating = 4 then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    access cpsliabhired, set cpsliabhired:company_id = sfpname:company_id,
+                             cpsliabhired:state = l_state,
+                             cpsliabhired:line_of_business = l_line_of_business, generic
+
+    if sfpname:eff_date >= cpsliabhired:eff_date then
+        begin
+        l_hired_premium = ((cppendorse:limit[1] divide cpsliabhired:hired_per) *
+                          cpsliabhired:hired_rate)
+        if l_hired_premium < cpsliabhired:hired_minimum then
+            l_hired_premium = cpsliabhired:hired_minimum
+
+        if cppendorse:no_employees <= cpsliabhired:nonowned_employees[1] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[1]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[1] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[2] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[2]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[2] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[3] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[3]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[3] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[4] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[4]
+        if cppendorse:no_employees > cpsliabhired:nonowned_employees[4] and
+           cppendorse:no_employees <= cpsliabhired:nonowned_employees[5] then
+            l_nonowned_premium = cpsliabhired:nonowned_premium[5]
+        end
+
+    access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                 cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                 cppliability_alt:end_sequence = sfpend_alias:end_sequence, generic
+
+    while cppliability_alt:policy_no = sfpend_alias:policy_no and
+          cppliability_alt:pol_year = sfpend_alias:pol_year and
+          cppliability_alt:end_sequence = sfpend_alias:end_sequence
+            begin
+            if l_il_factor < cppliability_alt:increase_limits_factor[1] then
+                l_il_factor = cppliability_alt:increase_limits_factor[1]
+            if l_il_factor < cppliability_alt:increase_limits_factor[2] then
+                l_il_factor = cppliability_alt:increase_limits_factor[2]
+
+            next cppliability_alt
+            end
+
+    l_nonowned_premium = l_nonowned_premium * l_il_factor
+    l_hired_premium = l_hired_premium * l_il_factor
+    l_update_sfpend_premium = l_nonowned_premium + l_hired_premium
+    end
+
+If L_CODE one of "MCL410", "MCL411", "MCL412" and
+   sfscompany:boiler_rating <> 4 then
+    Begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    access cpsliabhired, set cpsliabhired:company_id = sfpname:company_id,
+                             cpsliabhired:state = l_state,
+                             cpsliabhired:line_of_business = l_line_of_business, generic
+
+    if sfpname:eff_date >= cpsliabhired:eff_date then
+        begin
+        if l_code one of "MCL410", "MCL412" then
+            begin
+            l_hired_premium = ((cppendorse:limit[1] divide cpsliabhired:hired_per) *
+                              cpsliabhired:hired_rate)
+            if l_hired_premium < cpsliabhired:hired_minimum then
+                l_hired_premium = cpsliabhired:hired_minimum
+            end
+
+        if l_code one of "MCL411", "MCL412" then
+            begin
+            if cppendorse:no_employees <= cpsliabhired:nonowned_employees[1] then
+                l_nonowned_premium = cpsliabhired:nonowned_premium[1]
+            if cppendorse:no_employees > cpsliabhired:nonowned_employees[1] and
+               cppendorse:no_employees <= cpsliabhired:nonowned_employees[2] then
+                l_nonowned_premium = cpsliabhired:nonowned_premium[2]
+            if cppendorse:no_employees > cpsliabhired:nonowned_employees[2] and
+               cppendorse:no_employees <= cpsliabhired:nonowned_employees[3] then
+                l_nonowned_premium = cpsliabhired:nonowned_premium[3]
+            if cppendorse:no_employees > cpsliabhired:nonowned_employees[3] and
+               cppendorse:no_employees <= cpsliabhired:nonowned_employees[4] then
+                l_nonowned_premium = cpsliabhired:nonowned_premium[4]
+            if cppendorse:no_employees > cpsliabhired:nonowned_employees[4] and
+               cppendorse:no_employees <= cpsliabhired:nonowned_employees[5] then
+                l_nonowned_premium = cpsliabhired:nonowned_premium[5]
+            end
+        end
+
+    access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                 cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                 cppliability_alt:end_sequence = sfpend_alias:end_sequence, generic
+
+    while cppliability_alt:policy_no = sfpend_alias:policy_no and
+          cppliability_alt:pol_year = sfpend_alias:pol_year and
+          cppliability_alt:end_sequence = sfpend_alias:end_sequence
+            begin
+            if l_il_factor < cppliability_alt:increase_limits_factor[1] then
+                l_il_factor = cppliability_alt:increase_limits_factor[1]
+            if l_il_factor < cppliability_alt:increase_limits_factor[2] then
+                l_il_factor = cppliability_alt:increase_limits_factor[2]
+
+            next cppliability_alt
+            end
+
+    if l_code one of "MCL411" then
+        begin
+        l_nonowned_premium = l_nonowned_premium * l_il_factor
+        l_update_sfpend_premium = l_nonowned_premium
+        end
+    if l_code = "MCL410" then
+        begin
+        l_hired_premium = l_hired_premium * l_il_factor
+        l_update_sfpend_premium = l_nonowned_premium
+        end
+    if l_code = "MCL412" then
+        begin
+        l_nonowned_premium = l_nonowned_premium * l_il_factor
+        l_hired_premium = l_hired_premium * l_il_factor
+        l_update_sfpend_premium = l_nonowned_premium + l_hired_premium
+        end
+    end
+
+if l_code one of "MGK011" then
+    begin
+    access cppendorse, set cppendorse:policy_no = sfpend_alias:policy_no,
+                           cppendorse:pol_year = sfpend_alias:pol_year,
+                           cppendorse:end_sequence = sfpend_alias:end_sequence,
+                           cppendorse:prem_no = sfpend_alias:prem_no,
+                           cppendorse:build_no = sfpend_alias:build_no,
+                           cppendorse:code = l_code, generic
+
+    while cppendorse:policy_no = sfpend_alias:policy_no and
+          cppendorse:pol_year = sfpend_alias:pol_year and
+          cppendorse:end_sequence = sfpend_alias:end_sequence and
+          cppendorse:prem_no = sfpend_alias:prem_no and
+          cppendorse:build_no = sfpend_alias:build_no and
+          cppendorse:code = l_code
+            begin
+            access cppliability_alias, set cppliability_alias:policy_no = cppendorse:policy_no,
+                                           cppliability_alias:pol_year = cppendorse:pol_year,
+                                           cppliability_alias:end_sequence = cppendorse:end_sequence,
+                                           cppliability_alias:prem_no = cppendorse:prem_no,
+                                           cppliability_alias:build_no = cppendorse:build_no, generic
+
+            l_limit = cppendorse:limit[1]
+            l_state = cppliability_alias:state
+            access cpsgaragekeepers, set cpsgaragekeepers:company_id = sfpname:company_id,
+                                         cpsgaragekeepers:state = l_state,
+                                         cpsgaragekeepers:line_of_business = l_line_of_business,
+                                         cpsgaragekeepers:limit = l_limit, generic
+
+            l_comp_charge = 0
+            while cpsgaragekeepers:company_id = sfpname:company_id and
+                  cpsgaragekeepers:state = l_state and
+                  cpsgaragekeepers:line_of_business = l_line_of_business and
+                  cpsgaragekeepers:limit = l_limit
+                    begin
+                    if sfpname:eff_date >= cpsgaragekeepers:rate_date then
+                        begin
+                        if cppendorse:direct_primary = 1 then
+                            begin
+                            l_comp_charge = cpsgaragekeepers:charge[2]
+                            end
+                        else
+                        if cppendorse:direct_excess = 1 then
+                            begin
+                            l_comp_charge = cpsgaragekeepers:charge[1] *
+                                            cpsgaragekeepers:comp_rate
+                            end
+                        else
+                            begin
+                            l_comp_charge = cpsgaragekeepers:charge[1]
+                            end
+                        end
+
+                    next cpsgaragekeepers
+                    end
+
+            l_limit = cppendorse:limit[2]
+            l_state = cppliability_alias:state
+            access cpsgaragekeepers, set cpsgaragekeepers:company_id = sfpname:company_id,
+                                         cpsgaragekeepers:state = l_state,
+                                         cpsgaragekeepers:line_of_business = l_line_of_business,
+                                         cpsgaragekeepers:limit = l_limit, generic
+
+            l_coll_charge = 0
+            while cpsgaragekeepers:company_id = sfpname:company_id and
+                  cpsgaragekeepers:state = l_state and
+                  cpsgaragekeepers:line_of_business = l_line_of_business and
+                  cpsgaragekeepers:limit = l_limit
+                    begin
+                    if sfpname:eff_date >= cpsgaragekeepers:rate_date then
+                        begin
+                        if cppendorse:direct_primary = 1 then
+                            begin
+                            l_coll_charge = cpsgaragekeepers:charge[4]
+                            end
+                        else
+                        if cppendorse:direct_excess = 1 then
+                            begin
+                            l_coll_charge = cpsgaragekeepers:charge[3] *
+                                            cpsgaragekeepers:coll_rate
+                            end
+                        else
+                            begin
+                            l_coll_charge = cpsgaragekeepers:charge[3]
+                            end
+                        end
+
+                    next cpsgaragekeepers
+                    end
+
+            l_deductible = cppendorse:deductible[1]
+            access cpsgaragededuct, set cpsgaragededuct:company_id = sfpname:company_id,
+                                        cpsgaragededuct:state = l_state,
+                                        cpsgaragededuct:line_of_business = l_line_of_business,
+                                        cpsgaragededuct:deductible = l_deductible, generic
+
+            l_comp_deductible = 1.00
+            while cpsgaragededuct:company_id = sfpname:company_id and
+                  cpsgaragededuct:state = l_state and
+                  cpsgaragededuct:line_of_business = l_line_of_business and
+                  cpsgaragededuct:deductible = l_deductible
+                    begin
+                    if sfpname:eff_date >= cpsgaragededuct:rate_date then
+                        begin
+                        l_comp_deductible = cpsgaragededuct:factor[1]
+                        end
+
+                    next cpsgaragededuct
+                    end
+
+            l_deductible = cppendorse:deductible[2]
+            access cpsgaragededuct, set cpsgaragededuct:company_id = sfpname:company_id,
+                                        cpsgaragededuct:state = l_state,
+                                        cpsgaragededuct:line_of_business = l_line_of_business,
+                                        cpsgaragededuct:deductible = l_deductible, generic
+
+            l_coll_deductible = 1.00
+            while cpsgaragededuct:company_id = sfpname:company_id and
+                  cpsgaragededuct:state = l_state and
+                  cpsgaragededuct:line_of_business = l_line_of_business and
+                  cpsgaragededuct:deductible = l_deductible
+                    begin
+                    if sfpname:eff_date >= cpsgaragededuct:rate_date then
+                        begin
+                        l_coll_deductible = cpsgaragededuct:factor[2]
+                        end
+
+                    next cpsgaragededuct
+                    end
+
+            l_comp_premium = l_comp_charge * l_comp_deductible
+            l_coll_premium = l_coll_charge * l_coll_deductible
+            change cppendorse
+                begin
+                cppendorse:premium[1] = l_comp_premium
+                cppendorse:premium[2] = l_coll_premium
+                end
+
+            next cppendorse
+            end
+
+    l_update_sfpend_premium = l_comp_premium + l_coll_premium
+    end
+
+if l_code one of "MCL589" then
+    begin
+    if sfpend_alias:policy_wide_form = 0 then
+        begin
+        access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                     cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                     cppliability_alt:end_sequence = sfpend_alias:end_sequence,
+                                     cppliability_alt:prem_no = sfpend_alias:prem_no,
+                                     cppliability_alt:build_no = sfpend_alias:build_no, generic
+
+        while cppliability_alt:policy_no = sfpend_alias:policy_no and
+              cppliability_alt:pol_year = sfpend_alias:pol_year and
+              cppliability_alt:end_sequence = sfpend_alias:end_sequence and
+              cppliability_alt:prem_no = sfpend_alias:prem_no and
+              cppliability_alt:build_no = sfpend_alias:build_no
+                begin
+                l_mcl589_premium = cppliability_alt:prem[1] + l_mcl589_premium
+
+                next cppliability_alt
+                end
+        end
+    else
+        begin
+        access cppliability_alt, set cppliability_alt:policy_no = sfpend_alias:policy_no,
+                                     cppliability_alt:pol_year = sfpend_alias:pol_year,
+                                     cppliability_alt:end_sequence = sfpend_alias:end_sequence, generic
+
+        while cppliability_alt:policy_no = sfpend_alias:policy_no and
+              cppliability_alt:pol_year = sfpend_alias:pol_year and
+              cppliability_alt:end_sequence = sfpend_alias:end_sequence
+                begin
+                l_mcl589_premium = cppliability_alt:prem[1] + l_mcl589_premium
+
+                next cppliability_alt
+                end
+        end
+
+    l_update_sfpend_premium= ((l_mcl589_premium *
+                             l_end_factor) - l_mcl589_premium)
+    if l_update_sfpend_premium < l_end_premium2 then
+        l_update_sfpend_premium = l_end_premium2
+    end
+end
+
+Procedure COMPANY_DEVIATION
+Begin
+access sfpname, set sfpname:policy_no = cppliability_alias:policy_no,
+                    sfpname:pol_year = cppliability_alias:pol_year,
+                    sfpname:end_sequence = cppliability_alias:end_sequence, generic
+
+access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                       cpsdefault:line_of_business = l_line_of_business, generic
+
+access cppdeviation, set cppdeviation:policy_no = cppliability_alias:policy_no,
+                         cppdeviation:pol_year = cppliability_alias:pol_year,
+                         cppdeviation:end_sequence = cppliability_alias:end_sequence, generic
+
+if cppdeviation:company_deviation = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:company_deviation <> 1.00 then
+        l_deviation = (1 + (cppdeviation:company_deviation * 0.01))
+    else
+        l_deviation = cppdeviation:company_deviation
+
+if sfscompany:boiler_Rating = 4 then
+    begin
+    if cppdeviation:irpm_deviation = 0 then
+        l_irpm_deviation = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:irpm_deviation <> 1.00 then
+        l_irpm_deviation = (1 + (cppdeviation:irpm_deviation * 0.01))
+    else
+        l_irpm_deviation = cppdeviation:irpm_deviation
+    end
+else
+    l_irpm_deviation = 1.00
+
+if sfscompany:boiler_Rating = 4 then
+    begin
+    if cppdeviation:exp_factor = 0 then
+        l_exp_factor = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:exp_factor <> 1.00 then
+        l_exp_factor = (1 + (cppdeviation:exp_factor * 0.01))
+    else
+        l_exp_factor = cppdeviation:exp_factor
+    end
+else
+    l_exp_factor = 1.00
+
+End
+
+procedure rate_misc
+begin
+do increase_limits
+access cpsliabmiscrates, set cpsliabmiscrates:company_id = sfpname:company_id,
+                             cpsliabmiscrates:state = l_state,
+                             cpsliabmiscrates:line_of_business = l_line_of_business, generic
+
+while cpsliabmiscrates:company_id = sfpname:company_id and
+      cpsliabmiscrates:state = l_state and
+      cpsliabmiscrates:line_of_business = l_line_of_business
+        begin
+        if sfpname:eff_date >= cpsliabmiscrates:eff_date then
+            begin
+            l_escalator_1 = cpsliabmiscrates:escalators[1]
+            l_escalator_2 = cpsliabmiscrates:escalators[2]
+            l_mechanical = cpsliabmiscrates:mechanically_operated[1]
+            l_ski_lift = cpsliabmiscrates:ski_lifts[1]
+            l_pool_1 = cpsliabmiscrates:swimming_pools[1]
+            l_pool_2 = cpsliabmiscrates:swimming_pools[2]
+            l_elevator_inspection_1 = cpsliabmiscrates:elevator_inspections[1]
+            l_elevator_inspection_2 = cpsliabmiscrates:elevator_inspections[2]
+            l_escalator_inspection_1 = cpsliabmiscrates:escalator_inspections[1]
+            l_escalator_inspection_2 = cpsliabmiscrates:escalator_inspections[2]
+            end
+
+        next cpsliabmiscrates
+        end
+
+    change cppliability_alias
+        begin
+        if cppliability_alias:escalators <> 0 then
+            cppliability_alias:escalators_premium[1] = ((cppliability_alias:escalators *
+                                                       l_escalator_1) *
+                                                       l_prem_il_factor)
+        else
+            cppliability_alias:escalators_premium[1] = 0
+        if cppliability_alias:escalators_2 <> 0 then
+            cppliability_alias:escalators_premium[2] = ((cppliability_alias:escalators_2 *
+                                                       l_escalator_2) *
+                                                       l_prem_il_factor)
+        else
+            cppliability_alias:escalators_premium[2] = 0
+        if cppliability_alias:mechanical_devices <> 0 then
+            cppliability_alias:mechanical_devices_premium = ((cppliability_alias:mechanical_devices *
+                                                            l_mechanical) *
+                                                            l_prem_il_factor)
+        else
+            cppliability_alias:mechanical_devices_premium = 0
+        if cppliability_alias:ski_lifts <> 0 then
+            cppliability_alias:ski_lifts_premium = ((cppliability_alias:ski_lifts *
+                                                   l_ski_lift) *
+                                                   l_prem_il_factor)
+        else
+            cppliability_alias:ski_lifts_premium = 0
+        if cppliability_alias:pools <> 0 then
+            begin
+            if sfscompany:boiler_rating <> 4 then
+                cppliability_alias:pools_beaches_premium[1] = ((cppliability_alias:pools *
+                                                              l_pool_1) *
+                                                              l_prem_il_factor)
+            else
+                cppLIABILITY_ALIAS:pools_beaches_premium[1] = ((cppLIABILITY_ALIAS:pools *
+                                                              l_pool_1 *
+                                                              l_deviation *
+                                                              (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                              cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                              l_package_mod *
+                                                              cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                              cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                              cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                              cppliability_alias:medical_payment_surcharge) *
+                                                              l_irpm_deviation *
+                                                              l_exp_factor)
+            end
+        else
+            cppliability_alias:pools_beaches_premium[1] = 0
+        if cppliability_alias:pools_2 <> 0 then
+            begin
+            if sfscompany:boiler_rating <> 4 then
+                cppliability_alias:pools_beaches_premium[2] = ((cppliability_alias:pools_2 *
+                                                             l_pool_2) *
+                                                             l_prem_il_factor)
+           else
+                cppLIABILITY_ALIAS:pools_beaches_premium[1] = ((cppLIABILITY_ALIAS:pools_2 *
+                                                              l_pool_2 *
+                                                              l_deviation *
+                                                              (cppLIABILITY_ALIAS:INCREASE_LIMITS_FACTOR[1] -
+                                                              cppLIABILITY_ALIAS:DEDUCTIBLE_FACTOR[1]) *
+                                                              l_package_mod *
+                                                              cppLIABILITY_ALIAS:TERRITORY_FACTOR *
+                                                              cppLIABILITY_ALIAS:MCL030_DISCOUNT *
+                                                              cppLIABILITY_ALIAS:AGGREGATE_SURCHARGE[1] *
+                                                              cppliability_alias:medical_payment_surcharge) *
+                                                              l_irpm_deviation *
+                                                              l_exp_factor)
+           end
+        else
+            cppliability_alias:pools_beaches_premium[2] = 0
+        if cppliability_alias:elevators_inspections > 1 then
+            begin
+            cppliability_alias:elevator_inspection_premium = l_elevator_inspection_1
+            cppliability_alias:elevator_inspection_premium = (cppliability_alias:elevator_inspection_premium +
+                                                             ((cppliability_alias:elevators_inspections - 1) *
+                                                             l_elevator_inspection_2))
+            end
+        else
+        if cppliability_alias:elevators_inspections = 1 then
+            cppliability_alias:elevator_inspection_premium = l_elevator_inspection_1
+        else
+            cppliability_alias:elevator_inspection_premium = 0
+        end
+end
+
+Procedure PACKAGE_MOD
+Begin
+access cppdeviation, set cppdeviation:policy_no = cppliability_alias:policy_no,
+                         cppdeviation:pol_year = cppliability_alias:pol_year,
+                         cppdeviation:end_sequence = cppliability_alias:end_sequence, generic
+
+if cppdeviation:package_mod = 0 then
+    l_package_mod = 1.00
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:package_mod <> 1.00 then
+        l_package_mod = (1 + (cppdeviation:package_mod * 0.01))
+    else
+        l_package_mod = cppdeviation:package_mod
+    end
+
+End
+
+Procedure LIABILITY_DEDUCTIBLE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppLIABILITY_ALIAS:STATE
+L_LIMITS_TABLE = cppLIABILITY_ALIAS:LIMITS_TABLE
+l_eff_date = sfpname:eff_date
+
+Access cppLIABDEDUCT, Set cppLIABDEDUCT:policy_NO = cppLIABILITY_ALIAS:policy_NO,
+                          cppliabdeduct:pol_year = cppliability_alias:pol_year,
+                          cppliabdeduct:end_sequence = cppliability_alias:end_sequence, generic
+
+If cppLIABDEDUCT:DEDUCTIBLE[1] <> 0 Or
+   cppLIABDEDUCT:DEDUCTIBLE[2] <> 0 Then
+    Begin
+    If cppLIABDEDUCT:DEDUCTIBLE[1] <> 0 Then
+        L_DEDUCTIBLE = cppLIABDEDUCT:DEDUCTIBLE[1]
+    Else
+        L_DEDUCTIBLE = cppLIABDEDUCT:DEDUCTIBLE[2]
+    L_DEDUCTIBLE_TYPE = "BI"
+    End
+
+If cppLIABDEDUCT:DEDUCTIBLE[3] <> 0 Or
+   cppLIABDEDUCT:DEDUCTIBLE[4] <> 0 Then
+    Begin
+    If cppLIABDEDUCT:DEDUCTIBLE[3] <> 0 Then
+        L_DEDUCTIBLE = cppLIABDEDUCT:DEDUCTIBLE[3]
+    Else
+        L_DEDUCTIBLE = cppLIABDEDUCT:DEDUCTIBLE[4]
+    L_DEDUCTIBLE_TYPE = "PD"
+    End
+
+If cppLIABDEDUCT:DEDUCTIBLE[5] <> 0 Or
+   cppLIABDEDUCT:DEDUCTIBLE[6] <> 0 Then
+    Begin
+    If cppLIABDEDUCT:DEDUCTIBLE[5] <> 0 Then
+        L_DEDUCTIBLE = cppLIABDEDUCT:DEDUCTIBLE[5]
+    Else
+        L_DEDUCTIBLE = cppLIABDEDUCT:DEDUCTIBLE[6]
+    L_DEDUCTIBLE_TYPE = "BO"
+    End
+
+Include "cpsliabdeduct.pro"
+
+End
+
+Procedure TERRITORY_FACTOR
+Begin
+L_STATE = cppLIABILITY_ALIAS:STATE
+L_COUNTY = cppLIABILITY_ALIAS:COUNTY
+Access CPSLIABTERRCODE, Set CPSLIABTERRCODE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSLIABTERRCODE:STATE = L_STATE,
+                            CPSLIABTERRCODE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                            CPSLIABTERRCODE:COUNTY = L_COUNTY, Generic
+
+While CPSLIABTERRCODE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABTERRCODE:STATE = L_STATE And
+      CPSLIABTERRCODE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSLIABTERRCODE:COUNTY = L_COUNTY
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABTERRCODE:EFF_DATE Then
+            Begin
+            L_FORM_1 = cppLIABILITY_ALIAS:FORM
+            L_SUB = 0
+            Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                       CPSLIABDEFAULT:STATE = L_STATE,
+                                       CPSLIABDEFAULT:LIABILITY_FORM = L_FORM_1, Generic
+
+            If CPSLIABDEFAULT:SPECIAL_TERRITORY_FACTORS = 1 Then
+                Begin
+                L_COUNTY = CPSLIABTERRCODE:COUNTY_CODE
+                L_SUB = 1
+                L_CLASS_CODE = 0
+                While L_SUB <= 20 And
+                      CPSLIABTERRCODE:CLASS_CODE[L_SUB] <> 0 And
+                      L_CLASS_CODE = 0
+                    Begin
+                    If cppLIABILITY_ALIAS:CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[L_SUB] Then
+                        Begin
+                        L_CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[L_SUB]
+                        L_SUB = 21
+                        End
+                    Else
+                    If CPSLIABTERRCODE:CLASS_CODE[L_SUB] = 99999 And
+                       L_CLASS_CODE = 0 Then
+                         Begin
+                         L_CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[L_SUB]
+                         L_SUB = 21
+                         End
+                    L_SUB = L_SUB + 1
+                    End
+                End
+            Else
+                Begin
+                L_COUNTY = CPSLIABTERRCODE:COUNTY_CODE
+                If CPSLIABTERRCODE:CLASS_CODE[1] <> 0 Then
+                    L_CLASS_CODE = CPSLIABTERRCODE:CLASS_CODE[1]
+                End
+            End
+        Next CPSLIABTERRCODE
+        End
+
+if l_state = 19 then
+    l_class_code = 99999
+
+L_FORM = cppLIABILITY_ALIAS:FORM
+L_EXPOSURE_BASE = cppLIABILITY_ALIAS:EXPOSURE_BASE[1]
+Access CPSLIABTERRITORY, Set CPSLIABTERRITORY:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSLIABTERRITORY:STATE = L_STATE,
+                             CPSLIABTERRITORY:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                             CPSLIABTERRITORY:FORM = L_FORM,
+                             CPSLIABTERRITORY:EXPOSURE = L_EXPOSURE_BASE,
+                             CPSLIABTERRITORY:COUNTY = L_COUNTY,
+                             CPSLIABTERRITORY:CLASS_CODE = L_CLASS_CODE, Generic
+
+While CPSLIABTERRITORY:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABTERRITORY:STATE = L_STATE And
+      CPSLIABTERRITORY:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSLIABTERRITORY:FORM = L_FORM And
+      CPSLIABTERRITORY:EXPOSURE = L_EXPOSURE_BASE And
+      CPSLIABTERRITORY:COUNTY = L_COUNTY And
+      CPSLIABTERRITORY:CLASS_CODE = L_CLASS_CODE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABTERRITORY:EFF_DATE Then
+            Begin
+            Switch(cppLIABILITY_ALIAS:TERRITORY_TABLE)
+              Case "A" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[1]
+              Case "B" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[2]
+              Case "C" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[3]
+              Case "D" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[4]
+              Case "E" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[5]
+              Case "F" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[6]
+              Case "G" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[7]
+              Case "H" : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[8]
+              Default  : L_TERRITORY_FACTOR = CPSLIABTERRITORY:FACTOR[1]
+              End
+            End
+        Next CPSLIABTERRITORY
+        End
+
+if cppliability_alias:motel_with_pool = 1 then
+    begin
+    Access CPSLIABCOVMOD, Set CPSLIABCOVMOD:COMPANY_ID = sfpNAME:COMPANY_ID ,
+                              CPSLIABCOVMOD:STATE = L_STATE,
+                              CPSLIABCOVMOD:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSLIABCOVMOD:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSLIABCOVMOD:STATE = L_STATE And
+          CPSLIABCOVMOD:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSLIABCOVMOD:EFF_DATE Then
+                Begin
+                l_territory_factor = cpsliabcovmod:motel_with_pool
+
+                end
+
+            next cpsliabcovmod
+            end
+
+    end
+
+End
+
+Procedure MCL030_FACTOR
+Begin
+L_GROUP_NO = cppLIABILITY_ALIAS:GROUP_NO
+L_SUB_GROUP  = cppLIABILITY_ALIAS:SUB_GROUP
+L_CLASS_CODE = cppLIABILITY_ALIAS:CLASS_CODE
+Access CPSLIABMCL030, Set CPSLIABMCL030:COMPANY_ID = sfpNAME:COMPANY_ID,
+                          CPSLIABMCL030:STATE = L_STATE,
+                          CPSLIABMCL030:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                          CPSLIABMCL030:GROUP_NO = L_GROUP_NO,
+                          CPSLIABMCL030:SUB_GROUP = L_SUB_GROUP,
+                          CPSLIABMCL030:CLASS_CODE = L_CLASS_CODE, Generic
+
+If CPSLIABMCL030:CLASS_CODE <> cppLIABILITY_ALIAS:CLASS_CODE Then
+    L_CLASS_CODE = 99999
+Else
+    L_CLASS_CODE = cppLIABILITY_ALIAS:CLASS_CODE
+
+Access CPSLIABMCL030, Set CPSLIABMCL030:COMPANY_ID = sfpNAME:COMPANY_ID,
+                          CPSLIABMCL030:STATE = L_STATE,
+                          CPSLIABMCL030:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                          CPSLIABMCL030:GROUP_NO = L_GROUP_NO,
+                          CPSLIABMCL030:SUB_GROUP = L_SUB_GROUP,
+                          CPSLIABMCL030:CLASS_CODE = L_CLASS_CODE, Generic
+
+While CPSLIABMCL030:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABMCL030:STATE = L_STATE And
+      CPSLIABMCL030:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSLIABMCL030:GROUP_NO = L_GROUP_NO And
+      CPSLIABMCL030:SUB_GROUP = L_SUB_GROUP And
+      CPSLIABMCL030:CLASS_CODE = L_CLASS_CODE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABMCL030:EFF_DATE Then
+            Begin
+            L_MCL030_FACTOR = CPSLIABMCL030:FACTOR
+            End
+        Next CPSLIABMCL030
+        End
+
+End
+
+Procedure INCREASE_LIMITS
+Begin
+L_PRODUCTS = 0
+L_OCCURRENCE = cppLIABLIMITS:OCCURRENCE
+L_AGGREGATE = cppLIABLIMITS:GENERAL_AGGREGATE
+Access CPSLIABINCLIMITS, Set CPSLIABINCLIMITS:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSLIABINCLIMITS:STATE = L_STATE,
+                             CPSLIABINCLIMITS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                             CPSLIABINCLIMITS:PRODUCTS = L_PRODUCTS,
+                             CPSLIABINCLIMITS:OCCURRENCE = L_OCCURRENCE,
+                             CPSLIABINCLIMITS:GENERAL_AGGREGATE = L_AGGREGATE, Generic
+
+While CPSLIABINCLIMITS:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABINCLIMITS:STATE = L_STATE And
+      CPSLIABINCLIMITS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSLIABINCLIMITS:PRODUCTS = L_PRODUCTS And
+      CPSLIABINCLIMITS:OCCURRENCE = L_OCCURRENCE And
+      CPSLIABINCLIMITS:GENERAL_AGGREGATE = L_AGGREGATE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABINCLIMITS:EFF_DATE Then
+            Begin
+            Switch(cppLIABILITY_ALIAS:LIMITS_TABLE)
+              Case 1  : L_PREM_IL_FACTOR = CPSLIABINCLIMITS:FACTOR[1]
+              Case 2  : L_PREM_IL_FACTOR = CPSLIABINCLIMITS:FACTOR[2]
+              Default : L_PREM_IL_FACTOR = CPSLIABINCLIMITS:FACTOR[3]
+              End
+            End
+        Next CPSLIABINCLIMITS
+        End
+
+L_PRODUCTS = 1
+L_OCCURRENCE = cppLIABLIMITS:OCCURRENCE
+if sfscompany:boiler_rating = 4 then
+    l_aggregate = cppliablimits:products
+else
+    L_AGGREGATE = cppLIABLIMITS:GENERAL_AGGREGATE
+Access CPSLIABINCLIMITS, Set CPSLIABINCLIMITS:COMPANY_ID = sfpNAME:COMPANY_ID,
+                             CPSLIABINCLIMITS:STATE = L_STATE,
+                             CPSLIABINCLIMITS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                             CPSLIABINCLIMITS:PRODUCTS = L_PRODUCTS,
+                             CPSLIABINCLIMITS:OCCURRENCE = L_OCCURRENCE,
+                             CPSLIABINCLIMITS:GENERAL_AGGREGATE = L_AGGREGATE, Generic
+
+While CPSLIABINCLIMITS:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABINCLIMITS:STATE = L_STATE And
+      CPSLIABINCLIMITS:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS And
+      CPSLIABINCLIMITS:PRODUCTS = L_PRODUCTS And
+      CPSLIABINCLIMITS:OCCURRENCE = L_OCCURRENCE And
+      CPSLIABINCLIMITS:GENERAL_AGGREGATE = L_AGGREGATE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABINCLIMITS:EFF_DATE Then
+            Begin
+            Switch(cppLIABILITY_ALIAS:LIMITS_TABLE)
+              Case 1  : L_PROD_IL_FACTOR = CPSLIABINCLIMITS:FACTOR[1]
+              Case 2  : L_PROD_IL_FACTOR = CPSLIABINCLIMITS:FACTOR[2]
+              Default : L_PROD_IL_FACTOR = CPSLIABINCLIMITS:FACTOR[3]
+              End
+            End
+        Next CPSLIABINCLIMITS
+        End
+
+End
+
+procedure medical_payments
+begin
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_Year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access cppliablimits, set cppliablimits:policy_no = g_policy_no,
+                          cppliablimits:pol_year = g_year,
+                          cppliablimits:end_sequence = g_end_sequence, generic
+
+l_limit = cppliablimits:medical_payments
+access cpsliabmedpay, set cpsliabmedpay:company_id = sfpname:company_id,
+                          cpsliabmedpay:state = l_state,
+                          cpsliabmedpay:line_of_business = l_line_of_business,
+                          cpsliabmedpay:limit = l_limit, generic
+
+while cpsliabmedpay:company_id = sfpname:company_id and
+      cpsliabmedpay:state = l_state and
+      cpsliabmedpay:line_of_business = l_line_of_business and
+      cpsliabmedpay:limit = l_limit
+        begin
+        if sfpname:eff_date >= cpsliabmedpay:eff_date then
+            l_medical_surcharge = cpsliabmedpay:rate
+
+        next cpsliabmedpay
+        end
+
+end
+
+Procedure AGGREGATE_SURCHARGE
+Begin
+Access CPSLIABCOVMOD, Set CPSLIABCOVMOD:COMPANY_ID = sfpNAME:COMPANY_ID ,
+                          CPSLIABCOVMOD:STATE = L_STATE,
+                          CPSLIABCOVMOD:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSLIABCOVMOD:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABCOVMOD:STATE = L_STATE And
+      CPSLIABCOVMOD:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABCOVMOD:EFF_DATE Then
+            Begin
+            If cppLIABLIMITS:EMPLOYMENT_RELATED_ACTS = 1 Then
+                L_EMPLOY_ACT_FACTOR = CPSLIABCOVMOD:EMPLOYMENT_RELATED_ACTS
+            Else
+                L_EMPLOY_ACT_FACTOR = 1.00
+            If cppLIABLIMITS:CONTRACT_COVERAGE[1] = 1 Then
+                L_CONTRACT_FACTOR_1 = CPSLIABCOVMOD:CONTRACT_COVERAGE[1]
+            Else
+                L_CONTRACT_FACTOR_1 = 1.00
+            If cppLIABLIMITS:CONTRACT_COVERAGE[2] = 1 Then
+                L_CONTRACT_FACTOR_2 = CPSLIABCOVMOD:CONTRACT_COVERAGE[2]
+            Else
+                L_CONTRACT_FACTOR_2 = 1.00
+            If cppLIABLIMITS:CONTRACT_COVERAGE[3] = 1 Then
+                L_CONTRACT_FACTOR_3 = CPSLIABCOVMOD:CONTRACT_COVERAGE[3]
+            Else
+                L_CONTRACT_FACTOR_3 = 1.00
+            If cppLIABLIMITS:DELETE_EMPLOYEES_INSURED = 1 Then
+                L_EMPLOYEE_INSURED_FACTOR = CPSLIABCOVMOD:EMPLOYEES_AS_INSURED
+            Else
+                L_EMPLOYEE_INSURED_FACTOR = 1.00
+            If cppLIABLIMITS:FIRE_LEGAL = 0 and
+               cppliablimits:form not one of 2 Then
+                L_FIRE_LEGAL_FACTOR = CPSLIABCOVMOD:FIRE_LEGAL
+            Else
+                L_FIRE_LEGAL_FACTOR = 1.00
+            If cppLIABLIMITS:MEDICAL_PAYMENTS = 0 and
+               cppliablimits:form not one of 2 Then
+                L_MED_PAY_FACTOR = CPSLIABCOVMOD:MEDICAL_PAYMENTS
+            Else
+                L_MED_PAY_FACTOR = 1.00
+            If cppLIABLIMITS:NEWLY_ACQUIRED_ENTITIES = 1 Then
+                L_ACQUIRED_ENTITY_FACTOR = CPSLIABCOVMOD:NEW_ACQUIRED_ENTITIES
+            Else
+                L_ACQUIRED_ENTITY_FACTOR = 1.00
+            If cppLIABLIMITS:ADVERTISING_PERSONAL_INJURY = 0 And
+               cppLIABILITY_ALIAS:FORM not one of 2, 3 Then
+                L_PERSONAL_INJURY_FACTOR = CPSLIABCOVMOD:PERSONAL_INJURY
+            Else
+                L_PERSONAL_INJURY_FACTOR = 1.00
+            If cppLIABLIMITS:GENERAL_AGGREGATE = 0 Then
+                L_DELETE_AGGREGATE_FACTOR = CPSLIABCOVMOD:DELETE_GENERAL_AGGREGATE
+            Else
+                L_DELETE_AGGREGATE_FACTOR = 1.00
+            L_FIRE_LEGAL_RATE_1 = CPSLIABCOVMOD:FIRE_LEGAL_RATE[1]
+            L_FIRE_LEGAL_RATE_2 = CPSLIABCOVMOD:FIRE_LEGAL_RATE[2]
+            L_FIRE_LEGAL_PER_1 = CPSLIABCOVMOD:FIRE_LEGAL_PER[1]
+            L_FIRE_LEGAL_PER_2 = CPSLIABCOVMOD:FIRE_LEGAL_PER[2]
+            L_FIRE_LEGAL_FLAT = CPSLIABCOVMOD:FIRE_LEGAL_FLAT
+            l_fire_legal_code = cpsliabcovmod:fire_legal_code
+            l_seasonal_rate_1 = cpsliabcovmod:seasonal_rate[1]
+            l_seasonal_rate_2 = cpsliabcovmod:seasonal_rate[2]
+            if l_fire_legal_limit = cpsliabcovmod:fire_legal_limit[1] then
+                l_fire_legal_charge = cpsliabcovmod:fire_legal_charge[1]
+            if l_fire_legal_limit = cpsliabcovmod:fire_legal_limit[2] then
+                l_fire_legal_charge = cpsliabcovmod:fire_legal_charge[2]
+            if l_fire_legal_limit = cpsliabcovmod:fire_legal_limit[3] then
+                l_fire_legal_charge = cpsliabcovmod:fire_legal_charge[3]
+            if l_fire_legal_limit = cpsliabcovmod:fire_legal_limit[4] then
+                l_fire_legal_charge = cpsliabcovmod:fire_legal_charge[4]
+            if l_fire_legal_limit = cpsliabcovmod:fire_legal_limit[5] then
+                l_fire_legal_charge = cpsliabcovmod:fire_legal_charge[5]
+            End
+
+        Next CPSLIABCOVMOD
+        End
+
+End
+
+procedure update_fire_legal
+begin
+if sfscompany:boiler_rating <> 4 then
+    begin
+    access sfpend_alias, set sfpend_alias:policy_no = g_policy_no,
+                             sfpend_alias:pol_year = g_year,
+                             sfpend_alias:end_sequence = g_end_sequence,
+                             sfpend_alias:prem_no = cppliability_alias:prem_no,
+                             sfpend_alias:build_no = cppliability_alias:build_no, generic
+
+    l_Fire_code = "N"
+    while sfpend_alias:policy_no = g_policy_no and
+          sfpend_alias:pol_year = g_year and
+          sfpend_alias:end_sequence = g_end_sequence and
+          sfpend_alias:prem_no = cppliability_alias:prem_no and
+          sfpend_alias:build_no = cppliability_alias:build_no
+        begin
+        if sfpend_alias:code = l_Fire_legal_code then
+            l_fire_code = "Y"
+
+        next sfpend_alias
+        end
+    end
+else
+    begin
+    access sfpend_alias, set sfpend_alias:policy_no = g_policy_no,
+                             sfpend_alias:pol_year = g_year,
+                             sfpend_alias:end_sequence = g_end_sequence, generic
+
+    l_Fire_code = "N"
+    while sfpend_alias:policy_no = g_policy_no and
+          sfpend_alias:pol_year = g_year and
+          sfpend_alias:end_sequence = g_end_sequence
+        begin
+        if sfpend_alias:code = l_Fire_legal_code then
+            l_fire_code = "Y"
+
+        next sfpend_alias
+        end
+    end
+
+if sfscompany:boiler_Rating = 4 then
+    begin
+    if cppliability_alias:fire_legal_charge <> 0 then
+        begin
+        change cppliability_alias
+            begin
+            cppliability_alias:fire_legal_premium = cppliability_alias:fire_legal_charge
+            end
+        end
+    else
+--    if cppliability_alias:fire_legal_property_rate <> 0 then
+        begin
+        change cppliability_alias
+            begin
+            if l_fire_code = "N" then
+                begin
+                if cppliability_alias:fire_legal_property_rate <> 0 then
+                    l_rate = cppliability_alias:fire_legal_property_rate * l_Fire_legal_rate_1
+                else
+                    l_rate = cppgeneral:base_rate[1] * l_Fire_legal_rate_1
+                cppliability_alias:fire_legal_premium = (((cppliablimits:fire_legal -
+                                                        cpsliabdefault:fire_legal) divide
+                                                        l_fire_legal_per_1) *
+                                                        l_rate)
+                end
+            if l_Fire_code = "Y" then
+                begin
+                if cppliability_alias:fire_legal_property_rate <> 0 then
+                    l_rate = cppliability_alias:fire_legal_property_rate * l_Fire_legal_rate_2
+                else
+                    l_rate = cppgeneral:base_rate[1] * l_Fire_legal_rate_2
+                cppliability_alias:fire_legal_premium = ((((cppliablimits:fire_legal -
+                                                        cpsliabdefault:fire_legal) divide
+                                                        l_fire_legal_per_2) *
+                                                        l_rate) + l_fire_legal_flat)
+                end
+            end
+        end
+    end
+else
+    begin
+    change cppliability_alias
+        begin
+        if l_fire_code = "N" then
+            begin
+            l_rate = cppliablimits:fire_legal_property_rate * l_Fire_legal_rate_1
+            cppliability_alias:fire_legal_premium = (((cppliablimits:fire_legal -
+                                                    cpsliabdefault:fire_legal) divide
+                                                    l_fire_legal_per_1) *
+                                                    l_rate)
+            end
+        if l_Fire_code = "Y" then
+            begin
+            l_rate = cppliablimits:fire_legal_property_rate * l_Fire_legal_rate_2
+            cppliability_alias:fire_legal_premium = ((((cppliablimits:fire_legal -
+                                                    cpsliabdefault:fire_legal) divide
+                                                    l_fire_legal_per_2) *
+                                                    l_rate) + l_fire_legal_flat)
+            end
+        end
+    end
+
+end
+
+End

@@ -1,0 +1,1048 @@
+%%                                                
+/*
+Date Written: October 11, 2018
+
+Name: gsil7001.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+04/01/2008            JLB              new form created
+===========================
+*/
+
+Program
+  Name = "gsil7001";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[11] = "gsil7001.cq";
+ String L_COPY_NAME[20] ,
+        l_font[35];
+ String l_enter[1];
+ Unsigned Ascii Number L_LINE_COUNTER;
+ Unsigned Ascii Number L_STATE[2];
+ Unsigned Ascii Number L_LIMIT_NO[2];
+ Unsigned Ascii Number L_LINE_OF_BUSINESS[4];
+ Unsigned Ascii Number L_LOOP,
+                       l_found;
+ wdate L_EFF_DATE;
+
+ Include "swsut100.var"
+ Include "swsut200.var"
+ Include "swsut300.var"
+ Include "csfonts.inc"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+ read (23,1,"gsil7001 --- Here I am ",l_enter,1)
+
+Update
+
+Access SFPMASTER,
+   Set SFPMASTER:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPMASTER:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPMASTER:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic;
+
+Access sfpend_alias,
+   Set sfpend_alias:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       sfpend_alias:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       sfpend_alias:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic;
+
+Access SFPNAME,
+   Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE , Generic
+
+Access SFSLINE,
+   Set SFSLINE:COMPANY_ID       = SFPNAME:COMPANY_ID,
+       SFSLINE:LINE_OF_BUSINESS = SFPNAME:LINE_OF_BUSINESS,
+       sfsline:lob_subline      = "00", exact
+
+Access cppgeneral,
+   Set cppgeneral:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppgeneral:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppgeneral:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic;
+
+Include "swsut100.inc"
+I_CODE = "SIR007"
+Include "swsut200.inc"
+Include "swsut300.inc"
+
+l_found = 0
+if sfsline:lob_code one of "BOP" then
+    do bop
+else
+    do cpp
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+
+Procedure Definition
+
+procedure bop
+begin
+Access bopendorse,
+   Set bopendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       bopendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       bopendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access bopgeneral,
+   Set bopgeneral:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       bopgeneral:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       bopgeneral:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+While bopendorse:POLICY_NO    = sfpend:POLICY_NO And
+      bopendorse:POL_YEAR     = sfpend:POL_YEAR And
+      bopendorse:END_SEQUENCE = sfpend:END_SEQUENCE
+
+Begin
+  if bopendorse:code one of I_CODE then
+    {
+      If bopendorse:limit[1] <> 0 then
+        {
+          l_found = 1
+        }
+    }
+  next bopendorse
+End
+
+Access bopendorse,
+   Set bopendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       bopendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       bopendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+-- write ("<014>")
+-- write ("%c%s%n",01001,"l found   = ",l_found)
+-- read (23,1,"Press Enter",l_enter,1)
+
+If l_found = 1 then
+  {
+    do print_bop_limit
+  }
+
+Else
+  {
+    do print_default_limit
+  }
+
+end
+
+procedure cpp
+begin
+Access cppendorse,
+   Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+  Access cppgeneral,
+     Set cppgeneral:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+         cppgeneral:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+         cppgeneral:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+  While cppendorse:POLICY_NO    = sfpend_alias:POLICY_NO And
+        cppendorse:POL_YEAR     = sfpend_alias:POL_YEAR And
+        cppendorse:END_SEQUENCE = sfpend_alias:END_SEQUENCE
+
+  Begin
+--  do print_cpp_limit
+
+  if cppendorse:code one of I_CODE then
+    {
+      If cppendorse:limit[1] > 0 then
+        {
+          l_found = 1
+        }
+      l_found = 0
+
+    }
+    next cppendorse
+  End
+
+Access cppendorse,
+   Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+If l_found = 1 then
+  {
+    do print_cpp_limit
+  }
+
+Else
+  {
+    do print_default_limit
+  }
+end
+
+Procedure print_bop_limit
+Begin
+While bopendorse:POLICY_NO    = sfpend_alias:POLICY_NO And
+      bopendorse:POL_YEAR     = sfpend_alias:POL_YEAR And
+      bopendorse:END_SEQUENCE = sfpend_alias:END_SEQUENCE
+  {
+    If bopendorse:code = I_CODE then
+      {
+        L_STATE            = BOPGENERAL:STATE
+        L_COMPANY_ID       = sfpname:COMPANY_ID
+        L_LINE_OF_BUSINESS = sfpname:LINE_OF_BUSINESS
+
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE, generic
+
+         While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+               SFSOPTEND:STATE            = L_STATE and
+               SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+               SFSOPTEND:CODE             = I_CODE
+
+           {  --start of sfsoptend check
+             If (sfpname:eff_date >= sfsoptend:eff_date and
+                (sfpname:eff_date < sfsoptend:exp_date or
+                 sfsoptend:exp_date = 0)) then
+               {
+                 l_eff_date = sfsoptend:eff_date
+               }
+             next sfsoptend
+           }
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE,
+               SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+-- write ("<014>")
+-- write ("%c%s%s",01001,"Company ID                   = ",l_company_id)
+-- write ("%c%s%n",03001,"State                        = ",l_state)
+-- write ("%c%s%n",05001,"Line of Business             = ",l_line_of_business)
+-- write ("%c%s%s",07001,"CODE                         = ",I_code)
+-- write ("%c%s%d",09001,"Eff Date                     = ",l_eff_date)
+-- read(23,1,"Press enter now please ",l_enter,1)
+
+        If sfsoptend:edition <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a420h6890V")
+            Writefile(L_FILE_NAME,"%s","Ed. ")
+            Writefile(L_FILE_NAME,"%n",sfsoptend:edition)
+          }
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+        Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_6)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",sfsoptend:copyright)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",l_aRIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+        Writefile(L_FILE_NAME,"%s","EQUIPMENT BREAKDOWN COVERAGE SCHEDULE")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","Subject to any applicable limits on the Declarations, the Equipment Breakdown Limit is the most we will ")
+        Writefile(L_FILE_NAME,"%s","pay for loss or damage arising")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","from any one Accident.")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","These coverages apply to all locations covered on the policy, unless otherwise specified.")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h-60V<033>*c5400h8v0P")--Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+0V")
+        Writefile(L_FILE_NAME,"%s","Limits")
+
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Equipment Breakdown Limit")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Loss of Use / Loss of Income")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+        Writefile(L_FILE_NAME,"%s","(including Extra Expense if shown as covered)")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Expediting Expense")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Hazardous Substances")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Spoilage")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Computer Equipment")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Data ")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","Restoration")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+270V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","Per Policy Property Limits")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","Per Policy Limits")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+270V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+
+        If bopendorse:limit[1] <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+            Writefile(L_FILE_NAME,"%s",str(bopendorse:limit[1],"ZZ,ZZZ"))
+          }
+        Else
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+            Writefile(L_FILE_NAME,"%s","25,000")
+          }
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Deductibles")
+
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+        Writefile(L_FILE_NAME,"%s","Combined, All Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Direct Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Indirect Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Spoilage")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+120V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","or")
+        Writefile(L_FILE_NAME,"%s","<033>&a4800h+0V")
+        Writefile(L_FILE_NAME,"%s","hrs. or ADV" )
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3880h+10V")
+        Writefile(L_FILE_NAME,"%s","<033>*c500h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4500h+0V")
+        Writefile(L_FILE_NAME,"%s","<033>*c250h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","or")
+        Writefile(L_FILE_NAME,"%s","<033>&a5200h+0V")
+        Writefile(L_FILE_NAME,"%s","%" )
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3880h+10V")
+        Writefile(L_FILE_NAME,"%s","<033>*c500h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4500h+0V")
+        Writefile(L_FILE_NAME,"%s","<033>*c680h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_pop)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+120V")
+        Writefile(L_FILE_NAME,"%s",str(sfpmaster:deductible,"ZZZ,ZZZ"))
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+140V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4550h+0V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Other Conditions")
+        Writefile(L_FILE_NAME,"%s","<FF>")
+      }
+  Next bopendorse
+}
+end
+
+Procedure print_cpp_limit
+Begin
+Access cppgeneral,
+   Set cppgeneral:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+       cppgeneral:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+       cppgeneral:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+While cppendorse:POLICY_NO    = sfpend_alias:POLICY_NO And
+      cppendorse:POL_YEAR     = sfpend_alias:POL_YEAR And
+      cppendorse:END_SEQUENCE = sfpend_alias:END_SEQUENCE
+  {
+    If cppendorse:code = I_CODE then
+      {
+        If cppgeneral:state <> 0 then
+          L_STATE            = cppGENERAL:STATE
+        else
+          l_state = sfpmaster:state
+        L_COMPANY_ID       = sfpname:COMPANY_ID
+        If sfpname:line_of_business <> 0 then
+           L_LINE_OF_BUSINESS = sfpname:line_of_business
+        else
+          L_LINE_OF_BUSINESS = sfsline:rating_LINE_OF_BUSINESS
+
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE, generic
+
+         While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+               SFSOPTEND:STATE            = L_STATE and
+               SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+               SFSOPTEND:CODE             = I_CODE
+
+           {  --start of sfsoptend check
+             If (sfpname:eff_date >= sfsoptend:eff_date and
+                (sfpname:eff_date < sfsoptend:exp_date or
+                 sfsoptend:exp_date = 0)) then
+               {
+                 l_eff_date = sfsoptend:eff_date
+               }
+             next sfsoptend
+           }
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE,
+               SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+        If sfsoptend:edition <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a420h6890V")
+            Writefile(L_FILE_NAME,"%s","Ed. ")
+            Writefile(L_FILE_NAME,"%n",sfsoptend:edition)
+          }
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+        Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_6)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",sfsoptend:copyright)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+        Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",l_aRIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+        Writefile(L_FILE_NAME,"%s","EQUIPMENT BREAKDOWN COVERAGE SCHEDULE")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","Subject to any applicable limits on the Declarations, the Equipment Breakdown Limit is the most we will ")
+        Writefile(L_FILE_NAME,"%s","pay for loss or damage arising")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","from any one Accident.")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","These coverages apply to all locations covered on the policy, unless otherwise specified.")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h-60V<033>*c5400h8v0P")--Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+0V")
+        Writefile(L_FILE_NAME,"%s","Limits")
+
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Equipment Breakdown Limit")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Loss of Use / Loss of Income")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+        Writefile(L_FILE_NAME,"%s","(including Extra Expense if shown as covered)")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Expediting Expense")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Hazardous Substances")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Spoilage")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Computer Equipment")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Data ")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","Restoration")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+270V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","Per Policy Property Limits")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","Per Policy Limits")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+270V")
+        Writefile(L_FILE_NAME,"%s"," 25,000")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        If cppendorse:limit[1] = 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+            Writefile(L_FILE_NAME,"%s"," 25,000")
+          }
+        Else
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+            Writefile(L_FILE_NAME,"%s",str(cppendorse:limit[1],"ZZZ,ZZZ"))
+          }
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s"," 25,000")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s"," 25,000")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Deductibles")
+
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+        Writefile(L_FILE_NAME,"%s","Combined, All Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Direct Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Indirect Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Spoilage")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+120V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","or")
+        Writefile(L_FILE_NAME,"%s","<033>&a4800h+0V")
+        Writefile(L_FILE_NAME,"%s","hrs. or ADV" )
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3880h+10V")
+        Writefile(L_FILE_NAME,"%s","<033>*c500h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4500h+0V")
+        Writefile(L_FILE_NAME,"%s","<033>*c250h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","or")
+        Writefile(L_FILE_NAME,"%s","<033>&a5200h+0V")
+        Writefile(L_FILE_NAME,"%s","%" )
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3880h+10V")
+        Writefile(L_FILE_NAME,"%s","<033>*c500h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4500h+0V")
+        Writefile(L_FILE_NAME,"%s","<033>*c680h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_pop)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+120V")
+        If cppgeneral:deductible <> 0 then
+          Writefile(L_FILE_NAME,"%s",str(cppgeneral:deductible,"ZZZ,ZZZ"))
+        else
+          Writefile(L_FILE_NAME,"%s",str(sfpmaster:deductible,"ZZZ,ZZZ"))
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+140V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4550h+0V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Other Conditions")
+        Writefile(L_FILE_NAME,"%s","<FF>")
+    }
+  Next cppendorse
+}
+end
+
+Procedure print_default_limit
+Begin
+While sfpend_alias:POLICY_NO    = sfpprint1:POLICY_NO And
+      sfpend_alias:POL_YEAR     = sfpprint1:POL_YEAR And
+      sfpend_alias:END_SEQUENCE = sfpprint1:END_SEQUENCE
+  {
+    If sfpend_alias:code = I_CODE then
+      {
+        if sfpmaster:state <> 0 then
+          l_state = sfpmaster:state
+        else
+          If bopgeneral:state <> 0 then
+            L_STATE            = BOPGENERAL:STATE
+        else
+          If cppgeneral:state <> 0 then
+            l_state = cppgeneral:state
+
+        L_COMPANY_ID       = sfpname:COMPANY_ID
+        If sfsline:lob_code one of "BOP" then
+          l_line_of_business = sfpname:line_of_business
+        else
+          L_LINE_OF_BUSINESS = sfsline:rating_LINE_OF_BUSINESS
+
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE, generic
+
+         While SFSOPTEND:COMPANY_ID       = L_COMPANY_ID and
+               SFSOPTEND:STATE            = L_STATE and
+               SFSOPTEND:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS and
+               SFSOPTEND:CODE             = I_CODE
+
+           {  --start of sfsoptend check
+             If (sfpname:eff_date >= sfsoptend:eff_date and
+                (sfpname:eff_date < sfsoptend:exp_date or
+                 sfsoptend:exp_date = 0)) then
+               {
+                 l_eff_date = sfsoptend:eff_date
+               }
+             next sfsoptend
+           }
+        Access SFSOPTEND,
+           Set SFSOPTEND:COMPANY_ID       = L_COMPANY_ID,
+               SFSOPTEND:STATE            = L_STATE,
+               SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+               SFSOPTEND:CODE             = I_CODE,
+               SFSOPTEND:EFF_DATE         = L_EFF_DATE, exact
+
+
+--write ("<014>")
+--write ("%c%s%s",01001,"Company ID                   = ",l_company_id)
+--write ("%c%s%n",03001,"State                        = ",l_state)
+--write ("%c%s%n",05001,"Line of Business             = ",l_line_of_business)
+--write ("%c%s%s",07001,"CODE                         = ",I_code)
+--write ("%c%s%d",09001,"Eff Date                     = ",l_eff_date)
+--write ("%c%s%n",11001,"sfsoptend:edition            = ",sfsoptend:edition)
+--read(23,1,"Press enter now please ",l_enter,1)
+
+
+        If sfsoptend:edition <> 0 then
+          {
+            Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+            Writefile(L_FILE_NAME,"%s","<033>&a420h6890V")
+            Writefile(L_FILE_NAME,"%s","Ed. ")
+            Writefile(L_FILE_NAME,"%n",sfsoptend:edition)
+          }
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a420h7000V")
+        Writefile(L_FILE_NAME,"%s",L_COPYRIGHT_6)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s"," ")
+        -- bad code removed 10/11/2018 Writefile(L_FILE_NAME,"%s","2011 MSO, Inc.")
+        Writefile(L_FILE_NAME,"%s",trun(sfsoptend:copyright))
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+        Writefile(L_FILE_NAME,"%s","<033>&a4300h120V")
+        -- bad code removed 10/11/2018 Writefile(L_FILE_NAME,"%s","SIIL-7001")
+        Writefile(L_FILE_NAME,"%s",trun(sfsoptend:form_edition))
+        Writefile(L_FILE_NAME,"%s"," ")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        -- bad code removed 10/11/2018 Writefile(L_FILE_NAME,"%s","09 11")
+        Writefile(L_FILE_NAME,"%s","<NL>")
+
+        Writefile(L_FILE_NAME,"%s",l_aRIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+0V")
+        -- bad code removed 10/11/2018 Writefile(L_FILE_NAME,"%s","EQUIPMENT BREAKDOWN COVERAGE SCHEDULE")
+        Writefile(L_FILE_NAME,"%s",trun(sfsoptend:description))
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","Subject to any applicable limits on the Declarations, the Equipment Breakdown Limit is the most we will ")
+        Writefile(L_FILE_NAME,"%s","pay for loss or damage arising")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_ITALIC_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","from any one Accident.")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+        Writefile(L_FILE_NAME,"%s","These coverages apply to all locations covered on the policy, unless otherwise specified.")
+
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+100V")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h-60V<033>*c5400h8v0P")--Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+0V")
+        Writefile(L_FILE_NAME,"%s","Limits")
+
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Equipment Breakdown Limit")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Loss of Use / Loss of Income")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1400h+120V")
+        Writefile(L_FILE_NAME,"%s","(including Extra Expense if shown as covered)")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Expediting Expense")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Hazardous Substances")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Spoilage")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Computer Equipment")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_italic_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Data ")
+        Writefile(L_FILE_NAME,"%s",l_arial_9)
+        Writefile(L_FILE_NAME,"%s","Restoration")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+270V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","Per Policy Property Limits")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","Per Policy Limits")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+270V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","25,000")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Deductibles")
+
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+120V")
+        Writefile(L_FILE_NAME,"%s","Combined, All Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Direct Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Indirect Coverages")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a1200h+150V")
+        Writefile(L_FILE_NAME,"%s","Spoilage")
+
+        Writefile(L_FILE_NAME,"%s",l_pop)
+        Writefile(L_FILE_NAME,"%s",l_push)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+120V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","or")
+        Writefile(L_FILE_NAME,"%s","<033>&a4800h+0V")
+        Writefile(L_FILE_NAME,"%s","hrs. or ADV" )
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3880h+10V")
+        Writefile(L_FILE_NAME,"%s","<033>*c500h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4500h+0V")
+        Writefile(L_FILE_NAME,"%s","<033>*c250h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a3800h+150V")
+        Writefile(L_FILE_NAME,"%s","$")
+        Writefile(L_FILE_NAME,"%s","<033>&a4400h+0V")
+        Writefile(L_FILE_NAME,"%s","or")
+        Writefile(L_FILE_NAME,"%s","<033>&a5200h+0V")
+        Writefile(L_FILE_NAME,"%s","%" )
+
+        Writefile(L_FILE_NAME,"%s","<033>&a3880h+10V")
+        Writefile(L_FILE_NAME,"%s","<033>*c500h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s","<033>&a4500h+0V")
+        Writefile(L_FILE_NAME,"%s","<033>*c680h8v0p") --Horizontal line
+
+        Writefile(L_FILE_NAME,"%s",L_pop)
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+120V")
+        if sfpname:line_of_business one of 5, 50, 51 and
+           sfpmaster:deductible <> 0 then
+            Writefile(L_FILE_NAME,"%s",str(sfpmaster:deductible,"ZZZ,ZZZ"))
+        else
+        If cppgeneral:deductible <> 0 then
+            Writefile(L_FILE_NAME,"%s",str(cppgeneral:deductible,"ZZZ,ZZZ"))
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+140V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4550h+0V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a4000h+150V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+        Writefile(L_FILE_NAME,"%s","N/A")
+
+        Writefile(L_FILE_NAME,"%s",L_ARIAL_bold_9)
+        Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+        Writefile(L_FILE_NAME,"%s","Other Conditions")
+        Writefile(L_FILE_NAME,"%s","<FF>")
+      }
+  Next sfpend_alias
+}
+end
+End

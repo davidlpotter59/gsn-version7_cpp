@@ -1,0 +1,532 @@
+%%
+Screen
+        Name            = "cppmtmso507" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s House of Worship Theft - Ver 7.00     %m" ;
+        Domain          = "cppCRIME" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4];
+        global unsigned ascii number g_end_sequence[4];
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+        Global Unsigned Ascii Number G_state[2] ;
+        Global Unsigned Ascii Number G_county[3] ;
+
+        global signed ascii number g_premium1[9]/dec=2 ;
+
+        Global String G_CRIME_FORM[1];
+
+        Local Unsigned Ascii Number L_LIMIT[8]=0 ,
+                                    L_PREMIUM[6]=0,
+                                    l_limit_1[8]=0,
+                                    L_DEDUCTIBLE_FACTOR[4]=0/decimals=3,
+                                    L_HOUSE_WORSHIP_RATE[2]=0,
+                                    L_PER[4]=0,
+                                    l_line_of_business[4],
+                                    L_MINIMUM_PREMIUM[3]=0;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ;
+
+        Local Signed Ascii Number l_package[4]=0/dec=2,
+                                  l_deviation[4]=0/dec=2,
+                                  l_irpm[4]=0/dec=2 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_DELETE_ENDORSEMENT[1],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ,
+                     L_SCREEN[11] ;
+
+        Access cppCRIME,
+           Set cppCRIME:policy_NO = G_policy_NO ,
+               cppcrime:pol_year = g_year,
+               cppcrime:end_sequence = g_end_sequence,
+               cppCRIME:PREM_NO = G_PREM_NO ,
+               cppCRIME:BUILD_NO = G_BUILD_NO ,
+               cppCRIME:CRIME_FORM = G_CRIME_FORM ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppCRIME:policy_NO <> G_policy_NO Or
+   cppcrime:pol_Year <> g_Year or
+   cppcrime:end_sequence <> g_end_sequence or
+   cppCRIME:PREM_NO <> G_PREM_NO Or
+   cppCRIME:BUILD_NO <> G_BUILD_NO Or
+   cppCRIME:CRIME_FORM <> G_CRIME_FORM Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Prem No:   ____                                                              |
+| Build No:  ____                                                              |
+| Form:      __                                                                |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext  ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppCRIME:policy_NO = G_policy_NO
+            cppcrime:pol_Year = g_year
+            cppcrime:end_sequence = g_End_sequence
+            cppCRIME:PREM_NO = G_PREM_NO
+            cppCRIME:BUILD_NO = G_BUILD_NO
+            cppCRIME:CRIME_FORM = G_CRIME_FORM
+            cppCRIME:STATE = g_STATE
+            cppCRIME:COUNTY = g_COUNTY
+            cppcrime:cppcrime1_sub_code = g_sub_code
+            cppcrime:rating_line_of_business = sfsline:rating_line_of_business
+            end
+        End
+        cppCRIME:policy_NO/displayonly ;
+302     cppcrime:pol_year/displayonly;
+303     cppcrime:end_sequence/displayonly;
+401     cppCRIME:PREM_NO/displayonly ;
+501     cppCRIME:BUILD_NO/displayonly ;
+601     cppCRIME:CRIME_FORM/displayonly ;
+
+} -- end of header
+
+CardDialog GUI at 1,80
+
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Limits"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Limit:                        ________                                       |
+| Deductible:                   _____                                          |
+*------------------------------------------------------------------------------*
+| Base Rate:                    __________                                     |
+| Deductible Factor:            _____                                          |
+| Premium:                      __________                                     |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+fields
+
+201     cppCRIME:LIMIT[1] ;
+301     Begin
+        l_line_of_business = sfsline:rating_line_of_business
+        If FUNCTION = "ADD" Then
+            cppCRIME:DEDUCTIBLE = CPSCRIMEDEFAULTS:DEDUCTIBLE
+        End
+        cppCRIME:DEDUCTIBLE/default
+        If cppCRIME:DEDUCTIBLE <> CPSCRIMEDED:DEDUCTIBLE Then
+            Error 1207
+
+        Activehelp CPSCRIMEDED_ALIAS:DEDUCTIBLE ;
+
+501    Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "CHANGE" Then
+            Begin
+            Do RATE_CRIME
+            cppCRIME:HOUSE_WORSHIP_CHARGE = L_HOUSE_WORSHIP_RATE
+            L_PREMIUM = (((cppCRIME:LIMIT[1] - l_limit_1) Divide L_PER) *
+                        L_HOUSE_WORSHIP_RATE)
+            cppCRIME:DEDUCTIBLE_FACTOR = L_DEDUCTIBLE_FACTOR
+            L_PREMIUM = L_PREMIUM * L_DEDUCTIBLE_FACTOR
+            If L_PREMIUM < L_MINIMUM_PREMIUM Then
+                L_PREMIUM = L_MINIMUM_PREMIUM
+            cppCRIME:CRIME_PREMIUM = L_PREMIUM
+            access cppcrime1, set cppcrime1:policy_no = g_policy_no,
+                                  cppcrime1:pol_year = g_year,
+                                  cppcrime1:end_sequence = g_end_sequence,
+                                  cppcrime1:prem_no = g_prem_no,
+                                  cppcrime1:build_no = g_build_no,
+                                  cppcrime1:sub_code = g_sub_code, generic
+
+            access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                                   cpsdefault:line_of_business = l_line_of_business, generic
+
+            If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 And
+               cppcrime1:COMPANY_DEVIATION <> 1.00 Then
+                L_DEVIATION = (1 + (cppcrime1:COMPANY_DEVIATION * 0.01))
+            Else
+                L_DEVIATION = cppcrime1:COMPANY_DEVIATION
+
+            If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 And
+               cppcrime1:PACKAGE_MOD <> 1.00 Then
+                L_PACKAGE = (1 + (cppcrime1:PACKAGE_MOD * 0.01))
+            Else
+                L_PACKAGE = cppcrime1:irpm
+
+            If CPSDEFAULT:DEVIATION_NUMBER_NOT_FACTOR = 1 And
+               cppcrime1:irpm <> 1.00 Then
+                l_irpm = (1 + (cppcrime1:irpm * 0.01))
+            Else
+                l_irpm = cppcrime1:irpm
+
+            if cppcrime1:policy_no = g_policy_no and
+               cppcrime1:pol_year = g_year and
+               cppcrime1:end_sequence = g_end_sequence and
+               cppcrime1:prem_no = g_prem_no and
+               cppcrime1:build_no = g_build_no and
+               cppcrime1:sub_code = g_sub_code then
+                begin
+                change cppcrime1
+                    begin
+                    cppcrime1:total_premium = cppcrime:crime_premium
+                    L_premium = cppcrime:crime_premium *
+                                l_deviation *
+                                l_package *
+                                l_irpm
+                    cppcrime1:premium = l_premium
+                    end
+                end
+
+            End
+            g_premium1 = cppcrime:crime_premium
+        End
+        cppCRIME:CRIME_PREMIUM/displayonly ;
+601    cppCRIME:HOUSE_WORSHIP_CHARGE/displayonly/mask="ZZZ.99" ;
+701    cppCRIME:DEDUCTIBLE_FACTOR/displayonly ;
+
+} -- end of limits
+
+}
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   ABORT = "NO" Then
+    Begin
+    If FUNCTION = "ADD" Or
+       FUNCTION = "CHANGE" Then
+        Begin
+        Access CPSCRTRIGGER, Set CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSCRTRIGGER:STATE = cppCRIME:STATE,
+                                 CPSCRTRIGGER:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+        While CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+              CPSCRTRIGGER:STATE = cppCRIME:STATE And
+              CPSCRTRIGGER:LINE_OF_BUSINESS =  l_line_of_business
+                Begin
+                L_CODE_1 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[1]
+                L_CODE_2 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[2]
+                L_CODE_3 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[11]
+
+                Next CPSCRTRIGGER
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+                Do ADD_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" Then
+                Do ADD_sfpEND
+            End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            L_CODE = L_CODE_3
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppCRIME:CRIME_FORM = "W" Then
+                Do ADD_sfpEND
+            End
+
+        End
+
+
+    If FUNCTION = "DELETE" Then
+        Begin
+        Access CPSCRTRIGGER, Set CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSCRTRIGGER:STATE = cppCRIME:STATE,
+                                 CPSCRTRIGGER:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+        While CPSCRTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+              CPSCRTRIGGER:STATE = cppCRIME:STATE And
+              CPSCRTRIGGER:LINE_OF_BUSINESS =  l_line_of_business
+                Begin
+                L_CODE_1 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[1]
+                L_CODE_2 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[2]
+                L_CODE_3 = CPSCRTRIGGER:TRIGGER_ENDORSEMENT[11]
+
+                Next CPSCRTRIGGER
+                End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            L_CODE = L_CODE_3
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "N" And
+               cppCRIME:CRIME_FORM = "W" Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND_DELETE
+            If L_DELETE_ENDORSEMENT = "Y" Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND_DELETE
+            If L_DELETE_ENDORSEMENT = "Y" Then
+                Do DELETE_sfpEND
+            End
+
+        End
+
+    End
+
+Procedure Definition
+
+Procedure ACCESS_sfpEND_DELETE
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_DELETE_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:LOB_END_CODE = "C" And
+       sfpEND:CODE <> L_CODE_1 And
+       sfpEND:CODE <> L_CODE_2 Then
+        L_DELETE_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_End_sequence,
+                             cppGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             cppGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = cppGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = l_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> l_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "C"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure RATE_CRIME
+Begin
+L_LIMIT = cppCRIME:LIMIT[1]
+Access CPSCRWORSHIP, Set CPSCRWORSHIP:COMPANY_ID = sfpNAME:COMPANY_ID,
+                         CPSCRWORSHIP:STATE = cppCRIME:STATE,
+                         CPSCRWORSHIP:LINE_OF_BUSINESS = l_line_of_business, Generic
+
+L_PREMIUM = 0
+While CPSCRWORSHIP:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSCRWORSHIP:STATE = cppCRIME:STATE And
+      CPSCRWORSHIP:LINE_OF_BUSINESS = l_line_of_business
+        Begin
+        If sfpNAME:EFF_DATE >= CPSCRWORSHIP:EFF_DATE Then
+            Begin
+            L_HOUSE_WORSHIP_RATE = CPSCRWORSHIP:CHARGE
+            L_MINIMUM_PREMIUM = CPSCRWORSHIP:MINIMUM_PREMIUM
+            L_PER = CPSCRWORSHIP:PER
+            l_limit_1 = cpscrworship:limit
+            End
+
+        Next CPSCRWORSHIP
+        End
+
+Access CPSCRIMEDED, Set CPSCRIMEDED:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSCRIMEDED:STATE = cppCRIME:STATE,
+                        CPSCRIMEDED:LINE_OF_BUSINESS = l_line_of_business,
+                        CPSCRIMEDED:DEDUCTIBLE = cppCRIME:DEDUCTIBLE, Generic
+
+While CPSCRIMEDED:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSCRIMEDED:STATE = cppCRIME:STATE And
+      CPSCRIMEDED:LINE_OF_BUSINESS = l_line_of_business And
+      CPSCRIMEDED:DEDUCTIBLE = cppCRIME:DEDUCTIBLE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSCRIMEDED:EFF_DATE Then
+            Begin
+            L_DEDUCTIBLE_FACTOR = CPSCRIMEDED:FACTOR
+            End
+
+        Next CPSCRIMEDED
+        End
+
+End
+
+End

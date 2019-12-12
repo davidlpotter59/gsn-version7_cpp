@@ -1,0 +1,191 @@
+%%
+Screen
+        Name = "cppmt702"
+        Type = "Detail" ;
+        Highlight = Underscore ;
+        Padcharacter = Space ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Scheduled Property Declarations - Ver 7.00     %m" ;
+        Domain="cppendorse1" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9],
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4],
+                                     g_state[2],
+                                     g_deductible[5] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    l_coinsurance[3] ;
+
+        Access cppendorse1, Set cppendorse1:policy_NO    = G_policy_NO,
+                                cppendorse1:pol_year     = g_year,
+                                cppendorse1:end_sequence = g_end_sequence,
+                                cppendorse1:PREM_NO      = G_PREM_NO,
+                                cppendorse1:BUILD_NO     = G_BUILD_NO ,
+                                cppendorse1:CODE         = G_CODE, Generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "func1" display "cppmt702a" tagged desc_fn ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+        menu tagged cpp_mm properties { Text="Options" }
+            {
+            Menuitem Properties {
+                                Text     = "Covered Property"
+                                iconname = "up.bmp"
+                                }
+                     Events     {
+                                Action   = desc_fn
+                                }
+            }
+            Separator
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        Toolbar Tagged Main_t Properties
+                                  {
+                                  Text     = "Main"
+                                  FontName = "SansSerif"
+                                  Fontsize = 10
+                                  }
+                {
+                ToolBarButton
+                        Properties
+                                  {
+                                  Iconname   = "up.bmp"
+                                  }
+                                  Events
+                                  {
+                                  Action    = desc_fn
+                                  }
+               Separator
+
+
+}
+
+Access Validation
+If cppendorse1:policy_NO    <> G_policy_NO Or
+   cppendorse1:pol_year     <> g_year or
+   cppendorse1:end_sequence <> g_end_sequence or
+   cppendorse1:PREM_NO      <> G_PREM_NO Or
+   cppendorse1:BUILD_NO     <> G_BUILD_NO Or
+   cppendorse1:CODE         <> G_CODE Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Deductible:         _____                                                    |
+*------------------------------------------------------------------------------*
+| Coinsurance:        ___                                                      |
+| Coinsurance Waived: _                                                        |
+*------------------------------------------------------------------------------*
+
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse1:policy_NO     = G_policy_NO
+            cppendorse1:pol_year      = g_year
+            cppendorse1:end_sequence  = g_end_sequence
+            cppendorse1:PREM_NO       = G_PREM_NO
+            cppendorse1:BUILD_NO      = G_BUILD_NO
+            cppendorse1:CODE          = G_CODE
+            Do SUBCODE
+            cppendorse1:SUB_CODE      = L_SUB_CODE
+            cppendorse1:state         = g_state
+            cppendorse1:rating_line_of_business = 0008
+            cppendorse1:deductible[1] = g_deductible
+            End
+        End
+        cppendorse1:DEDUCTIBLE[1]/displayonly ;
+
+501     begin
+        access sfpname,
+           set sfpname:policy_no    = g_policy_no,
+               sfpname:pol_year     = g_year,
+               sfpname:end_sequence = g_end_sequence, exact
+
+        access cpsimcoins_alias, set cpsimcoins_alias:company_id       = sfpname:company_id,
+                                     cpsimcoins_alias:state            = cppendorse1:state,
+                                     cpsimcoins_alias:line_of_business = cppendorse1:rating_line_of_business, generic
+
+        end
+        cppendorse1:coinsurance[1]/default
+        l_coinsurance = cppendorse1:coinsurance[1]
+        access cpsimcoins, set cpsimcoins:company_id       = sfpname:company_id,
+                               cpsimcoins:state            = cppendorse1:state,
+                               cpsimcoins:line_of_business = cppendorse1:rating_line_of_business,
+                               cpsimcoins:coinsurance      = l_coinsurance, generic
+
+        if l_coinsurance <> cpsimcoins:coinsurance then
+            error "Invalid coinsurance entered"
+
+        activehelp cpsimcoins_alias:coinsurance ;
+601     cppendorse1:option[1]/checkbox/values="0,1";
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppendorse1_ALIAS, Set cppendorse1_ALIAS:policy_NO    = G_policy_NO,
+                              cppendorse1_alias:pol_year     = g_year,
+                              cppendorse1_alias:end_sequence = g_end_sequence,
+                              cppendorse1_ALIAS:PREM_NO      = G_PREM_NO,
+                              cppendorse1_ALIAS:BUILD_NO     = G_BUILD_NO,
+                              cppendorse1_ALIAS:CODE         = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppendorse1_ALIAS:policy_NO    = G_policy_NO And
+      cppendorse1_alias:pol_year     = g_year and
+      cppendorse1_alias:end_sequence = g_end_sequence and
+      cppendorse1_ALIAS:PREM_NO      = G_PREM_NO And
+      cppendorse1_ALIAS:BUILD_NO     = G_BUILD_NO And
+      cppendorse1_ALIAS:CODE         = G_CODE
+        Begin
+        L_SUB_CODE = cppendorse1_ALIAS:SUB_CODE
+
+        Next cppendorse1_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

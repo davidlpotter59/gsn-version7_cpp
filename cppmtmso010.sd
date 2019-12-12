@@ -1,0 +1,167 @@
+%%
+Screen
+        Name            = "cppmtmso010";
+        Type            = "Multiline" ;
+        Repeat line_items, 10 Times ;
+        Screensize      = "dynamic" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Domain          = "SFPEND" ;
+        Windowtitle = "%a    %s Optional Endorsements     Ver 7.00 %m" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008;
+
+        Local String L_SCREEN[11] ,
+                     L_CODE[7] ,
+                     L_COMPANY_ID[10] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access SFPEND, Set SFPEND:POLICY_NO = G_POLICY_NO,
+                           SFPEND:POL_YEAR = G_YEAR,
+                           SFPEND:END_SEQUENCE = G_END_SEQUENCE,
+                           SFPEND:PREM_NO = G_PREM_NO,
+                           SFPEND:BUILD_NO = G_BUILD_NO ;
+
+        Include "INQKEYS7.INC"
+--        !F7="G"/function/icon="View" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "inqfunc7.inc"
+        "redisplay" Display/noreturn "cppmtmso010" ;
+        "G" Sequence "popup" ;
+        "popup" Continue Begin
+                         Do SETSCREEN
+                         G_CODE = SFPEND:CODE
+                         G_SUB_CODE = SFPEND:SUB_CODE
+                         If L_SCREEN <> "" Then
+                             FUNCTION = "disscn"
+                         End ;
+        "disscn" Display L_SCREEN ;
+
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If SFPEND:POLICY_NO <> G_POLICY_NO Or
+   SFPEND:POL_YEAR <> G_YEAR Or
+   SFPEND:END_SEQUENCE <> G_END_SEQUENCE Or
+   SFPEND:PREM_NO <> G_PREM_NO Or
+   SFPEND:BUILD_NO <> G_BUILD_NO Then
+    Error 1000
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Loc No:    ____                                                              |
+| Build No:  ____                                                              |
+*------------------------------------------------------------------------------*
+| LOB       Form/Edition                   Description              Premium    |
+*------------------------------------------------------------------------------*
+|  _ ____________________________ ______________________________ _____________ |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     SFPEND:POLICY_NO/displayonly ;
+302     SFPEND:POL_YEAR/displayonly;
+303     SFPEND:END_SEQUENCE/displayonly;
+401     SFPEND:PREM_NO/displayonly ;
+501     SFPEND:BUILD_NO/displayonly ;
+901     SFPEND:LOB_END_CODE/displayonly;
+902     SFPEND:FORM_EDITION/displayonly tagged line_items;
+903     SFPEND:DESCRIPTION/displayonly tagged line_items ;
+904     SFPEND:MANUAL_PREMIUM/displayonly tagged line_items ;
+
+}
+
+}
+
+
+Procedure Definition
+
+Procedure SETSCREEN
+Begin
+L_STATE = CPPGENERAL:STATE
+If L_STATE = 0 Then
+    L_STATE = CPPLIABILITY:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = SFPNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = SFPEND:CODE, Generic
+
+L_SCREEN = ""
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> SFPNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> SFPEND:CODE
+
+    If SFPNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_SCREEN = SFSOPTEND:POLICY_SCREEN
+        End
+
+    Next SFSOPTEND
+    End
+
+End
+
+End

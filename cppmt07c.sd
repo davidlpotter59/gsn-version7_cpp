@@ -1,0 +1,636 @@
+%%
+Screen
+        Name = "cppmt07c" ;
+        Type = "Detail" ;
+        Padcharacter = Space;
+        Highlite = Underscore;
+        Screensize ="dynamic" ;
+        Windowtitle = "%a     %s Commercial Articles - Ver 7.00     %m";
+        Domain = "cppendorse1";
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4] ,
+                                     G_STATE[2] ;
+
+        global string g_code[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0,
+                                    l_line_of_business[4]=0008 ,
+                                    l_class_code[5]=0,
+                                    l_deductible[5]=0 ,
+                                    l_deductible_factor[6]=0/dec=3,
+                                    l_premium[8]=0,
+                                    l_rmf[5]=0/dec=3,
+                                    l_lob[4]=0,
+                                    l_loss_cost[6]=0/dec=4,
+                                    l_rate_1[7]=0/dec=4,
+                                    l_rate_2[7]=0/dec=4,
+                                    l_rate_3[7]=0/dec=4,
+                                    l_rate_4[7]=0/dec=4,
+                                    l_rate_5[7]=0/dec=4,
+                                    l_limit_1[8]=0,
+                                    l_limit_2[8]=0,
+                                    l_limit_3[8]=0,
+                                    l_limit_4[8]=0,
+                                    l_limit_5[8]=0;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1]="N" ,
+                     l_desc[50] ,
+                     l_desc_1[50] ;
+
+        Access cppendorse1,
+           Set cppendorse1:policy_NO    = G_policy_NO ,
+               cppendorse1:pol_year     = g_year,
+               cppendorse1:end_sequence = g_end_sequence,
+               cppendorse1:prem_no      = g_prem_no,
+               cppendorse1:build_no     = g_build_no,
+               cppendorse1:code         = g_code, generic ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+
+        "func1" display "cppmt07z"     tagged desc_fn ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        include "stdmenu7.inc"
+
+        include "cppimcovmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cppimcovtoolbar7.inc"
+
+}
+
+Access Validation
+If cppendorse1:policy_NO    <> G_policy_NO or
+   cppendorse1:pol_year     <> g_year or
+   cppendorse1:end_sequence <> g_end_sequence or
+   cppendorse1:prem_no      <> g_prem_no or
+   cppendorse1:build_no     <> g_build_no or
+   cppendorse1:code         <> g_code Then
+    Error 1000 ;
+
+skip if cppendorse1:code <> g_code
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Prem No:   ____                                                              |
+| Build No:  ____                                                              |
+*------------------------------------------------------------------------------*
+| Class Code: __________________________________________________  _____        |
+| Deductible: _____                                                            |
+| Limit:      __________                                                       |
+*------------------------------------------------------------------------------*
+|      Limit                Rate               Premium                         |
+|    __________          __________           __________                       |
+|    __________          __________           __________                       |
+*------------------------------------------------------------------------------*
+| Premium:           __________                                                |
+| Deductible Factor: __________                                                |
+| RMF:               __________                                                |
+| Final Premium:     __________                                                |
+*------------------------------------------------------------------------------*
+
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse1:policy_NO    = G_policy_NO
+            cppendorse1:pol_year     = g_year
+            cppendorse1:end_sequence = g_end_sequence
+            cppendorse1:prem_no      = g_prem_no
+            cppendorse1:build_no     = g_build_no
+            cppendorse1:code         = g_code
+            cppendorse1:rating_line_of_business = 0008
+            cppendorse1:state        = g_state
+            End
+        End
+        cppendorse1:policy_NO/displayonly ;
+302     cppendorse1:pol_year/displayonly ;
+303     cppendorse1:end_sequence/displayonly ;
+401     cppendorse1:prem_no/displayonly ;
+501     cppendorse1:build_no/displayonly ;
+
+701     Begin
+        L_CLASS_CODE = cppendorse1:CLASS_CODE
+        Access cpsimclasscode, Set cpsimclasscode:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                   cpsimclasscode:STATE            = G_STATE,
+                                   cpsimclasscode:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                                   cpsimclasscode:code             = cppendorse1:code,
+                                   cpsimclasscode:CLASS_CODE       = cppendorse1:CLASS_CODE,
+                                   cpsimclasscode:SUB_CODE         = cppendorse1:class_SUB_CODE, Generic
+
+        While cpsimclasscode:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsimclasscode:STATE            = G_STATE And
+              cpsimclasscode:LINE_OF_BUSINESS = l_line_of_business And
+              cpsimclasscode:code             = cppendorse1:code and
+              cpsimclasscode:CLASS_CODE       = cppendorse1:CLASS_CODE And
+              cpsimclasscode:SUB_CODE         = cppendorse1:class_SUB_CODE
+               Begin
+               If sfpNAME:EFF_DATE >= cpsimclasscode:EFF_DATE Then
+                   L_DESC = cpsimclasscode:DESCRIPTION
+
+               Next cpsimclasscode
+               End
+
+        cppendorse1:class_description = l_desc
+        End
+        L_DESC/displayonly/uppercase
+        hide if cppendorse1:class_description <> "";
+701     begin
+            l_desc = cppendorse1:class_description
+        end
+        cppendorse1:class_description/displayonly
+        hide if cppendorse1:class_description = "" ;
+701     Begin
+        Access cpsimclasscode_ALIAS, Set cpsimclasscode_ALIAS:COMPANY_ID       = sfpname:COMPANY_ID,
+                                         cpsimclasscode_ALIAS:STATE            = G_STATE,
+                                         cpsimclasscode_ALIAS:LINE_OF_BUSINESS = l_line_of_business,
+                                         cpsimclasscode_alias:code             = g_code,
+                                         cpsimclasscode_ALIAS:description      = L_DESC, Approximate
+
+        If FUNCTION one of "ADD", "NEW" And
+           SECURITY < 65 Then
+            Activehelp()
+        End
+        L_DESC/default/uppercase
+
+        if (l_desc <> "" and
+           (l_desc_1 <> l_desc or
+           function one of "ADD", "NEW")) then
+            begin
+            cppendorse1:CLASS_CODE        = cpsimclasscode_ALIAS:CLASS_CODE
+            cppendorse1:class_description = cpsimclasscode_alias:description
+            cppendorse1:class_SUB_CODE    = cpsimclasscode_ALIAS:SUB_CODE
+            end
+
+        Activehelp if cpsimclasscode_alias:code = g_code then
+                       cpsimclasscode_ALIAS:description
+                   else
+                       null/width=50,
+                   if cpsimclasscode_alias:code = g_code then
+                       cpsimclasscode_ALIAS:CLASS_CODE
+                   else
+                       null/width=10 ;
+702     cppendorse1:CLASS_CODE/displayonly ;
+701     begin
+        if function one of "ADD", "NEW" then
+            cppendorse1:class_description = l_desc
+        end
+        cppendorse1:class_description/uppercase/displayonly ;
+
+801     begin
+        access cpsimdeductible_alias, set cpsimdeductible_alias:company_id       = sfpname:company_id,
+                                          cpsimdeductible_alias:state            = g_state,
+                                          cpsimdeductible_alias:line_of_business = l_line_of_business, generic
+        end
+        cppendorse1:deductible[1]
+        l_deductible = cppendorse1:deductible[1]
+        access cpsimdeductible, set cpsimdeductible:company_id       = sfpname:company_id,
+                                    cpsimdeductible:state            = g_state,
+                                    cpsimdeductible:line_of_business = l_line_of_business,
+                                    cpsimdeductible:deductible       = l_deductible, generic
+
+        if l_deductible <> cpsimdeductible:deductible then
+            error "Invalid Deductible"
+
+        activehelp if cpsimdeductible_alias:display_activehelp = 1 then
+                       cpsimdeductible_alias:deductible
+                   else
+                       null/width=10 ;
+901     cppendorse1:limit[1] ;
+
+1201    begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            if cppendorse1:class_code <> 0 then
+                begin
+                do get_rate
+                if l_limit_1 <> 0 then
+                    begin
+                    if cppendorse1:limit[1] <= l_limit_1 then
+                        begin
+                        cppendorse1:limit[2]      = cppendorse1:limit[1]
+                        cppendorse1:limit[3]      = 0
+                        end
+                    else
+                        begin
+                        cppendorse1:limit[2]      = l_limit_1
+                        cppendorse1:limit[3]      = cppendorse1:limit[1] - l_limit_1
+                        end
+                    end
+                else
+                    begin
+                    cppendorse1:limit[2]      = cppendorse1:limit[1]
+                    cppendorse1:limit[3]      = 0
+                    end
+                cppendorse1:base_rate[1]      = l_rate_1
+                if l_rate_2 <> 0 then
+                    cppendorse1:base_rate[2]      = l_rate_2
+                cppendorse1:deductible_factor = l_deductible_factor
+                cppendorse1:rmf               = l_rmf
+                end
+            else
+                begin
+                cppendorse1:limit[2] = cppendorse1:limit[1]
+                end
+            end
+        end
+        cppendorse1:limit[2]/displayonly ;
+1202    cppendorse1:base_rate[1]/displayonly
+        hide if cppendorse1:class_code = 0 ;
+1202    cppendorse1:base_rate[1]
+        hide if cppendorse1:class_code <> 0 ;
+1203    begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            l_premium = ((cppendorse1:limit[2] divide 100) *
+                        cppendorse1:base_rate[1])
+            cppendorse1:premium[1] = l_premium
+            end
+        end
+        cppendorse1:premium[1]/displayonly ;
+1301    cppendorse1:limit[3]/displayonly ;
+1302    cppendorse1:base_rate[2]/displayonly ;
+1303    begin
+        if function one of "ADD", "CHANGE" then
+            begin
+            l_premium = ((cppendorse1:limit[3] divide 100) *
+                        cppendorse1:base_rate[2])
+            cppendorse1:premium[2] = l_premium
+            end
+        end
+        cppendorse1:premium[2]/displayonly ;
+
+1501    begin
+        if function one of "ADD", "CHANGE" then
+            cppendorse1:premium[3] = cppendorse1:premium[1] +
+                                    cppendorse1:premium[2]
+        end
+        cppendorse1:premium[3]/displayonly ;
+1601    cppendorse1:deductible_factor/displayonly ;
+1701    cppendorse1:rmf/displayonly ;
+1801    begin
+        if function one of "ADD", "CHANGE" then
+            cppendorse1:total_premium = cppendorse1:premium[3] *
+                                       cppendorse1:deductible_factor *
+                                       cppendorse1:rmf
+        end
+        cppendorse1:total_premium/displayonly/mask="$$$,$$$,$$$.99"
+        hide if cppendorse1:class_code = 0 ;
+1801    begin
+        if function one of "ADD", "CHANGE" then
+            cppendorse1:total_premium = cppendorse1:premium[3]
+        end
+        cppendorse1:total_premium/displayonly/mask="$$$,$$$,$$$.99"
+        hide if cppendorse1:class_code <> 0 ;
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "ADD" then
+        begin
+        display modal screen "cppmt07z"
+        end
+
+    if function one of "DELETE" then
+        begin
+        Access cpsimtrigger, Set cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                 cpsimtrigger:STATE            = G_STATE,
+                                 cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsimtrigger:STATE            = G_STATE And
+              cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If (sfpNAME:EFF_DATE >= cpsimtrigger:EFF_DATE and
+                   (sfpname:eff_date <= cpsimtrigger:exp_date or
+                   cpsimtrigger:exp_date = 0)) Then
+                    Begin
+                    l_code_1  = cpsimtrigger:code[9]
+                    End
+
+                Next cpsimtrigger
+                End
+
+        l_code = l_code_1
+        do access_sfpend
+        if l_add_endorsement = "N" then
+            do delete_sfpend
+
+        access cppinland, set cppinland:policy_no    = cppendorse1:policy_no,
+                              cppinland:pol_year     = cppendorse1:pol_year,
+                              cppinland:end_sequence = cppendorse1:end_sequence,
+                              cppinland:prem_no      = cppendorse1:prem_no,
+                              cppinland:build_no     = cppendorse1:build_no, generic
+
+        if cppinland:policy_no    = cppendorse1:policy_no and
+           cppinland:pol_year     = cppendorse1:pol_year and
+           cppinland:end_sequence = cppendorse1:end_sequence and
+           cppinland:prem_no      = cppendorse1:prem_no and
+           cppinland:build_no     = cppendorse1:build_no then
+            begin
+            change cppinland
+               begin
+               cppinland:option[3] = 0
+               end
+
+            end
+
+        end
+
+    if function one of "ADD" then
+        begin
+        access cppinland, set cppinland:policy_no    = cppendorse1:policy_no,
+                              cppinland:pol_year     = cppendorse1:pol_year,
+                              cppinland:end_sequence = cppendorse1:end_sequence,
+                              cppinland:prem_no      = cppendorse1:prem_no,
+                              cppinland:build_no     = cppendorse1:build_no, generic
+
+        if cppinland:policy_no    = cppendorse1:policy_no and
+           cppinland:pol_year     = cppendorse1:pol_year and
+           cppinland:end_sequence = cppendorse1:end_sequence and
+           cppinland:prem_no      = cppendorse1:prem_no and
+           cppinland:build_no     = cppendorse1:build_no then
+            begin
+            if cppinland:option[3] = 0 then
+                begin
+                change cppinland
+                    begin
+                    cppinland:option[3] = 1
+                    end
+                end
+
+            end
+
+        Access cpsimtrigger, Set cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                 cpsimtrigger:STATE            = G_STATE,
+                                 cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While cpsimtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsimtrigger:STATE            = G_STATE And
+              cpsimtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If (sfpNAME:EFF_DATE >= cpsimtrigger:EFF_DATE and
+                   (sfpname:eff_date <= cpsimtrigger:exp_date or
+                   cpsimtrigger:exp_date = 0)) Then
+                    Begin
+                    l_code_1  = cpsimtrigger:code[9]
+                    End
+
+                Next cpsimtrigger
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" then
+                Do ADD_sfpEND
+            End
+
+        end
+
+    end
+
+procedure definition
+
+procedure get_rate
+begin
+access cpsimrates, set cpsimrates:company_id       = sfpname:company_id,
+                       cpsimrates:state            = g_state,
+                       cpsimrates:line_of_business = l_line_of_business,
+                       cpsimrates:class_code       = cppendorse1:class_code, generic
+
+while cpsimrates:company_id       = sfpname:company_id and
+      cpsimrates:state            = g_state and
+      cpsimrates:line_of_business = l_line_of_business and
+      cpsimrates:class_code       = cppendorse1:class_code
+        begin
+        if (sfpname:eff_date >= cpsimrates:eff_date and
+           (sfpname:eff_date <= cpsimrates:exp_date or
+           cpsimrates:exp_date = 0)) then
+            begin
+            l_rate_1  = cpsimrates:rate[1]
+            l_rate_2  = cpsimrates:rate[2]
+            l_rate_3  = cpsimrates:rate[3]
+            l_rate_4  = cpsimrates:rate[4]
+            l_rate_5  = cpsimrates:rate[5]
+            l_limit_1 = cpsimrates:limit[1]
+            l_limit_2 = cpsimrates:limit[2]
+            l_limit_3 = cpsimrates:limit[3]
+            l_limit_4 = cpsimrates:limit[4]
+            l_limit_5 = cpsimrates:limit[5]
+            end
+
+        next cpsimrates
+        end
+
+access cpsimdeductible, set cpsimdeductible:company_id       = sfpname:company_id,
+                            cpsimdeductible:state            = g_state,
+                            cpsimdeductible:line_of_business = l_line_of_business,
+                            cpsimdeductible:deductible       = l_deductible, generic
+
+while cpsimdeductible:company_id       = sfpname:company_id and
+      cpsimdeductible:state            = g_state and
+      cpsimdeductible:line_of_business = l_line_of_business and
+      cpsimdeductible:deductible       = l_deductible
+        begin
+        if (sfpname:eff_date >= cpsimdeductible:eff_date and
+           (sfpname:eff_date <= cpsimdeductible:exp_date or
+           cpsimdeductible:exp_date = 0)) then
+            begin
+            if cpsimdeductible:limit = 0 then
+                begin
+                l_deductible_factor = cpsimdeductible:rate
+                end
+            else
+            if cpsimdeductible:limit <> 0 then
+                begin
+                if cppendorse1:limit[1] < cpsimdeductible:limit then
+                    l_deductible_factor = cpsimdeductible:rate
+                end
+            end
+
+        next cpsimdeductible
+        end
+
+do loss_cost
+end
+
+procedure loss_cost
+begin
+l_lob = 0013
+access sfslosscost, set sfslosscost:company_id       = sfpname:company_id,
+                        sfslosscost:state            = g_state,
+                        sfslosscost:line_of_business = l_lob, generic
+
+l_loss_cost = 0
+while sfslosscost:company_id       = sfpname:company_id and
+      sfslosscost:state            = g_state and
+      sfslosscost:line_of_business = l_lob
+        begin
+        if sfpname:eff_date >= sfslosscost:eff_date then
+            l_loss_cost = sfslosscost:rate
+
+        next sfslosscost
+        end
+
+access cppinland, set cppinland:policy_no    = g_policy_no,
+                      cppinland:pol_year     = g_year,
+                      cppinland:end_sequence = g_end_sequence,
+                      cppinland:prem_no      = g_prem_no,
+                      cppinland:build_no     = g_build_no, generic
+
+l_rmf = l_loss_cost * cppinland:company_deviation *
+        cppinland:package_mod
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = g_policy_no ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = g_prem_no,
+                   sfpEND:BUILD_NO     = g_build_no, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+while sfpEND:policy_NO    = g_policy_no and
+      sfpend:pol_year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO      = g_prem_no and
+      sfpEND:BUILD_NO     = g_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = g_policy_no ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = g_prem_no,
+                   sfpEND:BUILD_NO     = g_build_no, Generic
+
+L_SUB_CODE = 0
+while sfpEND:policy_NO    = g_policy_no and
+      sfpend:pol_year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO      = g_prem_no and
+      sfpEND:BUILD_NO     = g_build_no
+    begin
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE            = G_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+while SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID and
+      SFSOPTEND:STATE            = G_STATE and
+      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+      SFSOPTEND:CODE             = L_CODE
+    begin
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       g_policy_no
+    sfpend:pol_year             =       g_year
+    sfpEND:PREM_NO              =       g_prem_no
+    sfpEND:BUILD_NO             =       g_build_no
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "I"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:limit                =       cppendorse1:limit[1]
+    sfpend:deductible           =       cppendorse1:deductible[1]
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = g_policy_no ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO      = g_prem_no,
+                   sfpEND:BUILD_NO     = g_build_no, Generic
+
+while sfpEND:policy_NO    = g_policy_no and
+      sfpend:pol_year     = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO      = g_prem_no and
+      sfpEND:BUILD_NO     = g_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        delete sfpend
+
+    Next sfpEND
+    End
+
+End
+
+End

@@ -1,0 +1,181 @@
+%%
+Screen
+        Name            = "cppMTMSO262"
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Contractors' Equipment Declarations     Ver 7.00 %m" ;
+        Domain          = "CPPENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4];
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access CPPENDORSE, Set CPPENDORSE:POLICY_NO = G_POLICY_NO,
+                               CPPENDORSE:POL_YEAR = G_YEAR,
+                               CPPENDORSE:END_SEQUENCE = G_END_SEQUENCE,
+                               CPPENDORSE:PREM_NO = G_PREM_NO,
+                               CPPENDORSE:BUILD_NO = G_BUILD_NO ,
+                               CPPENDORSE:CODE = G_CODE, Generic
+
+        Include "STDKEYS7.INC"
+--        !F8="G"/function/icon="Desc" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        "G" Display "cppmtmso262a" ;
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+Access Validation
+If CPPENDORSE:POLICY_NO <> G_POLICY_NO Or
+   CPPENDORSE:POL_YEAR <> G_YEAR Or
+   CPPENDORSE:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPENDORSE:PREM_NO <> G_PREM_NO Or
+   CPPENDORSE:BUILD_NO <> G_BUILD_NO Or
+   CPPENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| _~~Scheduled~Equipment                                                       |
+| ____________ Catastrophe Limit                                               |
+*------------------------------------------------------------------------------*
+| _~~Schedule~on~file                                                          |
+| ____________ Catastrophe Limit                                               |
+*------------------------------------------------------------------------------*
+| Limit for Rental Reimbursement:           __________                         |
+| Limit for Additional Purchased Equipment: __________                         |
+*------------------------------------------------------------------------------*
+| Deductible:      _____                                                       |
+| Coinsurance:  [R _~~80 _~~90 _~~100 R]                                       |
+*------------------------------------------------------------------------------*
+| Premium:         _______                                                     |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            Do SUBCODE
+            CPPENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        CPPENDORSE:SCHEDULED_EQUIPMENT/checkbox/values="0,1";
+401     CPPENDORSE:LIMIT[1];
+
+601     CPPENDORSE:SCHEDULE_ON_FILE/checkbox/values="0,1";
+701     CPPENDORSE:LIMIT[2];
+
+901     CPPENDORSE:LIMIT[3];
+1001    CPPENDORSE:LIMIT[4];
+
+1201    CPPENDORSE:DEDUCTIBLE[1];
+1301    CPPENDORSE:COINSURANCE/values=" 80, 90,100";
+1501    CPPENDORSE:TOTAL_PREMIUM;
+
+
+}
+
+}
+
+Assignments
+If FUNCTION = "ADD" Then
+    Begin
+    CPPENDORSE:POLICY_NO = G_POLICY_NO
+    CPPENDORSE:POL_YEAR = G_YEAR
+    CPPENDORSE:END_SEQUENCE = G_END_SEQUENCE
+    CPPENDORSE:PREM_NO = G_PREM_NO
+    CPPENDORSE:BUILD_NO = G_BUILD_NO
+    CPPENDORSE:CODE = G_CODE
+    End
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    If CPPENDORSE:SCHEDULED_EQUIPMENT = 1 Then
+        Begin
+        Display Modal Screen "cppmtmso262a"
+        End
+    End ;
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access CPPENDORSE_ALIAS, Set CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO,
+                             CPPENDORSE_ALIAS:POL_YEAR = G_YEAR ,
+                             CPPENDORSE_ALIAS:END_SEQUENCE = G_END_SEQUENCE,
+                             CPPENDORSE_ALIAS:PREM_NO = G_PREM_NO,
+                             CPPENDORSE_ALIAS:BUILD_NO = G_BUILD_NO,
+                             CPPENDORSE_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO And
+      CPPENDORSE_ALIAS:POL_YEAR = G_YEAR And
+      CPPENDORSE_ALIAS:END_SEQUENCE = G_END_SEQUENCE And
+      CPPENDORSE_ALIAS:PREM_NO = G_PREM_NO And
+      CPPENDORSE_ALIAS:BUILD_NO = G_BUILD_NO And
+      CPPENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = CPPENDORSE_ALIAS:SUB_CODE
+
+        Next CPPENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

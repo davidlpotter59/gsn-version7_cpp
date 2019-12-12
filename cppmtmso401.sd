@@ -1,0 +1,133 @@
+%%
+Screen
+        Name            = "cppmtmso401" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Structural Glass     Ver 7.00 %m" ;
+        Domain          = "CPPGLASS" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+
+        Access CPPGLASS,
+           Set CPPGLASS:POLICY_NO = G_POLICY_NO ,
+               CPPGLASS:POL_YEAR = G_YEAR ,
+               CPPGLASS:END_SEQUENCE = G_END_SEQUENCE,
+               CPPGLASS:PREM_NO = G_PREM_NO ,
+               CPPGLASS:BUILD_NO = G_BUILD_NO ,
+               CPPGLASS:SUB_CODE = G_SUB_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPGLASS:POLICY_NO <> G_POLICY_NO Or
+   CPPGLASS:POL_YEAR <> G_YEAR Or
+   CPPGLASS:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPGLASS:PREM_NO <> G_PREM_NO Or
+   CPPGLASS:BUILD_NO <> G_BUILD_NO Or
+   CPPGLASS:SUB_CODE <> G_SUB_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+|~1.~Doors, shutters, windows and any stationary object that is built into and~|
+|~~~~makes up a permanent part of the building and consists of 2 or more glass~|
+|~~~~slats or louvers that cannot be raised or lowered as venetian blinds, but~|
+|~~~~whose angles may be adjusted simultaneously.                              |
+|                                                                              |
+|                  Structural Glass Flat: _                                    |
+|                  Structural Glass Bent: _                                    |
+*------------------------------------------------------------------------------*
+| 2. All other structural glass (not including lettering and ornamentation.    |
+|                                                                              |
+|                  Structural Glass Flat: _                                    |
+|                  Structural Glass Bent: _                                    |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPGLASS:POLICY_NO/displayonly ;
+302     CPPGLASS:POL_YEAR/displayonly;
+303     CPPGLASS:END_SEQUENCE/displayonly;
+401     CPPGLASS:PREM_NO/displayonly ;
+501     CPPGLASS:BUILD_NO/displayonly ;
+1201    CPPGLASS:STRUCTURAL_FLAT[1]/checkbox/values="0,1"
+        Hide If CPPGLASS:STRUCTURAL[1] = 1 Or
+                CPPGLASS:STRUCTURAL_BENT[1] = 1 Or
+                CPPGLASS:STRUCTURAL[2] = 1 Or
+                CPPGLASS:STRUCTURAL_FLAT[2] = 1 Or
+                CPPGLASS:STRUCTURAL_BENT[2] = 1 ;
+1301    CPPGLASS:STRUCTURAL_BENT[1]/checkbox/values="0,1"
+        Hide If CPPGLASS:STRUCTURAL[1] = 1 Or
+                CPPGLASS:STRUCTURAL_FLAT[1] = 1 Or
+                CPPGLASS:STRUCTURAL[2] = 1 Or
+                CPPGLASS:STRUCTURAL_FLAT[2] = 1 Or
+                CPPGLASS:STRUCTURAL_BENT[2] = 1 ;
+1701    CPPGLASS:STRUCTURAL_FLAT[2]/checkbox/values="0,1"
+        Hide If CPPGLASS:STRUCTURAL[1] = 1 Or
+                CPPGLASS:STRUCTURAL_FLAT[1] = 1 Or
+                CPPGLASS:STRUCTURAL_BENT[1] = 1 Or
+                CPPGLASS:STRUCTURAL[2] = 1 Or
+                CPPGLASS:STRUCTURAL_BENT[2] = 1 ;
+1801    CPPGLASS:STRUCTURAL_BENT[2]/checkbox/values="0,1"
+        Hide If CPPGLASS:STRUCTURAL[1] = 1 Or
+                CPPGLASS:STRUCTURAL_FLAT[1] = 1 Or
+                CPPGLASS:STRUCTURAL_BENT[1] = 1 Or
+                CPPGLASS:STRUCTURAL[2] = 1  Or
+                CPPGLASS:STRUCTURAL_FLAT[2] = 1 ;
+
+}
+
+}
+
+
+End

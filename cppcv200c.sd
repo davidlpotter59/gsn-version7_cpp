@@ -1,0 +1,276 @@
+%%
+Program
+        Name = "CPPCV200c" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+    Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                 G_YEAR[4] ,
+                                 G_END_SEQUENCE[4] ,
+                                 G_QUOTE_NO[8] ;
+
+    Local String L_PROCEDURE[50] ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_QUOTE_NO = Val(COMMANDLINE[21,28])
+
+L_PROCEDURE = "cppfarm FILE UPDATE"
+
+Access CPPfarm, Set CPPfarm:POLICY_NO = G_POLICY_NO,
+                          CPPfarm:POL_YEAR = G_YEAR,
+                          CPPfarm:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarm:POLICY_NO <> G_POLICY_NO Or
+            CPPfarm:POL_YEAR <> G_YEAR Or
+            CPPfarm:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarm
+        Begin
+        CPQfarm:QUOTE_NO               = G_QUOTE_NO
+        CPQfarm:PREM_NO                = CPPfarm:PREM_NO
+        CPQfarm:BUILD_NO               = CPPfarm:BUILD_NO
+        CPQfarm:RECORD_RDF             = CPPfarm:RECORD_RDF/raw
+        End
+
+    Next CPPfarm
+    End
+
+L_PROCEDURE = "cppfarmcova FILE UPDATE"
+
+Access CPPfarmcova, Set CPPfarmcova:POLICY_NO = G_POLICY_NO,
+                          CPPfarmcova:POL_YEAR = G_YEAR,
+                          CPPfarmcova:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmcova:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmcova:POL_YEAR <> G_YEAR Or
+            CPPfarmcova:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmcova
+        Begin
+        CPQfarmcova:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmcova:PREM_NO                = CPPfarmcova:PREM_NO
+        CPQfarmcova:BUILD_NO               = CPPfarmcova:BUILD_NO
+        cpqfarmcova:sub_code               = cppfarmcova:sub_code
+        CPQfarmcova:RECORD_RDF             = CPPfarmcova:RECORD_RDF/raw
+        End
+
+    Next CPPfarmcova
+    End
+
+L_PROCEDURE = "cppfarmcovb FILE UPDATE"
+
+Access CPPfarmcovb, Set CPPfarmcovb:POLICY_NO = G_POLICY_NO,
+                          CPPfarmcovb:POL_YEAR = G_YEAR,
+                          CPPfarmcovb:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmcovb:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmcovb:POL_YEAR <> G_YEAR Or
+            CPPfarmcovb:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmcovb
+        Begin
+        CPQfarmcovb:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmcovb:PREM_NO                = CPPfarmcovb:PREM_NO
+        CPQfarmcovb:BUILD_NO               = CPPfarmcovb:BUILD_NO
+        cpqfarmcovb:sub_code               = cppfarmcovb:sub_code
+        CPQfarmcovb:RECORD_RDF             = CPPfarmcovb:RECORD_RDF/raw
+        End
+
+    Next CPPfarmcovb
+    End
+
+L_PROCEDURE = "cppfarmcovc FILE UPDATE"
+
+Access CPPfarmcovc, Set CPPfarmcovc:POLICY_NO = G_POLICY_NO,
+                          CPPfarmcovc:POL_YEAR = G_YEAR,
+                          CPPfarmcovc:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmcovc:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmcovc:POL_YEAR <> G_YEAR Or
+            CPPfarmcovc:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmcovc
+        Begin
+        CPQfarmcovc:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmcovc:PREM_NO                = CPPfarmcovc:PREM_NO
+        CPQfarmcovc:BUILD_NO               = CPPfarmcovc:BUILD_NO
+        cpqfarmcovc:sub_code               = cppfarmcovc:sub_code
+        CPQfarmcovc:RECORD_RDF             = CPPfarmcovc:RECORD_RDF/raw
+        End
+
+    Next CPPfarmcovc
+    End
+
+L_PROCEDURE = "cppfarmcovd FILE UPDATE"
+
+Access CPPfarmcovd, Set CPPfarmcovd:POLICY_NO = G_POLICY_NO,
+                          CPPfarmcovd:POL_YEAR = G_YEAR,
+                          CPPfarmcovd:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmcovd:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmcovd:POL_YEAR <> G_YEAR Or
+            CPPfarmcovd:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmcovd
+        Begin
+        CPQfarmcovd:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmcovd:PREM_NO                = CPPfarmcovd:PREM_NO
+        CPQfarmcovd:BUILD_NO               = CPPfarmcovd:BUILD_NO
+        cpqfarmcovd:sub_code               = cppfarmcovd:sub_code
+        CPQfarmcovd:RECORD_RDF             = CPPfarmcovd:RECORD_RDF/raw
+        End
+
+    Next CPPfarmcovd
+    End
+
+L_PROCEDURE = "cppfarmcove FILE UPDATE"
+
+Access CPPfarmcove, Set CPPfarmcove:POLICY_NO = G_POLICY_NO,
+                          CPPfarmcove:POL_YEAR = G_YEAR,
+                          CPPfarmcove:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmcove:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmcove:POL_YEAR <> G_YEAR Or
+            CPPfarmcove:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmcove
+        Begin
+        CPQfarmcove:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmcove:PREM_NO                = CPPfarmcove:PREM_NO
+        CPQfarmcove:BUILD_NO               = CPPfarmcove:BUILD_NO
+        cpqfarmcove:sub_code               = cppfarmcove:sub_code
+        CPQfarmcove:RECORD_RDF             = CPPfarmcove:RECORD_RDF/raw
+        End
+
+    Next CPPfarmcove
+    End
+
+L_PROCEDURE = "cppfarmsupp FILE UPDATE"
+
+Access CPPfarmsupp, Set CPPfarmsupp:POLICY_NO = G_POLICY_NO,
+                          CPPfarmsupp:POL_YEAR = G_YEAR,
+                          CPPfarmsupp:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmsupp:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmsupp:POL_YEAR <> G_YEAR Or
+            CPPfarmsupp:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmsupp
+        Begin
+        CPQfarmsupp:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmsupp:PREM_NO                = CPPfarmsupp:PREM_NO
+        CPQfarmsupp:BUILD_NO               = CPPfarmsupp:BUILD_NO
+        CPQfarmsupp:RECORD_RDF             = CPPfarmsupp:RECORD_RDF/raw
+        End
+
+    Next CPPfarmsupp
+    End
+
+L_PROCEDURE = "cppfarmmisc FILE UPDATE"
+
+Access CPPfarmmisc, Set CPPfarmmisc:POLICY_NO = G_POLICY_NO,
+                          CPPfarmmisc:POL_YEAR = G_YEAR,
+                          CPPfarmmisc:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmmisc:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmmisc:POL_YEAR <> G_YEAR Or
+            CPPfarmmisc:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmmisc
+        Begin
+        CPQfarmmisc:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmmisc:PREM_NO                = CPPfarmmisc:PREM_NO
+        CPQfarmmisc:BUILD_NO               = CPPfarmmisc:BUILD_NO
+        cpqfarmmisc:sub_code               = cppfarmmisc:sub_code
+        CPQfarmmisc:RECORD_RDF             = CPPfarmmisc:RECORD_RDF/raw
+        End
+
+    Next CPPfarmmisc
+    End
+
+L_PROCEDURE = "cppfarmschedule FILE UPDATE"
+
+Access CPPfarmschedule, Set CPPfarmschedule:POLICY_NO = G_POLICY_NO,
+                          CPPfarmschedule:POL_YEAR = G_YEAR,
+                          CPPfarmschedule:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmschedule:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmschedule:POL_YEAR <> G_YEAR Or
+            CPPfarmschedule:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmschedule
+        Begin
+        CPQfarmschedule:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmschedule:PREM_NO                = CPPfarmschedule:PREM_NO
+        CPQfarmschedule:BUILD_NO               = CPPfarmschedule:BUILD_NO
+        cpqfarmschedule:sub_code               = cppfarmschedule:sub_code
+        CPQfarmschedule:RECORD_RDF             = CPPfarmschedule:RECORD_RDF/raw
+        End
+
+    Next CPPfarmschedule
+    End
+
+L_PROCEDURE = "cppfarmliab FILE UPDATE"
+
+Access CPPfarmliab, Set CPPfarmliab:POLICY_NO = G_POLICY_NO,
+                          CPPfarmliab:POL_YEAR = G_YEAR,
+                          CPPfarmliab:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmliab:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmliab:POL_YEAR <> G_YEAR Or
+            CPPfarmliab:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmliab
+        Begin
+        CPQfarmliab:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmliab:PREM_NO                = CPPfarmliab:PREM_NO
+        CPQfarmliab:BUILD_NO               = CPPfarmliab:BUILD_NO
+        cpqfarmliab:class_code             = cppfarmliab:class_code
+        CPQfarmliab:RECORD_RDF             = CPPfarmliab:RECORD_RDF/raw
+        End
+
+    Next CPPfarmliab
+    End
+
+L_PROCEDURE = "cppfarmlimits FILE UPDATE"
+
+Access CPPfarmlimits, Set CPPfarmlimits:POLICY_NO = G_POLICY_NO,
+                          CPPfarmlimits:POL_YEAR = G_YEAR,
+                          CPPfarmlimits:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPfarmlimits:POLICY_NO <> G_POLICY_NO Or
+            CPPfarmlimits:POL_YEAR <> G_YEAR Or
+            CPPfarmlimits:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQfarmlimits
+        Begin
+        CPQfarmlimits:QUOTE_NO               = G_QUOTE_NO
+        CPQfarmlimits:RECORD_RDF             = CPPfarmlimits:RECORD_RDF/raw
+        End
+
+    Next CPPfarmlimits
+    End
+
+Update
+
+Errors
+Writefile("cppcv200c.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv200c.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv200c.err","%s<nl>",L_PROCEDURE)
+
+End

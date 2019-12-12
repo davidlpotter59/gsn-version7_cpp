@@ -1,0 +1,116 @@
+%%
+Screen
+        Name            = "cppmtmso208" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Sprinkler Leakage Coverage     Ver 7.00 %m" ;
+        Domain          = "CPPSPRINKLEAK" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_RATE_TYPE[2] ;
+
+        Access CPPSPRINKLEAK,
+           Set CPPSPRINKLEAK:POLICY_NO = G_POLICY_NO ,
+               CPPSPRINKLEAK:POL_YEAR = G_YEAR,
+               CPPSPRINKLEAK:END_SEQUENCE = G_END_SEQUENCE,
+               CPPSPRINKLEAK:PREM_NO = G_PREM_NO ,
+               CPPSPRINKLEAK:BUILD_NO = G_BUILD_NO ,
+               CPPSPRINKLEAK:RATE_TYPE = G_RATE_TYPE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If CPPSPRINKLEAK:POLICY_NO <> G_POLICY_NO Or
+   CPPSPRINKLEAK:POL_YEAR <> G_YEAR Or
+   CPPSPRINKLEAK:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPSPRINKLEAK:PREM_NO <> G_PREM_NO Or
+   CPPSPRINKLEAK:BUILD_NO <> G_BUILD_NO Or
+   CPPSPRINKLEAK:RATE_TYPE <> G_RATE_TYPE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+| Rate Type:   __                                                              |
+*------------------------------------------------------------------------------*
+| Furniture/Fixtures - Group 10 - Retail and Wholesale:        _               |
+| Property is exposed to such damage from another's premises:  _               |
+| Property is exposed to a supply pipe or tank:                _               |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPSPRINKLEAK:POLICY_NO = G_POLICY_NO
+            CPPSPRINKLEAK:POL_YEAR = G_YEAR
+            CPPSPRINKLEAK:END_SEQUENCE = G_END_SEQUENCE
+            CPPSPRINKLEAK:PREM_NO = G_PREM_NO
+            CPPSPRINKLEAK:BUILD_NO = G_BUILD_NO
+            CPPSPRINKLEAK:RATE_TYPE = G_RATE_TYPE
+            End
+        End
+        CPPSPRINKLEAK:POLICY_NO/displayonly ;
+302     CPPSPRINKLEAK:POL_YEAR/displayonly;
+303     CPPSPRINKLEAK:END_SEQUENCE/displayonly;
+401     CPPSPRINKLEAK:PREM_NO/displayonly ;
+501     CPPSPRINKLEAK:BUILD_NO/displayonly ;
+601     CPPSPRINKLEAK:RATE_TYPE/displayonly ;
+801     CPPSPRINKLEAK:FURNITURE_FIXTURES/checkbox/values="0,1" ;
+901     CPPSPRINKLEAK:UNSPRINKLERED_RISKS[1]/checkbox/values="0,1" ;
+1001    CPPSPRINKLEAK:UNSPRINKLERED_RISKS[2]/checkbox/values="0,1";
+
+}
+
+}
+
+
+End

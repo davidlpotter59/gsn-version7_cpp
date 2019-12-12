@@ -1,0 +1,143 @@
+%%
+Screen
+        Name            = "cppmtmso865" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Designated Work Exclusion     Ver 7.00 %m" ;
+        Domain          = "cppendorse" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global String G_CODE[7] ;
+        global unsigned ascii number g_sub_code[4] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppendorse,
+           Set cppendorse:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_Year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppendorse:PREM_NO = G_PREM_NO ,
+               cppendorse:BUILD_NO = G_BUILD_NO ,
+               cppendorse:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+access validation
+if cppendorse:policy_no <> g_policy_no or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:prem_no <> g_prem_no or
+   cppendorse:build_no <> g_build_no or
+   cppendorse:code <> g_code then
+    error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                                Description                                   |
+| ____________________________________________________________________________ |
+| ____________________________________________________________________________ |
+| ____________________________________________________________________________ |
+| ____________________________________________________________________________ |
+| ____________________________________________________________________________ |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+401     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:PREM_NO = G_PREM_NO
+            cppendorse:BUILD_NO = G_BUILD_NO
+            cppendorse:CODE = G_CODE
+            do subcode
+            cppendorse:SUB_CODE = L_SUB_CODE + 10
+            end
+        if function one of "ADD", "CHANGE" then
+            begin
+            cppendorse:special_mcl156 = 1
+            End
+        End
+        cppendorse:DESCRIPTION_1[1] ;
+501     cppendorse:description_1[2] ;
+601     cppendorse:description_1[3] ;
+701     cppendorse:description_1[4] ;
+801     cppendorse:description_1[5] ;
+
+}
+
+}
+
+Procedure definition
+
+procedure subcode
+begin
+access cppendorse_alias, set cppendorse_alias:policy_no = g_policy_no,
+                          cppendorse_alias:pol_year = g_year,
+                          cppendorse_alias:end_sequence = g_end_sequence,
+                          cppendorse_alias:prem_no = g_prem_no,
+                          cppendorse_alias:build_no = g_build_no,
+                          cppendorse_alias:code = g_code, generic
+
+l_sub_code = 0
+while cppendorse_alias:policy_no = g_policy_no and
+      cppendorse_alias:pol_year = g_Year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppendorse_alias:prem_no = g_prem_no and
+      cppendorse_alias:build_no = g_build_no and
+      cppendorse_alias:code = g_code
+        begin
+        l_sub_code = cppendorse_alias:sub_code
+
+        next cppendorse_alias
+        end
+
+end
+
+End

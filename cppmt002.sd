@@ -1,0 +1,1950 @@
+%%
+Screen
+        Name = "cppMT002" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppGENERAL";
+        Windowtitle = "%a     %s Property Information - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_CHECK_REFERENCE[7],
+                                     G_AGENT_NO[4],
+                                     G_OPT[2];
+
+        Global String G_COMPANY[10] ,
+                      G_COMPANY_ID[10] ,
+                      G_FUNCTION[10] ,
+                      G_FIRST[1],
+                      G_FIRST_1[1] ;
+
+        global MMDDYYYY date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date ,
+                             g_exp_date ;
+
+        global string g_lib_1[10] ,
+                      g_name[50] ,
+                      g_inquiry[1] ,
+                      g_fob[1],
+                      g_fob_description[75] ,
+                      g_que[10] ;
+
+        global unsigned ascii number g_state[2] ,
+                                     g_rate_type[2] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        Local String l_desc[50] ,
+                     l_coverage[1] ,
+                     l_previous_desc[50],
+                     l_different_forms[1]="N",
+                     l_bceg_type[1] ,
+                     l_dec[15],
+                     l_csexec_application[25],
+                     l_app[3],
+                     L_ADD_ENDORSEMENT[1],
+                     L_FORM_EDITION[25],
+                     L_DESCRIPTION[50] ,
+                     l_symbol[2],
+                     l_code[7] ,
+                     l_code_1[7],
+                     l_code_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_code_7[7],
+                     l_code_8[7],
+                     l_system_id[15],
+                     l_screen[9],
+                     l_community[30] ,
+                     l_boiler[1]="N";
+
+        Local Unsigned Ascii Number l_prem_no[4],
+                                    l_build_no[4],
+                                    l_count[3]=0,
+                                    l_blanket[1]=0,
+                                    l_percent[4]=0,
+                                    l_abort_program[1],
+                                    l_symbol_no[2] ,
+                                    l_form[1] ,
+                                    l_building_form[1],
+                                    l_property_form[1],
+                                    l_symbol_number[2],
+                                    l_state[2],
+                                    l_construction[1],
+                                    l_csexec_number[12],
+                                    l_reinforced[1],
+                                    l_steel[1],
+                                    l_high[1],
+                                    l_line_of_business[4] ,
+                                    l_lob[4],
+                                    l_sub_code[4]=0,
+                                    l_group_i[6]=0/dec=4,
+                                    l_territory_factor[6]=0/dec=4,
+                                    l_protection_factor[5]=0/dec=3,
+                                    l_coinsurance_factor[5]=0/dec=3,
+                                    l_deductible_factor[6]=0/dec=4,
+                                    l_inflation_factor[4]=0/dec=2,
+                                    l_loss_cost[6]=0/dec=4 ;
+
+        include "csexec.var"
+
+        include "print.var"
+
+        include "virtualdecs.var"
+
+        Access cppGENERAL, Set cppGENERAL:policy_NO = G_policy_NO,
+                               cppgeneral:pol_Year = g_year,
+                               cppgeneral:end_sequence = g_end_sequence, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "redisplay" display/noreturn "cppmt002" ;
+
+        "add" sequence "new|final|redisplay"  tagged add_fn;
+        "new" add/hidden ;
+
+        "change" sequence "chg|final|redisplay"   tagged change_fn ;
+        "chg" change/hidden ;
+
+        "update_totals" sequence "final|redisplay" ;
+
+        "final" continue begin
+                         do update_final_rating
+                         end ;
+
+        "func1" display "cppmt250"    tagged opt_end_fn ;
+        "func2" display "cppmt298"    tagged totals_location_fn ;
+        "func3" display "cppmt296"    tagged deviations_fn ;
+        "func4" display ""            tagged notes_fn ;
+        "func5" display ""            tagged misc_fn ;
+        "func6" sequence "worksheet"  tagged worksheet_fn ;
+        "func7" display "cppmt250a"   tagged policy_wide_opt_end_fn ;
+        "func8" sequence "blanket"    tagged blanket_rating_fn ;
+        "blanket" continue begin
+                           if cppgeneral:blanket = 1 then
+                               begin
+                               g_rate_type = cppgeneral:rate_type
+                               g_prem_no = cppgeneral:prem_no
+                               g_build_no = cppgeneral:build_no
+                               l_screen = "cppmt002a"
+                               function = "popup"
+                               end
+                           else
+                               begin
+                               error "Blanket rating not available"
+                               end
+                           end ;
+        "popup" display l_screen ;
+
+        "func9" sequence "loc" tagged location_credit_fn ;
+        "loc" continue begin
+                       if sfsline:lob_code one of "CPORTFOLIO" then
+                           l_screen = "cppmt002d"
+                       else
+                           l_screen = "cppmt002c"
+                       function = "popup"
+                       end ;
+
+        "worksheet" continue begin
+                             do create_macro
+                             end ;
+
+        Include "stdfunc7b.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+        include "cppmenuprop7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cppisoproptoolbar7.inc"
+
+}
+
+screen entry
+l_system_id = "cpp"/spacefill
+if g_company_id = "" then
+    g_company_id = sfsdefault:company_id/spacefill
+
+include "rating_security.inc"
+
+if function one of "LINE_OF_BUSINESS_SCREEN" and
+   g_inquiry = "N" then
+    function = "update_totals"
+
+/*if G_first = "Y" and
+   g_inquiry = "N" then
+    begin
+    G_first  = "N"
+    function = g_Function
+    end*/
+
+l_username = username
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppGENERAL:policy_NO <> G_policy_NO or
+   cppgeneral:pol_year <> g_year or
+   cppgeneral:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen at 2,1 to 25, 81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        cppGENERAL:COMPANY_ID = sfpNAME:COMPANY_ID
+        cppgeneral:rating_line_of_business = 0008
+
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            cppGENERAL:policy_NO    = G_policy_NO
+            cppgeneral:pol_year     = g_year
+            cppgeneral:end_sequence = g_end_sequence
+            end
+        End
+        cppGENERAL:policy_NO/displayonly  ;
+302     cppgeneral:pol_year/displayonly ;
+303     cppgeneral:end_sequence/displayonly ;
+401     Begin
+        l_prem_no  = cppgeneral:prem_no
+        l_build_no = cppgeneral:build_no
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppGENERAL:PREM_NO = 1
+            cppGENERAL:BUILD_NO = 1
+            End
+        End
+        cppGENERAL:PREM_NO/default                  Mandatory
+        If cppGENERAL:PREM_NO = 0 Then
+            Error 1286 ;
+501     cppGENERAL:BUILD_NO/default                 Mandatory
+        If cppGENERAL:BUILD_NO = 0 Then
+            Error 1287 ;
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Rating Information"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Business Description: _________________________________________________      |
+|                       _________________________________________________      |
+*------------------------------------------------------------------------------*
+| State: __  ____________________   County:  ___  ________________________     |
+| Community: ______________________________                                    |
+*------------------------------------------------------------------------------*
+| Rate Type:        __  __________________________________________________     |
+| Form:             _  _________        Type:             ___                  |
+| Class Code:       __________________________________________________  _____  |
+| Construction:     _  Reinforced: _    Light Steel:      _  High Rise:     _  |
+| Rate Group:       __                  Exclude VMM:            _              |
+| Protection:       ___                 Exclude Windstorm/Hail: _              |
+| BCEG Individual:  _  ___              Exclude Sprinkler Leak: _              |
+| Deductible:       _____               Sprinklered:            _              |
+| Coinsurance:      ___                 Replacement Cost:       _              |
+| Inflation Guard:  __                  Exclude Theft:          _              |
+| Symbol:           ___  __             Agreed Value:           _              |
+| Crime Limit:      __________          Equipment Breakdown:    _              |
+|                                       Blanket:                _              |
+*------------------------------------------------------------------------------*
+| Limit:            __________                                                 |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+201     Begin
+        cppgeneral:line_of_business = cpsdefault:property_line_of_business
+
+        Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO,
+                                     cppgeneral_alias:pol_year     = cppgeneral:pol_year,
+                                     cppgeneral_alias:end_sequence = cppgeneral:end_sequence, Generic
+
+        Access cppGENERAL_ALT, Set cppGENERAL_ALT:policy_NO    = cppGENERAL:policy_NO,
+                                   cppgeneral_alt:pol_year     = cppgeneral:pol_year,
+                                   cppgeneral_alt:end_sequence = cppgeneral:end_sequence,
+                                   cppgeneral_alt:prem_no      = cppgeneral:prem_no,
+                                   cppgeneral_alt:build_no     = cppgeneral:build_no, Generic
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            if cppgeneral_alt:prem_no  = cppgeneral:prem_no and
+               cppgeneral_alt:build_no = cppgeneral:build_no then
+                begin
+                cppgeneral:business_desc[1] = cppgeneral_alt:business_desc[1]
+                cppgeneral:business_desc[2] = cppgeneral_alt:business_desc[2]
+                end
+            else
+                begin
+                cppgeneral:business_desc[1] = cppgeneral_alias:business_desc[1]
+                cppgeneral:business_desc[2] = cppgeneral_alias:business_desc[2]
+                end
+            End
+        End
+        cppGENERAL:BUSINESS_DESC[1]/uppercase/default ;
+301     cppGENERAL:BUSINESS_DESC[2]/uppercase/default ;
+
+501     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:state = cppgeneral_alt:state
+                else
+                    cppGENERAL:STATE = cppGENERAL_ALIAS:STATE
+                end
+            Else
+                cppGENERAL:STATE = CPSDEFAULT:STATE
+            End
+        End
+        cppGENERAL:STATE/default mandatory
+        Include "statehlp.inc"
+502     SFSSTATE:DESCRIPTION ;
+503     Begin
+        if sfsline:lob_code one of "CPORTFOLIO" then
+            begin
+            access sfpmastsupp, set sfpmastsupp:policy_no        = cppgeneral:policy_no,
+                                    sfpmastsupp:pol_year         = cppgeneral:pol_year,
+                                    sfpmastsupp:end_sequence     = cppgeneral:end_sequence,
+                                    sfpmastsupp:line_of_business = g_line_of_business, exact
+
+            change sfpmastsupp
+                begin
+                sfpmastsupp:state = cppgeneral:state
+                end
+            end
+        else
+            begin
+            access sfpmaster, set sfpmaster:policy_no    = cppgeneral:policy_no,
+                                  sfpmaster:pol_year     = cppgeneral:pol_year,
+                                  sfpmaster:end_sequence = cppgeneral:end_sequence, exact
+
+            change sfpmaster
+                begin
+                sfpmaster:state = cppgeneral:state
+                end
+            end
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:county = cppgeneral_alt:county
+                else
+                    cppGENERAL:COUNTY = cppGENERAL_ALIAS:COUNTY
+                end
+            Else
+                cppGENERAL:COUNTY = CPSDEFAULT:COUNTY
+            End
+        End
+        cppGENERAL:COUNTY/default    mandatory
+        Include "countyhlp.inc"
+504     begin
+        access sfsterritory, set sfsterritory:company_id       = sfpname:company_id,
+                                 sfsterritory:state            = cppgeneral:state,
+                                 sfsterritory:line_of_business = cppgeneral:rating_line_of_business,
+                                 sfsterritory:county           = cppgeneral:county, generic
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:community = cppgeneral_alt:community
+                else
+                    cppGENERAL:community = cppgeneral_alias:community
+                end
+            End
+
+        cppgeneral:territory = sfsterritory:territory_group[1]
+        end
+        SFSSTATE_ALIAS:DESCRIPTION ;
+601     begin
+            l_community = cppgeneral:community
+        end
+        cppgeneral:community/uppercase/default
+
+        if function one of "ADD", "NEW" or
+           l_community <> cppgeneral:community then
+            begin
+            cppgeneral:bceg       = sfsisoprotect_alias:coml_bcegs
+            cppgeneral:protection = sfsisoprotect_alias:protection_1
+            end
+
+        activehelp sfsisoprotect_alias:community ;
+
+801     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:rate_type = cppgeneral_alt:rate_type
+                else
+                    cppGENERAL:rate_type = cppGENERAL_ALIAS:rate_type
+                end
+            Else
+                cppGENERAL:RATE_TYPE = CPSDEFAULT:RATE_TYPE
+            end
+        End
+        cppGENERAL:RATE_TYPE/default
+        If cppGENERAL:RATE_TYPE <> CPSRATETYPE:RATE_TYPE Then
+            Error 1202
+
+        Activehelp CPSRATETYPE_ALIAS:RATE_TYPE,
+                   CPSRATETYPE_ALIAS:DESCRIPTION   ;
+802     CPSRATETYPE:DESCRIPTION;
+901     Begin
+        L_FORM = cppGENERAL:FORM
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppgeneral:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:form = cppgeneral_alt:form
+                else
+                    cppGENERAL:FORM = cppGENERAL_ALIAS:FORM
+                end
+            Else
+                cppGENERAL:FORM = CPSDEFAULT:FORM
+            End
+        End
+        cppGENERAL:FORM/default
+        If cppGENERAL:FORM <> SFSFORM:POLICY_FORM Then
+            Error 1205
+
+        Activehelp SFSFORM_ALIAS:POLICY_FORM ,
+                   SFSFORM_ALIAS:DESCRIPTION ;
+902     SFSFORM:DESCRIPTION ;
+903     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:type = cppgeneral_alt:type
+                else
+                    cppGENERAL:type = cppGENERAL_ALIAS:type
+                end
+            Else
+                cppGENERAL:type = CPSDEFAULT:type
+            End
+        End
+        cppgeneral:type/default/uppercase
+        if cppgeneral:type <> cpstype:type then
+            error "Invalid Type Entered"
+
+        activehelp cpstype_alias:type,
+                   cpstype_alias:description ;
+1001    Begin
+        Access cpsclass_ALIAS, Set cpsclass_ALIAS:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                   cpsclass_ALIAS:STATE            = cppGENERAL:STATE,
+                                   cpsclass_ALIAS:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                   cpsclass_ALIAS:ALPHA_LOOK       = cppgeneral:description, Approximate
+
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppGENERAL:description = cppgeneral_alt:description
+                end
+            end
+
+        If FUNCTION one of "ADD", "NEW" And
+           SECURITY < 65 Then
+            Activehelp()
+
+        l_previous_desc = cppgeneral:description
+        End
+        cppgeneral:description/upper/default    Mandatory
+        l_desc = cppgeneral:description
+
+        if cppgeneral:description <> l_previous_desc then
+            begin
+            cppGENERAL:CLASS_CODE          = cpsclass_ALIAS:CLASS_CODE
+            cppGENERAL:SUB_CODE            = cpsclass_ALIAS:SUB_CODE
+            cppGENERAL:GROUP_NO            = cpsclass_ALIAS:GROUP_NO
+            cppGENERAL:SUB_GROUP           = cpsclass_ALIAS:SUB_GROUP
+            if cppgeneral:rate_group = 0 or
+               cppgeneral:description <> l_previous_desc then
+                begin
+                if cpsclass_alias:rate_group = 0 then
+                    cppGENERAL:RATE_GROUP      = cpsclass_ALIAS:crime_RATE_GROUP
+                else
+                    cppgeneral:rate_group      = cpsclass_alias:rate_group
+                end
+            if cppgeneral:crime_limit = 0 or
+               cppgeneral:description <> l_previous_desc then
+                cppgeneral:crime_limit         = cpsclass_alias:crime_class_limit
+            cppGENERAL:CMP_SYMBOL          = cpsclass_ALIAS:CMP_SYMBOL
+            cppgeneral:perpetual_rated     = cpsclass_alias:prepetual_rated
+            end
+
+        Activehelp if cpsclass_alias:property_only = 1 and
+                      cpsclass_alias:class_code <> 0 then
+                       cpsclass_ALIAS:ALPHA_LOOK
+                   else
+                       null/width=50 ,
+                   if cpsclass_alias:property_only = 1 and
+                      cpsclass_alias:class_code <> 0 then
+                       cpsclass_ALIAS:CLASS_CODE
+                   else
+                       null/width=10 ;
+1001    Begin
+        Access cpsclass, Set cpsclass:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                             cpsclass:STATE            = cppGENERAL:STATE,
+                             cpsclass:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                             cpsclass:GROUP_NO         = cppGENERAL:GROUP_NO,
+                             cpsclass:SUB_GROUP        = cppGENERAL:SUB_GROUP ,
+                             cpsclass:CLASS_CODE       = cppGENERAL:CLASS_CODE,
+                             cpsclass:SUB_CODE         = cppGENERAL:SUB_CODE, Generic
+
+        While cpsclass:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpsclass:STATE            = cppGENERAL:STATE And
+              cpsclass:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS And
+              cpsclass:GROUP_NO         = cppGENERAL:GROUP_NO And
+              cpsclass:SUB_GROUP        = cppGENERAL:SUB_GROUP And
+              cpsclass:CLASS_CODE       = cppGENERAL:CLASS_CODE And
+              cpsclass:SUB_CODE         = cppGENERAL:SUB_CODE
+                Begin
+                If sfpNAME:EFF_DATE >= cpsclass:EFF_DATE Then
+                    L_DESC = cpsclass:ALPHA_LOOK
+
+                Next cpsclass
+                End
+
+        cppgeneral:description = l_desc
+        End
+        cppgeneral:description/displayonly/uppercase ;
+1002    cppGENERAL:CLASS_CODE/displayonly/mask="9999" ;
+
+1101    Begin
+        l_construction = cppgeneral:construction
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    begin
+                    cppGENERAL:CONSTRUCTION = cppGENERAL_alt:CONSTRUCTION
+                    cppgeneral:reinforced   = cppgeneral_alt:reinforced
+                    cppgeneral:steel        = cppgeneral_alt:steel
+                    cppgeneral:high         = cppgeneral_alt:high
+                    end
+                else
+                    begin
+                    cppGENERAL:CONSTRUCTION = cppGENERAL_ALIAS:CONSTRUCTION
+                    cppgeneral:reinforced   = cppgeneral_alias:reinforced
+                    cppgeneral:steel        = cppgeneral_alias:steel
+                    cppgeneral:high         = cppgeneral_alias:high
+                    end
+                end
+            Else
+                cppGENERAL:CONSTRUCTION = CPSDEFAULT:CONSTRUCTION
+            End
+        End
+        cppGENERAL:CONSTRUCTION/default
+        If cppGENERAL:CONSTRUCTION <> SFSCONSTRUCTION:CONSTRUCTION Then
+            Error 1203
+
+        cppGENERAL:CONSTRUCTION_CODE = SFSCONSTRUCTION:CODE
+
+        Activehelp SFSCONSTRUCTION_ALIAS:CONSTRUCTION,
+                   SFSCONSTRUCTION_ALIAS:DESCRIPTION ;
+1101    begin
+            do access_cpsconstruction
+        end
+        cppgeneral:construction/displayonly ;
+1102    cppgeneral:reinforced/checkbox/values="0,1"/default
+        hide if l_reinforced = 0 ;
+1103    cppgeneral:steel/checkbox/values="0,1"/default
+        hide if l_steel = 0 ;
+1104    cppgeneral:high/checkbox/values="0,1"/default
+        hide if l_high = 0 ;
+1201    cppgeneral:rate_group/default ;
+1301    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:protection = cppgeneral_alt:protection
+                else
+                    cppGENERAL:protection = cppgeneral_alias:protection
+                end
+            end
+        end
+        cppGENERAL:PROTECTION/default
+        if cppgeneral:protection <> sfsprotection:protection then
+            error "Invalid Protection Code"
+
+        Activehelp SFSISOPROTECT_ALIAS:PROTECTION_1,
+                   sfsisoprotect_alias:protection_2 ;
+1401    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    begin
+                    cppGENERAL:bceg_individual = cppgeneral_alt:bceg_individual
+                    cppgeneral:bceg            = cppgeneral_alt:bceg
+                    end
+                else
+                    begin
+                    cppGENERAL:bceg_individual = cppgeneral_alias:bceg_individual
+                    cppgeneral:bceg            = cppgeneral_alias:bceg
+                    end
+                end
+            end
+        end
+        cppgeneral:bceg_individual/checkbox/values="0,1"/default ;
+1402    begin
+        switch(cppgeneral:bceg_individual)
+          case 1  : l_bceg_type = "I"
+          default : l_bceg_type = "C"
+          end
+        access sfsisobceg_alias, set sfsisobceg_alias:company_id       = sfpname:company_id,
+                                     sfsisobceg_alias:state            = cppgeneral:state,
+                                     sfsisobceg_alias:line_of_business = cppgeneral:rating_line_of_business,
+                                     sfsisobceg_alias:type             = l_bceg_type, generic
+        end
+        cppgeneral:bceg/default
+        access sfsisobceg, set sfsisobceg:company_id       = sfpname:company_id,
+                               sfsisobceg:state            = cppgeneral:state,
+                               sfsisobceg:line_of_business = cppgeneral:rating_line_of_business,
+                               sfsisobceg:type             = l_bceg_type,
+                               sfsisobceg:bceg             = cppgeneral:bceg, generic
+
+        if cppgeneral:bceg <> sfsisobceg:bceg then
+            error "Invalid BCEG code entered"
+
+        activehelp sfsisobceg_alias:bceg ,
+                   sfsisobceg_alias:description ;
+1501    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppGENERAL:DEDUCTIBLE = cppGENERAL_ALT:DEDUCTIBLE
+                else
+                    cppGENERAL:DEDUCTIBLE = cppGENERAL_ALIAS:DEDUCTIBLE
+                end
+            Else
+                cppGENERAL:DEDUCTIBLE = CPSDEFAULT:DEDUCTIBLE
+            End
+        End
+        cppGENERAL:DEDUCTIBLE/default
+        Access SFSDEDUCTIBLE, Set SFSDEDUCTIBLE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                  SFSDEDUCTIBLE:STATE = cppGENERAL:STATE,
+                                  SFSDEDUCTIBLE:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                  SFSDEDUCTIBLE:DEDUCTIBLE = cppGENERAL:DEDUCTIBLE, Generic
+
+        If cppGENERAL:DEDUCTIBLE <> SFSDEDUCTIBLE:DEDUCTIBLE Then
+            Error 1207
+
+        Activehelp if sfsdeductible_alias:show_in_activehelp = 1 then
+                       SFSDEDUCTIBLE_ALIAS:DEDUCTIBLE
+                   else
+                       null       ;
+1601    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppGENERAL:COINSURANCE = cppGENERAL_ALT:COINSURANCE
+                else
+                    cppGENERAL:COINSURANCE = cppGENERAL_ALIAS:COINSURANCE
+                end
+            Else
+                cppGENERAL:COINSURANCE = CPSDEFAULT:COINSURANCE
+            End
+        End
+        cppGENERAL:COINSURANCE/default
+        Hide If cppGENERAL:BUILDERS_RISK = 1
+        Access CPSCOINSURANCE, Set CPSCOINSURANCE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                   CPSCOINSURANCE:STATE = cppGENERAL:STATE,
+                                   CPSCOINSURANCE:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS,
+                                   CPSCOINSURANCE:OPTION = cppGENERAL:FORM,
+                                   CPSCOINSURANCE:COINSURANCE = cppGENERAL:COINSURANCE, Generic
+
+        If cppGENERAL:COINSURANCE <> CPSCOINSURANCE:COINSURANCE Then
+            Error 1208
+
+        Activehelp CPSCOINSURANCE_ALIAS:COINSURANCE ;
+1701    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:inflation_guard = cppgeneral_alt:inflation_guard
+                else
+                    cppGENERAL:inflation_guard = cppGENERAL_ALIAS:inflation_guard
+                end
+            Else
+                begin
+                access sfsinflation, set sfsinflation:company_id       = sfpname:company_id,
+                                         sfsinflation:state            = cppgeneral:state,
+                                         sfsinflation:line_of_business = cppgeneral:rating_line_of_business, generic
+
+                l_percent = 0
+                while sfsinflation:company_id       = sfpname:company_id and
+                      sfsinflation:state            = cppgeneral:state and
+                      sfsinflation:line_of_business = cppgeneral:rating_line_of_business
+                    begin
+                    if sfpname:eff_date >= sfsinflation:eff_date then
+                        begin
+                        if sfsinflation:make_default = 1 then
+                            l_percent = sfsinflation:percent
+                        end
+
+                    next sfsinflation
+                    end
+
+                if l_percent <> 0 then
+                    cppgeneral:inflation_guard = l_percent
+                else
+                    cppGENERAL:inflation_guard = CPSDEFAULT:inflation_guard
+                end
+            End
+        End
+        cppgeneral:inflation_guard/default ;
+1801    begin
+        if function one of "ADD", "NEW" or
+           cppgeneral:construction <> l_construction then
+            begin
+            do get_symbol
+            cppgeneral:symbol        = l_symbol
+            cppgeneral:symbol_number = l_symbol_no
+            end
+        end
+        cppgeneral:symbol/default/uppercase ;
+1802    cppgeneral:symbol_number/default ;
+1901    cppgeneral:crime_limit/default ;
+
+1202    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = G_policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:vmm_exclusion = cppgeneral_alt:vmm_exclusion
+                else
+                    cppGENERAL:vmm_exclusion = cppGENERAL_ALIAS:vmm_exclusion
+                end
+            End
+        End
+        cppgeneral:vmm_exclusion/checkbox/values="0,1"/default ;
+1302    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = G_policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:exclusions = cppgeneral_alt:exclusions
+                else
+                    cppGENERAL:exclusions = cppGENERAL_ALIAS:exclusions
+                end
+            End
+        End
+        cppgeneral:exclusions/checkbox/values="0,1"/default ;
+1403    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = G_policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:sprinkler_leakage = cppgeneral_alt:sprinkler_leakage
+                else
+                    cppGENERAL:SPRINKLER_leakage = cppGENERAL_ALIAS:SPRINKLER_leakage
+                end
+            End
+        End
+        cppGENERAL:SPRINKLER_LEAKAGE/checkbox/values="0,1"/default ;
+1502    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = G_policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:sprinklered = cppgeneral_alt:sprinklered
+                else
+                    cppGENERAL:SPRINKLERED = cppGENERAL_ALIAS:SPRINKLERED
+                end
+            else
+                cppgeneral:sprinklered = cpsdefault:sprinklered
+            End
+        End
+        cppGENERAL:SPRINKLERED/checkbox/values="0,1"/default ;
+1602    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:replacement_cost = cppgeneral_alt:replacement_cost
+                else
+                    cppGENERAL:replacement_cost = cppGENERAL_ALIAS:replacement_cost
+                end
+            Else
+                cppGENERAL:replacement_cost = CPSDEFAULT:replacement_cost
+            End
+        End
+        cppGENERAL:REPLACEMENT_COST/checkbox/values="0,1"/default ;
+1702    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:theft = cppgeneral_alt:theft
+                else
+                    cppGENERAL:theft = cppGENERAL_ALIAS:theft
+                end
+            Else
+                cppGENERAL:theft = CPSDEFAULT:exclude_theft
+            End
+        End
+        cppgeneral:theft/checkbox/values="0,1"/default ;
+1803    Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:agreed_value = cppgeneral_alt:agreed_value
+                else
+                    cppGENERAL:agreed_value = cppGENERAL_ALIAS:agreed_value
+                end
+            Else
+                cppGENERAL:agreed_value = CPSDEFAULT:agreed_value
+            End
+        End
+        cppgeneral:agreed_value/checkbox/values="0,1"/default ;
+1902    begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL_ALIAS:policy_NO    = cppGENERAL:policy_NO and
+               cppgeneral_alias:pol_year     = cppgeneral:pol_Year and
+               cppgeneral_alias:end_sequence = cppgeneral:end_sequence Then
+                begin
+                if cppgeneral_alt:prem_no = cppgeneral:prem_no and
+                   cppgeneral_alt:build_no = cppgeneral:build_no then
+                    cppgeneral:boilers = cppgeneral_alt:boilers
+                else
+                    cppGENERAL:boilers = cppGENERAL_ALIAS:boilers
+                end
+            Else
+                cppGENERAL:boilers = CPSDEFAULT:boilers
+            End
+        End
+        cppgeneral:boilers/checkbox/values="0,1"/default ;
+2001    begin
+            l_blanket = cppgeneral:blanket
+        end
+        cppgeneral:blanket/checkbox/values="0,1" ;
+
+2201    cppgeneral:limit[1] ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Premium"
+        }
+{
+%%
+
+%%
+
+components
+        subscreen at 1,1 to 23,100
+                properties
+                        {
+                        screen = "cppmt299"
+                        }
+}
+
+}
+
+}
+
+update
+if updateok = "YES" and
+   abort = "NO" then
+    begin
+    if function one of "DELETE" then
+        begin
+        Access cpstrigger, Set cpstrigger:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               cpstrigger:STATE = cppgeneral:STATE,
+                               cpstrigger:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS, Generic
+
+        While cpstrigger:COMPANY_ID = sfpNAME:COMPANY_ID And
+              cpstrigger:STATE = cppgeneral:STATE And
+              cpstrigger:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS
+                Begin
+                If sfpNAME:EFF_DATE >= cpstrigger:EFF_DATE Then
+                    Begin
+                    l_code_5 = cpstrigger:code[5]
+                    l_code_6 = cpstrigger:code[6]
+                    l_code_7 = cpstrigger:code[7]
+                    End
+
+                Next cpstrigger
+                End
+
+        access sfpend, set sfpend:policy_no    = cppgeneral:policy_no,
+                           sfpend:pol_year     = cppgeneral:pol_year,
+                           sfpend:end_sequence = cppgeneral:end_sequence,
+                           sfpend:prem_no      = cppgeneral:prem_no,
+                           sfpend:build_no     = cppgeneral:build_no, generic
+
+        while sfpend:policy_no    = cppgeneral:policy_no and
+              sfpend:pol_year     = cppgeneral:pol_year and
+              sfpend:end_sequence = cppgeneral:end_sequence and
+              sfpend:prem_no      = cppgeneral:prem_no and
+              sfpend:build_no     = cppgeneral:build_no
+                begin
+                if sfpend:lob_end_code one of "P" and
+                   sfpend:boiler_form = 0 then
+                    delete sfpend
+
+                if sfpend:code = l_code_5 and
+                   cppgeneral:form = 1 then
+                    delete sfpend
+
+                if sfpend:code = l_code_6 and
+                   cppgeneral:form = 2 then
+                    delete sfpend
+
+                if sfpend:code = l_code_7 and
+                   cppgeneral:form = 3 then
+                    delete sfpend
+
+                next sfpend
+                end
+
+        end
+
+    if function one of "ADD", "NEW" then
+        begin
+        g_prem_no   = cppgeneral:prem_no
+        g_build_no  = cppgeneral:build_no
+        g_rate_type = cppgeneral:rate_type
+
+        display modal screen "cppmt296"
+        with initial function "CHANGE|BACK"
+        end
+
+    if function one of "ADD", "NEW" and
+       cppgeneral:blanket = 1 then
+        begin
+        g_prem_no   = cppgeneral:prem_no
+        g_build_no  = cppgeneral:build_no
+        g_rate_type = cppgeneral:rate_type
+
+        access cppisoblanket, set cppisoblanket:policy_no = cppgeneral:policy_no,
+                                  cppisoblanket:pol_year = cppgeneral:pol_year,
+                                  cppisoblanket:end_sequence = cppgeneral:end_sequence, generic
+
+        if cppisoblanket:policy_no <> cppgeneral:policy_no and
+           cppisoblanket:pol_year <> cppgeneral:pol_year and
+           cppisoblanket:end_sequence <> cppgeneral:end_sequence then
+            begin
+            access cppgeneral_alias, set cppgeneral_alias:policy_no = cppgeneral:policy_no,
+                                         cppgeneral_alias:pol_year = cppgeneral:pol_year,
+                                         cppgeneral_alias:end_sequence = cppgeneral:end_sequence, generic
+
+            add cppisoblanket
+                begin
+                cppisoblanket:policy_no            = cppgeneral_alias:policy_no
+                cppisoblanket:pol_year             = cppgeneral_alias:pol_year
+                cppisoblanket:end_sequence         = cppgeneral_alias:end_sequence
+                cppisoblanket:prem_no              = cppgeneral_alias:prem_no
+                cppisoblanket:build_no             = cppgeneral_alias:build_no
+                cppisoblanket:rate_type            = cppgeneral_alias:rate_type
+                cppisoblanket:record_rdf           = cppgeneral_alias:record_rdf/raw
+                end
+            end
+
+        display modal screen "cppmt002a"
+        end
+
+    if function one of "CHANGE", "CHG" and
+       cppgeneral:blanket = 1 and
+       l_blanket = 0 then
+        begin
+        g_prem_no   = cppgeneral:prem_no
+        g_build_no  = cppgeneral:build_no
+        g_rate_type = cppgeneral:rate_type
+
+        access cppisoblanket, set cppisoblanket:policy_no    = cppgeneral:policy_no,
+                                  cppisoblanket:pol_year     = cppgeneral:pol_year,
+                                  cppisoblanket:end_sequence = cppgeneral:end_sequence, generic
+
+        if cppisoblanket:policy_no <> cppgeneral:policy_no and
+           cppisoblanket:pol_year <> cppgeneral:pol_year and
+           cppisoblanket:end_sequence <> cppgeneral:end_sequence then
+            begin
+            access cppgeneral_alias, set cppgeneral_alias:policy_no    = cppgeneral:policy_no,
+                                         cppgeneral_alias:pol_year     = cppgeneral:pol_year,
+                                         cppgeneral_alias:end_sequence = cppgeneral:end_sequence, generic
+
+            l_count = 0
+            while cppgeneral_alias:policy_no    = cppgeneral:policy_no and
+                  cppgeneral_alias:pol_year     = cppgeneral:pol_year and
+                  cppgeneral_alias:end_sequence = cppgeneral:end_sequence
+                begin
+                if cppgeneral_alias:rate_type = cppgeneral:rate_type then
+                    begin
+                    l_count = l_count + 1
+                    add cppisoblanket
+                        begin
+                        cppisoblanket:policy_no            = cppgeneral_alias:policy_no
+                        cppisoblanket:pol_year             = cppgeneral_alias:pol_year
+                        cppisoblanket:end_sequence         = cppgeneral_alias:end_sequence
+                        cppisoblanket:prem_no              = cppgeneral_alias:prem_no
+                        cppisoblanket:build_no             = cppgeneral_alias:build_no
+                        cppisoblanket:rate_type            = cppgeneral_alias:rate_type
+                        cppisoblanket:record_rdf           = cppgeneral_alias:record_rdf/raw
+                        end
+
+                    if l_count > 1 then
+                        begin
+                        delete cppgeneral_alias
+                        end
+                    end
+
+                next cppgeneral_alias
+                end
+            end
+
+        display modal screen "cppmt002a"
+        end
+
+    if function one of "CHANGE", "CHG" and
+       l_blanket = 1 and
+       cppgeneral:blanket = 0 then
+        begin
+        access cppisoblanket, set cppisoblanket:policy_no    = cppgeneral:policy_no,
+                                  cppisoblanket:pol_year     = cppgeneral:pol_year,
+                                  cppisoblanket:end_sequence = cppgeneral:end_sequence, generic
+
+        while cppisoblanket:policy_no    = cppgeneral:policy_no and
+              cppisoblanket:pol_year     = cppgeneral:pol_year and
+              cppisoblanket:end_sequence = cppgeneral:end_sequence
+            begin
+            access cppgeneral_alias, set cppgeneral_alias:policy_no    = cppisoblanket:policy_no,
+                                         cppgeneral_alias:pol_year     = cppisoblanket:pol_year,
+                                         cppgeneral_alias:end_sequence = cppisoblanket:end_sequence,
+                                         cppgeneral_alias:prem_no      = cppisoblanket:prem_no,
+                                         cppgeneral_alias:build_no     = cppisoblanket:build_no,
+                                         cppgeneral_alias:rate_type    = cppisoblanket:rate_type, generic
+
+            if cppgeneral_alias:policy_no <> cppisoblanket:policy_no or
+               cppgeneral_alias:pol_year <> cppisoblanket:pol_year or
+               cppgeneral_alias:end_sequence <> cppisoblanket:end_sequence or
+               cppgeneral_alias:prem_no <> cppisoblanket:prem_no or
+               cppgeneral_alias:build_no <> cppisoblanket:build_no or
+               cppgeneral_alias:rate_type <> cppisoblanket:rate_type then
+                begin
+                add cppgeneral_alias
+                    begin
+                    cppgeneral_alias:policy_no            = cppisoblanket:policy_no
+                    cppgeneral_alias:pol_year             = cppisoblanket:pol_year
+                    cppgeneral_alias:end_sequence         = cppisoblanket:end_sequence
+                    cppgeneral_alias:prem_no              = cppisoblanket:prem_no
+                    cppgeneral_alias:build_no             = cppisoblanket:build_no
+                    cppgeneral_alias:rate_type            = cppisoblanket:rate_type
+                    cppgeneral_alias:record_rdf           = cppisoblanket:record_rdf/raw
+                    end
+                end
+            else
+                change cppgeneral_alias
+                    begin
+                    cppgeneral_alias:limit[1]             = cppisoblanket:limit[1]
+                    end
+
+            delete cppisoblanket
+
+            next cppisoblanket
+            end
+
+        end
+
+    if function one of "ADD", "NEW", "CHANGE", "CHG" then
+        begin
+        Access cpsratetype, Set cpsratetype:COMPANY_ID       = sfpname:COMPANY_ID,
+                                cpsratetype:STATE            = cppGENERAL:STATE,
+                                cpsratetype:LINE_OF_BUSINESS = cppgeneral:rating_line_of_business, generic
+
+        l_code = ""
+        While cpsratetype:COMPANY_ID       = sfpname:COMPANY_ID And
+              cpsratetype:STATE            = cppGENERAL:STATE And
+              cpsratetype:LINE_OF_BUSINESS = cppgeneral:rating_line_of_business
+                Begin
+                l_code = cpsratetype:code
+                Do ACCESS_sfpEND_1
+                If L_ADD_ENDORSEMENT = "Y" and
+                   cpsratetype:rate_type one of cppgeneral:rate_type then
+                    Do ADD_sfpEND_1
+--                If L_ADD_ENDORSEMENT = "N" and
+--                   cpsratetype:rate_type not one of cppgeneral:rate_type then
+--                    Do DELETE_sfpEND_1
+
+                Next cpsratetype
+                End
+
+        Access sfsform, Set sfsform:COMPANY_ID       = sfpname:COMPANY_ID,
+                            sfsform:STATE            = cppGENERAL:STATE,
+                            sfsform:LINE_OF_BUSINESS = cppgeneral:rating_line_of_business, generic
+
+        l_code = ""
+        While sfsform:COMPANY_ID       = sfpname:COMPANY_ID And
+              sfsform:STATE            = cppGENERAL:STATE And
+              sfsform:LINE_OF_BUSINESS = cppgeneral:rating_line_of_business
+                Begin
+                l_code = sfsform:code
+                Do ACCESS_sfpEND_1
+                If L_ADD_ENDORSEMENT = "Y" and
+                   sfsform:policy_form one of cppgeneral:form then
+                    Do ADD_sfpEND_1
+--                If L_ADD_ENDORSEMENT = "N" and
+--                   sfsform:policy_form not one of cppgeneral:form then
+--                    Do DELETE_sfpEND_1
+
+                Next sfsform
+                End
+
+        Access cpstrigger, Set cpstrigger:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               cpstrigger:STATE = cppgeneral:STATE,
+                               cpstrigger:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS, Generic
+
+        While cpstrigger:COMPANY_ID = sfpNAME:COMPANY_ID And
+              cpstrigger:STATE = cppgeneral:STATE And
+              cpstrigger:LINE_OF_BUSINESS = cppgeneral:rating_LINE_OF_BUSINESS
+                Begin
+                If sfpNAME:EFF_DATE >= cpstrigger:EFF_DATE Then
+                    Begin
+                    l_code_1 = cpstrigger:code[1]
+                    l_code_2 = cpstrigger:code[2]
+                    l_code_3 = cpstrigger:code[3]
+                    l_code_4 = cpstrigger:code[4]
+                    l_code_5 = cpstrigger:code[5]
+                    l_code_6 = cpstrigger:code[6]
+                    l_code_7 = cpstrigger:code[7]
+                    l_code_8 = cpstrigger:code[8]
+                    End
+
+                Next cpstrigger
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            l_boiler = "N"
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:exclusions = 1 Then
+                Do ADD_sfpEND
+            If L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:exclusions = 0 Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_2 <> "" Then
+            Begin
+            l_boiler = "N"
+            L_CODE = L_CODE_2
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:vmm_exclusion = 1 Then
+                Do ADD_sfpEND
+            If L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:vmm_exclusion = 0 Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_3 <> "" Then
+            Begin
+            l_boiler = "N"
+            L_CODE = L_CODE_3
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:sprinkler_leakage = 1 Then
+                Do ADD_sfpEND
+            If L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:sprinkler_leakage = 0 Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_4 <> "" Then
+            Begin
+            l_boiler = "N"
+            L_CODE = L_CODE_4
+            Do ACCESS_sfpEND_1
+            If L_ADD_ENDORSEMENT = "Y" And
+               sfpname:bill_plan = "DB" Then
+                Do ADD_sfpEND_1
+            If L_ADD_ENDORSEMENT = "N" And
+               sfpname:bill_plan not one of "DB" Then
+                Do DELETE_sfpEND_1
+            End
+
+        access cppgeneral_alias, set cppgeneral_alias:policy_no = g_policy_no,
+                                     cppgeneral_alias:pol_year = g_year,
+                                     cppgeneral_alias:end_sequence = g_End_sequence, generic
+
+        l_form = cppgeneral_alias:form
+        l_different_forms = "N"
+        while cppgeneral_alias:policy_no = g_policy_no and
+              cppgeneral_alias:pol_year = g_year and
+              cppgeneral_alias:end_sequence = g_end_sequence
+                begin
+                if cppgeneral_alias:form <> l_form then
+                    l_different_forms = "Y"
+
+                next cppgeneral_alias
+                end
+
+        If L_CODE_5 <> "" Then
+            Begin
+            L_CODE = L_CODE_5
+            l_boiler = "Y"
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:form = 1 and
+               cppgeneral:boilers = 1 Then
+                Do ADD_sfpEND
+            If ((L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:form <> 1 and
+               l_different_forms = "N") or
+               (l_add_endorsement = "N" and
+               cppgeneral:boilers = 0)) Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_6 <> "" Then
+            Begin
+            L_CODE = L_CODE_6
+            l_boiler = "Y"
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:form = 2 and
+               cppgeneral:boilers = 1 Then
+                Do ADD_sfpEND
+            If ((L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:form <> 2 and
+               l_different_forms = "N") or
+               (l_add_endorsement = "N" and
+               cppgeneral:boilers = 0)) Then
+                Do DELETE_sfpEND
+            End
+
+        If L_CODE_7 <> "" Then
+            Begin
+            L_CODE = L_CODE_7
+            l_boiler = "Y"
+            Do ACCESS_sfpEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               cppgeneral:form = 3 and
+               cppgeneral:boilers = 1 Then
+                Do ADD_sfpEND
+            If ((L_ADD_ENDORSEMENT = "N" And
+               cppgeneral:form <> 3 and
+               l_different_forms = "N") or
+               (l_add_endorsement = "N" and
+               cppgeneral:boilers = 0)) Then
+                Do DELETE_sfpEND
+            End
+
+        access sfpamt, set sfpamt:policy_no = g_policy_no,
+                           sfpamt:pol_year = g_year,
+                           sfpamt:end_sequence = g_end_sequence, generic
+
+        l_lob = sfpamt:line_of_business[2]
+        access sfsline_alias, set sfsline_alias:company_id = sfpname:company_id,
+                                  sfsline_alias:line_of_business = l_lob,
+                                  sfsline_alias:lob_subline = "00", generic
+
+        If L_CODE_8 <> "" Then
+            Begin
+            l_boiler = "N"
+            L_CODE = L_CODE_8
+            Do ACCESS_sfpEND_1
+            If (L_ADD_ENDORSEMENT = "Y" And
+               (sfsline:lob_code one of "PROPERTY" or
+               (sfsline:lob_code one of "CPORTFOLIO" and
+               sfsline_alias:lob_code one of "PROPERTY"))) Then
+                Do ADD_sfpEND_1
+            If L_ADD_ENDORSEMENT = "N" And
+               sfsline:lob_code not one of "PROPERTY" and
+               sfsline_alias:lob_code not one of "PROPERTY" Then
+                Do DELETE_sfpEND_1
+            End
+
+        end
+
+    function = "redisplay"
+    end
+
+Screen Exit
+If cppGENERAL:PREM_NO > 0 Then G_PREM_NO = cppGENERAL:PREM_NO ;
+If cppGENERAL:BUILD_NO > 0 Then G_BUILD_NO = cppGENERAL:BUILD_NO ;
+if cppgeneral:rate_type > 0 then g_rate_type = cppgeneral:rate_type ;
+
+Procedure Definition
+
+procedure update_final_rating
+begin
+
+g_prem_no   = cppgeneral:prem_no
+g_build_no  = cppgeneral:build_no
+g_rate_type = cppgeneral:rate_type
+postevent("cppmt299","reload")
+
+end
+
+procedure access_cpsconstruction
+begin
+access cpsconstruction, set cpsconstruction:company_id       = sfpname:company_id,
+                            cpsconstruction:state            = cppgeneral:state,
+                            cpsconstruction:line_of_business = cppgeneral:rating_line_of_business,
+                            cpsconstruction:construction     = cppgeneral:construction, generic
+
+l_reinforced = 0
+l_steel      = 0
+l_high       = 0
+while cpsconstruction:company_id       = sfpname:company_id and
+      cpsconstruction:state            = cppgeneral:state and
+      cpsconstruction:line_of_business = cppgeneral:rating_line_of_business and
+      cpsconstruction:construction     = cppgeneral:construction
+        begin
+        if (sfpname:eff_date >= cpsconstruction:eff_date and
+           (sfpname:exp_date <= cpsconstruction:exp_date or
+           cpsconstruction:exp_date = 0)) then
+            begin
+            l_reinforced = cpsconstruction:reinforced
+            l_steel      = cpsconstruction:light_steel
+            l_high       = cpsconstruction:high
+            end
+
+        next cpsconstruction
+        end
+
+end
+
+procedure get_symbol
+begin
+if cppgeneral:perpetual_rated = 0 then
+    begin
+    access cpsconstruction, set cpsconstruction:company_id       = sfpname:company_id,
+                                cpsconstruction:state            = cppgeneral:state,
+                                cpsconstruction:line_of_business = cppgeneral:rating_line_of_business,
+                                cpsconstruction:construction     = cppgeneral:construction, generic
+
+    while cpsconstruction:company_id       = sfpname:company_id and
+          cpsconstruction:state            = cppgeneral:state and
+          cpsconstruction:line_of_business = cppgeneral:rating_line_of_business and
+          cpsconstruction:construction     = cppgeneral:construction
+            begin
+            if (sfpname:eff_date >= cpsconstruction:eff_date and
+               (sfpname:exp_date <= cpsconstruction:exp_date or
+               cpsconstruction:exp_date = 0)) then
+                begin
+                if cpsconstruction:light_steel = 1 and
+                   cpsconstruction:reinforced  = 1 and
+                   cpsconstruction:high        = 1 then
+                    begin
+                    switch(cppgeneral:reinforced)
+                      case 1  : switch(cppgeneral:steel)
+                                  case 1  : switch(cppgeneral:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[4]
+                                              default : l_symbol = cpsconstruction:symbol[3]
+                                              end
+                                  default : switch(cppgeneral:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[8]
+                                              default : l_symbol = cpsconstruction:symbol[7]
+                                              end
+                                  end
+                      default : switch(cppgeneral:steel)
+                                  case 1  : switch(cppgeneral:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[2]
+                                              default : l_symbol = cpsconstruction:symbol[1]
+                                              end
+                                  default : switch(cppgeneral:high)
+                                              case 1  : l_symbol = cpsconstruction:symbol[6]
+                                              default : l_symbol = cpsconstruction:symbol[5]
+                                              end
+                                  end
+                      end
+
+                    end
+                else
+                if cpsconstruction:reinforced  = 1 and
+                   cpsconstruction:light_steel = 0 and
+                   cpsconstruction:high        = 1 then
+                    begin
+                    switch(cppgeneral:reinforced)
+                      case 1  : switch(cppgeneral:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[4]
+                                  default : l_symbol = cpsconstruction:symbol[3]
+                                  end
+                      default : switch(cppgeneral:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[2]
+                                  default : l_symbol = cpsconstruction:symbol[1]
+                                  end
+                      end
+                    end
+
+                else
+                if cpsconstruction:reinforced  = 0 and
+                   cpsconstruction:light_steel = 1 and
+                   cpsconstruction:high        = 1 then
+                    begin
+                    switch(cppgeneral:steel)
+                      case 1  : switch(cppgeneral:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[2]
+                                  default : l_symbol = cpsconstruction:symbol[1]
+                                  end
+                      default : switch(cppgeneral:high)
+                                  case 1  : l_symbol = cpsconstruction:symbol[4]
+                                  default : l_symbol = cpsconstruction:symbol[3]
+                                  end
+                      end
+                    end
+                else
+                    begin
+                    l_symbol = cpsconstruction:symbol[1]
+                    end
+
+                end
+
+            next cpsconstruction
+            end
+
+    end
+else
+if cppgeneral:perpetual_rated = 1 then
+    begin
+    access cpsperpetual, set cpsperpetual:company_id       = sfpname:company_id,
+                             cpsperpetual:state            = cppgeneral:state,
+                             cpsperpetual:line_of_business = cppgeneral:rating_line_of_business,
+                             cpsperpetual:class_code       = cppgeneral:class_code,
+                             cpsperpetual:sub_code         = cppgeneral:sub_code, generic
+
+    while cpsperpetual:company_id       = sfpname:company_id and
+          cpsperpetual:state            = cppgeneral:state and
+          cpsperpetual:line_of_business = cppgeneral:rating_line_of_business and
+          cpsperpetual:class_code       = cppgeneral:class_code and
+          cpsperpetual:sub_code         = cppgeneral:sub_code
+            begin
+            if sfpname:eff_date >= cpsperpetual:eff_date then
+                begin
+                l_symbol    = cpsperpetual:group_ii_symbol
+                l_symbol_no = cpsperpetual:group_ii_no
+                end
+
+            next cpsperpetual
+            end
+    end
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO      = G_PREM_NO,
+                   sfpEND:BUILD_NO     = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO      = G_PREM_NO,
+                   sfpEND:BUILD_NO     = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> g_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO    = G_policy_NO,
+                             cppgeneral_alias:pol_year     = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence,
+                             cppGENERAL_ALIAS:PREM_NO      = g_PREM_NO,
+                             cppGENERAL_ALIAS:BUILD_NO     = g_BUILD_NO, Generic
+
+L_STATE = cppGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = cppgeneral:rating_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> cppgeneral:rating_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       g_PREM_NO
+    sfpEND:BUILD_NO             =       g_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "P"
+    if l_boiler = "Y" then
+        sfpend:boiler_Form      =       1
+    else
+        sfpend:boiler_form      =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO      = g_PREM_NO,
+                   sfpEND:BUILD_NO     = g_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> g_PREM_NO Or
+            sfpEND:BUILD_NO <> g_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no = 0000
+l_build_no = 0000
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO      = L_PREM_NO,
+                   sfpEND:BUILD_NO     = L_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpend:prem_no      = l_prem_no,
+                   sfpend:build_no     = l_build_no, generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpend:prem_no <> l_prem_no or
+            sfpend:build_no <> l_build_no
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppGENERAL:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = cppgeneral:rating_line_of_business,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> cppgeneral:rating_line_of_business Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_Sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       0000
+    sfpEND:BUILD_NO             =       0000
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    sfpend:terrorism_form       =       0
+    sfpend:manual_premium       =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO    = G_policy_NO ,
+                   sfpend:pol_year     = g_year,
+                   sfpend:end_sequence = g_End_sequence,
+                   sfpEND:PREM_NO      = L_PREM_NO,
+                   sfpEND:BUILD_NO     = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure CREATE_MACRO
+Begin
+Do REFRESH_WORK_FILES
+L_CSEXEC_APPLICATION = "PRINT"/raw
+
+Access SFSCSEXEC, Set SFSCSEXEC:APPLICATION = L_CSEXEC_APPLICATION , Exact
+
+If SFSCSEXEC:APPLICATION_NUMBER = 0 Then
+    Begin
+    L_CSEXEC_NUMBER = 99999
+    End
+Else
+    Begin
+    L_CSEXEC_NUMBER = SFSCSEXEC:APPLICATION_NUMBER + 1
+
+    Change SFSCSEXEC
+        Begin
+        SFSCSEXEC:APPLICATION_NUMBER = L_CSEXEC_NUMBER
+        End
+    End
+
+L_USERNAME = USERNAME
+I_REPORTA = "cppiso100"
+I_REPORT = "cppiso100.cq"
+I_REPORT_CQE = "cppiso100.cqe"
+I_APP = "cpp"
+I_CSEXEC_NUMBER = L_CSEXEC_NUMBER
+L_DEC = L_APP+Str(I_CSEXEC_NUMBER)+".cq"
+L_DEC_PDF = L_APP+Str(I_CSEXEC_NUMBER)+".pdf"
+I_PARAMETER = I_APP+Str(I_CSEXEC_NUMBER)+".par"
+I_MACROA = I_APP+Str(I_CSEXEC_NUMBER)
+I_MACRO = I_APP+Str(I_CSEXEC_NUMBER)+".mf"
+
+access sfpprint8, set sfpprint8:policy_no    = g_policy_no,
+                      sfpprint8:pol_year     = g_year,
+                      sfpprint8:end_sequence = g_end_sequence, generic
+
+if sfpprint8:policy_no <> g_policy_no or
+   sfpprint8:pol_Year <> g_year or
+   sfpprint8:end_sequence <> g_end_sequence then
+    begin
+    Add sfpprint8
+        Begin
+        sfpprint8:policy_NO    = G_policy_NO
+        sfpprint8:pol_year     = g_year
+        sfpprint8:end_sequence = g_end_sequence
+        end
+    End
+else
+    begin
+    delete sfpprint8
+    Add sfpprint8
+        Begin
+        sfpprint8:policy_NO    = G_policy_NO
+        sfpprint8:pol_year     = g_year
+        sfpprint8:end_sequence = g_end_sequence
+        end
+    End
+
+Deletefile(I_MACRO)
+Writefile(I_MACRO,"cli rm cppiso100.cq<nl>")
+Writefile(I_MACRO,"cli csbatch cppiso100<nl>")
+Writefile(I_MACRO,"cli pcl2pdf cppiso100.cq %s<nl>",l_dec)
+Closefile(I_MACRO)
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Proc("cli cq %s",I_MACRO)/noconsole
+Else
+    Proc("cli cq %s",I_MACRO)
+
+L_USERNAME = Trun(USERNAME)
+
+Access SFSPROFILE, Set SFSPROFILE:USER_ID = L_USERNAME, Exact
+
+If SFSPROFILE:USER_ID <> L_USERNAME Then
+    Begin
+    L_USERNAME = "default"
+    Access SFSPROFILE, Set SFSPROFILE:USER_ID = L_USERNAME, Exact
+    End
+
+L_UNIX_PATH   = SFSPROFILE:UNIX_PATH/raw
+L_UNIX_SERVER = SFSPROFILE:UNIX_SERVER/raw
+L_CLIENT_PATH = SFSPROFILE:CLIENT_PATH/raw
+
+If SFSCOMPANY:DEBUG_MODE = 0 Then
+    Begin
+    Proc("cli mv %s %s",L_DEC,L_DEC_PDF)/noconsole
+    Proc("cli chmod 777 %s ",L_DEC_PDF)/noconsole
+    Proc("cli rm %s",L_DEC)/noconsole
+    Proc("cli mv %s %s %s", L_DEC_PDF," ",Trun(L_UNIX_PATH))/noconsole
+    End
+Else
+    Begin
+    Proc("cli mv %s %s",L_DEC,L_DEC_PDF)
+    Proc("cli chmod 777 %s ",L_DEC_PDF)
+    Proc("cli rm %s",L_DEC)
+    Proc("cli mv %s %s %s", L_DEC_PDF," ",Trun(L_UNIX_PATH))
+    End
+
+Proc("%s %s%s",L_CLIENT_PATH,Trun(L_UNIX_SERVER),Trun(L_DEC_PDF))/client/noconsole
+
+access sfpprint8, set sfpprint8:policy_no    = g_policy_no,
+                      sfpprint8:pol_year     = g_year,
+                      sfpprint8:end_sequence = g_end_sequence, generic
+
+delete sfpprint8
+
+Do REFRESH_WORK_FILES
+End
+
+Procedure REFRESH_WORK_FILES
+Begin
+Proc ("cli sfpprint8.mk")/noconsole
+End
+
+End

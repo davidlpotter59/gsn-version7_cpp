@@ -1,0 +1,676 @@
+%%
+Screen
+        Name            = "cppmtmso697" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Farm Liability - Ver 7.00     %m" ;
+        Domain          = "cppfarmliab" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_CLASS_CODE[5] ;
+        Global Unsigned Ascii Number G_STATE[2] ;
+        global unsigned ascii number g_premium[9] ;
+
+        Global String G_POPUP[1] ;
+
+        Local String L_DESC[50] ,
+                     L_EXPOSURE_BASE[2] ,
+                     L_FLAT[4]="FLAT" ,
+                     l_desc_1[50],
+                     l_deductible_code[7]="",
+                     L_NA[4]="N/A" ,
+                     L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     l_code_4[7],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1]="N" ;
+
+        Local Unsigned Ascii Number L_CLASS_CODE[5] ,
+                                    L_LIABILITY_FORM[2] ,
+                                    l_seasonal_days[3]=0,
+                                    l_form[1]=0,
+                                    l_class_9000[2]=0,
+                                    l_motel_with_pool_class[5]=0,
+                                    l_seasonal[1]=0,
+                                    l_base_rate_1[6]=0/dec=3,
+                                    l_base_rate_2[6]=0/dec=3,
+                                    l_line_of_business[4],
+                                    l_state[2]=0,
+                                    l_sub_code[4]=0,
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0,
+                                    L_DEDUCTIBLE[5]=0;
+
+        Access cppfarmliab,
+           Set cppfarmliab:policy_NO = G_policy_NO ,
+               cppfarmliab:pol_year = g_year,
+               cppfarmliab:end_sequence = g_end_sequence,
+               cppfarmliab:PREM_NO = G_PREM_NO ,
+               cppfarmliab:BUILD_NO = G_BUILD_NO ,
+               cppfarmliab:CLASS_CODE = G_CLASS_CODE, Approximate
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+        "Up" Display "cppmtmso698" tagged limits_fn;
+        "SPEC" Display "cppmtmso06a" ;
+        "FACT" Display "cppmtmso06b" ;
+
+        "farmliab" display "cppmtmso697"   tagged farmliab_fn ;
+        "cova"     display "cppmtmso601"   tagged cova_fn ;
+        "covb"     display "cppmtmso602"   tagged covb_fn ;
+        "covc"     display "cppmtmso603"   tagged covc_fn ;
+        "covd"     display "cppmtmso604"   tagged covd_fn ;
+        "cove"     display "cppmtmso605"   tagged cove_fn ;
+        "misc"     display "cppmtmso606"   tagged misc_fn ;
+        "sup"      display "cppmtmso600"   tagged sup_fn ;
+        "endfarm"  display "cppmtmso650"   tagged endorsefarm_fn ;
+        "dev"      display "cppmtmso696"   tagged dev_fn ;
+
+        "func1"  sequence "terr"    tagged terr_fn ;
+        "terr" continue  Begin
+                   if sfscompany:special_territory_rating = 1 then
+                       function = "SPEC"
+                   else
+                       Error "You are not setup to do special territory rating"
+                   end ;
+
+        "func2"   sequence "terrfac"   tagged terrfac_fn ;
+        "terrfac" continue begin
+                   if sfscompany:special_territory_rating = 1 then
+                       function = "FACT"
+                   else
+                       Error "You are not setup to do special territory rating"
+                    end ;
+
+        Include "stdfunc7.inc"
+
+        "redisplay" display/noreturn "cppmtmso006" tagged redisplay_fn ;
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        Include "cppmsofrmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppfarmliab:policy_NO <> G_policy_NO or
+   cppfarmliab:pol_year <> g_year or
+   cppfarmliab:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*---------------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                                    |
+| Location No: ____                                                                     |
+| Building No: ____                                                                     |
+*---------------------------------------------------------------------------------------*
+| State: __   _______________   County: ___  _________________________________          |
+| Group: __  Class Code: _________________________________________________     _____    |
+| Prem/Ops Exposure: ________ Exposure Base: __ Per: ________ Rate: _______ Co Rate: _  |
+| Products Exposure: ________ Exposure Base: __ Per: ________ Rate: _______ Co Rate: _  |
+| Increased Limits Table:  _                                                            |
+*---------------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppfarmliab:policy_NO = G_policy_NO
+            cppfarmliab:pol_year = g_year
+            cppfarmliab:end_sequence = g_end_sequence
+            cppfarmliab:prem_no = 1
+            cppfarmliab:build_no = 1
+
+            Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO,
+                                  sfpmaster:pol_Year = g_year,
+                                  sfpmaster:end_sequence = g_end_sequence, Generic
+
+            If sfpMASTER:policy_NO <> G_policy_NO or
+               sfpmaster:pol_year <> g_year or
+               sfpmaster:end_sequence <> g_end_sequence Then
+                Add sfpMASTER
+                    Begin
+                    sfpMASTER:policy_NO = G_policy_NO
+                    sfpmaster:pol_year = g_year
+                    sfpmaster:end_sequence = g_end_sequence
+                    End
+            End
+        End
+        cppfarmliab:policy_NO/displayonly                    Mandatory;
+302     cppfarmliab:pol_year/displayonly ;
+303     cppfarmliab:end_sequence/displayonly ;
+401     cppfarmliab:PREM_NO/default                    Mandatory;
+501     cppfarmliab:BUILD_NO/default                   Mandatory;
+
+701     Begin
+        access sfpname, set sfpname:policy_no = g_policy_no,
+                            sfpname:pol_year = g_year,
+                            sfpname:end_sequence = g_end_sequence, generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+        access cppfarm, set cppfarm:policy_no = cppfarmliab:policy_no,
+                            cppfarm:pol_year = cppfarmliab:pol_year,
+                            cppfarm:end_sequence = cppfarmliab:end_sequence,
+                            cppfarm:prem_no  = cppfarmliab:prem_no,
+                            cppfarm:build_no = cppfarmliab:build_no, generic
+
+        Access cppfarmliab_ALIAS, Set cppfarmliab_ALIAS:policy_NO = cppfarmliab:policy_NO,
+                                      cppfarmliab_alias:pol_year = cppfarmliab:pol_year,
+                                      cppfarmliab_alias:end_sequence = cppfarmliab:end_sequence, Generic
+
+        If FUNCTION = "ADD" Then
+            Begin
+            Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID, Generic
+
+            cppfarmliab:STATE = CPSLIABDEFAULT:STATE
+            End
+        End
+        cppfarmliab:STATE/default
+        Include "statehlp.inc"
+702     SFSSTATE:DESCRIPTION;
+703     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            Access cppfarmlimits, Set cppfarmlimits:policy_NO = G_policy_NO,
+                                      cppfarmlimits:pol_year = g_year,
+                                      cppfarmlimits:end_sequence = g_end_sequence, Generic
+
+            If cppfarmlimits:policy_NO <> G_policy_NO or
+               cppfarmlimits:pol_Year <> g_year or
+               cppfarmlimits:end_sequence <> g_end_Sequence Then
+                Begin
+                G_STATE = cppfarmliab:STATE
+                Display Modal Screen "cppmtmso698"
+                With Initial Function "ADD|BACK"
+                End
+            cppfarmliab:form = cppfarmlimits:form
+            end
+
+        If FUNCTION = "ADD" Then
+            begin
+            if cppgeneral:policy_no = g_policy_no then
+                cppfarmliab:COUNTY = cppFARM:COUNTY
+            else
+                cppfarmliab:county = cpsliabdefault:county
+            end
+
+        cppfarmliab:rating_line_of_business = sfsline:rating_line_of_business
+        Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_sequence = g_end_sequence, Generic
+
+        If sfpMASTER:policy_NO = G_policy_NO and
+           sfpmaster:pol_year = g_year and
+           sfpmaster:end_sequence = g_end_sequence Then
+            change sfpMASTER
+                Begin
+                sfpMASTER:state = cppfarmliab:state
+                End
+        End
+        cppfarmliab:COUNTY/default
+        Include "countyhlp.inc"
+704     SFSSTATE_ALIAS:DESCRIPTION;
+
+801     Begin
+        l_desc_1 = l_desc
+        If FUNCTION = "ADD" Then
+            begin
+            cppfarmliab:group_no = cpsliabdefault:group_no
+            cppfarmliab:class_code = cpsliabdefault:class_code
+            cppfarmliab:sub_group = 1
+            cppfarmliab:sub_code = 10
+            Access CPSCLASS, Set CPSCLASS:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                 CPSCLASS:STATE = cppfarmliab:STATE,
+                                 CPSCLASS:LINE_OF_BUSINESS = l_line_of_business,
+                                 CPSCLASS:group_no = cppfarmliab:group_no,
+                                 cpsclass:sub_group = cppfarmliab:sub_group,
+                                 cpsclass:class_code = cppfarmliab:class_code,
+                                 cpsclass:sub_code = cppfarmliab:sub_code, generic
+
+            cppfarmliab:class_description = cpsclass:alpha_look
+            end
+        End
+        cppfarmliab:GROUP_NO/displayonly ;
+802     cppfarmliab:class_description/displayonly ;
+803     cppfarmliab:CLASS_CODE/displayonly ;
+
+901     cppfarmliab:EXPOSURE[1]
+        If cppfarmliab:EXPOSURE[1] = 0 And
+           cppfarmliab:base_rate[1] <> 0 Then
+            Error "Exposure can not be zero" ;
+902     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "CHANGE" Then
+            Begin
+            Do ACCESS_CPSFARMLIAB
+--            Do ACCESS_CPSLIABEXPBASE
+            Do ACCESS_CPSLIABDEFAULT
+            End
+        End
+        cppfarmliab:EXPOSURE_BASE[1]/default/uppercase;
+903     cppfarmliab:RATES_PER[1]/default ;
+904     cppfarmliab:BASE_RATE[1]/default;
+905     cppfarmliab:company_rate[1]/checkbox/values="0,1" ;
+
+1001    cppfarmliab:EXPOSURE[2]
+        Hide If cppfarmliab:PRODUCT_NOT_APPLICABLE = 1 Or
+                cppfarmliab:PRODUCTS_FLAT = 1
+        If cppfarmliab:EXPOSURE[2] = 0 and
+           cppfarmliab:base_rate[2] <> 0 and
+           cppfarmlimits:products <> 0 Then
+            Warning "Please check exposure" ;
+1002    cppfarmliab:EXPOSURE_BASE[2]/default/uppercase
+        Hide If cppfarmliab:PRODUCT_NOT_APPLICABLE = 1 ;
+1003    cppfarmliab:RATES_PER[2]/default
+        Hide If cppfarmliab:PRODUCT_NOT_APPLICABLE = 1 ;
+1004    cppfarmliab:BASE_RATE[2]/default
+        Hide If cppfarmliab:PRODUCT_NOT_APPLICABLE = 1 Or
+                cppfarmliab:PRODUCTS_FLAT = 1 ;
+1004    L_FLAT/displayonly
+        Hide If cppfarmliab:PRODUCTS_FLAT = 0 Or
+                cppfarmliab:PRODUCT_NOT_APPLICABLE = 1 ;
+1004    L_NA/displayonly
+        Hide If cppfarmliab:PRODUCTS_FLAT = 1 Or
+                cppfarmliab:PRODUCT_NOT_APPLICABLE = 0 ;
+1005    cppfarmliab:company_rate[2]/checkbox/values="0,1" ;
+
+1101    cppfarmliab:LIMITS_TABLE/default
+        If cppfarmliab:LIMITS_TABLE > 3 Then
+            Error "Only available limits tables are 1 through 3" ;
+
+
+}
+
+}
+
+Screen Exit
+        If cppfarmliab:policy_NO > 0 Then G_policy_NO = cppfarmliab:policy_NO ;
+        If cppfarmliab:PREM_NO > 0 Then G_PREM_NO = cppfarmliab:PREM_NO ;
+        If cppfarmliab:BUILD_NO > 0 Then G_BUILD_NO = cppfarmliab:BUILD_NO ;
+        If cppfarmliab:CLASS_CODE > 0 Then G_CLASS_CODE = cppfarmliab:CLASS_CODE ;
+
+Procedure Definition
+
+procedure access_cpsliabmiscrates
+begin
+g_prem_no = cppfarmliab:prem_no
+g_build_no = cppfarmliab:build_no
+access cpsliabmiscrates, set cpsliabmiscrates:company_id = sfpname:company_id,
+                             cpsliabmiscrates:state = cppfarmliab:state,
+                             cpsliabmiscrates:line_of_business = l_line_of_business, generic
+
+l_deductible = 0
+while cpsliabmiscrates:company_id = sfpname:company_id and
+      cpsliabmiscrates:state = cppfarmliab:state and
+      cpsliabmiscrates:line_of_business = l_line_of_business
+        begin
+        if sfpname:eff_date >= cpsliabmiscrates:eff_date then
+            begin
+            if cppfarmliab:class_code = cpsliabmiscrates:deductible_class_code[1] then
+                begin
+                l_deductible = cpsliabmiscrates:class_code_deductible[1]
+                l_deductible_code = cpsliabmiscrates:deductible_code[1]
+                end
+            if cppfarmliab:class_code = cpsliabmiscrates:deductible_class_code[2] then
+                begin
+                l_deductible = cpsliabmiscrates:class_code_deductible[2]
+                l_deductible_code = cpsliabmiscrates:deductible_code[2]
+                end
+            if cppfarmliab:class_code = cpsliabmiscrates:deductible_class_code[3] then
+                begin
+                l_deductible = cpsliabmiscrates:class_code_deductible[3]
+                l_deductible_code = cpsliabmiscrates:deductible_code[3]
+                end
+            if cppfarmliab:class_code = cpsliabmiscrates:deductible_class_code[4] then
+                begin
+                l_deductible = cpsliabmiscrates:class_code_deductible[4]
+                l_deductible_code = cpsliabmiscrates:deductible_code[4]
+                end
+            if cppfarmliab:class_code = cpsliabmiscrates:deductible_class_code[5] then
+                begin
+                l_deductible = cpsliabmiscrates:class_code_deductible[5]
+                l_deductible_code = cpsliabmiscrates:deductible_code[5]
+                end
+
+            end
+
+        next cpsliabmiscrates
+        end
+
+if l_deductible <> 0 then
+    begin
+    access cppliabdeduct, set cppliabdeduct:policy_no = g_policy_no,
+                              cppliabdeduct:poL_year = g_year,
+                              cppliabdeduct:end_sequence = g_end_sequence, generic
+
+    if cppliabdeduct:policy_no <> g_policy_no or
+       cppliabdeduct:pol_year <> g_year or
+       cppliabdeduct:end_sequence <> g_end_sequence then
+        add cppliabdeduct
+            begin
+            cppliabdeduct:policy_no     = g_policy_no
+            cppliabdeduct:pol_year      = g_year
+            cppliabdeduct:end_sequence  = g_end_sequence
+            cppliabdeduct:deductible[3] = l_deductible
+            if l_deductible_code = "MCL181" then
+                cppliabdeduct:MCL181 = 1
+            else
+            if l_deductible_code = "MCL182" then
+                cppliabdeduct:MCL182 = 1
+            else
+                cppliabdeduct:MCL180 = 1
+            end
+    else
+        change cppliabdeduct
+            begin
+            cppliabdeduct:deductible[3] = l_deductible
+            if l_deductible_code = "MCL181" then
+                cppliabdeduct:MCL181 = 1
+            else
+            if l_deductible_code = "MCL182" then
+                cppliabdeduct:MCL182 = 1
+            else
+                cppliabdeduct:MCL180 = 1
+            end
+
+    l_state = cppfarmliab:state
+    Access CPSLIABTRIGGER, Set CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                               CPSLIABTRIGGER:STATE = L_STATE,
+                               CPSLIABTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    While CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSLIABTRIGGER:STATE = L_STATE And
+          CPSLIABTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= CPSLIABTRIGGER:EFF_DATE Then
+                Begin
+                L_CODE_1 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[10]
+                L_CODE_2 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[11]
+                L_CODE_3 = CPSLIABTRIGGER:TRIGGER_ENDORSEMENT[12]
+                End
+            Next CPSLIABTRIGGER
+            End
+
+    access cppliabdeduct, set cppliabdeduct:policy_no = g_policy_no,
+                              cppliabdeduct:poL_year = g_year,
+                              cppliabdeduct:end_sequence = g_end_sequence, generic
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppliabdeduct:mcl180 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppliabdeduct:mcl180 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppliabdeduct:mcl181 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppliabdeduct:mcl181 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppliabdeduct:mcl182 = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppliabdeduct:mcl182 = 0 Then
+            Do DELETE_sfpEND
+        End
+
+
+    end
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppfarmliab:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_Year             =       g_year
+    sfpend:end_Sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "L"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+end
+
+Procedure ACCESS_CPSFARMLIAB
+Begin
+l_form = cppfarmlimits:form
+Access cpsfarmliab, Set cpsfarmliab:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        cpsfarmliab:STATE = cppfarmliab:STATE,
+                        cpsfarmliab:LINE_OF_BUSINESS = l_line_of_business,
+                        cpsfarmliab:form = l_form, generic
+
+While cpsfarmliab:COMPANY_ID = sfpNAME:COMPANY_ID And
+      cpsfarmliab:STATE = cppfarmliab:STATE And
+      cpsfarmliab:LINE_OF_BUSINESS = l_line_of_business And
+      cpsfarmliab:form = l_form
+        Begin
+        If sfpNAME:EFF_DATE >= cpsfarmliab:REFF_DATE Then
+            Begin
+            cppfarmliab:EXPOSURE_BASE[1] = cpsfarmliab:EXPOSURE_BASE
+            cppfarmliab:RATES_PER[1]     = cpsfarmliab:PER
+            if cppfarmliab:exposure[1] <= cpsfarmliab:no_acres[1] then
+                cppfarmliab:base_rate[1] = cpsfarmliab:acres[1]
+            else
+            if cppfarmliab:exposure[1] > cpsfarmliab:no_acres[1] and
+               cppfarmliab:exposure[1] <= cpsfarmliab:no_acres[2] then
+                cppfarmliab:base_rate[1] = cpsfarmliab:acres[2]
+            else
+                cppfarmliab:base_rate[1] = cpsfarmliab:acres[3]
+            cppfarmliab:PRODUCT_NOT_APPLICABLE = 1
+            cppfarmliab:limits_table = cpsfarmliab:limits_table
+            End
+        Next cpsfarmliab
+        End
+
+End
+
+Procedure ACCESS_CPSLIABEXPBASE
+Begin
+L_EXPOSURE_BASE = cppfarmliab:EXPOSURE_BASE[1]
+Access CPSLIABEXPBASE, Set CPSLIABEXPBASE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                           CPSLIABEXPBASE:STATE = cppfarmliab:STATE,
+                           CPSLIABEXPBASE:LINE_OF_BUSINESS = l_line_of_business,
+                           CPSLIABEXPBASE:EXPOSURE_BASE = L_EXPOSURE_BASE, Generic
+
+While CPSLIABEXPBASE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABEXPBASE:STATE = cppfarmliab:STATE And
+      CPSLIABEXPBASE:LINE_OF_BUSINESS = l_line_of_business And
+      CPSLIABEXPBASE:EXPOSURE_BASE = L_EXPOSURE_BASE
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABEXPBASE:EFF_DATE Then
+            Begin
+            If cppfarmliab:RATES_PER[1] = 0 or
+               cppfarmliab:rates_per[1] <> cpsliabexpbase:per[1] Then
+                cppfarmliab:RATES_PER[1] = CPSLIABEXPBASE:PER[1]
+            End
+        Next CPSLIABEXPBASE
+        End
+End
+
+Procedure ACCESS_CPSLIABDEFAULT
+Begin
+access cppfarmlimits, set cppfarmlimits:policy_no = cppfarmliab:policy_no,
+                          cppfarmlimits:pol_year = cppfarmliab:pol_year,
+                          cppfarmlimits:end_Sequence = cppfarmliab:end_sequence, generic
+
+L_LIABILITY_FORM = cppfarmlimits:FORM
+Access CPSLIABDEFAULT, Set CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID,
+                           CPSLIABDEFAULT:STATE = cppfarmliab:STATE,
+                           CPSLIABDEFAULT:LIABILITY_FORM = L_LIABILITY_FORM, Generic
+
+While CPSLIABDEFAULT:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSLIABDEFAULT:STATE = cppfarmliab:STATE And
+      CPSLIABDEFAULT:LIABILITY_FORM = L_LIABILITY_FORM
+        Begin
+        If sfpNAME:EFF_DATE >= CPSLIABDEFAULT:EFF_DATE Then
+            Begin
+            cppfarmliab:EXPOSURE_BASE[2] = CPSLIABDEFAULT:PRODUCTS_EXPOSURE_BASE
+            If cppfarmliab:RATES_PER[2] = 0 Then
+                cppfarmliab:RATES_PER[2] = CPSLIABDEFAULT:PRODUCTS_RATES_PER
+            End
+
+        Next CPSLIABDEFAULT
+        End
+
+End
+
+End

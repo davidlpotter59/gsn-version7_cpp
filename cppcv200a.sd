@@ -1,0 +1,180 @@
+%%
+Program
+        Name = "CPPCV200a" ;
+        Type = "File" ;
+        Domain = "FLAT" ;
+        Padcharacter = Space ;
+
+    Global Unsigned Ascii Number G_POLICY_NO[9] ,
+                                 G_YEAR[4] ,
+                                 G_END_SEQUENCE[4] ,
+                                 G_QUOTE_NO[8] ;
+
+    Local String L_PROCEDURE[50] ;
+
+Initialisation
+G_POLICY_NO = Val(COMMANDLINE[1,9])
+G_YEAR = Val(COMMANDLINE[11,14])
+G_END_SEQUENCE = Val(COMMANDLINE[16,19])
+G_QUOTE_NO = Val(COMMANDLINE[21,28])
+
+L_PROCEDURE = "cppartdeduct FILE UPDATE"
+
+Access CPPartdeduct, Set CPPartdeduct:POLICY_NO = G_POLICY_NO,
+                          CPPartdeduct:POL_YEAR = G_YEAR,
+                          CPPartdeduct:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartdeduct:POLICY_NO <> G_POLICY_NO Or
+            CPPartdeduct:POL_YEAR <> G_YEAR Or
+            CPPartdeduct:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQartdeduct
+        Begin
+        CPQartdeduct:QUOTE_NO               = G_QUOTE_NO
+        CPQartdeduct:RECORD_RDF             = CPPartdeduct:RECORD_RDF/raw
+        End
+
+    Next CPPartdeduct
+    End
+
+L_PROCEDURE = "cppartisan FILE UPDATE"
+
+Access CPPartisan, Set CPPartisan:POLICY_NO = G_POLICY_NO,
+                         CPPartisan:POL_YEAR = G_YEAR,
+                         CPPartisan:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartisan:POLICY_NO <> G_POLICY_NO Or
+            CPPartisan:POL_YEAR <> G_YEAR Or
+            CPPartisan:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQartisan
+        Begin
+        CPQartisan:QUOTE_NO               = G_QUOTE_NO
+        CPQartisan:PREM_NO                = CPPartisan:PREM_NO
+        CPQartisan:BUILD_NO               = CPPartisan:BUILD_NO
+        CPQartisan:CLASS_CODE             = CPPartisan:CLASS_CODE
+        CPQartisan:RECORD_RDF             = CPPartisan:RECORD_RDF/raw
+        End
+
+    Next CPPartisan
+    End
+
+L_PROCEDURE = "cppartlimits FILE UPDATE"
+
+Access CPPartlimits, Set CPPartlimits:POLICY_NO = G_POLICY_NO,
+                          CPPartlimits:POL_YEAR = G_YEAR,
+                          CPPartlimits:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartlimits:POLICY_NO <> G_POLICY_NO Or
+            CPPartlimits:POL_YEAR <> G_YEAR Or
+            CPPartlimits:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQartlimits
+        Begin
+        CPQartlimits:QUOTE_NO               = G_QUOTE_NO
+        CPQartlimits:RECORD_RDF             = CPPartlimits:RECORD_RDF/raw
+        End
+
+    Next CPPartlimits
+    End
+
+L_PROCEDURE = "cppartdeviation FILE UPDATE"
+
+Access CPPartdeviation, Set CPPartdeviation:POLICY_NO = G_POLICY_NO,
+                          CPPartdeviation:POL_YEAR = G_YEAR,
+                          CPPartdeviation:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPartdeviation:POLICY_NO <> G_POLICY_NO Or
+            CPPartdeviation:POL_YEAR <> G_YEAR Or
+            CPPartdeviation:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQartdeviation
+        Begin
+        CPQartdeviation:QUOTE_NO               = G_QUOTE_NO
+        CPQartdeviation:RECORD_RDF             = CPPartdeviation:RECORD_RDF/raw
+        End
+
+    Next CPPartdeviation
+    End
+
+L_PROCEDURE = "cppisocrime FILE UPDATE"
+
+Access CPPisocrime, Set CPPisocrime:POLICY_NO = G_POLICY_NO,
+                         CPPisocrime:POL_YEAR = G_YEAR,
+                         CPPisocrime:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPisocrime:POLICY_NO <> G_POLICY_NO Or
+            CPPisocrime:POL_YEAR <> G_YEAR Or
+            CPPisocrime:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQisocrime
+        Begin
+        CPQisocrime:QUOTE_NO               = G_QUOTE_NO
+        CPQisocrime:PREM_NO                = CPPisocrime:PREM_NO
+        CPQisocrime:BUILD_NO               = CPPisocrime:BUILD_NO
+        CPQisocrime:crime_form             = CPPisocrime:crime_form
+        CPQisocrime:RECORD_RDF             = CPPisocrime:RECORD_RDF/raw
+        End
+
+    Next CPPisocrime
+    End
+
+L_PROCEDURE = "cppisoblanket FILE UPDATE"
+
+Access CPPisoblanket, Set CPPisoblanket:POLICY_NO = G_POLICY_NO,
+                         CPPisoblanket:POL_YEAR = G_YEAR,
+                         CPPisoblanket:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPisoblanket:POLICY_NO <> G_POLICY_NO Or
+            CPPisoblanket:POL_YEAR <> G_YEAR Or
+            CPPisoblanket:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQisoblanket
+        Begin
+        CPQisoblanket:QUOTE_NO               = G_QUOTE_NO
+        CPQisoblanket:PREM_NO                = CPPisoblanket:PREM_NO
+        CPQisoblanket:BUILD_NO               = CPPisoblanket:BUILD_NO
+        CPQisoblanket:rate_type              = CPPisoblanket:rate_Type
+        CPQisoblanket:RECORD_RDF             = CPPisoblanket:RECORD_RDF/raw
+        End
+
+    Next CPPisoblanket
+    End
+
+L_PROCEDURE = "cppgeneral1 FILE UPDATE"
+
+Access CPPgeneral1, Set CPPgeneral1:POLICY_NO = G_POLICY_NO,
+                        CPPgeneral1:POL_YEAR = G_YEAR,
+                        CPPgeneral1:END_SEQUENCE = G_END_SEQUENCE, Generic
+
+Repeat Begin
+    Exit If CPPgeneral1:POLICY_NO <> G_POLICY_NO Or
+            CPPgeneral1:POL_YEAR <> G_YEAR Or
+            CPPgeneral1:END_SEQUENCE <> G_END_SEQUENCE
+
+    Add CPQgeneral1
+        Begin
+        CPQgeneral1:QUOTE_NO               = G_QUOTE_NO
+        CPQgeneral1:PREM_NO                = CPPgeneral1:PREM_NO
+        CPQgeneral1:BUILD_NO               = CPPgeneral1:BUILD_NO
+        CPQgeneral1:rate_type              = CPPgeneral1:rate_Type
+        CPQgeneral1:RECORD_RDF             = CPPgeneral1:RECORD_RDF/raw
+        End
+
+    Next CPPgeneral1
+    End
+
+Update
+
+Errors
+Writefile("cppcv200a.err","%s<nl>",ERRORTEXT)
+Writefile("cppcv200a.err","%n<nl>",ERRORNUMBER)
+Writefile("cppcv200a.err","%s<nl>",L_PROCEDURE)
+
+End

@@ -1,0 +1,369 @@
+%%
+Screen
+        Name = "cppMTMSO998" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppumbrella" ;
+        Windowtitle = "%a     %s Final Rating - Increased Limits - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ;
+
+        Local Unsigned Ascii Number L_TOTAL_1[8]=0,
+                                    L_TOTAL_2[8]=0,
+                                    L_TOTAL_3[8]=0,
+                                    L_TOTAL_4[8]=0,
+                                    L_TOTAL_5[8]=0,
+                                    l_total_6[8]=0,
+                                    l_total_7[8]=0,
+                                    l_total_8[8]=0,
+                                    l_total_9[8]=0,
+                                    l_total_10[8]=0,
+                                    l_prior_total_6[8]=0,
+                                    l_prior_total_7[8]=0,
+                                    l_prior_total_8[8]=0,
+                                    l_prior_total_9[8]=0,
+                                    l_prior_total_10[8]=0,
+                                    l_sub[2]=0,
+                                    l_repeat[2]=0 ;
+
+        local array[10] of unsigned ascii number l_limit[8] ;
+
+        Access cppumbrella, Set cppumbrella:policy_NO = G_policy_NO,
+                                cppumbrella:pol_year = g_year,
+                                cppumbrella:end_sequence = g_end_sequence, Generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+disable(add_fn)
+--disable(change_fn)
+disable(delete_fn)
+
+Access Validation
+If cppumbrella:policy_NO <> G_policy_NO or
+   cppumbrella:pol_year <> g_year or
+   cppumbrella:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+| __________     __________     __________     __________     __________       |
+|                                                                              |
+| __________     __________     __________     __________     __________       |
+*------------------------------------------------------------------------------*
+| __________     __________     __________     __________     __________       |
+|                                                                              |
+| __________     __________     __________     __________     __________       |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppumbrella:policy_NO/displayonly  ;
+302     cppumbrella:pol_year/displayonly ;
+303     cppumbrella:end_sequence/displayonly ;
+
+501     begin
+            do limits
+            Do TOTALS
+        end
+        l_limit[1]/displayonly/mask="ZZ,ZZZ,ZZZ";
+502     l_limit[2]/displayonly/mask="ZZ,ZZZ,ZZZ";
+503     l_limit[3]/displayonly/mask="ZZ,ZZZ,ZZZ";
+504     l_limit[4]/displayonly/mask="ZZ,ZZZ,ZZZ";
+505     l_limit[5]/displayonly/mask="ZZ,ZZZ,ZZZ";
+901     l_limit[6]/displayonly/mask="ZZ,ZZZ,ZZZ";
+902     l_limit[7]/displayonly/mask="ZZ,ZZZ,ZZZ"
+        hide if l_total_7 = 0 ;
+903     l_limit[8]/displayonly/mask="ZZ,ZZZ,ZZZ"
+        hide if l_total_8 = 0 ;
+904     l_limit[9]/displayonly/mask="ZZ,ZZZ,ZZZ"
+        hide if l_total_9 = 0 ;
+905     l_limit[10]/displayonly/mask="ZZ,ZZZ,ZZZ"
+        hide if l_total_10 = 0 ;
+
+701     L_TOTAL_1/displayonly/mask="ZZ,ZZZ,ZZZ.99";
+702     L_TOTAL_2/displayonly/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[2] = 0 ;
+703     L_TOTAL_3/displayonly/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[3] = 0 ;
+704     L_TOTAL_4/displayonly/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[4] = 0 ;
+705     L_TOTAL_5/displayonly/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[5] = 0 ;
+
+1101    begin
+            l_prior_total_6 = l_total_6
+        end
+        L_TOTAL_6/default/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[6] = 0
+        hide if l_total_6 = 0 ;
+1102    begin
+            l_prior_total_7 = l_total_7
+        end
+        L_TOTAL_7/default/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[7] = 0
+        hide if l_total_7 = 0;
+1103    begin
+            l_prior_total_8 = l_total_8
+        end
+        L_TOTAL_8/default/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[8] = 0
+        hide if l_total_8 = 0 ;
+1104    begin
+            l_prior_total_9 = l_total_9
+        end
+        L_TOTAL_9/default/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[9] = 0
+        hide if l_total_9 = 0;
+1105    begin
+            l_prior_total_10 = l_total_10
+        end
+        L_TOTAL_10/default/mask="ZZ,ZZZ,ZZZ.99"
+        hide if l_limit[10] = 0
+        hide if l_total_10 = 0 ;
+501     begin
+            do update_files
+        end
+        l_limit[1]/displayonly/mask="ZZ,ZZZ,ZZZ" ;
+
+}
+
+Procedure Definition
+
+procedure update_files
+begin
+access cppumbrella_alias, set cppumbrella_alias:policy_no    = cppumbrella:policy_no,
+                              cppumbrella_alias:pol_year     = cppumbrella:pol_year,
+                              cppumbrella_alias:end_sequence = cppumbrella:end_sequence, generic
+
+if cppumbrella_alias:policy_no    = cppumbrella:policy_no and
+   cppumbrella_alias:pol_year     = cppumbrella:pol_year and
+   cppumbrella_alias:end_sequence = cppumbrella:end_sequence then
+    begin
+    if l_total_6  <> l_prior_total_6 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[1] = 1
+            end
+        end
+    if l_total_7  <> l_prior_total_7 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[2] = 1
+            end
+        end
+    if l_total_8  <> l_prior_total_8 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[3] = 1
+            end
+        end
+    if l_total_9  <> l_prior_total_9 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[4] = 1
+            end
+        end
+    if l_total_10  <> l_prior_total_10 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[5] = 1
+            end
+        end
+    if l_total_6 = 0 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[1] = 0
+            end
+        end
+    if l_total_7 = 0 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[2] = 0
+            end
+        end
+    if l_total_8 = 0 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[3] = 0
+            end
+        end
+    if l_total_9 = 0 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[4] = 0
+            end
+        end
+    if l_total_10 = 0 then
+        begin
+        change cppumbrella_alias
+            begin
+            cppumbrella_alias:manually_changed_limits[5] = 0
+            end
+        end
+    end
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpmastsupp, set sfpmastsupp:policy_no        = cppumbrella:policy_no,
+                            sfpmastsupp:pol_year         = cppumbrella:pol_year,
+                            sfpmastsupp:end_sequence     = cppumbrella:end_sequence,
+                            sfpmastsupp:line_of_business = cppumbrella:line_of_business, generic
+
+    if sfpmastsupp:policy_no        = cppumbrella:policy_no and
+       sfpmastsupp:pol_year         = cppumbrella:pol_year and
+       sfpmastsupp:end_sequence     = cppumbrella:end_sequence and
+       sfpmastsupp:line_of_business = cppumbrella:line_of_business then
+        begin
+        change sfpmastsupp
+            begin
+            sfpmastsupp:other_totals[11] = l_total_6
+            sfpmastsupp:other_totals[12] = l_total_7
+            sfpmastsupp:other_totals[13] = l_total_8
+            sfpmastsupp:other_totals[14] = l_total_9
+            sfpmastsupp:other_totals[15] = l_total_10
+            end
+        end
+    end
+else
+    begin
+    access sfpmaster, set sfpmaster:policy_no    = cppumbrella:policy_no,
+                          sfpmaster:pol_year     = cppumbrella:pol_year,
+                          sfpmaster:end_sequence = cppumbrella:end_sequence, generic
+
+    if sfpmaster:policy_no    = cppumbrella:policy_no and
+       sfpmaster:pol_year     = cppumbrella:pol_year and
+       sfpmaster:end_sequence = cppumbrella:end_sequence then
+        begin
+        change sfpmaster
+            begin
+            sfpmaster:other_totals[11] = l_total_6
+            sfpmaster:other_totals[12] = l_total_7
+            sfpmaster:other_totals[13] = l_total_8
+            sfpmaster:other_totals[14] = l_total_9
+            sfpmaster:other_totals[15] = l_total_10
+            end
+        end
+    end
+
+end
+
+procedure limits
+begin
+access cpsumlimits, set cpsumlimits:company_id       = sfpname:company_id,
+                        cpsumlimits:state            = cppumbrella:state,
+                        cpsumlimits:line_of_business = cppumbrella:line_of_business, generic
+
+l_sub = 1
+while cpsumlimits:company_id       = sfpname:company_id and
+      cpsumlimits:state            = cppumbrella:state and
+      cpsumlimits:line_of_business = cppumbrella:line_of_business
+        begin
+        if sfpname:eff_date >= cpsumlimits:eff_date then
+            begin
+            l_limit[l_sub] = cpsumlimits:limit
+            l_sub = l_sub + 1
+            end
+
+        next cpsumlimits
+        end
+
+end
+
+Procedure TOTALS
+Begin
+access sfpmastsupp, set sfpmastsupp:policy_no        = cppumbrella:policy_no,
+                        sfpmastsupp:pol_year         = cppumbrella:pol_year,
+                        sfpmastsupp:end_sequence     = cppumbrella:end_sequence,
+                        sfpmastsupp:line_of_business = cppumbrella:line_of_business, generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    l_total_1  = sfpmastsupp:total[1]         + sfpmastsupp:other_totals[1]
+    l_total_2  = sfpmastsupp:total[2]         + sfpmastsupp:other_totals[2]
+    l_total_3  = sfpmastsupp:total[3]         + sfpmastsupp:other_totals[3]
+    l_total_4  = sfpmastsupp:total[4]         + sfpmastsupp:other_totals[4]
+    l_total_5  = sfpmastsupp:total[5]         + sfpmastsupp:other_totals[5]
+    l_total_6  = sfpmastsupp:other_totals[11] + sfpmastsupp:other_totals[6]
+    l_total_7  = sfpmastsupp:other_totals[12] + sfpmastsupp:other_totals[7]
+    l_total_8  = sfpmastsupp:other_totals[13] + sfpmastsupp:other_totals[8]
+    l_total_9  = sfpmastsupp:other_totals[14] + sfpmastsupp:other_totals[9]
+    l_total_10 = sfpmastsupp:other_totals[15] + sfpmastsupp:other_totals[10]
+    end
+else
+    begin
+    l_total_1  = sfpmaster:total[1]         + sfpmaster:other_totals[1]
+    l_total_2  = sfpmaster:total[2]         + sfpmaster:other_totals[2]
+    l_total_3  = sfpmaster:total[3]         + sfpmaster:other_totals[3]
+    l_total_4  = sfpmaster:total[4]         + sfpmaster:other_totals[4]
+    l_total_5  = sfpmaster:total[5]         + sfpmaster:other_totals[5]
+    l_total_6  = sfpmaster:other_totals[11] + sfpmaster:other_totals[6]
+    l_total_7  = sfpmaster:other_totals[12] + sfpmaster:other_totals[7]
+    l_total_8  = sfpmaster:other_totals[13] + sfpmaster:other_totals[8]
+    l_total_9  = sfpmaster:other_totals[14] + sfpmaster:other_totals[9]
+    l_total_10 = sfpmaster:other_totals[15] + sfpmaster:other_totals[10]
+    end
+
+end
+
+End

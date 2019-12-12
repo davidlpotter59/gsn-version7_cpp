@@ -1,0 +1,949 @@
+%%
+Screen
+        Name            = "cppmtmso200" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle= "%a     %s Optional Coverages     Ver 7.00 %m" ;
+        Domain          = "cppPROPERTY" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4] ;
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4],
+                                    L_STATE[2] ,
+                                    L_LIMIT[8]=0,
+                                    l_max_glass_limit[8]=0,
+                                    l_glass_pane[4]=0,
+                                    l_glass_max_per_pane[4]=0,
+                                    l_prem_no[4],
+                                    l_build_no[4],
+                                    l_deductible[5]=0,
+                                    l_signs_limit[8]=0,
+                                    l_line_of_business[4],
+                                    L_WATER_BKUP_LIMIT[8] ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     L_code_6[7],
+                     l_code_7[7],
+                     l_code_8[7],
+                     l_code_9[7],
+                     l_code_10[7],
+                     l_code_11[7],
+                     l_mcp507_exists[1],
+                     L_ADD_ENDORSEMENT[1] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55] ;
+
+        Access cppPROPERTY,
+           Set cppPROPERTY:policy_NO = G_policy_NO ,
+               cppproperty:pol_year = g_year,
+               cppproperty:end_sequence = g_end_sequence,
+               cppPROPERTY:PREM_NO = G_PREM_NO ,
+               cppPROPERTY:BUILD_NO = G_BUILD_NO ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+screen entry
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+Access Validation
+If cppPROPERTY:policy_NO <> G_policy_NO Or
+   cppproperty:pol_year <> g_year or
+   cppproperty:end_sequence <> g_end_sequence or
+   cppPROPERTY:PREM_NO <> G_PREM_NO Or
+   cppPROPERTY:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   ________  ____  ____                                            |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| A/R Limit:             ________     Outdoor property Limit:   ________       |
+| Inflation                           Outdoor property Per:     ______         |
+| -Coverage A:           __           Personal Effects:         ________       |
+| -Coverage B:           __           Property of Others:       ________       |
+| Peak Season:           ___          Valuable Papers:          ________       |
+| Glass:                 ________     Precious Metals:          ________       |
+| Glass Per Pane:        ____         Limit Water Backup:       _              |
+| Signs Not Attached:    ________     Water Backup:             ________       |
+| -Entirely Metal:       _            Boilers:                  _              |
+| Signs Attached:        ________                                              |
+| -Delete Ded (MCP108):  _                                                     |
+| Building Code/Law:     ___                                                   |
+| -ACV Basis MCP506:     _                                                     |
+| Loss Utility Service:  ________                                              |
+| Mechanical Breakdown:  ________                                              |
+| Debris Removal:        ________                                              |
+| Off Premises Property                                                        |
+| -At Other Locations:   ________                                              |
+| -In Transit:           ________                                              |
+| -MCP505:               _                                                     |
+| -Optional Theft Limit: ________                                              |
+| -Override Premium:     ________                                              |
+| Weather Related Coverage [R _~Deductible _~No~Deductible _~Not~Applicable R] |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        access sfpname, set sfpname:policy_no = g_policy_no,
+                            sfpname:pol_year = g_year,
+                            sfpname:end_sequence = g_end_sequence, generic
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+        If FUNCTION One Of "ADD", "CHANGE" Then
+            Begin
+            cppPROPERTY:policy_NO = G_policy_NO
+            cppproperty:pol_year = g_year
+            cppproperty:end_sequence = g_end_sequence
+            cppPROPERTY:PREM_NO = G_PREM_NO
+            cppPROPERTY:BUILD_NO = G_BUILD_NO
+            End
+        End
+        cppPROPERTY:policy_NO/displayonly                   Mandatory;
+302     cppproperty:pol_year/displayonly ;
+303     cppproperty:end_sequence/displayonly;
+401     cppPROPERTY:PREM_NO/displayonly                      Mandatory;
+501     cppPROPERTY:BUILD_NO/displayonly                     Mandatory;
+
+701     cppPROPERTY:AR_LIMIT;
+901     cppPROPERTY:INFLATION_GUARD[1];
+1001    cppPROPERTY:INFLATION_GUARD[2];
+1101    cppPROPERTY:PEAK_SEASON;
+1201    begin
+            do max_glass_limit
+        end
+        cppPROPERTY:GLASS_LIMIT
+        if cppproperty:glass_limit <> l_max_glass_limit and
+           cppproperty:glass_limit <> l_limit then
+            error "You entered a limit over the maximum allowed"
+        if cppproperty:glass_limit = l_max_glass_limit then
+            cppproperty:glass_per_pane = l_glass_max_per_pane
+        if cppproperty:glass_limit = l_limit then
+            cppproperty:glass_per_pane = l_glass_pane ;
+1301    cppPROPERTY:GLASS_PER_PANE/default;
+1401    cppPROPERTY:SIGNS_NOT_ATTACHED ;
+1501    cppproperty:signs_metal/checkbox/values="0,1"
+        do signs_not_attached_limit
+        hide if cppproperty:signs_not_attached = l_signs_limit ;
+1601    cppPROPERTY:SIGNS_ATTACHED;
+1701    cppPROPERTY:DELETE_SIGNS_DEDUCTIBLE/checkbox/values="0,1" ;
+/*1702    begin
+        access cppgeneral, set cppgeneral:policy_no = cppproperty:policy_no,
+                               cppgeneral:pol_year = cppproperty:pol_year,
+                               cppgeneral:end_sequence = cppproperty:end_sequence,
+                               cppgeneral:prem_no = cppproperty:prem_no,
+                               cppgeneral:build_no = cppproperty:build_no, generic
+
+        l_state = cppgeneral:state
+        access sfsdeductible_alias, set sfsdeductible_alias:company_id = sfpname:company_id,
+                                        sfsdeductible_alias:state = l_state,
+                                        sfsdeductible_alias:line_of_business = l_line_of_business, generic
+
+        end
+        cppproperty:signs_deductible/mask="ZZZZZ"/default
+        l_deductible = cppproperty:signs_deductible
+        access sfsdeductible, set sfsdeductible:company_id = sfpname:company_id,
+                                  sfsdeductible:state = l_state,
+                                  sfsdeductible:line_of_business = l_line_of_business,
+                                  sfsdeductible:deductible = l_deductible, generic
+
+        if cppproperty:signs_deductible <> sfsdeductible:deductible then
+            error "Invalid Deductible"
+
+        activehelp sfsdeductible_alias:deductible  ;*/
+1801    cppPROPERTY:BUILDING_CODE_PERCENT;
+1901    cppproperty:building_code_acv/checkbox/values="0,1" ;
+2001    cppPROPERTY:LOSS_UTILITY;
+2101    cppPROPERTY:MECHANICAL_BREAKDOWN;
+2201    cppPROPERTY:DEBRIS_REMOVAL;
+2401    cppPROPERTY:OFF_PREM_OTHER_LOCATION;
+2501    cppPROPERTY:OFF_PREM_IN_TRANSIT;
+2601    cppPROPERTY:MCP505_OPTION/checkbox/values="0,1" ;
+2701    cppproperty:loss_assessment ;
+2801    cppproperty:off_prem_in_transit_manual ;
+2901    cppproperty:weather_related/values="1,2,0"
+        hide if sfscompany:boiler_rating <> 4
+        hide if cppgeneral:res_condo = 0 ;
+
+702     cppPROPERTY:OUTDOOR_PROPERTY ;
+801     cppPROPERTY:OUTDOOR_PROPERTY_PER;
+902     cppPROPERTY:PERSONAL_EFFECTS;
+1002    cppproperty:personal_property_of_others ;
+1102    cppPROPERTY:VALUABLE_PAPERS;
+1202    cppPROPERTY:PRECIOUS_METALS;
+1302    cppPROPERTY:WATER_BACKUP_LIMITED/checkbox/values="0,1"
+        if cppproperty:water_backup_limited = 0 then
+            cppproperty:water_backup = 0 ;
+1402    Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "CHANGE" And
+           cppPROPERTY:WATER_BACKUP_LIMITED = 1 Then
+            Begin
+            Do GET_WATER_BACKUP_BASIC_LIMIT
+            if cppproperty:water_backup = 0 then
+                cppPROPERTY:WATER_BACKUP = L_WATER_BKUP_LIMIT
+            End
+        End
+        cppPROPERTY:WATER_BACKUP/default
+        Hide If cppPROPERTY:WATER_BACKUP_LIMITED = 0 ;
+1502    cppPROPERTY:BOILER/checkbox/values="0,1";
+
+}
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    L_STATE = cppGENERAL:STATE
+    Access cpsproprate, Set cpsproprate:COMPANY_ID = sfpNAME:COMPANY_ID,
+                           cpsproprate:STATE = L_STATE,
+                           cpsproprate:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+    l_code_1  = ""
+    l_code_2  = ""
+    l_code_3  = ""
+    l_code_4  = ""
+    l_code_5  = ""
+    l_code_6  = ""
+    l_code_7  = ""
+    l_code_8  = ""
+    l_code_9  = ""
+    l_code_10 = ""
+    l_code_11 = ""
+    While cpsproprate:COMPANY_ID = sfpNAME:COMPANY_ID And
+          cpsproprate:STATE = L_STATE And
+          cpsproprate:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+            Begin
+            If sfpNAME:EFF_DATE >= cpsproprate:EFF_DATE Then
+                Begin
+                L_CODE_1  = cpsproprate:signs_delete_ded_code          -- signs delete deductible
+                L_CODE_2  = cpsproprate:building_law_acv_code          -- ACV building code
+                L_CODE_3  = cpsproprate:water_backup_code              -- water backup limted
+                L_CODE_4  = cpsproprate:water_backup_policy_limit_code -- water backup up to policy limits
+--                L_CODE_5  = cpsproprate:boiler_code                    -- boilers
+                l_code_6  = cpsproprate:building_law_excl_code         -- delete building code
+                l_code_7  = "MCP505"
+                l_code_8  = cpsproprate:weather_related_code[1]
+                l_code_9  = cpsproprate:weather_related_code[2]
+--                l_code_10 = cpsproprate:condo_code
+--                l_code_11 = cpsproprate:boiler_code_1
+                End
+            Next cpsproprate
+            End
+
+    If L_CODE_1 <> "" Then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:DELETE_SIGNS_DEDUCTIBLE = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:DELETE_SIGNS_DEDUCTIBLE = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BUILDING_CODE_ACV = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BUILDING_CODE_ACV = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" and
+       sfscompany:boiler_rating <> 4 and
+       sfpname:company_id <> "FARMERS" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:WATER_BACKUP_LIMITED = 1 And
+           cppPROPERTY:WATER_BACKUP = L_WATER_BKUP_LIMIT Then
+            Do ADD_sfpEND
+        If (L_ADD_ENDORSEMENT = "N" And
+           (cppPROPERTY:WATER_BACKUP_LIMITED = 0 Or
+           cppPROPERTY:WATER_BACKUP <> L_WATER_BKUP_LIMIT)) Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" and
+       sfpname:company_id = "FARMERS" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:WATER_BACKUP <> 0 and
+           l_mcp507_exists = "N" Then
+            Do ADD_sfpEND
+        If ((L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:WATER_BACKUP = 0) or
+           l_mcp507_exists = "Y") then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_3 <> "" and
+       sfscompany:boiler_rating = 4 and
+       sfpname:company_id <> "FARMERS" Then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:WATER_BACKUP_LIMITED = 1 And
+           cppPROPERTY:WATER_BACKUP <> 0 Then
+            Do ADD_sfpEND
+        If (L_ADD_ENDORSEMENT = "N" And
+           (cppPROPERTY:WATER_BACKUP_LIMITED = 0 Or
+           cppPROPERTY:WATER_BACKUP = 0)) Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_4 <> "" and
+       sfscompany:boiler_rating <> 4 and
+       sfpname:company_id <> "FARMERS" Then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:WATER_BACKUP <> L_WATER_BKUP_LIMIT And
+           cppPROPERTY:WATER_BACKUP <> 0 Then
+            Do ADD_sfpEND
+        If (L_ADD_ENDORSEMENT = "N" And
+           (cppPROPERTY:WATER_BACKUP = L_WATER_BKUP_LIMIT Or
+           cppPROPERTY:WATER_BACKUP = 0)) Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_5 <> "" and
+       sfscompany:boiler_rating <> 4 Then
+        Begin
+        L_CODE = L_CODE_5
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 and
+           cppgeneral:condo = 0 Then
+            Do ADD_sfpEND
+        If ((L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0) or
+           (l_add_endorsement = "N" and
+           cppgeneral:condo = 1))  Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_6 <> "" Then
+        Begin
+        L_CODE = L_CODE_6
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:building_code_percent = 0 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:building_code_percent <> 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If l_code_7 <> "" then
+        Begin
+        L_CODE = L_CODE_7
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:mcp505_option = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:mcp505_option = 0 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_8 <> "" Then
+        Begin
+        L_CODE = L_CODE_8
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppproperty:weather_related = 1 Then
+            Do ADD_sfpEND
+        else
+        If L_ADD_ENDORSEMENT = "N" And
+           cppproperty:weather_related <> 1 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_9 <> "" Then
+        Begin
+        L_CODE = L_CODE_9
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppproperty:weather_related = 2 Then
+            Do ADD_sfpEND
+        else
+        If L_ADD_ENDORSEMENT = "N" And
+           cppproperty:weather_related <> 2 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_10 <> "" and
+       sfscompany:boiler_Rating <> 4 Then
+        Begin
+        L_CODE = L_CODE_10
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 and
+           cppgeneral:condo = 1 Then
+            Do ADD_sfpEND
+        If ((L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0) or
+           (l_add_endorsement = "N" and
+           cppgeneral:condo = 0)) Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_11 <> "" and
+       sfscompany:boiler_Rating <> 4 Then
+        Begin
+        L_CODE = L_CODE_11
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 Then
+            Do ADD_sfpEND
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0 Then
+            Do DELETE_sfpEND
+        End
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    g_prem_no = cppgeneral:prem_no
+    g_build_no = cppgeneral:build_no
+    l_state = cppgeneral:state
+    l_line_of_business = sfpname:line_of_business
+    Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                            CPSPROPRATE:STATE = L_STATE,
+                            CPSPROPRATE:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS, Generic
+
+    l_code_1 = ""
+    l_code_2 = ""
+    l_code_3 = ""
+    l_code_4 = ""
+    While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+          CPSPROPRATE:STATE = L_STATE And
+          CPSPROPRATE:LINE_OF_BUSINESS = l_LINE_OF_BUSINESS
+            Begin
+            If (sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE and
+               (sfpname:eff_date <= cpsproprate:exp_date or
+               cpsproprate:exp_date = 0)) Then
+                Begin
+                L_CODE_1 = CPSPROPRATE:boiler_code
+                L_CODE_2 = CPSPROPRATE:boiler_code_1
+                if sfpname:company_id = "GGUND" then
+                    begin
+                    l_code_3 = cpsproprate:res_condo_code
+                    l_code_4 = cpsproprate:condo_code
+                    end
+                else
+                    begin
+                    L_CODE_3 = CPSPROPRATE:condo_code
+                    l_code_4 = ""
+                    end
+                End
+
+            Next CPSPROPRATE
+            End
+
+    If L_CODE_1 <> "" then
+        Begin
+        L_CODE = L_CODE_1
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 Then
+            begin
+            if cppgeneral:condo = 0 and
+               cppgeneral:unit_owner = 0 and
+               cppgeneral:res_condo = 0 then
+                Do ADD_sfpEND
+            end
+
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0 Then
+            Do DELETE_sfpEND
+
+        if cppgeneral:condo = 1 or
+           cppgeneral:unit_owner = 1 or
+           cppgeneral:res_condo = 1 Then
+            Do DELETE_sfpEND
+        End
+
+    If L_CODE_2 <> "" Then
+        Begin
+        L_CODE = L_CODE_2
+        Do ACCESS_sfpEND_1
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 Then
+            Do ADD_sfpEND_1
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0 Then
+            Do DELETE_sfpEND_1
+        End
+
+    If L_CODE_3 <> "" then
+        Begin
+        L_CODE = L_CODE_3
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 Then
+            begin
+            if sfpname:company_id one of "DELOS", "GGUND" then
+                begin
+                if cppgeneral:unit_owner = 0 and
+                   cppgeneral:condo = 0 and
+                   cppgeneral:res_condo = 1 then
+                    do add_sfpend
+                if cppgeneral:res_condo = 0 then
+                    do delete_sfpend
+                end
+            else
+                begin
+                if cppgeneral:condo = 1 or
+                   cppgeneral:unit_owner = 1 or
+                   cppgeneral:res_condo = 1 then
+                    Do ADD_sfpEND
+                end
+            end
+
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0 Then
+            Do DELETE_sfpEND
+
+        if sfpname:company_id not one of "DELOS",  "GGUND" then
+            begin
+            if cppgeneral:condo = 0 and
+               cppgeneral:unit_owner = 0 and
+               cppgeneral:res_condo = 0 then
+                Do DELETE_sfpEND
+            end
+        else
+            begin
+            if cppgeneral:unit_owner = 1 and
+               cppgeneral:res_condo = 0 then
+                Do DELETE_sfpEND
+            else
+            if cppgeneral:condo = 1 then
+                do delete_sfpend
+            end
+        End
+
+    If L_CODE_4 <> "" and
+       sfpname:company_id one of "DELOS",  "GGUND" then
+        Begin
+        L_CODE = L_CODE_4
+        Do ACCESS_sfpEND
+        If L_ADD_ENDORSEMENT = "Y" And
+           cppPROPERTY:BOILER = 1 Then
+            begin
+            if ((cppgeneral:unit_owner = 1 or
+               cppgeneral:condo = 1) and
+               cppgeneral:res_condo = 0) then
+                Do ADD_sfpEND
+            if cppgeneral:unit_owner = 0 and
+               cppgeneral:condo = 0 then
+                do delete_sfpend
+            end
+
+        If L_ADD_ENDORSEMENT = "N" And
+           cppPROPERTY:BOILER = 0 Then
+            Do DELETE_sfpEND
+
+        if cppgeneral:unit_owner = 0 and
+           cppgeneral:condo = 0 then
+            Do DELETE_sfpEND
+
+        if cppgeneral:res_condo = 1 and
+           cppgeneral:condo = 0 and
+           cppgeneral:unit_owner = 0 then
+            do delete_sfpend
+        End
+
+    end
+    end
+
+Procedure Definition
+
+Procedure GET_WATER_BACKUP_BASIC_LIMIT
+Begin
+L_STATE = cppGENERAL:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+L_WATER_BKUP_LIMIT = 0
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            L_WATER_BKUP_LIMIT = CPSPROPRATE:WATER_BACKUP_BASIC_LIMIT
+
+        Next CPSPROPRATE
+        End
+
+End
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+Access sfpEND, Set sfpEND:policy_no = G_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = 0,
+                   sfpEND:BUILD_NO = 0, Generic
+
+l_mcp507_exists = "N"
+Repeat Begin
+    Exit If sfpEND:policy_no <> G_policy_no Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO  <> 0 Or
+            sfpEND:BUILD_NO <> 0
+
+    if sfpend:code = "MCP507" then
+        l_mcp507_exists = "Y"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence,
+                             cppGENERAL_ALIAS:PREM_NO = G_PREM_NO,
+                             cppGENERAL_ALIAS:BUILD_NO = G_BUILD_NO, Generic
+
+L_STATE = cppGENERAL_ALIAS:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       G_PREM_NO
+    sfpEND:BUILD_NO             =       G_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpEND:LOB_END_CODE         =       "P"
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = G_PREM_NO,
+                   sfpEND:BUILD_NO = G_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> G_PREM_NO Or
+            sfpEND:BUILD_NO <> G_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no = 0000
+l_build_no = 0000
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpend:prem_no = l_prem_no,
+                   sfpend:build_no = l_build_no, generic
+
+L_SUB_CODE = 0
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpend:prem_no <> l_prem_no or
+            sfpend:build_no <> l_build_no
+
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppGENERAL:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE = L_CODE, Generic
+
+Repeat Begin
+    Exit If SFSOPTEND:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            SFSOPTEND:STATE <> L_STATE Or
+            SFSOPTEND:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS Or
+            SFSOPTEND:CODE <> L_CODE
+
+    If sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       0000
+    sfpEND:BUILD_NO             =       0000
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "P"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    sfpend:terrorism_form       =       0
+    sfpend:manual_premium       =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+Repeat Begin
+    Exit If sfpEND:policy_NO <> G_policy_NO Or
+            sfpend:pol_year <> g_year or
+            sfpend:end_sequence <> g_end_sequence or
+            sfpEND:PREM_NO <> L_PREM_NO Or
+            sfpEND:BUILD_NO <> L_BUILD_NO
+
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+End
+
+Procedure signs_not_attached_limit
+Begin
+L_STATE = cppGENERAL_ALIAS:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            L_signs_LIMIT = CPSPROPRATE:signs_not_attached_limit
+            End
+
+        Next CPSPROPRATE
+        End
+
+end
+
+Procedure max_glass_limit
+Begin
+L_STATE = cppGENERAL_ALIAS:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID And
+      CPSPROPRATE:STATE = L_STATE And
+      CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+            Begin
+            l_limit = cpsproprate:glass_limit
+            l_glass_pane = cpsproprate:glass_pane
+            L_MAX_GLASS_LIMIT = CPSPROPRATE:GLASS_MAX
+            l_glass_max_per_pane = cpsproprate:glass_max_pane
+            End
+
+        Next CPSPROPRATE
+        End
+
+end
+
+End

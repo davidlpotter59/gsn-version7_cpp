@@ -1,0 +1,147 @@
+%%
+Screen
+        Name            = "cppmt208" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPENDORSE" ;
+        Windowtitle = "%a     %s Vacancy Changes  Ver 7.00 %m" ;
+        iconline        = 0 ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0 ;
+
+        Access CPPENDORSE,
+           Set CPPENDORSE:POLICY_NO = G_POLICY_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               CPPENDORSE:PREM_NO = G_PREM_NO ,
+               CPPENDORSE:BUILD_NO = G_BUILD_NO ,
+               CPPENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        Include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+Access Validation
+If CPPENDORSE:POLICY_NO <> G_POLICY_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   CPPENDORSE:PREM_NO <> G_PREM_NO Or
+   CPPENDORSE:BUILD_NO <> G_BUILD_NO Or
+   CPPENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype      = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________ ____ ____                                             |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Minimum Percentage Rented/Used: __ %                                         |
+*------------------------------------------------------------------------------*
+%%
+
+Components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPENDORSE:POLICY_NO = G_POLICY_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            CPPENDORSE:PREM_NO = G_PREM_NO
+            CPPENDORSE:BUILD_NO = G_BUILD_NO
+            CPPENDORSE:CODE = G_CODE
+            cppendorse:rating_line_of_business = 0008
+            Do SUBCODE
+            CPPENDORSE:SUB_CODE = L_SUB_CODE
+            Access CPPGENERAL, Set CPPGENERAL:POLICY_NO = G_POLICY_NO,
+                                   cppgeneral:pol_year = g_year,
+                                   cppgeneral:end_sequence = g_end_sequence,
+                                   CPPGENERAL:PREM_NO = G_PREM_NO,
+                                   CPPGENERAL:BUILD_NO = G_BUILD_NO, generic
+
+            CPPENDORSE:STATE = CPPGENERAL:STATE
+            End
+        End
+        CPPENDORSE:POLICY_NO/displayonly ;
+302     cppendorse:pol_year/displayonly ;
+303     cppendorse:end_sequence/displayonly ;
+401     CPPENDORSE:PREM_NO/displayonly ;
+501     CPPENDORSE:BUILD_NO/displayonly ;
+701     CPPENDORSE:months ;
+
+}
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access CPPENDORSE_ALIAS, Set CPPENDORSE_ALIAS:POLICY_NO = CPPENDORSE:POLICY_NO,
+                             cppendorse_alias:pol_year = cppendorse:pol_year,
+                             cppendorse_alias:end_sequence = cppendorse:end_sequence,
+                             CPPENDORSE_ALIAS:PREM_NO = CPPENDORSE:PREM_NO,
+                             CPPENDORSE_ALIAS:BUILD_NO = CPPENDORSE:BUILD_NO,
+                             CPPENDORSE_ALIAS:CODE = CPPENDORSE:CODE, Generic
+
+L_SUB_CODE = 0
+While CPPENDORSE_ALIAS:POLICY_NO = CPPENDORSE:POLICY_NO And
+      cppendorse_alias:pol_year = cppendorse:pol_year and
+      cppendorse_alias:end_sequence = cppendorse:end_sequence and
+      CPPENDORSE_ALIAS:PREM_NO = CPPENDORSE:PREM_NO And
+      CPPENDORSE_ALIAS:BUILD_NO = CPPENDORSE:BUILD_NO And
+      CPPENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = CPPENDORSE_ALIAS:SUB_CODE
+
+        Next CPPENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

@@ -1,0 +1,197 @@
+%%
+/*
+Date Written: June 17, 2003
+
+Name: cppCG2144.sd
+
+Copyright (c) 2000, SCIPS.com Inc.
+
+Modify
+Date                   By                  Comment
+--------------------------------------------------------------
+06/17/2003
+
+===========================
+*/
+
+Program
+  Name = "cppcg2144";
+  Type = "File";
+  Domain = "SFPPRINT1";
+  Padcharacter = Space;
+
+ String L_FILE_NAME[12] = "cppcg2144.cq";
+ string l_font[35] ;
+ unsigned ascii number l_max_lines;
+ unsigned ascii number l_line_counter;
+ unsigned ascii number l_page_counter;
+ unsigned ascii number l_loop;
+
+   Include "csfonts.inc"
+   Include "swsut100.var"
+   Include "swsut200.var"
+ --Include "swsut300.var"
+   Include "line_spacing.var"
+
+Initialization
+  Deletefile (L_FILE_NAME);
+
+Update
+
+Access SFPNAME,
+       Set SFPNAME:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPNAME:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPNAME:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPLOCATION,
+       Set SFPLOCATION:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPLOCATION:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPLOCATION:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFPEND,
+       Set SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+           SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+           SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE, Generic
+
+Access SFSCOMPANY,
+       Set SFSCOMPANY:COMPANY_ID = SFPNAME:COMPANY_ID, Exact
+
+
+   Include "swsut103.inc"
+   I_CODE = "CG2144"
+   Include "swsut200.inc"
+ --Include "swsut300.var"
+
+l_page_counter = 1
+
+While SFPEND:POLICY_NO    = SFPPRINT1:POLICY_NO And
+      SFPEND:POL_YEAR     = SFPPRINT1:POL_YEAR And
+      SFPEND:END_SEQUENCE = SFPPRINT1:END_SEQUENCE
+
+  {
+    If SFPEND:CODE = "CG2144" Then
+      {
+        Access cppendorse,
+           Set cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO ,
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR ,
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE,
+               cppendorse:prem_no      = sfpend:prem_no,
+               cppendorse:build_no     = sfpend:build_no,
+               cppendorse:code         = "CG2144", Generic
+
+        While  cppendorse:POLICY_NO    = SFPPRINT1:POLICY_NO and
+               cppendorse:POL_YEAR     = SFPPRINT1:POL_YEAR and
+               cppendorse:END_SEQUENCE = SFPPRINT1:END_SEQUENCE and
+               cppendorse:prem_no      = sfpend:prem_no and
+               cppendorse:build_no     = sfpend:build_no and
+               cppendorse:code         = "CG2144"
+            {
+
+              Writefile(L_FILE_NAME,"%s", l_arial_12)
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+              Writefile(L_FILE_NAME,"%s","POLICY NUMBER: ")
+              Writefile(L_FILE_NAME,"%n",sfpprint1:policy_no)
+              Writefile(L_FILE_NAME,"%s","<033>&a4600h+0V")
+              Writefile(L_FILE_NAME,"%s",l_arial_bold_12)
+              Writefile(L_FILE_NAME,"%s","<033>&a3400h+0V")
+              Writefile(L_FILE_NAME,"%s","COMMERCIAL GENERAL LIABILITY")
+
+              Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_12)
+              Writefile(L_FILE_NAME,"%s","<033>&a4700h+120V")
+              Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+              Writefile(L_FILE_NAME,"%s"," ")
+              Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+              Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_14)
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+              Writefile(L_FILE_NAME,"%s","THIS ENDORSEMENT CHANGES THE POLICY. PLEASE READ IT CAREFULLY.")
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_18)
+              Writefile(L_FILE_NAME,"%s","<033>&a900h+240V")
+              Writefile(L_FILE_NAME,"%s", "LIMITATION OF COVERAGE TO DESIGNATED")
+              Writefile(L_FILE_NAME,"%s","<033>&a1800h+180V")
+              Writefile(L_FILE_NAME,"%s","PREMISES OR PROJECT ")
+              Writefile(L_FILE_NAME,"%s", l_arial_12)
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+              Writefile(L_FILE_NAME,"%s","This endorsement modifies insurance provided under the following:")
+              Writefile(L_FILE_NAME,"%s","<033>&a400h+240V")
+              Writefile(L_FILE_NAME,"%s","COMMERCIAL GENERAL LIABILITY COVERAGE PART")
+              Writefile(L_FILE_NAME,"%s","<033>&a400h+120V")
+              Writefile(L_FILE_NAME,"%s","OWNERS AND CONTRACTORS PROTECTIVE LIABILITY INSURANCE")
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_12)
+              Writefile(L_FILE_NAME,"%s","<033>&a2500h+240V")
+              Writefile(L_FILE_NAME,"%s","SCHEDULE")
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+160V")
+              Writefile(L_FILE_NAME,"%s","Premises: ")
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+
+              Writefile(L_FILE_NAME,"%s",cppendorse:location[1])
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+140V")
+              Writefile(L_FILE_NAME,"%s",cppendorse:location[2])
+
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+              Writefile(L_FILE_NAME,"%s","Project: ")
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+
+              l_max_lines        = 100
+              L_FONT             = l_arial_bold_9
+              L_V_POSITION       = "+0"
+              L_H_POSITION       = "200"
+              L_CHARACTER_STRING = cppendorse:description
+              L_MAX_CHAR         = 90
+              include "line_spacing.inc"
+
+              Writefile(L_FILE_NAME,"%s", l_arial_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+              Writefile(L_FILE_NAME,"%s","(If no entry appears above, information required to complete this endorsement will be shown in the Declarations as")
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+              Writefile(L_FILE_NAME,"%s","applicable to this endorsement.)")
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+240V")
+              Writefile(L_FILE_NAME,"%s",'This insurance applies only to "bodily injury", "property damage", "personal injury", "advertising injury" and medical')
+              Writefile(L_FILE_NAME,"%s","<033>&a200h+120V")
+              Writefile(L_FILE_NAME,"%s","expenses arising out of:")
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a320h+160V")
+              Writefile(L_FILE_NAME,"%s","1.")
+              Writefile(L_FILE_NAME,"%s", l_arial_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a500h+0V")
+              Writefile(L_FILE_NAME,"%s","The ownership, maintenance or use of the premises shown in the Schedule and operations necessary or inci-")
+              Writefile(L_FILE_NAME,"%s","<033>&a500h+120V")
+              Writefile(L_FILE_NAME,"%s","dental to those premises; or")
+              Writefile(L_FILE_NAME,"%s", l_arial_bold_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a320h+160V")
+              Writefile(L_FILE_NAME,"%s","2.")
+              Writefile(L_FILE_NAME,"%s", l_arial_9)
+              Writefile(L_FILE_NAME,"%s","<033>&a500h+0V")
+              Writefile(L_FILE_NAME,"%s","The project shown in the Schedule.")
+
+              Writefile(L_FILE_NAME,"%s","<033>&a200h7200V")
+              Writefile(L_FILE_NAME,"%s","<033>&a200h7200V")
+              Writefile(L_FILE_NAME,"%s",l_arial_bold_12)
+              Writefile(L_FILE_NAME,"%s",Trun(SFSOPTEND:FORM_PRINT))
+              Writefile(L_FILE_NAME,"%s"," ")
+              Writefile(L_FILE_NAME,"%s",L_ARIAL_BOLD_9)
+              Writefile(L_FILE_NAME,"%s",SFSOPTEND:EDITION_PRINT)
+
+              Writefile(L_FILE_NAME,"%s","<033>&a2000h+0V")
+              Writefile(L_FILE_NAME,"%s","Copyright, Insurance Services Office, 1984")
+              Writefile(L_FILE_NAME,"%s","<033>&a5000h+0V")
+              Writefile(L_FILE_NAME,"%s","Page ")
+              Writefile(L_FILE_NAME,"%n",L_PAGE_COUNTER)
+              Writefile(L_FILE_NAME,"%s"," of ")
+              Writefile(L_FILE_NAME,"%n",L_PAGE_COUNTER)
+              Writefile(L_FILE_NAME,"%s","")
+
+              Next cppendorse
+            }
+
+    }
+  Next SFPEND
+}
+
+Screen Exit
+Writefile(L_FILE_NAME,"%s%s",L_FORMFEED ,L_RESET )
+Closefile(L_FILE_NAME)
+End

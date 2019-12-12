@@ -1,0 +1,201 @@
+%%
+Screen
+        Name = "cppmtmso905" ;
+        Type = "Detail" ;
+        Padcharacter=Space ;
+        Highlite=Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppUMDETAIL" ;
+        Windowtitle="%a     %s Garage Liability - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_line_of_business[4] ;
+
+        global string g_company_id[10] ,
+                      g_inquiry[1] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    l_abort_program[1] ;
+
+        Local String L_COVERAGE[1]="L" ,
+                     l_username[15],
+                     l_system_id[15] ;
+
+        Access cppUMDETAIL,
+           Set cppUMDETAIL:policy_NO    = G_policy_NO,
+               cppumdetail:pol_year     = g_year,
+               cppumdetail:end_sequence = g_end_sequence,
+               cppUMDETAIL:COVERAGE     = L_COVERAGE, Generic ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "func1" display "" tagged notes_fn ;
+        "func2" display "" tagged misc_fn ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+access sfpname, set sfpname:policy_no    = g_policy_no,
+                    sfpname:pol_year     = g_year,
+                    sfpname:end_sequence = g_End_sequence, generic
+
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+if sfsline:lob_code one of "CPORTFOLIO" then
+    begin
+    access sfpamt, set sfpamt:policy_no    = g_policy_no,
+                       sfpamt:pol_year     = g_year,
+                       sfpamt:end_sequence = g_End_sequence, generic
+
+    g_line_of_business = sfpamt:line_of_business[4]
+    end
+else
+    begin
+    g_line_of_business = sfpname:line_of_business
+    end
+
+if g_company_id = "" then
+    g_company_id = sfsdefault:company_id
+l_system_id = "cup"/spacefill
+include "rating_security.inc"
+
+if g_inquiry = "Y" and
+   sfssecurity_rating:allow_to_change_in_inquiry = 0 then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppUMDETAIL:policy_NO <> G_policy_NO Or
+   cppumdetail:pol_year <> g_year or
+   cppumdetail:end_sequence <> g_end_sequence or
+   cppUMDETAIL:COVERAGE <> L_COVERAGE Then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Company Name: __________________________________________________             |
+| Policy No:    _________________________  ______________________________      |
+| Eff Date:     __________                                                     |
+| Exp Date:     __________                                                     |
+*------------------------------------------------------------------------------*
+|                Auto Only                   Other Than Auto                   |
+|              Each Accident         Each Occurrence   General Aggregate       |
+|                                                                              |
+|               __________             __________          __________          |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppUMDETAIL:policy_NO = G_policy_NO
+            cppumdetail:pol_year = g_year
+            cppumdetail:end_sequence = g_end_sequence
+            Do SUBCODE
+            cppUMDETAIL:COVERAGE = "L"
+            cppumdetail:company_name = sfscompany:name[1]
+            cppumdetail:line_of_business = g_line_of_business
+            End
+        End
+        cppUMDETAIL:COMPANY_NAME/uppercase/default
+        hide if sfpname:company_id one of "DELOS", "GGUND" ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppUMDETAIL:policy_NO = G_policy_NO
+            cppumdetail:pol_year = g_year
+            cppumdetail:end_sequence = g_end_sequence
+            Do SUBCODE
+            cppUMDETAIL:COVERAGE = "L"
+--            cppumdetail:company_name = sfscompany:name[1]
+            cppumdetail:line_of_business = g_line_of_business
+            End
+        End
+        cppUMDETAIL:COMPANY_NAME/uppercase/default
+        hide if sfpname:company_id not one of "DELOS", "GGUND"
+
+        activehelp/optionlist "STARR INDEMNITY & LIABILITY COMPANY",
+                              "IMPERIUM INSURANCE COMPANY",
+                              "AXIS INSURANCE COMPANY",
+                              "GENERAL SECURITY NATIONAL INSURANCE COMPANY";
+
+401     cppUMDETAIL:POLICY_NUMBER/uppercase ;
+402     cppUMDETAIL:POLICY_NUMBER_MISC/uppercase ;
+501     cppUMDETAIL:EFF_DATE;
+601     Begin
+        If FUNCTION = "ADD" Then
+            cppUMDETAIL:EXP_DATE = Dateadd(cppUMDETAIL:EFF_DATE,0,1)
+        End
+        cppUMDETAIL:EXP_DATE/default ;
+1101    cppUMDETAIL:LIMIT[1];
+1102    cppUMDETAIL:LIMIT[2];
+1103    begin
+        if function one of "ADD", "CHANGE" then
+            cppumdetail:limit[3] = cppumdetail:limit[1] * 3
+        end
+        cppumdetail:limit[3]/default ;
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppUMDETAIL_ALIAS, Set cppUMDETAIL_ALIAS:policy_NO = cppUMDETAIL:policy_NO,
+                              cppUMDETAIL_ALIAS:pol_Year = cppumdetail:pol_Year,
+                              cppUMDETAIL_ALIAS:end_sequence = cppumdetail:end_sequence,
+                              cppUMDETAIL_ALIAS:COVERAGE  = L_COVERAGE, Generic
+
+L_SUB_CODE = 0
+While cppUMDETAIL_ALIAS:policy_NO = cppUMDETAIL:policy_NO And
+      cppumdetail_alias:pol_year = cppumdetail:pol_Year and
+      cppumdetail_alias:end_sequence = cppumdetail:end_sequence and
+      cppUMDETAIL_ALIAS:COVERAGE = L_COVERAGE
+        Begin
+
+        L_SUB_CODE = cppUMDETAIL_ALIAS:SUB_CODE
+
+        Next cppUMDETAIL_ALIAS
+        End
+
+cppUMDETAIL:SUB_CODE = L_SUB_CODE + 10
+
+/* end of subcode */
+End
+
+/* end of file */
+End

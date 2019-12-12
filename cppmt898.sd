@@ -1,0 +1,197 @@
+%%
+Screen
+        Name = "cppMT898" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppliability";
+        Windowtitle = "%a     %s Deviations - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10] ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_STATE[2] ,
+                                     G_RATE_TYPE[2] ,
+                                     G_CLASS_CODE[5] ,
+                                     G_SUB_CODE[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      G_POPUP[1] ,
+                      g_inquiry[1] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_COMPANY_ID[10] ,
+                     l_username[15] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Local Unsigned Ascii Number L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008;
+
+        Local Signed Ascii Number L_PACKAGE_MOD[4]=0/decimals=2 ;
+
+        Access cppliability, Set cppliability:policy_NO    = G_policy_NO,
+                                 cppliability:pol_year     = g_year,
+                                 cppliability:end_sequence = g_end_sequence,
+                                 cppliability:prem_no      = g_prem_no,
+                                 cppliability:build_no     = g_build_no,
+                                 cppliability:class_code   = g_class_code, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        "update_totals" display/noreturn "cppmt008" ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(delete_fn)
+    disable(change_fn)
+    end
+
+Access Validation
+If cppliability:policy_NO    <> G_policy_NO or
+   cppliability:pol_year     <> g_year or
+   cppliability:end_sequence <> g_end_sequence or
+   cppliability:prem_no      <> g_prem_no or
+   cppliability:build_no     <> g_build_no or
+   cppliability:class_code   <> g_class_code then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        ______________
+*------------------------------------------------------------------------------*
+| Policy No:  _________  ____  ____                                            |
+| Prem No:    ____                                                             |
+| Build No:   ____                                                             |
+| Class Code: _____                                                            |
+*------------------------------------------------------------------------------*
+|                        Company               PMA                             |
+|                        Deviation                                             |
+*------------------------------------------------------------------------------*
+|                        ________            ________                          |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppliability:policy_NO/displayonly  ;
+302     cppliability:pol_year/displayonly ;
+303     cppliability:end_sequence/displayonly ;
+401     cppliability:prem_no/displayonly ;
+501     cppliability:build_no/displayonly ;
+601     cppliability:class_code/displayonly ;
+1101    Begin
+        If function one of "ADD", "CHANGE" then
+            begin
+            if cppliability:company_deviation[1] = 0 then
+                cppliability:COMPANY_DEVIATION[1] = 1.00
+            end
+        End
+        cppliability:COMPANY_DEVIATION[1]/default
+        if sfpname:package = 0 then
+            cppliability:package_mod[1] = 1.00 ;
+1102    Begin
+        If function one of "ADD", "CHANGE" Then
+            begin
+--            if cppliability:package_mod[1] = 0, 1.00 then
+--                begin
+                Do GET_PACKAGE_MOD
+                if l_package_mod <> 0 and
+                   sfpname:package = 1 then
+                    cppliability:package_mod[1] = l_package_mod
+                else
+                    cppliability:package_mod[1] = 1.00
+--                end
+            end
+        End
+        cppliability:PACKAGE_MOD[1]/default
+        hide if sfpname:package = 0 ;
+
+}
+
+screen exit
+if function one of "EXIT", "BACK" and
+   g_inquiry not one of "Y" then
+    function = "update_totals"
+
+Procedure Definition
+
+procedure get_package_mod
+begin
+access cppliability_alias, set cppliability_alias:policy_no    = g_policy_no,
+                               cppliability_alias:pol_year     = g_year,
+                               cppliability_alias:end_sequence = g_end_sequence,
+                               cppliability_alias:prem_no      = g_prem_no,
+                               cppliability_alias:build_no     = g_build_no,
+                               cppliability_alias:class_code   = g_class_code, generic
+
+l_company_id = sfpname:company_id
+access cpsisopackage, set cpsisopackage:company_id       = l_company_id,
+                          cpsisopackage:state            = cppliability_alias:state,
+                          cpsisopackage:line_of_business = cppliability_alias:rating_line_of_business,
+                          cpsisopackage:type             = cppliability_alias:type, generic
+
+l_package_mod = 0
+while cpsisopackage:company_id       = sfpname:company_id and
+      cpsisopackage:state            = cppliability_alias:state and
+      cpsisopackage:line_of_business = cppliability_alias:rating_line_of_business and
+      cpsisopackage:type             = cppliability_alias:type
+        begin
+        if (sfpname:eff_date >= cpsisopackage:eff_date and
+           (sfpname:eff_date <= cpsisopackage:exp_date or
+           cpsisopackage:exp_date = 0)) then
+            begin
+            l_package_mod = cpsisopackage:package_mod[3]
+
+            end
+
+        next cpsisopackage
+        end
+
+end
+
+End

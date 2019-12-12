@@ -1,0 +1,132 @@
+%%
+Screen
+        Name            = "cppmtmso009d";
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic";
+        Windowtitle="%a     %s Policy Information   Ver 7.0  %m";
+        Domain          = "sfpMASTER" ;
+        iconline        = 0;
+
+/*
+  Date Written
+
+  White Hall Mutual Insurance Company
+
+  Modify
+  Date      by      Comments
+________________________________________________________________________________
+11/03/2000  dap     This screen is created for rating MSO. MSO rating is different
+                    from ISO. There is 2 separate libraries boqisolib boqmsolib.
+================================================================================
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_STATE[2],
+                                     G_LINE_OF_BUSINESS[4] ;
+
+        Global String G_COMPANY_ID[10] ,
+                      g_fob[1] ,
+                      g_fob_description[75] ;
+
+        Access sfpMASTER, Set sfpMASTER:policy_NO = G_policy_NO ,
+                              sfpmaster:pol_year = g_year,
+                              sfpmaster:end_Sequence = g_end_Sequence ;
+
+        Include "stdkeys7.INC"
+--        !F8="I"/function/icon="Other" ;
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+--        add/update="NO" ;
+
+        "I" Display "cppmtmso009e" ;
+
+        Include "stdfunc7.inc"
+
+        "redisplay" display/noreturn "cppmtmso009d" ;
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If sfpMASTER:policy_NO <> G_policy_NO or
+   sfpmaster:pol_year <> g_year or
+   sfpmaster:end_sequence <> g_end_sequence Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                                                                              |
+|                            *------------------------*                        |
+|                            |     Form of Business   |                        |
+|                            |                        |                        |
+|                            | [R  _~~Corporation     |                        |
+|                            |     _~~Individual      |                        |
+|                            |     _~~Joint~Venture   |                        |
+|                            |     _~~Organization    |                        |
+|                            |     _~~Partnership     |                        |
+|                            |     _~~LLC             |                        |
+|                            |     _~~Other         R]|                        |
+|                            *------------------------*                        |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+701     sfpmaster:form_of_business/values="C,I,J,O,P,L,T"/default
+        If sfpmaster:form_of_business = "T" Then
+            Begin
+            g_fob_description = sfpmaster:fob_description
+            Display Modal Screen "cppmtmso009e"
+            With Initial Function "CHANGE|BACK"
+            sfpmaster:fob_description = g_fob_description
+            End
+        else
+            sfpmaster:fob_description = "";
+
+}
+
+
+}
+
+
+update
+function = "redisplay" ;
+
+End
+/* end of file */

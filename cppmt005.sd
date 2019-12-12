@@ -1,0 +1,1156 @@
+%%
+Screen
+        Name  = "cppmt005";
+        Type  = "Detail" ;
+        screensize = "dynamic" ;
+        Highlight = Underscore ;
+        Padcharacter = Space ;
+        Domain = "cppCRIME1" ;
+        Windowtitle = "%a    %s Crime - Ver 7.00     %m" ;
+--      resizeable = yes ;
+        iconline = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_SUB_CODE[4] ,
+                                     g_state[2] ;
+
+        Global String G_CRIME_FORM[1],
+                      G_CODE[7],
+                      g_endorsement_screen[1]  ,
+                      g_inquiry[1] ,
+                      g_company_id[10] ;
+
+        local signed ascii number l_package_mod[4]=0/dec=2,
+                                  l_package[4]=0/dec=2,
+                                  l_premium[9]=0,
+                                  l_deviation[4]=0/dec=2 ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ,
+                                    L_STATE[2],
+                                    L_LINE_OF_BUSINESS[4]=0008,
+                                    l_abort_program[1],
+                                    l_option_1[1],
+                                    l_option_2[1],
+                                    l_option_3[1],
+                                    l_option_4[1],
+                                    l_option_5[1],
+                                    l_option_6[1],
+                                    l_option_7[1],
+                                    l_option_8[1],
+                                    l_option_9[1],
+                                    l_option_10[1],
+                                    l_option_11[1],
+                                    l_option_12[1],
+                                    l_option_13[1],
+                                    l_option_14[1],
+                                    l_option_15[1],
+                                    l_option_16[1],
+                                    l_option_17[1] ;
+
+
+        Local String L_SCREEN[8] ,
+                     L_CODE[7] ,
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     l_code_3[7],
+                     l_code_4[7],
+                     l_code_5[7],
+                     l_code_6[7],
+                     l_code_7[7],
+                     l_code_8[7],
+                     l_code_9[7],
+                     l_code_10[7],
+                     l_code_11[7],
+                     l_code_12[7],
+                     l_code_13[7],
+                     l_code_14[7],
+                     l_code_15[7],
+                     l_code_16[7],
+                     l_code_17[7],
+                     l_code_20[7],
+                     L_CRIME_FORM[1],
+                     l_add[1],
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     l_username[15],
+                     l_system_id[15] ,
+                     L_ADD_ENDORSEMENT[1],
+                     L_DELETE_ENDORSEMENT[1],
+                     L_COMPANY_ID[10] ;
+
+        Local Date L_EFF_DATE[8] ;
+
+        Access cppCRIME1, Set cppCRIME1:policy_NO = G_policy_NO,
+                              cppcrime1:pol_year = g_year,
+                              cppcrime1:end_sequence = g_end_sequence, generic
+
+        include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+--        include "cppisocrfunc7.inc"
+
+        "redisplay" Display/noreturn "cppmt005" ;
+
+        "add" sequence "new|final|redisplay" tagged add_fn ;
+        "new" add/hidden ;
+
+        "change" sequence "chg|final|redisplay"  tagged change_fn ;
+        "chg" change/hidden ;
+
+        "update_totals" sequence "final|redisplay" ;
+
+        "final" continue begin
+                         do update_final_rating
+                         end ;
+
+        "func1"  display "cppmt550"    tagged opt_end_fn ;
+        "func2" display "cppmt550a"   tagged policy_wide_opt_end_fn ;
+        "func3"  display "cppmt598"    tagged totals_location_fn ;
+        "func4"  display "cppmt597"    tagged deviations_fn ;
+        "func5"  display ""            tagged notes_fn ;
+        "func6"  display ""            tagged misc_fn ;
+/*        "func7"  sequence "worksheet"  tagged worksheet_fn ;
+        "worksheet" continue begin
+                             do create_macro
+                             end ;*/
+        "C"  sequence "formc"      tagged theft_fn ;
+        "formc" continue begin
+                         g_crime_form = "C"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt504"
+                         function = "displayscreen"
+                         end ;
+        "D"  sequence "formd"      tagged robbery_safe_fn ;
+        "formd" continue begin
+                         g_crime_form = "D"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt502"
+                         function = "displayscreen"
+                         end ;
+        "E"  sequence "forme"      tagged burglary_premises_fn ;
+        "forme" continue begin
+                         g_crime_form = "E"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt503"
+                         function = "displayscreen"
+                         end ;
+        "F" sequence "formf"      tagged computer_fn ;
+        "formf" continue begin
+                         g_crime_form = "F"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt500"
+                         function = "displayscreen"
+                         end ;
+        "G" sequence "formg"      tagged extortion_fn ;
+        "formg" continue begin
+                         g_crime_form = "G"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt501"
+                         function = "displayscreen"
+                         end ;
+        "H" sequence "formh"      tagged premises_theft_fn ;
+        "formh" continue begin
+                         g_crime_form = "H"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt505"
+                         function = "displayscreen"
+                         end ;
+        "I" sequence "formi"      tagged lessees_fn ;
+        "formi" continue begin
+                         g_crime_form = "I"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt506"
+                         function = "displayscreen"
+                         end ;
+        "J" sequence "formj"      tagged securities_fn ;
+        "formj" continue begin
+                         g_crime_form = "J"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt508"
+                         function = "displayscreen"
+                         end ;
+        "Q" sequence "formq"      tagged money_securities_fn ;
+        "formq" continue begin
+                         g_crime_form = "Q"
+                         g_sub_code = cppcrime1:sub_code
+                         g_prem_no = cppcrime1:prem_no
+                         g_build_no = cppcrime1:build_no
+                         l_screen = "cppmt509"
+                         function = "displayscreen"
+                         end ;
+
+        "3plan" sequence "broad_store"      tagged broad_storekeepers_fn ;
+        "broad_store" continue begin
+                               g_crime_form = "3"
+                               g_sub_code = cppcrime1:sub_code
+                               g_prem_no = cppcrime1:prem_no
+                               g_build_no = cppcrime1:build_no
+                               l_screen = "cppmt510"
+                               function = "displayscreen"
+                               end ;
+        "4plan" sequence "storekeeper"      tagged storekeepers_fn ;
+        "storekeeper" continue begin
+                               g_crime_form = "4"
+                               g_sub_code = cppcrime1:sub_code
+                               g_prem_no = cppcrime1:prem_no
+                               g_build_no = cppcrime1:build_no
+                               l_screen = "cppmt507"
+                               function = "displayscreen"
+                               end ;
+        "5plan" sequence "office"      tagged office_fn ;
+        "office" continue begin
+                          g_crime_form = "5"
+                          g_sub_code = cppcrime1:sub_code
+                          g_prem_no = cppcrime1:prem_no
+                          g_build_no = cppcrime1:build_no
+                          l_screen = "cppmt511"
+                          function = "displayscreen"
+                          end ;
+        "6plan" sequence "guest_safe"      tagged guest_safe_fn ;
+        "guest_safe" continue begin
+                              g_crime_form = "6"
+                              g_sub_code = cppcrime1:sub_code
+                              g_prem_no = cppcrime1:prem_no
+                              g_build_no = cppcrime1:build_no
+                              l_screen = "cppmt512"
+                              function = "displayscreen"
+                              end ;
+        "7plan" sequence "property"      tagged property_fn ;
+        "property" continue begin
+                            g_crime_form = "7"
+                            g_sub_code = cppcrime1:sub_code
+                            g_prem_no = cppcrime1:prem_no
+                            g_build_no = cppcrime1:build_no
+                            l_screen = "cppmt513"
+                            function = "displayscreen"
+                            end ;
+        "8plan" sequence "safe"      tagged safe_fn ;
+        "safe" continue begin
+                        g_crime_form = "8"
+                        g_sub_code = cppcrime1:sub_code
+                        g_prem_no = cppcrime1:prem_no
+                        g_build_no = cppcrime1:build_no
+                        l_screen = "cppmt514"
+                        function = "displayscreen"
+                        end ;
+        "9plan" sequence "excess"      tagged excess_fn ;
+        "excess" continue begin
+                          g_crime_form = "9"
+                          g_sub_code = cppcrime1:sub_code
+                          g_prem_no = cppcrime1:prem_no
+                          g_build_no = cppcrime1:build_no
+                          l_screen = "cppmt515"
+                          function = "displayscreen"
+                          end ;
+        "0plan" sequence "bank"      tagged bank_fn ;
+        "bank" continue begin
+                        g_crime_form = "0"
+                        g_sub_code = cppcrime1:sub_code
+                        g_prem_no = cppcrime1:prem_no
+                        g_build_no = cppcrime1:build_no
+                        l_screen = "cppmt516"
+                        function = "displayscreen"
+                        end ;
+
+        "displayscreen" display l_screen ;
+
+        include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+        Include "cppmenucr7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+        include "cppisocrtoolbar7.inc"
+
+}
+
+screen entry
+access sfsdefault, set sfsdefault:sfs_code = "SFS", generic
+
+l_system_id = "cpp"/spacefill
+if g_company_id = "" then
+    g_company_id = sfsdefault:company_id/spacefill
+
+include "rating_security.inc"
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(change_fn)
+    disable(delete_fn)
+    end
+
+Access Validation
+If cppCRIME1:policy_NO <> G_policy_NO or
+   cppcrime1:pol_year <> g_year or
+   cppcrime1:end_sequence <> g_end_sequence Then
+    Error 1000
+
+screen at 1,1 to 25, 81
+Properties
+        {
+        LayoutType = Column
+        }
+{
+Panel Tagged Header_pl
+Properties
+        {
+        Borderstyle     = Raised
+        ScrollBarPolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+| Loc No:    ____                                                              |
+| Build No:  ____                                                              |
+*------------------------------------------------------------------------------*
+| State:     __   _______________ County: ___  _______________________________ |
+| Territory: ___  ____________________________________________________________ |
+*------------------------------------------------------------------------------*
+
+%%
+
+Components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION one of "ADD", "NEW" Then
+            Begin
+            cppCRIME1:policy_NO = G_policy_NO
+            cppcrime1:pol_year = g_year
+            cppcrime1:end_sequence = g_end_sequence
+            cppCRIME1:PREM_NO  = G_PREM_NO
+            cppcrime1:rating_line_of_business = 0008
+            If G_PREM_NO = 0 Then
+                cppCRIME1:PREM_NO = 1
+            cppCRIME1:BUILD_NO = G_BUILD_NO
+            If G_BUILD_NO = 0 Then
+                cppCRIME1:BUILD_NO = 1
+            End
+        End
+        cppCRIME1:policy_NO/displayonly ;
+302     cppcrime1:pol_year/displayonly ;
+303     cppcrime1:end_sequence/displayonly ;
+401     cppCRIME1:PREM_NO/default ;
+501     cppCRIME1:BUILD_NO/default  ;
+
+701     Begin
+        If FUNCTION One Of "ADD", "NEW" Then
+            Begin
+            If cppGENERAL:STATE <> 0 Then
+                Begin
+                cppcrime1:STATE  = cppGENERAL:STATE
+                cppcrime1:COUNTY = cppGENERAL:COUNTY
+                End
+            Else
+            If cppLIABILITY:STATE <> 0 Then
+                Begin
+                cppcrime1:STATE  = cppLIABILITY:STATE
+                cppcrime1:COUNTY = cppLIABILITY:COUNTY
+                End
+            Else
+                Begin
+                cppcrime1:STATE  = CPSDEFAULT:STATE
+                cppcrime1:COUNTY = CPSDEFAULT:COUNTY
+                End
+            End
+        End
+        cppCRIME1:STATE/default
+        Include "statehlp.inc"
+702     SFSSTATE:DESCRIPTION;
+703     cppCRIME1:COUNTY/default
+        Include "countyhlp.inc"
+704     SFSSTATE_ALIAS:DESCRIPTION;
+801     cppcrime1:terr/default
+
+        activehelp CPSISOCRTERRHELP:TERRITORY_CODE,
+                   CPSISOCRTERRHELP:DESC ;
+802     cpsisocrterrhelp:desc ;
+
+}
+
+carddialog GUI at 1,1
+Properties
+        {
+        layoutconstraints = stretch
+        }
+{
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Plan 1"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Theft, Disappearance and Destruction - (C):                                _ |
+| Robbery and Safe Burglary (Other than Money & Securities) - (D):           _ |
+| Premises Burglary - (E):                                                   _ |
+| Computer Fraud - (F):                                                      _ |
+| Extortion - (G):                                                           _ |
+| Premise Theft and Robbery Outside the Premises - (H):                      _ |
+| Lessees of Safe Deposit Boxes - (I):                                       _ |
+| Securities Deposited with Others - (J):                                    _ |
+| Robbery and Safe Burglary - Money & Securities - (Q):                      _ |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    begin
+            g_state = cppcrime1:state
+            l_option_1 = cppcrime1:option[1]
+            l_option_2 = cppcrime1:option[2]
+            l_option_3 = cppcrime1:option[3]
+            l_option_4 = cppcrime1:option[4]
+            l_option_5 = cppcrime1:option[5]
+            l_option_6 = cppcrime1:option[6]
+            l_option_7 = cppcrime1:option[7]
+            l_option_8 = cppcrime1:option[8]
+            l_option_9 = cppcrime1:option[9]
+        end
+        cppcrime1:option[1]/checkbox/values="0,1" ;
+0301    cppcrime1:option[2]/checkbox/values="0,1" ;
+0401    cppcrime1:option[3]/checkbox/values="0,1" ;
+0501    cppcrime1:option[4]/checkbox/values="0,1" ;
+0601    cppcrime1:option[5]/checkbox/values="0,1" ;
+0701    cppcrime1:option[6]/checkbox/values="0,1" ;
+0801    cppcrime1:option[7]/checkbox/values="0,1" ;
+0901    cppcrime1:option[8]/checkbox/values="0,1" ;
+1001    cppcrime1:option[9]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Other Plans"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Storekeepers Broad Form - (Plan 3):                                        _ |
+| Storekeepers Burglary and Robbery - (Plan 4):                              _ |
+| Office Burglary and Robbery - (Plan 5):                                    _ |
+| Guests' Property - Safe Deposit Box - (Plan 6):                            _ |
+| Guests' Property - Premises - (Plan 7):                                    _ |
+| Safe Depository - (Plan 8):                                                _ |
+| Excess Bank Burglary and Robbery - (Plan 9):                               _ |
+| Bank Excess Securities - (Plan 10):                                        _ |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+0201    begin
+            l_option_10 = cppcrime1:option[10]
+            l_option_11 = cppcrime1:option[11]
+            l_option_12 = cppcrime1:option[12]
+            l_option_13 = cppcrime1:option[13]
+            l_option_14 = cppcrime1:option[14]
+            l_option_15 = cppcrime1:option[15]
+            l_option_16 = cppcrime1:option[16]
+            l_option_17 = cppcrime1:option[17]
+        end
+        cppcrime1:option[10]/checkbox/values="0,1" ;
+0301    cppcrime1:option[11]/checkbox/values="0,1" ;
+0401    cppcrime1:option[12]/checkbox/values="0,1" ;
+0501    cppcrime1:option[13]/checkbox/values="0,1" ;
+0601    cppcrime1:option[14]/checkbox/values="0,1" ;
+0701    cppcrime1:option[15]/checkbox/values="0,1" ;
+0801    cppcrime1:option[16]/checkbox/values="0,1" ;
+0901    cppcrime1:option[17]/checkbox/values="0,1" ;
+
+}
+
+Panel
+Properties
+        {
+        scrollbarpolicy = asneeded
+        text            = "Location Totals"
+        }
+{
+%%
+
+%%
+
+components
+        subscreen at 1,1 to 25, 81
+                Properties
+                        {
+                        screen="cppmt599"
+                        }
+
+}
+
+}
+
+}
+
+postupdate
+if updateok = "YES" and
+   abort    = "NO" then
+    begin
+    if function one of "DELETE" then
+        begin
+        access sfpend, set sfpend:policy_no    = cppcrime1:policy_no,
+                           sfpend:pol_year     = cppcrime1:pol_year,
+                           sfpend:end_sequence = cppcrime1:end_sequence,
+                           sfpend:prem_no      = cppcrime1:prem_no,
+                           sfpend:build_no     = cppcrime1:build_no, generic
+
+        while sfpend:policy_no    = cppcrime1:policy_no and
+              sfpend:pol_year     = cppcrime1:pol_year and
+              sfpend:end_sequence = cppcrime1:end_sequence and
+              sfpend:prem_no      = cppcrime1:prem_no and
+              sfpend:build_no     = cppcrime1:build_no
+                begin
+                if sfpend:lob_end_code one of "C" then
+                    delete sfpend
+
+                next sfpend
+                end
+
+        end
+
+    if function one of "CHANGE", "CHG" then
+        begin
+        l_crime_form = "C"
+        if cppcrime1:option[1] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "D"
+        if cppcrime1:option[2] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "E"
+        if cppcrime1:option[3] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "F"
+        if cppcrime1:option[4] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "G"
+        if cppcrime1:option[5] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "H"
+        if cppcrime1:option[6] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "I"
+        if cppcrime1:option[7] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "J"
+        if cppcrime1:option[8] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "Q"
+        if cppcrime1:option[9] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "3"
+        if cppcrime1:option[10] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "4"
+        if cppcrime1:option[11] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "5"
+        if cppcrime1:option[12] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "6"
+        if cppcrime1:option[13] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "7"
+        if cppcrime1:option[14] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "8"
+        if cppcrime1:option[15] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "9"
+        if cppcrime1:option[16] = 0 then
+            do delete_cppisocrime
+        l_crime_form = "0"
+        if cppcrime1:option[17] = 0 then
+            do delete_cppisocrime
+        end
+
+    if function one of "DELETE" then
+        begin
+        access sfpend, set sfpend:policy_no = cppcrime1:policy_no,
+                           sfpend:pol_year = cppcrime1:pol_year,
+                           sfpend:end_sequence = cppcrime1:end_sequence,
+                           sfpend:prem_no  = cppcrime1:prem_no,
+                           sfpend:build_no = cppcrime1:build_no, generic
+
+        while sfpend:policy_no = cppcrime1:policy_no and
+              sfpend:pol_year = cppcrime1:pol_year and
+              sfpend:end_sequence = cppcrime1:end_Sequence and
+              sfpend:prem_no  = cppcrime1:prem_no and
+              sfpend:build_no = cppcrime1:build_no
+                begin
+                if sfpend:lob_end_code = "C" then
+                    delete sfpend
+
+                next sfpend
+                end
+
+        access cppisocrime, set cppisocrime:policy_no = cppcrime1:policy_no,
+                                cppisocrime:pol_year = cppcrime1:pol_year,
+                                cppisocrime:end_sequence = cppcrime1:end_sequence,
+                                cppisocrime:prem_no  = cppcrime1:prem_no,
+                                cppisocrime:build_no = cppcrime1:build_no, generic
+
+        while cppisocrime:policy_no = cppcrime1:policy_no and
+              cppisocrime:pol_Year = cppcrime1:pol_year and
+              cppisocrime:end_sequence = cppcrime1:end_sequence and
+              cppisocrime:prem_no  = cppcrime1:prem_no and
+              cppisocrime:build_no = cppcrime1:build_no
+                begin
+                delete cppisocrime
+
+                next cppisocrime
+                end
+        end
+
+    if function one of "ADD", "NEW", "CHG", "CHANGE" then
+        begin
+        g_state = cppcrime1:state
+        Access cpscrtrigger, Set cpscrtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                                 cpscrtrigger:STATE            = cppcrime1:STATE,
+                                 cpscrtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While cpscrtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              cpscrtrigger:STATE            = cppcrime1:STATE And
+              cpscrtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If (sfpNAME:EFF_DATE >= cpscrtrigger:EFF_DATE and
+                   (sfpname:eff_date <= cpscrtrigger:exp_date or
+                   cpscrtrigger:exp_date = 0)) Then
+                    Begin
+                    l_code_1  = cpscrtrigger:trigger_endorsement[1]    -- Form C
+                    l_code_2  = cpscrtrigger:trigger_endorsement[2]    -- Form D
+                    l_code_3  = cpscrtrigger:trigger_endorsement[3]    -- Form E
+                    l_code_4  = cpscrtrigger:trigger_endorsement[4]    -- Form F
+                    l_code_5  = cpscrtrigger:trigger_endorsement[5]    -- Form G
+                    l_code_6  = cpscrtrigger:trigger_endorsement[6]    -- Form H
+                    l_code_7  = cpscrtrigger:trigger_endorsement[7]    -- Form I
+                    l_code_8  = cpscrtrigger:trigger_endorsement[8]    -- Form J
+                    l_code_9  = cpscrtrigger:trigger_endorsement[9]    -- Form Q
+                    l_code_10 = cpscrtrigger:trigger_endorsement[10]   -- Plan 3
+                    l_code_11 = cpscrtrigger:trigger_endorsement[11]   -- Plan 4
+                    l_code_12 = cpscrtrigger:trigger_endorsement[12]   -- Plan 5
+                    l_code_13 = cpscrtrigger:trigger_endorsement[13]   -- Plan 6
+                    l_code_14 = cpscrtrigger:trigger_endorsement[14]   -- Plan 7
+                    l_code_15 = cpscrtrigger:trigger_endorsement[15]   -- Plan 8
+                    l_code_16 = cpscrtrigger:trigger_endorsement[16]   -- Plan 9
+                    l_code_17 = cpscrtrigger:trigger_endorsement[17]   -- Plan 10
+                    l_code_20 = cpscrtrigger:trigger_endorsement[20]   -- LMIC802
+                    End
+
+                Next cpscrtrigger
+                End
+
+        if function one of "ADD", "NEW" then
+            begin
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            display modal screen "cppmt597"
+            with initial function "CHANGE|BACK"
+            end
+
+        if ((cppcrime1:option[1] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[1] = 1 and
+           l_option_1 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_1
+            g_crime_form = "C"
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt504"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[2] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[2] = 1 and
+           l_option_2 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_2
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "D"
+            g_state = cppcrime1:state
+            display modal screen "cppmt502"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[3] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[3] = 1 and
+           l_option_3 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_3
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "E"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt503"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[4] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[4] = 1 and
+           l_option_4 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_4
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            g_crime_form = "F"
+            display modal screen "cppmt500"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[5] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[5] = 1 and
+           l_option_5 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_5
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "G"
+            g_state = cppcrime1:state
+            display modal screen "cppmt501"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[6] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[6] = 1 and
+           l_option_6 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_6
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "H"
+            g_state = cppcrime1:state
+            display modal screen "cppmt505"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[7] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[7] = 1 and
+           l_option_7 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_7
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "I"
+            g_state = cppcrime1:state
+            display modal screen "cppmt506"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[8] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[8] = 1 and
+           l_option_8 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_8
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "J"
+            g_state = cppcrime1:state
+            display modal screen "cppmt508"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[9] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[9] = 1 and
+           l_option_9 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_9
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "Q"
+            g_state = cppcrime1:state
+            display modal screen "cppmt509"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[10] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[10] = 1 and
+           l_option_10 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_10
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "3"
+            g_state = cppcrime1:state
+            display modal screen "cppmt510"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[11] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[11] = 1 and
+           l_option_11 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_11
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "4"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt507"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[12] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[12] = 1 and
+           l_option_12 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_12
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "5"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt511"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[13] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[13] = 1 and
+           l_option_13 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_13
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "6"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt512"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[14] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[14] = 1 and
+           l_option_14 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_14
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "7"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt513"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[15] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[15] = 1 and
+           l_option_15 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_15
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "8"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt514"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[16] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[16] = 1 and
+           l_option_16 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_16
+            g_sub_code = cppcrime1:sub_code
+            g_crime_form = "9"
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_state = cppcrime1:state
+            display modal screen "cppmt515"
+            with initial function "ADD"
+            end
+        if ((cppcrime1:option[17] = 1 and
+           function one of "ADD", "NEW") or
+           (cppcrime1:option[17] = 1 and
+           l_option_17 = 0 and
+           function one of "CHG", "CHANGE")) then
+            begin
+            g_code  = l_code_17
+            g_sub_code = cppcrime1:sub_code
+            g_prem_no = cppcrime1:prem_no
+            g_build_no = cppcrime1:build_no
+            g_crime_form = "0"
+            g_state = cppcrime1:state
+            display modal screen "cppmt516"
+            with initial function "ADD"
+            end
+
+        If L_CODE_20 <> "" Then
+            Begin
+            L_CODE = L_CODE_20
+            Do ACCESS_SFPEND
+            If L_ADD_ENDORSEMENT = "Y" And
+               sfpname:bill_plan = "DB" Then
+                Do ADD_SFPEND
+            If L_ADD_ENDORSEMENT = "N" And
+               sfpname:bill_plan not one of "DB" Then
+                Do DELETE_SFPEND
+            End
+
+        end
+
+    end
+
+screen exit
+g_state = cppcrime1:state ;
+
+procedure definition
+
+procedure update_final_rating
+begin
+
+if g_inquiry = "N" then
+    postevent("cppmt599","reload")
+
+end
+
+procedure delete_cppisocrime
+begin
+access cppisocrime, set cppisocrime:policy_no    = g_policy_no,
+                        cppisocrime:pol_year     = g_year,
+                        cppisocrime:end_sequence = g_end_sequence,
+                        cppisocrime:prem_no      = cppcrime1:prem_no,
+                        cppisocrime:build_no     = cppcrime1:build_no,
+                        cppisocrime:crime_form   = l_crime_form, generic
+
+while cppisocrime:policy_no    = g_policy_no and
+      cppisocrime:pol_Year     = g_year and
+      cppisocrime:end_sequence = g_End_sequence and
+      cppisocrime:prem_no      = cppcrime1:prem_no and
+      cppisocrime:build_no     = cppcrime1:build_no and
+      cppisocrime:crime_form   = l_crime_form
+       begin
+       delete cppisocrime
+
+       next cppisocrime
+       end
+
+end
+
+procedure access_cpscrtrigger
+begin
+g_state = cppcrime1:state
+Access cpscrtrigger, Set cpscrtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                         cpscrtrigger:STATE            = cppcrime1:STATE,
+                         cpscrtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+While cpscrtrigger:COMPANY_ID       = sfpNAME:COMPANY_ID And
+      cpscrtrigger:STATE            = cppcrime1:STATE And
+      cpscrtrigger:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+        Begin
+        If (sfpNAME:EFF_DATE >= cpscrtrigger:EFF_DATE and
+           (sfpname:eff_date <= cpscrtrigger:exp_date or
+           cpscrtrigger:exp_date = 0)) Then
+            Begin
+            l_code_1  = cpscrtrigger:trigger_endorsement[1]    -- Form C
+            l_code_2  = cpscrtrigger:trigger_endorsement[2]    -- Form D
+            l_code_3  = cpscrtrigger:trigger_endorsement[3]    -- Form E
+            l_code_4  = cpscrtrigger:trigger_endorsement[4]    -- Form F
+            l_code_5  = cpscrtrigger:trigger_endorsement[5]    -- Form G
+            l_code_6  = cpscrtrigger:trigger_endorsement[6]    -- Form H
+            l_code_7  = cpscrtrigger:trigger_endorsement[7]    -- Form I
+            l_code_8  = cpscrtrigger:trigger_endorsement[8]    -- Form J
+            l_code_9  = cpscrtrigger:trigger_endorsement[9]    -- Form Q
+            l_code_10 = cpscrtrigger:trigger_endorsement[10]   -- Plan 3
+            l_code_11 = cpscrtrigger:trigger_endorsement[11]   -- Plan 4
+            l_code_12 = cpscrtrigger:trigger_endorsement[12]   -- Plan 5
+            l_code_13 = cpscrtrigger:trigger_endorsement[13]   -- Plan 6
+            l_code_14 = cpscrtrigger:trigger_endorsement[14]   -- Plan 7
+            l_code_15 = cpscrtrigger:trigger_endorsement[15]   -- Plan 8
+            l_code_16 = cpscrtrigger:trigger_endorsement[16]   -- Plan 9
+            l_code_17 = cpscrtrigger:trigger_endorsement[17]   -- Plan 10
+            End
+
+        Next cpscrtrigger
+        End
+
+end
+
+Procedure ACCESS_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = g_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+l_add = "Y"
+while sfpEND:policy_NO = g_policy_no and
+      sfpend:pol_year = g_Year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    l_add = "N"
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = g_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+L_SUB_CODE = 0
+while sfpEND:policy_NO = g_policy_no and
+      sfpend:pol_year = g_Year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE            = G_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+while SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID and
+      SFSOPTEND:STATE            = G_STATE and
+      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+      SFSOPTEND:CODE             = L_CODE
+    begin
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       g_policy_no
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       g_prem_no
+    sfpEND:BUILD_NO             =       g_build_no
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "C"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    End
+
+End
+
+Procedure DELETE_sfpEND
+Begin
+Access sfpEND, Set sfpEND:policy_NO = g_policy_no ,
+                   sfpend:pol_year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = g_prem_no,
+                   sfpEND:BUILD_NO = g_build_no, Generic
+
+while sfpEND:policy_NO = g_policy_no and
+      sfpend:pol_year = g_Year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = g_prem_no and
+      sfpEND:BUILD_NO = g_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+end
+
+End

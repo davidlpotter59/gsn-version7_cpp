@@ -1,0 +1,163 @@
+%%
+Screen
+        Name            = "cppmt557" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Liquor Legal Liability - Ver 7.0  %m" ;
+        Domain          = "cppENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        Global Unsigned Ascii Number g_year[4] ;
+        Global Unsigned Ascii Number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        global unsigned ascii number g_state[2] ;
+        global unsigned ascii number g_sub_code[4] ;
+
+--        Global Signed Ascii Number G_PREMIUM[9]/decimals=2 ;
+
+        Global String G_CODE[7] ;
+
+        Local Signed Ascii Number L_PREMIUM[9]=0 ,
+                                  l_deviation[4]=0/dec=2,
+                                  l_package[4]=0/dec=2;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4]=0 ,
+                                    l_rate[8]=0/dec=4 ,
+                                    l_per[8]=0 ,
+                                    l_state[2] ;
+
+        local string l_code[7] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Toolbar Tagged Main_t Properties
+                                  {
+                                      Text     = "Rate"
+                                         FontName = "SansSerif"
+                                         Fontsize = 10
+                                  }
+                        {
+                     ToolBarButton
+                                  Properties
+                                  {
+                                  }
+                                  Events
+                                  {
+                               }
+
+}
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Receipts:  __________                                                        |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppENDORSE:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppENDORSE:PREM_NO = G_PREM_NO
+            cppENDORSE:BUILD_NO = G_BUILD_NO
+            cppENDORSE:CODE = G_CODE
+            Do SUBCODE
+            cppENDORSE:SUB_CODE = L_SUB_CODE
+            End
+        End
+        cppENDORSE:LIMIT[1];
+
+}
+
+}
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppENDORSE_ALIAS, Set cppENDORSE_ALIAS:policy_NO = G_policy_NO,
+                             cppendorse_alias:pol_year = g_year,
+                             cppendorse_alias:end_sequence = g_end_sequence,
+                             cppENDORSE_ALIAS:PREM_NO = G_PREM_NO,
+                             cppENDORSE_ALIAS:BUILD_NO = G_BUILD_NO,
+                             cppENDORSE_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppENDORSE_ALIAS:policy_NO = G_policy_NO And
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      cppENDORSE_ALIAS:PREM_NO = G_PREM_NO And
+      cppENDORSE_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppENDORSE_ALIAS:SUB_CODE
+
+        Next cppENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

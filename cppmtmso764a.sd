@@ -1,0 +1,163 @@
+%%
+Screen
+        Name            = "cppmtmso764a" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Builders' Risk - Options     Ver 7.00 %m" ;
+        Domain          = "cppENDORSE" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4] ;
+        global unsigned ascii number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        global unsigned ascii number g_sub_code[4] ;
+
+        Global String G_CODE[7] ;
+
+        Access cppENDORSE,
+           Set cppENDORSE:policy_NO = G_policy_NO ,
+               cppendorse:pol_Year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               cppENDORSE:PREM_NO = G_PREM_NO ,
+               cppENDORSE:BUILD_NO = G_BUILD_NO ,
+               cppENDORSE:CODE = G_CODE ,
+               cppendorse:sub_code = g_sub_code ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppENDORSE:policy_NO <> G_policy_NO Or
+   cppendorse:pol_Year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppENDORSE:PREM_NO <> G_PREM_NO Or
+   cppENDORSE:BUILD_NO <> G_BUILD_NO Or
+   cppENDORSE:CODE <> G_CODE or
+   cppendorse:sub_code <> g_sub_code Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Newly Acquired Property: __________                                          |
+| Property of Others:      __________                                          |
+| Debris Removal                                                               |
+| ~~Factor:                _____                                               |
+| ~~Limit:                 _____                                               |
+| Fire Department:         __________                                          |
+| Pollution Cleanup                                                            |
+| ~~Cost:                  ______                                              |
+| ~~Deductible:            _____                                               |
+| Property in Storage:     __________                                          |
+| Property in Transit:     __________                                          |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     cppendorse:limit[2] ;
+401     cppendorse:limit[3] ;
+601     cppendorse:rate[2] ;
+701     cppendorse:limit[4] ;
+801     cppendorse:limit[5] ;
+1001    cppendorse:limit[6] ;
+1101    cppendorse:deductible[2] ;
+1201    cppendorse:limit[7] ;
+1301    cppendorse:limit[8] ;
+
+} -- end of header
+
+CardDialog GUI at 1,80
+{
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Optional Coverages"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Optional Coverages                                                           |
+| ~~Earthquake/Volcanic:   __________                                          |
+| ~~Flood/Flooding:        __________                                          |
+*------------------------------------------------------------------------------*
+%%
+Components
+fields
+301    cppendorse:limit[9] ;
+401    cppendorse:limit[10] ;
+
+} -- end of optional coverages
+
+Panel
+Properties
+        {
+        Scrollbarpolicy = asneeded
+        Text            = "Deductibles"
+        }
+{
+%%
+*------------------------------------------------------------------------------*
+| Deductible                                                                   |
+| ~~Policy~Deductible:     _____                                               |
+| ~~Earthquake:            _____                                               |
+| ~~Flooding:              _____                                               |
+| ~~Other:                 _____  __________________________________________   |
+*------------------------------------------------------------------------------*
+%%
+
+Components
+
+fields
+301    cppendorse:deductible[3] ;
+401    cppendorse:deductible[4] ;
+501    cppendorse:deductible[5] ;
+601    cppendorse:deductible[6] ;
+602    cppendorse:address1[1] ;
+} -- end of deductibles
+
+}
+
+}
+
+
+End

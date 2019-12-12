@@ -1,0 +1,307 @@
+%%
+Screen
+        Name = "cppmt954" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Deductible - Ver 7.00     %m" ;
+        Domain = "cppartdeduct" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        global string g_inquiry[1] ;
+
+        local unsigned ascii number l_state[2] ,
+                                    l_sub_code[4] ,
+                                    l_prem_no[4]=0,
+                                    l_build_no[4]=0,
+                                    l_line_of_business[4]=0008 ;
+
+        Local String L_CODE[7],
+                     L_CODE_1[7],
+                     L_CODE_2[7],
+                     L_CODE_3[7],
+                     L_CODE_4[7],
+                     L_CODE_5[7],
+                     L_CODE_6[7],
+                     L_CODE_7[7],
+                     L_CODE_8[7],
+                     L_CODE_9[7] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     l_username[15],
+                     L_ADD_ENDORSEMENT[1]="N" ;
+
+        Access cppartdeduct,
+           Set cppartdeduct:policy_NO = G_policy_NO ,
+               cppartdeduct:pol_year = g_year,
+               cppartdeduct:end_sequence = g_end_sequence, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        "update_totals" display/noreturn "cppmt009" ;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen entry
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfsemail, set sfsemail:company_id = sfpname:company_id,
+                     sfsemail:user_id    = l_username, generic
+
+if g_inquiry = "Y" then
+    begin
+    disable(add_fn)
+    disable(delete_fn)
+    disable(change_fn)
+    end
+
+access validation
+if cppartdeduct:policy_no <> g_policy_no or
+   cppartdeduct:pol_year <> g_year or
+   cppartdeduct:end_sequence <> g_end_sequence then
+    error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Bodily Injury Liability          $ _____ Per Claimant                        |
+|                                  $ _____ Per Occurrence                      |
+|                                                                              |
+| Property Damage Liability        $ _____ Per Claimant                        |
+|                                  $ _____ Per Occurrence                      |
+|                                                                              |
+| Bodily Injury and Property       $ _____ Per Claimant                        |
+| Damage Liability Combined        $ _____ Per Occurrence                      |
+*------------------------------------------------------------------------------*
+| Description:                                                                 |
+| ____________________________________________________________________________ |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppartdeduct:policy_NO    = G_policy_NO
+            cppartdeduct:pol_year     = g_year
+            cppartdeduct:end_sequence = g_end_sequence
+            End
+        End
+        cppartdeduct:DEDUCTIBLE[1];
+401     cppartdeduct:DEDUCTIBLE[2];
+601     cppartdeduct:DEDUCTIBLE[3]/default ;
+701     cppartdeduct:DEDUCTIBLE[4];
+901     cppartdeduct:DEDUCTIBLE[5];
+1001    cppartdeduct:DEDUCTIBLE[6];
+1301    cppartdeduct:description/freetextlines=6 ;
+
+}
+
+Update
+If UPDATEOK = "YES" And
+   Abort = "NO" Then
+    Begin
+    if function one of "ADD", "CHANGE" then
+        begin
+        l_state = cppartisan:state
+        Access CPSLIABTRIGGER, Set CPSLIABTRIGGER:COMPANY_ID = sfpNAME:COMPANY_ID,
+                                   CPSLIABTRIGGER:STATE = L_STATE,
+                                   CPSLIABTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+        While CPSLIABTRIGGER:COMPANY_ID       = sfpNAME:COMPANY_ID And
+              CPSLIABTRIGGER:STATE            = L_STATE And
+              CPSLIABTRIGGER:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS
+                Begin
+                If sfpNAME:EFF_DATE >= CPSLIABTRIGGER:EFF_DATE Then
+                    Begin
+                    l_code_1 = cpsliabtrigger:trigger_endorsement[1]
+                    End
+                Next CPSLIABTRIGGER
+                End
+
+        If L_CODE_1 <> "" Then
+            Begin
+            L_CODE = L_CODE_1
+            Do ACCESS_sfpEND_1
+            If (L_ADD_ENDORSEMENT = "Y" and
+               (cppartdeduct:deductible[1] <> 0 or
+               cppartdeduct:deductible[2] <> 0 or
+               cppartdeduct:deductible[3] <> 0 or
+               cppartdeduct:deductible[4] <> 0 or
+               cppartdeduct:deductible[5] <> 0 or
+               cppartdeduct:deductible[6] <> 0)) then
+                Do ADD_sfpEND_1
+            If L_ADD_ENDORSEMENT = "N" And
+               cppartdeduct:deductible[1] = 0 and
+               cppartdeduct:deductible[2] = 0 and
+               cppartdeduct:deductible[3] = 0 and
+               cppartdeduct:deductible[4] = 0 and
+               cppartdeduct:deductible[5] = 0 and
+               cppartdeduct:deductible[6] = 0 then
+                Do DELETE_sfpEND_1
+            End
+
+        end
+
+    end
+
+screen exit
+if function one of "BACK", "EXIT" and
+   g_inquiry not one of "Y" then
+    function = "update_totals"
+
+procedure definition
+
+Procedure ACCESS_sfpEND_1
+Begin
+l_prem_no  = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = l_prem_no,
+                   sfpEND:BUILD_NO = l_build_no, Generic
+
+L_ADD_ENDORSEMENT = "Y"
+while sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = l_prem_no and
+      sfpEND:BUILD_NO = l_build_no
+    begin
+    If sfpEND:CODE = L_CODE Then
+        L_ADD_ENDORSEMENT = "N"
+
+    Next sfpEND
+    End
+
+End
+
+Procedure ADD_sfpEND_1
+Begin
+l_prem_no  = 0
+l_build_No = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+L_SUB_CODE = 0
+while sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = L_PREM_NO and
+      sfpEND:BUILD_NO = L_BUILD_NO
+    begin
+    L_SUB_CODE = sfpEND:SUB_CODE
+
+    Next sfpEND
+    End
+
+L_SUB_CODE = L_SUB_CODE + 10
+
+L_STATE = cppartisan:STATE
+Access SFSOPTEND, Set SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID,
+                      SFSOPTEND:STATE            = L_STATE,
+                      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS,
+                      SFSOPTEND:CODE             = L_CODE, Generic
+
+while SFSOPTEND:COMPANY_ID       = sfpNAME:COMPANY_ID and
+      SFSOPTEND:STATE            = L_STATE and
+      SFSOPTEND:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS and
+      SFSOPTEND:CODE             = L_CODE
+    begin
+    If (sfpNAME:EFF_DATE >= SFSOPTEND:EFF_DATE and
+       (sfpname:eff_date <= sfsoptend:exp_date or
+       sfsoptend:exp_date = 0)) Then
+        Begin
+        L_FORM_EDITION = SFSOPTEND:FORM_EDITION
+        L_DESCRIPTION  = SFSOPTEND:DESCRIPTION
+        End
+
+    Next SFSOPTEND
+    End
+
+Add sfpEND
+    Begin
+    sfpEND:policy_NO            =       G_policy_NO
+    sfpend:pol_year             =       g_year
+    sfpend:end_sequence         =       g_end_sequence
+    sfpEND:PREM_NO              =       L_PREM_NO
+    sfpEND:BUILD_NO             =       L_BUILD_NO
+    sfpEND:SUB_CODE             =       L_SUB_CODE
+    sfpEND:CODE                 =       L_CODE
+    sfpEND:FORM_EDITION         =       L_FORM_EDITION
+    sfpEND:LOB_END_CODE         =       "R"
+    sfpEND:DESCRIPTION          =       L_DESCRIPTION
+    sfpEND:PREMIUM              =       0
+    sfpend:policy_wide_form     =       1
+    sfpend:artisan              =       1
+    End
+
+End
+
+Procedure DELETE_sfpEND_1
+Begin
+l_prem_no  = 0
+l_build_no = 0
+Access sfpEND, Set sfpEND:policy_NO = G_policy_NO ,
+                   sfpend:pol_Year = g_year,
+                   sfpend:end_sequence = g_end_sequence,
+                   sfpEND:PREM_NO  = L_PREM_NO,
+                   sfpEND:BUILD_NO = L_BUILD_NO, Generic
+
+while sfpEND:policy_NO = G_policy_NO and
+      sfpend:pol_year = g_year and
+      sfpend:end_sequence = g_end_sequence and
+      sfpEND:PREM_NO  = L_PREM_NO and
+      sfpEND:BUILD_NO = L_BUILD_NO
+    begin
+    If sfpEND:CODE = L_CODE Then
+        Delete sfpEND
+
+    Next sfpEND
+    End
+
+end
+
+End

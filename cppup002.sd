@@ -1,0 +1,2183 @@
+%%
+Program
+        Name = "cppUP002" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_RATE_TYPE[2] ;
+
+        Local String L_RATE_TYPE_DESC[20] ,
+                     L_MISC[1]="N",
+                     L_BUILDING_INCLUDED[1]="N",
+                     L_RATE_BOILERS[1]="N",
+                     l_filename[15]="",
+                     l_specific_minimum[1]="N",
+                     l_enter,
+                     L_CODE[7] ;
+
+        local unsigned ascii number l_line_of_business[4] ,
+                                    l_boiler_deductible[6]=0/dec=4 ,
+                                    l_weather_factor[5]=0/dec=3,
+                                    l_territory[3]=0,
+                                    l_number[9] ;
+
+        Local Signed Ascii Number L_END_PREMIUM[8]=0 ,
+                                  L_UPDATE_SFPEND_PREMIUM[6]=0,
+                                  L_MISC_PREMIUM[8]=0 ,
+                                  L_DEVIATION[5]=0/dec=3,
+                                  l_irpm_deviation[5]=0/dec=3,
+                                  l_exp_factor[5]=0/dec=3,
+                                  l_multi_loc[5]=0/dec=3,
+                                  L_PACKAGE_MOD[5]=0/dec=3,
+                                  L_OPTIONAL_COVERAGES[8]=0,
+                                  L_SUPPLEMENTAL_PREMIUM[8]=0;
+
+        Include "cpsrate.var"
+
+Initialisation
+G_policy_NO = Val(COMMANDLINE[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+l_number = g_policy_no
+l_filename = "cppup002.log"
+
+-- log file to track why flemington has problems when calculating final total
+-- March 22, 2004
+include "loginitial.inc"
+
+Do RATE_LOCATION
+
+Update
+
+screen exit
+include "logscreenexit.inc"
+
+errors
+include "logerrors.inc"
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence, Generic
+
+While cppGENERAL_ALIAS:policy_NO = G_policy_NO and
+      cppgeneral_alias:pol_year = g_year and
+      cppgeneral_alias:end_sequence = g_end_sequence
+    Begin
+    if cppgeneral_alias:blanket = 1 then
+        begin
+        access cppblanket, set cppblanket:policy_no  = cppgeneral_alias:policy_no,
+                               cppblanket:pol_year = cppgeneral_alias:pol_year,
+                               cppblanket:end_sequence = cppgeneral_alias:end_sequence,
+                               cppblanket:prem_no   = cppgeneral_alias:prem_no,
+                               cppblanket:build_no  = cppgeneral_alias:build_no,
+                               cppblanket:rate_type = cppgeneral_alias:rate_type, generic
+        end
+
+    if cppgeneral_alias:limit[1] <> 0 then
+        begin
+        L_RATE_TYPE = cppGENERAL_ALIAS:RATE_TYPE
+        Access cppEXCLUSIONS, Set cppEXCLUSIONS:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                                  cppexclusions:pol_year = cppgeneral_alias:pol_year,
+                                  cppexclusions:end_sequence = cppgeneral_alias:end_sequence,
+                                  cppEXCLUSIONS:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                                  cppEXCLUSIONS:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO,
+                                  cppEXCLUSIONS:RATE_TYPE = cppGENERAL_ALIAS:RATE_TYPE, Generic
+
+        Access sfpNAME, Set sfpNAME:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                            sfpname:pol_year = cppgeneral_alias:pol_year,
+                            sfpname:end_sequence = cppgeneral_alias:end_sequence, Generic
+
+
+        access sfsline, set sfsline:company_id = sfpname:company_id,
+                            sfsline:line_of_business = sfpname:line_of_business,
+                            sfsline:lob_subline = "00", generic
+
+        l_line_of_business = sfsline:rating_line_of_business
+
+        access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+        access cpsdefault, set cpsdefault:company_id = sfpname:company_id,
+                               cpsdefault:line_of_business = l_line_of_business, generic
+
+        Do COMPANY_DEVIATION
+        Do PACKAGE_MOD
+
+        if cppgeneral_alias:new_rate[1] = 0 then
+            L_FIRE_BASE_RATE = cppGENERAL_ALIAS:BASE_RATE[1]
+        else
+            l_fire_base_rate = cppgeneral_alias:new_rate[1]
+
+        if cppgeneral_alias:specific_rate_minimum not one of 0, 1.00 and
+           l_fire_base_rate < cppgeneral_alias:specific_rate_minimum and
+           sfscompany:boiler_rating = 4 and
+           cppgeneral_alias:specific_rate_adjustment[1] = 0 then
+            l_fire_base_rate = cppgeneral_alias:specific_rate_minimum
+
+        if cppgeneral_alias:new_rate[2] = 0 then
+            L_EC_BASE_RATE = cppGENERAL_ALIAS:BASE_RATE[2]
+        else
+            l_ec_base_rate = cppgeneral_alias:new_rate[2]
+        if cppgeneral_alias:new_rate[3] = 0 then
+            L_VMM_BASE_RATE = cppGENERAL_ALIAS:BASE_RATE[3]
+        else
+            l_vmm_base_rate = cppgeneral_alias:new_rate[3]
+        if cppgeneral_alias:new_rate[4] = 0 then
+            L_AOP_BASE_RATE = cppGENERAL_ALIAS:BASE_RATE[4]
+        else
+            l_aop_base_rate = cppgeneral_alias:new_rate[4]
+        if cppgeneral_alias:new_rate[6] = 0 then
+            L_SL_BASE_RATE = cppGENERAL_ALIAS:BASE_RATE[6]
+        else
+            l_sl_base_rate = cppgeneral_alias:new_rate[6]
+
+        -- fire resistive construction
+        if sfscompany:boiler_rating <> 4 then
+            begin
+            If cppGENERAL_ALIAS:CONSTRUCTION_CODE = "F" Then
+                Do FIRE_RESISTIVE
+            Else
+                Begin
+                Change cppGENERAL_ALIAS
+                    Begin
+                    cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[1] = 1.00
+                    cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[2] = 1.00
+                    cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[3] = 1.00
+                    cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[4] = 1.00
+                    cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[5] = 1.00
+                    cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[6] = 1.00
+                    end
+                End
+            End
+
+        -- sprinklered
+        If cppGENERAL_ALIAS:SPRINKLERED = 1 And
+           cppGENERAL_ALIAS:CONSTRUCTION_CODE <> "F" and
+           cppgeneral_alias:file_no = "" and
+           sfscompany:boiler_rating <> 4 Then
+            Do SPRINKLERED
+        Else
+        if sfscompany:boiler_rating <> 4 then
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:SPRINKLERED_RATE[1] = 1.00
+                End
+            End
+
+        If cppGENERAL_ALIAS:BUILDERS_RISK = 0 Then
+            Begin
+            -- coinsurance needs to be set up each time for each peril
+            L_OPTION = 1 -- fire
+            Do RATE_COINSURANCE
+            Change cppGENERAL_ALIAS
+                Begin
+                if cppgeneral_alias:coinsurance <> 0 then
+                    begin
+                    -- transitional
+                    If cppGENERAL_ALIAS:FILE_NO = "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = L_COINS_TRANS_FACTOR
+
+                    -- specific
+                    If cppGENERAL_ALIAS:FILE_NO <> "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = L_COINS_SPECIFIC_FACTOR
+
+                    -- perpetual
+                    If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = L_COINS_PERPETUAL_FACTOR
+                    End
+                else
+                    begin
+                    If cppGENERAL_ALIAS:FILE_NO = "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = L_COINS_TRANS_FLAT
+
+                    -- specific
+                    If cppGENERAL_ALIAS:FILE_NO <> "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = L_COINS_SPECIFIC_FLAT
+
+                    -- perpetual
+                    If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = L_COINS_PERPETUAL_FLAT
+                    End
+                end
+            End
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] = 1.00
+                End
+            End
+
+        If cppGENERAL_ALIAS:FORM > 1 And
+           cppGENERAL_ALIAS:BUILDERS_RISK = 0 Then
+            Begin
+            L_OPTION = 2 -- ec
+            Do RATE_COINSURANCE
+
+            Change cppGENERAL_ALIAS
+                Begin
+                -- transitional
+                if cppgeneral_alias:coinsurance <> 0 then
+                    begin
+                    If cppGENERAL_ALIAS:FILE_NO = "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = L_COINS_TRANS_FACTOR
+
+                    -- specific
+                    If cppGENERAL_ALIAS:FILE_NO <> "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = L_COINS_SPECIFIC_FACTOR
+
+                    -- perpetual
+                    If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = L_COINS_PERPETUAL_FACTOR
+                    end
+                else
+                    begin
+                    If cppGENERAL_ALIAS:FILE_NO = "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = L_COINS_TRANS_FLAT
+
+                    -- specific
+                    If cppGENERAL_ALIAS:FILE_NO <> "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = L_COINS_SPECIFIC_FLAT
+
+                    -- perpetual
+                    If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = L_COINS_PERPETUAL_FLAT
+                    end
+                End
+            End
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] = 1.00
+                End
+            End
+
+        If cppGENERAL_ALIAS:FORM > 1 And
+           cppEXCLUSIONS:EXCLUDE_VANDALISM = 0 And
+           cppGENERAL_ALIAS:BUILDERS_RISK = 0 Then
+            Begin
+            L_OPTION = 3 -- vmm
+            Do RATE_COINSURANCE
+            Change cppGENERAL_ALIAS
+                Begin
+                if cppgeneral_alias:coinsurance <> 0 then
+                    begin
+                    -- transitional
+                    If cppGENERAL_ALIAS:FILE_NO = "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = L_COINS_TRANS_FACTOR
+
+                    -- specific
+                    If cppGENERAL_ALIAS:FILE_NO <> "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = L_COINS_SPECIFIC_FACTOR
+
+                    -- perpetual
+                    If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = L_COINS_PERPETUAL_FACTOR
+                    end
+                else
+                    begin
+                    -- transitional
+                    If cppGENERAL_ALIAS:FILE_NO = "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = L_COINS_TRANS_FLAT
+
+                    -- specific
+                    If cppGENERAL_ALIAS:FILE_NO <> "" And
+                       cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = L_COINS_SPECIFIC_FLAT
+
+                    -- perpetual
+                    If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = L_COINS_PERPETUAL_FLAT
+                    end
+                End
+            End
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] = 1.00
+                End
+            End
+
+        If cppGENERAL_ALIAS:FORM one of 3, 5 And
+           cppGENERAL_ALIAS:BUILDERS_RISK = 0 Then
+            Begin
+            L_OPTION = cppGENERAL_ALIAS:FORM
+            Do RATE_COINSURANCE
+            Change cppGENERAL_ALIAS
+                Begin
+                -- transitional
+                If cppGENERAL_ALIAS:FILE_NO = "" And
+                   cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] = L_COINS_TRANS_FACTOR
+
+                -- specific
+                If cppGENERAL_ALIAS:FILE_NO <> "" And
+                   cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] = L_COINS_SPECIFIC_FACTOR
+
+                -- perpetual
+                If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] = L_COINS_PERPETUAL_FACTOR
+                end
+            End
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] = 1.00
+                End
+            End
+
+        If cppGENERAL_ALIAS:FORM one of 3, 5 And
+           cppEXCLUSIONS:EXCLUDE_THEFT = 0 And
+           cppGENERAL_ALIAS:RATE_TYPE <> 1 And
+           cppGENERAL_ALIAS:RATE_TYPE <> 5 And
+           cppGENERAL_ALIAS:GROUP_NO <> 9 And
+           cppGENERAL_ALIAS:GROUP_NO <> 7 And
+           cppGENERAL_ALIAS:BUILDERS_RISK = 0 Then
+            Begin
+            L_OPTION = 5
+            Do RATE_COINSURANCE
+            Change cppGENERAL_ALIAS
+                Begin
+                -- transitional
+                If cppGENERAL_ALIAS:FILE_NO = "" And
+                   cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[5] = L_COINS_TRANS_FACTOR
+
+                -- specific
+                If cppGENERAL_ALIAS:FILE_NO <> "" And
+                   cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[5] = L_COINS_SPECIFIC_FACTOR
+
+                -- perpetual
+                If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[5] = L_COINS_PERPETUAL_FACTOR
+                End
+            End
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:COINSURANCE_FACTOR[5] = 1.00
+                End
+            End
+
+        If cppGENERAL_ALIAS:SPRINKLER_LEAKAGE = 1 And
+           cppGENERAL_ALIAS:FORM <> 5 And
+           cppGENERAL_ALIAS:BUILDERS_RISK = 0 Then
+            Begin
+            L_OPTION = 4
+            Do RATE_COINSURANCE
+            Change cppGENERAL_ALIAS
+                Begin
+                -- transitional
+                If cppGENERAL_ALIAS:FILE_NO = "" And
+                   cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[6] = L_COINS_TRANS_FACTOR
+
+                -- specific
+                If cppGENERAL_ALIAS:FILE_NO <> "" And
+                   cppGENERAL_ALIAS:PERPETUAL_RATED = 0 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[6] = L_COINS_SPECIFIC_FACTOR
+
+                -- perpetual
+                If cppGENERAL_ALIAS:PERPETUAL_RATED = 1 Then
+                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[6] = L_COINS_PERPETUAL_FACTOR
+                End
+            End
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:COINSURANCE_FACTOR[6] = 1.00
+                End
+            End
+
+        -- public and institutional rating
+        Do RATE_PUBLIC_INSTITUTIONAL
+
+        -- deductible factors
+        Do RATE_DEDUCTIBLE
+
+        -- wind deductible factors
+        if sfscompany:boiler_rating <> 4 then
+            Do RATE_WIND_DEDUCTIBLE
+        else
+        if sfscompany:boiler_rating = 4 then
+            begin
+            Change cppGENERAL_ALIAS
+                begin
+                if cppgeneral_alias:wind_deductible_factor[1] = 0 or
+                   cppgeneral_alias:wind_Deductible = 0 then
+                    cppgeneral_alias:wind_deductible_factor[1] = 1.00
+                if cppgeneral_alias:wind_deductible_factor[2] = 0 or
+                   cppgeneral_alias:wind_deductible = 0 then
+                    cppgeneral_alias:wind_deductible_factor[2] = 1.00
+                if cppgeneral_alias:wind_deductible_factor[3] = 0 or
+                   cppgeneral_alias:wind_deductible = 0 then
+                    cppgeneral_alias:wind_deductible_factor[3] = 1.00
+                if cppgeneral_alias:wind_deductible_factor[4] = 0 or
+                   cppgeneral_alias:wind_deductible = 0 then
+                    cppgeneral_alias:wind_deductible_factor[4] = 1.00
+                if cppgeneral_alias:wind_deductible_factor[5] = 0 or
+                   cppgeneral_alias:wind_deductible = 0 then
+                    cppgeneral_alias:wind_deductible_factor[5] = 1.00
+                if cppgeneral_alias:wind_deductible_factor[6] = 0 or
+                   cppgeneral_alias:wind_deductible = 0 then
+                    cppgeneral_alias:wind_deductible_factor[6] = 1.00
+                end
+            end
+
+        -- weather related
+        access cppproperty, set cppproperty:policy_no    = cppgeneral_alias:policy_no,
+                                cppproperty:pol_year     = cppgeneral_alias:pol_year,
+                                cppproperty:end_sequence = cppgeneral_alias:end_sequence,
+                                cppproperty:prem_no      = cppgeneral_alias:prem_no,
+                                cppproperty:build_no     = cppgeneral_alias:build_no, generic
+
+        do rate_weather_related
+
+/*        if cppgeneral_alias:exclusions = 1 and
+           sfscompany:boiler_rating = 4 then
+            begin
+            do cause_of_loss
+            l_ec_base_rate = l_ec_base_rate *
+                             l_cl_wind_factor
+            end*/
+
+        -- cause of loss exclusion options
+        If cppGENERAL_ALIAS:EXCLUSIONS = 1 and
+           sfscompany:boiler_rating <> 4 Then
+            Do CAUSE_OF_LOSS
+        Else
+        if sfscompany:boiler_rating <> 4 then
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[6] = 1.00
+                cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[6] = 1.00
+                End
+            End
+
+        -- protective systems factors
+        If cppGENERAL_ALIAS:PROTECTIVE_SYSTEMS = 1 Then
+            Do PROTECTIVE_SYSTEMS
+        Else
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:SECURITY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[6] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[6] = 1.00
+                End
+            End
+
+        -- territory factors
+        if cppgeneral_alias:state = 37 and
+           sfpname:company_id = "NWIC" then
+            begin
+            do get_territory_factors
+            if l_territory_factor = 0 then
+                l_territory_factor = 1.00
+            change cppgeneral_alias
+                begin
+                cppgeneral_alias:territory_factor_2[1] = l_territory_factor
+                end
+            end
+        else
+        if cppgeneral_alias:territory_factor_2[1] = 0 then
+            begin
+            change cppgeneral_alias
+                begin
+                cppgeneral_alias:territory_factor_2[1] = 1.00
+                end
+            end
+
+        if cppgeneral_alias:state = 19 and
+           sfpname:company_id = "FARMERS" then
+            begin
+            do get_territory_factors
+            if l_territory_factor = 0 then
+                l_territory_factor = 1.00
+            if l_territory_factor_1 = 0 then
+                l_territory_factor_1 = 1.00
+            if l_territory_factor_2 = 0 then
+                l_territory_factor_2 = 1.00
+            change cppgeneral_alias
+                begin
+                cppgeneral_alias:territory_factor_2[1] = l_territory_factor
+                cppgeneral_alias:territory_factor_2[2] = l_territory_factor_1
+                cppgeneral_alias:territory_factor_2[3] = l_territory_factor_2
+                end
+            end
+        else
+        if cppgeneral_alias:state <> 07 then
+            begin
+            change cppgeneral_alias
+                begin
+                if cppgeneral_alias:territory_factor_2[1] = 0 then
+                    cppgeneral_alias:territory_factor_2[1] = 1.00
+                if cppgeneral_alias:territory_factor_2[2] = 0 then
+                    cppgeneral_alias:territory_factor_2[2] = 1.00
+                if cppgeneral_alias:territory_factor_2[3] = 0 then
+                    cppgeneral_alias:territory_factor_2[3] = 1.00
+                end
+            end
+
+        -- miscellaneous rates to update net factor
+        Do MISC_PROP_RATES
+        Change cppGENERAL_ALIAS
+            Begin
+            if sfscompany:boiler_rating <> 4 then
+                cppGENERAL_ALIAS:NET_FACTOR[1] = cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[1] *
+                                                 cppGENERAL_ALIAS:SPRINKLERED_RATE[1] *
+                                                 cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                                 cppGENERAL_ALIAS:INFLATION_FACTOR[1] *
+                                                 cppGENERAL_ALIAS:VACANCY_FACTOR[1] *
+                                                 cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[1] *
+                                                 cppgeneral_alias:wind_deductible_factor[6]
+            else
+                cppGENERAL_ALIAS:NET_FACTOR[1] = cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] *
+                                                 cppGENERAL_ALIAS:INFLATION_FACTOR[1] *
+                                                 cppGENERAL_ALIAS:VACANCY_FACTOR[1] *
+                                                 cppgeneral_alias:wind_deductible_factor[6]
+
+            cppgeneral_alias:specific_minimum[1] = 0
+            l_specific_minimum = "N"
+            If cppGENERAL_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] = 0 Then
+                cppGENERAL_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] = 1.00
+            else
+                begin
+                l_specific_rate_minimum = cppgeneral_alias:specific_rate_adjustment[1] *
+                                          l_fire_base_rate
+                if l_specific_rate_minimum < cppgeneral_alias:specific_rate_minimum then
+                    begin
+                    l_fire_specific_rate = cppgeneral_alias:specific_rate_minimum
+                    l_specific_minimum = "Y"
+                    cppgeneral_alias:specific_minimum[1] = 1
+                    end
+                end
+
+            If cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR = 0 Then
+                cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR = 1.00
+
+            if cppgeneral_alias:special_exposure_factor = 0 then
+                cppgeneral_alias:special_exposure_factor = 1.00
+
+            if cppgeneral_alias:coinsurance_factor[1] = 0 then
+                cppgeneral_alias:coinsurance_factor[1] = 1.00
+
+            if sfscompany:boiler_rating <> 4 then
+                begin
+                if l_specific_minimum = "Y" then
+                    begin
+                    cppGENERAL_ALIAS:ADJ_RATE1[1] = l_fire_specific_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[1] *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1]
+                    end
+                else
+                    begin
+                    cppGENERAL_ALIAS:ADJ_RATE1[1] = l_fire_base_rate *
+                                                    cppGENERAL_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[1] *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1]
+                    end
+
+                cppGENERAL_ALIAS:ADJ_PREMIUM[1] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                  100) *
+                                                  cppGENERAL_ALIAS:ADJ_RATE1[1]) *
+                                                  cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                  cppgeneral_alias:territory_factor_2[1] *
+                                                  l_PACKAGE_MOD
+                cppGENERAL_ALIAS:PREMIUM[1] = cppGENERAL_ALIAS:ADJ_PREMIUM[1]
+                end
+            else
+            if sfscompany:boiler_rating = 4 then
+                begin
+                if cppgeneral_alias:blanket = 0 then
+                    begin
+                    if l_specific_minimum = "Y" then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[1] = ((l_fire_specific_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1] *
+                                                    cppgeneral_alias:rating_territory_factor *
+                                                    cppgeneral_alias:special_exposure_factor *
+                                                    l_package_mod *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[1]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+                    else
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[1] = ((l_fire_base_rate *
+                                                    cppGENERAL_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1] *
+                                                    cppgeneral_alias:rating_territory_factor *
+                                                    cppgeneral_alias:special_exposure_factor *
+                                                    l_package_mod *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[1]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+                    end
+                else
+                    begin
+                    cppGENERAL_ALIAS:ADJ_RATE1[1] = ((l_fire_base_rate *
+                                                    cppGENERAL_ALIAS:SPECIFIC_RATE_ADJUSTMENT[1] *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1] *
+                                                    l_package_mod *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[1]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                    end
+
+                cppGENERAL_ALIAS:ADJ_PREMIUM[1] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                  100) *
+                                                  cppGENERAL_ALIAS:ADJ_RATE1[1])
+                if cppgeneral_alias:adj_premium[1] = 0 and
+                   cppgeneral_alias:limit[1] >= 25000000 then
+                    cppGENERAL_ALIAS:PREMIUM[1] = ((cppGENERAL_ALIAS:limit[1] divide
+                                                  100) *
+                                                  cppgeneral_alias:adj_rate1[1])
+                else
+                    cppGENERAL_ALIAS:PREMIUM[1] = cppGENERAL_ALIAS:ADJ_PREMIUM[1]
+                end
+
+
+            -- ec
+            If cppGENERAL_ALIAS:FORM > 1 Then
+                Begin
+                if sfscompany:boiler_rating <> 4 then
+                    cppGENERAL_ALIAS:NET_FACTOR[2] = cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[2] *
+                                                     cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[2] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[2] *
+                                                     cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[2] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+                else
+                    cppGENERAL_ALIAS:NET_FACTOR[2] = cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[2] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[2] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+
+                if cppgeneral_alias:coinsurance_factor[2] = 0 then
+                    cppgeneral_alias:coinsurance_factor[2] = 1.00
+
+                if sfscompany:boiler_rating <> 4 then
+                    begin
+                    cppGENERAL_ALIAS:ADJ_RATE1[2] = l_ec_base_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[2] *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[2]
+
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[2] = ((cppGENERAL_ALIAS:LIMIT[1] Divide 100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[2] *
+                                                      cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      cppgeneral_alias:territory_factor_2[2] *
+                                                      l_PACKAGE_MOD)
+                    end
+                else
+                if sfscompany:boiler_rating = 4 then
+                    begin
+                    if cppgeneral_alias:blanket = 0 then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[2] = ((l_ec_base_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[2] *
+                                                    cppgeneral_alias:rating_territory_factor *
+                                                    cppgeneral_alias:special_exposure_factor *
+                                                    l_package_mod *
+                                                    l_deviation *
+                                                    cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[2]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+                   else
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[2] = ((l_ec_base_rate *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[2] *
+                                                    l_package_mod *
+                                                    l_deviation *
+                                                    cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[2] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[2]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_Factor *
+                                                    l_multi_loc)
+                        end
+
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[2] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                      100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[2])
+                    end
+
+                cppGENERAL_ALIAS:PREMIUM[2] = cppGENERAL_ALIAS:ADJ_PREMIUM[2]
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:NET_FACTOR[2] = 0
+                cppGENERAL_ALIAS:ADJ_RATE1[2] = 0
+                cppGENERAL_ALIAS:ADJ_PREMIUM[2] = 0
+                cppGENERAL_ALIAS:PREMIUM[2] = 0
+                End
+
+            -- vmm
+            If cppGENERAL_ALIAS:FORM > 1 And
+               cppEXCLUSIONS:EXCLUDE_VANDALISM = 0 Then
+                Begin
+                if sfscompany:boiler_Rating <> 4 then
+                    cppGENERAL_ALIAS:NET_FACTOR[3] = cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[3] *
+                                                     cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[3] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[3] *
+                                                     cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[3] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+                else
+                    cppGENERAL_ALIAS:NET_FACTOR[3] = cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[3] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[3] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+
+                if cppgeneral_alias:coinsurance_factor[3] = 0 then
+                    cppgeneral_alias:coinsurance_factor[3] = 1.00
+
+                if sfscompany:boiler_rating <> 4 then
+                    begin
+                    cppGENERAL_ALIAS:ADJ_RATE1[3] = l_vmm_base_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[3] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[3] *
+                                                    l_DEVIATION *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[3]
+
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[3] = ((cppGENERAL_ALIAS:LIMIT[1] Divide 100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[3] *
+                                                      cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      cppgeneral_alias:territory_factor_2[3] *
+                                                      l_PACKAGE_MOD)
+                    end
+                else
+                if sfscompany:boiler_rating = 4 then
+                    begin
+                    if cppgeneral_alias:blanket = 0 then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[3] = ((l_vmm_base_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[3] *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[3] *
+                                                    cppgeneral_alias:rating_territory_factor *
+                                                    cppgeneral_alias:special_exposure_factor *
+                                                    l_package_mod *
+                                                    l_deviation *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[3] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[3]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+                    else
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[3] = ((l_vmm_base_rate *
+                                                    cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[3] *
+                                                    l_package_mod *
+                                                    l_deviation *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[3] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[3]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[3] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                      100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[3])
+                    end
+
+                cppGENERAL_ALIAS:PREMIUM[3] = cppGENERAL_ALIAS:ADJ_PREMIUM[3]
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:NET_FACTOR[3] = 0
+                cppGENERAL_ALIAS:ADJ_PREMIUM[3] = 0
+                cppGENERAL_ALIAS:ADJ_RATE1[3] = 0
+                cppGENERAL_ALIAS:PREMIUM[3] = 0
+                End
+
+            If cppGENERAL_ALIAS:FORM one of 3, 5 Then
+                Begin
+                if sfscompany:boiler_rating <> 4 then
+                    begin
+                    cppGENERAL_ALIAS:NET_FACTOR[4] = cppGENERAL_ALIAS:SECURITY_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:BURGLARY_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[1] *
+                                                     cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[4] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+                    end
+                else
+                    cppGENERAL_ALIAS:NET_FACTOR[4] = cppGENERAL_ALIAS:SECURITY_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:BURGLARY_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[4] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[4] *
+                                                     cppgeneral_alias:agreed_value_factor[4] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+
+                if cppgeneral_alias:form one of 3 then
+                    Begin
+                    if cppgeneral_alias:coinsurance_factor[4] = 0 then
+                        cppgeneral_alias:coinsurance_factor[4] = 1.00
+
+                    if sfscompany:boiler_rating <> 4 then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[4] = l_aop_base_rate *
+                                                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:NET_FACTOR[4] *
+                                                        l_DEVIATION *
+                                                        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4]
+
+                        cppGENERAL_ALIAS:ADJ_PREMIUM[4] = ((cppGENERAL_ALIAS:LIMIT[1] Divide 100) *
+                                                           cppGENERAL_ALIAS:ADJ_RATE1[4] *
+                                                           cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                           l_PACKAGE_MOD)
+                        end
+                    else
+                    if sfscompany:boiler_rating = 4 then
+                        begin
+                        if cppgeneral_alias:blanket = 0 then
+                            begin
+                            cppGENERAL_ALIAS:ADJ_RATE1[4] = ((l_aop_base_rate *
+                                                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                        cppgeneral_alias:rating_territory_factor *
+                                                        cppgeneral_alias:special_exposure_factor *
+                                                        l_package_mod *
+                                                        l_deviation *
+                                                        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:NET_FACTOR[4]) *
+                                                        l_irpm_deviation *
+                                                        l_exp_factor *
+                                                        l_multi_loc)
+                            end
+                        else
+                            begin
+                            cppGENERAL_ALIAS:ADJ_RATE1[4] = ((l_aop_base_rate *
+                                                        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                        l_package_mod *
+                                                        l_deviation *
+                                                        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:NET_FACTOR[4]) *
+                                                        l_irpm_deviation *
+                                                        l_exp_factor *
+                                                        l_multi_loc)
+                            end
+
+                        cppGENERAL_ALIAS:ADJ_PREMIUM[4] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                          100) *
+                                                          cppGENERAL_ALIAS:ADJ_RATE1[4])
+                        end
+
+                    cppGENERAL_ALIAS:PREMIUM[4] = cppGENERAL_ALIAS:ADJ_PREMIUM[4]
+                    End
+
+                If cppGENERAL_ALIAS:FORM one of 5 And
+                   cppGENERAL_ALIAS:RATE_TYPE one of 1, 3, 5 Then
+                    Begin
+                    if cppgeneral_alias:coinsurance_factor[4] = 0 then
+                        cppgeneral_alias:coinsurance_factor[4] = 1.00
+
+                    if sfscompany:boiler_rating <> 4 then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[4] = l_aop_base_rate *
+                                                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:NET_FACTOR[4] *
+                                                        l_DEVIATION *
+                                                        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4]
+
+                        cppGENERAL_ALIAS:ADJ_PREMIUM[4] = ((cppGENERAL_ALIAS:LIMIT[1] Divide 100) *
+                                                          cppGENERAL_ALIAS:ADJ_RATE1[4] *
+                                                          cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                          l_PACKAGE_MOD)
+                        end
+                    else
+                        begin
+                        if cppgeneral_alias:blanket = 0 then
+                            begin
+                            cppGENERAL_ALIAS:ADJ_RATE1[4] = ((l_aop_base_rate *
+                                                        cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                        cppgeneral_alias:rating_territory_factor *
+                                                        cppgeneral_alias:special_exposure_factor *
+                                                        l_package_mod *
+                                                        l_deviation *
+                                                        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:NET_FACTOR[4]) *
+                                                        l_irpm_deviation *
+                                                        l_exp_factor *
+                                                        l_multi_loc)
+                            end
+                        else
+                            begin
+                            cppGENERAL_ALIAS:ADJ_RATE1[4] = ((l_aop_base_rate *
+                                                        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                        l_package_mod *
+                                                        l_deviation *
+                                                        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] *
+                                                        cppGENERAL_ALIAS:NET_FACTOR[4]) *
+                                                        l_irpm_deviation *
+                                                        l_exp_factor *
+                                                        l_multi_loc)
+                            end
+
+                        cppGENERAL_ALIAS:ADJ_PREMIUM[4] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                          100) *
+                                                          cppGENERAL_ALIAS:ADJ_RATE1[4])
+                        end
+
+                    cppGENERAL_ALIAS:PREMIUM[4] = cppGENERAL_ALIAS:ADJ_PREMIUM[4]
+                    End
+                Else
+                    Begin
+                    if cppgeneral_alias:coinsurance_factor[4] = 0 then
+                        cppgeneral_alias:coinsurance_factor[4] = 1.00
+
+                    if sfscompany:boiler_rating <> 4 then
+                        begin
+                        L_THEFT_ADJ_RATE = ((l_aop_base_rate *
+                                           cppGENERAL_ALIAS:COINSURANCE_FACTOR[4] *
+                                           l_DEVIATION) *
+                                           (cppGENERAL_ALIAS:LIMIT[1] Divide 100))
+                        cppGENERAL_ALIAS:PREMIUM[4] = (((cppGENERAL_ALIAS:BRTHEFT *
+                                                      cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                      cppGENERAL_ALIAS:THEFT_TERRITORY_FACTOR) +
+                                                      L_THEFT_ADJ_RATE) *
+                                                      cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      l_PACKAGE_MOD)
+                        end
+                    else
+                        begin
+                        if cppgeneral_alias:blanket = 0 then
+                            begin
+                            L_THEFT_ADJ_RATE = ((l_aop_base_rate *
+                                           cppGENERAL_ALIAS:COINSURANCE_FACTOR[4]) *
+                                           (cppGENERAL_ALIAS:LIMIT[1]
+                                           Divide 100))
+                            cppGENERAL_ALIAS:PREMIUM[4] = ((((cppGENERAL_ALIAS:BRTHEFT *
+                                                      cppGENERAL_ALIAS:THEFT_TERRITORY_FACTOR) +
+                                                      l_theft_adj_rate) *
+                                                      cppgeneral_alias:rating_territory_factor *
+                                                      cppgeneral_alias:special_exposure_factor *
+                                                      cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                      l_package_mod *
+                                                      l_deviation) *
+                                                      l_irpm_deviation *
+                                                      l_exp_factor *
+                                                      l_multi_loc)
+                            end
+                        else
+                            begin
+                            L_THEFT_ADJ_RATE = (l_aop_base_rate *
+                                               (cppGENERAL_ALIAS:LIMIT[1]
+                                               Divide 100))
+                            cppGENERAL_ALIAS:PREMIUM[4] = ((((cppGENERAL_ALIAS:BRTHEFT *
+                                                      cppGENERAL_ALIAS:THEFT_TERRITORY_FACTOR) +
+                                                      l_theft_adj_rate) *
+                                                      cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] *
+                                                      l_package_mod *
+                                                      l_deviation) *
+                                                      l_irpm_deviation *
+                                                      l_exp_factor *
+                                                      l_multi_loc)
+                            end
+                        end
+                    End
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:PREMIUM[4] = 0
+                cppGENERAL_ALIAS:ADJ_PREMIUM[4] = 0
+                End
+
+            If cppGENERAL_ALIAS:SPRINKLER_LEAKAGE = 1 And
+               cppGENERAL_ALIAS:FORM <> 5 Then
+                Begin
+                if sfscompany:boiler_rating <> 4 then
+                    cppGENERAL_ALIAS:NET_FACTOR[6] = cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[6] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[6] *
+                                                     cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[6] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+                else
+                    cppGENERAL_ALIAS:NET_FACTOR[6] = cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] *
+                                                     cppGENERAL_ALIAS:INFLATION_FACTOR[6] *
+                                                     cppGENERAL_ALIAS:VACANCY_FACTOR[6] *
+                                                     cppgeneral_alias:wind_deductible_factor[6]
+
+                if cppgeneral_alias:coinsurance_factor[6] = 0 then
+                    cppgeneral_alias:coinsurance_factor[6] = 1.00
+
+
+                if sfscompany:boiler_rating <> 4 then
+                    begin
+                    cppGENERAL_ALIAS:ADJ_RATE1[6] = l_sl_base_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[6] *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[6] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[6] *
+                                                    l_DEVIATION
+
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[6] = ((cppGENERAL_ALIAS:LIMIT[1] Divide 100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[6] *
+                                                      cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[6] *
+                                                      cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      l_PACKAGE_MOD)
+                    end
+                else
+                if sfscompany:boiler_rating = 4 then
+                    begin
+                    if cppgeneral_alias:blanket = 0 then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[6] = ((l_sl_base_rate *
+                                                    cppGENERAL_ALIAS:COINSURANCE_FACTOR[6] *
+                                                    cppgeneral_alias:deductible_factor[6] *
+                                                    cppgeneral_alias:rating_territory_factor *
+                                                    cppgeneral_alias:special_exposure_factor *
+                                                    l_package_mod *
+                                                    l_deviation *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[6] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[6]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+                    else
+                        begin
+                        cppGENERAL_ALIAS:ADJ_RATE1[6] = ((l_sl_base_rate *
+                                                    cppgeneral_alias:deductible_factor[6] *
+                                                    l_package_mod *
+                                                    l_deviation *
+                                                    cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[6] *
+                                                    cppGENERAL_ALIAS:NET_FACTOR[6]) *
+                                                    l_irpm_deviation *
+                                                    l_exp_factor *
+                                                    l_multi_loc)
+                        end
+
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[6] = ((cppGENERAL_ALIAS:LIMIT[1] Divide
+                                                      100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[6])
+                    end
+
+                cppGENERAL_ALIAS:PREMIUM[6] = cppGENERAL_ALIAS:ADJ_PREMIUM[6]
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:NET_FACTOR[6] = 0
+                cppGENERAL_ALIAS:ADJ_RATE1[6] = 0
+                cppGENERAL_ALIAS:ADJ_PREMIUM[6] = 0
+                cppGENERAL_ALIAS:PREMIUM[6] = 0
+                End
+
+            If cppGENERAL_ALIAS:EARTHQUAKE = 1 Then
+                Begin
+                access cppearthquake, set cppearthquake:policy_no = cppgeneral_alias:policy_no,
+                                          cppearthquake:pol_year = cppgeneral_alias:pol_year,
+                                          cppearthquake:end_sequence = cppgeneral_alias:end_sequence,
+                                          cppearthquake:prem_no = cppgeneral_alias:prem_no,
+                                          cppearthquake:build_no = cppgeneral_alias:build_no,
+                                          cppearthquake:rate_type = cppgeneral_alias:rate_type, generic
+
+                Do RATE_EARTHQUAKE
+
+                l_earthquake_rate = cppgeneral_alias:base_rate[5]
+
+                If cppEARTHQUAKE:DEDUCTIBLE <> L_EARTHQUAKE_DEDUCTIBLE_PERCENT Then
+                    Begin
+                    L_EARTHQUAKE_RATE = (L_EARTHQUAKE_RATE * ((100 -
+                                        (((cppEARTHQUAKE:DEDUCTIBLE -
+                                        L_EARTHQUAKE_DEDUCTIBLE_PERCENT) *
+                                        L_EARTHQUAKE_REDUCTION_PER) *
+                                        L_EARTHQUAKE_REDUCTION)) Divide 100))
+                    end
+                If cppEARTHQUAKE:SPRINKLER_LEAKAGE = 1 Then
+                    L_EARTHQUAKE_RATE = L_EARTHQUAKE_RATE * L_EARTHQUAKE_SL
+
+                cppgeneral_alias:net_factor[5] = 0
+                cppGENERAL_ALIAS:ADJ_RATE1[5] = l_earthquake_rate *
+                                               l_DEVIATION
+
+                if sfscompany:boiler_rating <> 4 then
+                    begin
+                    cppGENERAL_ALIAS:ADJ_PREMIUM[5] = ((cppGENERAL_ALIAS:LIMIT[1]
+                                                      Divide 100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[5] *
+                                                      cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      l_PACKAGE_MOD)
+                    end
+                else
+                if sfscompany:boiler_rating = 4 then
+                    begin
+                    if cppgeneral_alias:blanket = 0 then
+                        begin
+                        cppGENERAL_ALIAS:ADJ_PREMIUM[5] = (((cppGENERAL_ALIAS:LIMIT[1]
+                                                      Divide 100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[5] *
+                                                      cppGENERAL_ALIAS:RATING_TERRITORY_FACTOR *
+                                                      cppgeneral_alias:special_exposure_factor *
+                                                      l_PACKAGE_MOD *
+                                                      l_deviation) *
+                                                      l_irpm_deviation *
+                                                      l_exp_factor *
+                                                      l_multi_loc)
+                        end
+                    else
+                        begin
+                        cppGENERAL_ALIAS:ADJ_PREMIUM[5] = (((cppGENERAL_ALIAS:LIMIT[1]
+                                                      Divide 100) *
+                                                      cppGENERAL_ALIAS:ADJ_RATE1[5] *
+                                                      l_PACKAGE_MOD *
+                                                      l_deviation) *
+                                                      l_irpm_deviation *
+                                                      l_exp_factor *
+                                                      l_multi_loc)
+                        end
+                    end
+
+                cppGENERAL_ALIAS:PREMIUM[5] = cppGENERAL_ALIAS:ADJ_PREMIUM[5]
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:NET_FACTOR[5] = 0
+                cppGENERAL_ALIAS:ADJ_RATE1[5] = 0
+                cppGENERAL_ALIAS:ADJ_PREMIUM[5] = 0
+                cppGENERAL_ALIAS:PREMIUM[5] = 0
+                End
+
+            end
+
+        Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                                cppproperty:pol_year = cppgeneral_alias:pol_year,
+                                cppproperty:end_sequence = cppgeneral_alias:end_sequence,
+                                cppPROPERTY:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                                cppPROPERTY:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+        If cppPROPERTY:BOILER = 1 Then
+            Begin
+            Do RATE_BOILERS
+
+            if cppproperty:policy_no = cppgeneral_alias:policy_no and
+               cppproperty:pol_year = cppgeneral_alias:pol_year and
+               cppproperty:end_sequence = cppgeneral_alias:end_sequence and
+               cppproperty:prem_no = cppgeneral_alias:prem_no and
+               cppproperty:build_no = cppgeneral_alias:build_no then
+                begin
+                Change cppPROPERTY
+                    Begin
+                    cppPROPERTY:BOILER_PREMIUM[1] = L_BOILER_PREMIUM
+                    end
+                End
+            End
+        Else
+            Begin
+            if cppproperty:policy_no = cppgeneral_alias:policy_no and
+               cppproperty:pol_year = cppgeneral_alias:pol_year and
+               cppproperty:end_sequence = cppgeneral_alias:end_sequence and
+               cppproperty:prem_no = cppgeneral_alias:prem_no and
+               cppproperty:build_no = cppgeneral_alias:build_no then
+                begin
+                Change cppPROPERTY
+                    Begin
+                    cppPROPERTY:BOILER_PREMIUM[1] = 0
+                    end
+                End
+
+            End
+
+/*        Do RATE_BUILDING_CODE
+
+        Access sfpEND, Set sfpEND:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                           sfpEND:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                           sfpEND:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+        L_END_PREMIUM = 0
+        L_UPDATE_SFPEND_PREMIUM = 0
+        While sfpEND:policy_NO = cppGENERAL_ALIAS:policy_NO And
+              sfpEND:PREM_NO = cppGENERAL_ALIAS:PREM_NO And
+              sfpEND:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO
+                Begin
+                If sfpEND:LOB_END_CODE = "P" Then
+                    Begin
+                    L_UPDATE_SFPEND_PREMIUM = 0
+                    L_CODE = sfpEND:CODE
+                    If sfpEND:MANUAL_PREMIUM = 0 Then
+                        Begin
+--                        Do RATE_ENDORSEMENTS
+                        Change sfpEND
+                            Begin
+                            sfpEND:PREMIUM = L_UPDATE_SFPEND_PREMIUM
+                            End
+                        End
+                    Else
+                        L_UPDATE_SFPEND_PREMIUM = sfpEND:MANUAL_PREMIUM
+
+                    L_END_PREMIUM = L_END_PREMIUM + L_UPDATE_SFPEND_PREMIUM
+                    End
+
+                Next sfpEND
+                End
+
+        Access sfpMISC, Set sfpMISC:policy_NO = G_policy_NO, Generic
+
+        L_MISC_PREMIUM = 0
+        If L_MISC <> "Y" Then
+            Begin
+            While sfpMISC:policy_NO = G_policy_NO
+                Begin
+                If sfpMISC:LOB_END_CODE = "P" Then
+                    Begin
+                    L_MISC_PREMIUM = L_MISC_PREMIUM + sfpMISC:PREMIUM
+                    L_MISC = "Y"
+
+                    L_END_PREMIUM = L_END_PREMIUM + L_MISC_PREMIUM
+                    End
+
+                Next sfpMISC
+                End
+            End*/
+
+        If cppGENERAL_ALIAS:LIMIT[1] <> 0 Then
+            Begin
+            Change cppGENERAL_ALIAS
+                Begin
+                cppGENERAL_ALIAS:TOTAL_PREMIUM[1] = cppGENERAL_ALIAS:PREMIUM[1] +
+                                                    cppGENERAL_ALIAS:PREMIUM[2] +
+                                                    cppGENERAL_ALIAS:PREMIUM[3] +
+                                                    cppGENERAL_ALIAS:PREMIUM[4] +
+                                                    cppGENERAL_ALIAS:PREMIUM[5] +
+                                                    cppGENERAL_ALIAS:PREMIUM[6] +
+                                                    cppPROPERTY:BOILER_PREMIUM[1]
+--                                                    L_END_PREMIUM +
+--                                                    L_SUPPLEMENTAL_PREMIUM
+                End
+            End
+        end
+    Else
+        Begin
+        Change cppGENERAL_ALIAS
+            Begin
+            cppGENERAL_ALIAS:TOTAL_PREMIUM[1] = 0
+            cppgeneral_alias:premium[1] = 0
+            cppgeneral_alias:premium[2] = 0
+            cppgeneral_alias:premium[3] = 0
+            cppgeneral_alias:premium[4] = 0
+            cppgeneral_alias:premium[5] = 0
+            cppgeneral_alias:premium[6] = 0
+            End
+
+            Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                                    cppproperty:pol_year = cppgeneral_alias:pol_year,
+                                    cppproperty:end_sequence = cppgeneral_alias:end_sequence,
+                                    cppPROPERTY:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                                    cppPROPERTY:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+            if cppproperty:policy_no = cppgeneral_alias:policy_no and
+               cppproperty:pol_year = cppgeneral_alias:pol_year and
+               cppproperty:end_sequence = cppgeneral_alias:end_sequence and
+               cppproperty:prem_no = cppgeneral_alias:prem_no and
+               cppproperty:build_no = cppgeneral_alias:build_no then
+                begin
+                change cppproperty
+                    begin
+                    cppproperty:boiler_premium[1] = 0
+                    end
+                end
+            End
+
+    Next cppGENERAL_ALIAS
+    End
+
+End
+
+Procedure get_territory_factors
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE      = cppGENERAL_ALIAS:STATE
+L_EFF_DATE   = sfpNAME:EFF_DATE
+l_territory  = cppgeneral_alias:county
+
+Include "cpsterrfactors.pro"
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+if cppgeneral_alias:company_deviation[1] = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral_alias:company_deviation[1] <> 1.00 then
+        l_deviation = (1 + (cppgeneral_alias:company_deviation[1] * 0.01))
+    else
+        l_deviation = cppgeneral_alias:company_deviation[1]
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral_alias:company_deviation[2] = 0 then
+        l_irpm_deviation = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral_alias:company_deviation[2] <> 1.00 then
+        l_irpm_deviation = (1 + (cppgeneral_alias:company_deviation[2] * 0.01))
+    else
+        l_irpm_deviation = cppgeneral_alias:company_deviation[2]
+
+    end
+else
+    l_irpm_deviation = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral_alias:company_deviation[3] = 0 then
+        l_exp_factor = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral_alias:company_deviation[3] <> 1.00 then
+        l_exp_factor = (1 + (cppgeneral_alias:company_deviation[3] * 0.01))
+    else
+        l_exp_factor = cppgeneral_alias:company_deviation[3]
+
+    end
+else
+    l_exp_factor = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral_alias:multi_location_credit = 0 then
+        l_multi_loc = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral_alias:multi_location_credit <> 1.00 then
+        l_multi_loc = (1 + (cppgeneral_alias:multi_location_credit * 0.01))
+    else
+        l_multi_loc = cppgeneral_alias:multi_location_credit
+
+    end
+else
+    l_multi_loc = 1.00
+
+End
+
+Procedure RATE_EARTHQUAKE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_EARTHQUAKE_BUILDING_TYPE = cppEARTHQUAKE:CONSTRUCTION
+L_EARTHQUAKE_RATE_CLASS = cppEARTHQUAKE:GROUP_NO
+
+Include "cpsearthquake.pro"
+
+End
+
+Procedure PACKAGE_MOD
+Begin
+if cppgeneral_alias:package_mod[1] = 0 then
+    begin
+    l_package_mod = 1.00
+    end
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral_alias:package_mod[1] <> 1.00 then
+        l_package_mod = (1 + (cppgeneral_alias:package_mod[1] * 0.01))
+    else
+        l_package_mod = cppgeneral_alias:package_mod[1]
+    end
+
+End
+
+Procedure FIRE_RESISTIVE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+--L_RATE_TYPE = cppGENERAL_ALIAS:RATE_TYPE
+L_PROTECTION = cppGENERAL_ALIAS:PROTECTION
+L_SPRINKLERED = cppGENERAL_ALIAS:SPRINKLERED
+
+Include "cpstransratefr.pro"
+
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppGENERAL_ALIAS:CONSTRUCTION_CODE = "F" Then
+        Begin
+        cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[1] = L_FIRE_RESISTIVE_FIRE
+        cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[2] = L_FIRE_RESISTIVE_EC
+        cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[3] = L_FIRE_RESISTIVE_VMM
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[1] = 1.00
+        cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[2] = 1.00
+        cppGENERAL_ALIAS:FIRE_RESISTIVE_RATE[3] = 1.00
+        End
+    End
+
+End
+
+Procedure SPRINKLERED
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_RATE_TYPE_1 = 1
+L_PROTECTION = cppGENERAL_ALIAS:PROTECTION
+
+Include "cpstransratesp.pro"
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppGENERAL_ALIAS:SPRINKLERED = 1 And
+       cppGENERAL_ALIAS:CONSTRUCTION_CODE <> "F" Then
+        Begin
+        cppGENERAL_ALIAS:SPRINKLERED_RATE[1] = L_SPRINKLERED_RATE
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:SPRINKLERED_RATE[1] = 1.00
+        End
+    End
+
+End
+
+Procedure CAUSE_OF_LOSS
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_OPTION = cppGENERAL_ALIAS:FORM
+L_EXCLUDE_THEFT = cppEXCLUSIONS:EXCLUDE_THEFT
+
+Include "cpscauseloss.pro"
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppEXCLUSIONS:EXCLUDE_WATER_DAMAGE = 1 Then
+        Begin
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[1] = L_CL_WATER_FACTOR_A -- building
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[2] = 1.00
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[5] = 1.00
+        cppGENERAL_ALIAS:WATER_EXCLUSION_FACTOR[6] = 1.00
+        End
+
+    If cppEXCLUSIONS:EXCLUDE_WIND_HAIL = 1 Then
+        Begin
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[2] = L_CL_WIND_FACTOR
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[5] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[6] = 1.00
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[2] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[5] = 1.00
+        cppGENERAL_ALIAS:WIND_EXCLUSION_FACTOR[6] = 1.00
+        End
+    End
+
+End
+
+Procedure PROTECTIVE_SYSTEMS
+Begin
+Access cppPROTECT, Set cppPROTECT:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                       cppprotect:pol_year = cppgeneral_alias:pol_year,
+                       cppprotect:end_sequence = cppgeneral_alias:end_sequence,
+                       cppPROTECT:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                       cppPROTECT:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO,
+                       cppPROTECT:RATE_TYPE = cppGENERAL_ALIAS:RATE_TYPE, Generic
+
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_SECURITY_SYMBOL = cppPROTECT:SECURITY_SYMBOL
+L_BURGLARY_SYMBOL = cppPROTECT:BURGLAR_SYMBOL
+L_BURGLARY_INSTALL = cppPROTECT:BURGLAR_INSTALL_NO
+L_BURGLARY_GRADE = cppPROTECT:BURGLAR_GRADE
+L_PROTECT_ENTIRE_PREMISES = cppPROTECT:ENTIRE_PREMISES_PROTECTED
+
+Include "cpsprotdevice.pro"
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppGENERAL_ALIAS:PROTECTIVE_SYSTEMS = 1 Then
+        Begin
+        If cppPROTECT:ENTIRE_PREMISES_PROTECTED = 1 Then
+            Begin
+            If L_SECURITY_FACTOR <> 0 Then
+                Begin
+                cppGENERAL_ALIAS:SECURITY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[4] = L_SECURITY_FACTOR
+                cppGENERAL_ALIAS:SECURITY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[6] = 1.00
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:SECURITY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[6] = 1.00
+                End
+
+            If L_BURGLARY_FACTOR <> 0 Then
+                Begin
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[4] = L_BURGLARY_FACTOR
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[6] = 1.00
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[6] = 1.00
+                End
+            End
+        Else
+            Begin
+            If L_SECURITY_FACTOR <> 0 and
+               l_security_factor < l_burglary_factor Then
+                Begin
+                cppGENERAL_ALIAS:SECURITY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[4] = L_SECURITY_FACTOR
+                cppGENERAL_ALIAS:SECURITY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[6] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[6] = 1.00
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:SECURITY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[6] = 1.00
+                End
+            If L_BURGLARY_FACTOR <> 0 and
+               l_burglary_factor < l_security_factor Then
+                Begin
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[4] = L_BURGLARY_FACTOR
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[6] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:SECURITY_FACTOR[6] = 1.00
+                End
+            Else
+                Begin
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[1] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[2] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[3] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[4] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[5] = 1.00
+                cppGENERAL_ALIAS:BURGLARY_FACTOR[6] = 1.00
+                End
+            End
+        End
+    End
+
+End
+
+Procedure MISC_PROP_RATES
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_INFLATION_PERCENT = cppPROPERTY:INFLATION_GUARD[1]
+
+Begin
+Include "cpsproprate.pro"
+End
+
+Begin
+Include "cpsinflguard.pro"
+End
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    l_code = "MCP201"
+    if cppgeneral_alias:blanket = 1 then
+        begin
+        access cppendorse, set cppendorse:policy_no = cppgeneral_alias:policy_no,
+                               cppendorse:pol_year = cppgeneral_alias:pol_year,
+                               cppendorse:end_sequence = cppgeneral_alias:end_sequence,
+                               cppendorse:prem_no  = 0,
+                               cppendorse:build_no = 0,
+                               cppendorse:code     = l_code, generic
+        end
+    else
+        begin
+        access cppendorse, set cppendorse:policy_no = cppgeneral_alias:policy_no,
+                               cppendorse:pol_year = cppgeneral_alias:pol_year,
+                               cppendorse:end_sequence = cppgeneral_alias:end_sequence,
+                               cppendorse:prem_no  = cppgeneral_alias:prem_no,
+                               cppendorse:build_no = cppgeneral_alias:build_no,
+                               cppendorse:code     = l_code, generic
+        end
+
+    Change cppGENERAL_ALIAS
+        Begin
+        If cppGENERAL_ALIAS:AGREED_VALUE = 1 And
+           L_AGREED_FACTOR <> 0 and
+           cppendorse:option[1] one of 1, 3 Then
+            Begin
+            if sfscompany:boiler_rating <> 4 then
+                begin
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[4] = l_agreed_factor
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[5] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] = L_AGREED_FACTOR
+                end
+            else
+                begin
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[4] = l_agreed_factor
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[5] = L_AGREED_FACTOR
+                cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] = L_AGREED_FACTOR
+                end
+            End
+        Else
+            Begin
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[4] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[5] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] = 1.00
+            End
+        end
+    end
+else
+if sfscompany:boiler_rating <> 4 then
+    begin
+    Change cppGENERAL_ALIAS
+        Begin
+        If cppGENERAL_ALIAS:AGREED_VALUE = 1 And
+           L_AGREED_FACTOR <> 0 Then
+            Begin
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] = L_AGREED_FACTOR
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] = L_AGREED_FACTOR
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] = L_AGREED_FACTOR
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[4] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[5] = L_AGREED_FACTOR
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] = L_AGREED_FACTOR
+            End
+        Else
+            Begin
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[1] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[2] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[3] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[4] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[5] = 1.00
+            cppGENERAL_ALIAS:AGREED_VALUE_FACTOR[6] = 1.00
+            End
+        end
+    end
+
+Change cppGENERAL_ALIAS
+    Begin
+    If L_INFLATION_FACTOR <> 0 Then
+        Begin
+        cppGENERAL_ALIAS:INFLATION_FACTOR[1] = L_INFLATION_FACTOR
+        cppGENERAL_ALIAS:INFLATION_FACTOR[2] = L_INFLATION_FACTOR
+        cppGENERAL_ALIAS:INFLATION_FACTOR[3] = L_INFLATION_FACTOR
+        cppGENERAL_ALIAS:INFLATION_FACTOR[4] = L_INFLATION_FACTOR
+        cppGENERAL_ALIAS:INFLATION_FACTOR[5] = L_INFLATION_FACTOR
+        cppGENERAL_ALIAS:INFLATION_FACTOR[6] = L_INFLATION_FACTOR
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:INFLATION_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:INFLATION_FACTOR[2] = 1.00
+        cppGENERAL_ALIAS:INFLATION_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:INFLATION_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:INFLATION_FACTOR[5] = 1.00
+        cppGENERAL_ALIAS:INFLATION_FACTOR[6] = 1.00
+        End
+    end
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppGENERAL_ALIAS:VACANCY = 1 And
+       L_VACANCY_BASE_FACTOR <> 0 Then
+        Begin
+        l_code = "VACANT"
+        access cppendorse, set cppendorse:policy_no = cppgeneral_alias:policy_no,
+                               cppendorse:pol_year = cppgeneral_alias:pol_year,
+                               cppendorse:end_sequence = cppgeneral_alias:end_sequence,
+                               cppendorse:prem_no = cppgeneral_alias:prem_no,
+                               cppendorse:build_no = cppgeneral_alias:build_no,
+                               cppendorse:code = l_code, generic
+
+        l_vacancy_factor_1 = cppendorse:exp_date - cppendorse:eff_date
+        L_VACANCY_FACTOR = l_vacancy_factor_1 divide 365
+        l_vacancy_factor = l_vacancy_factor * l_vacancy_base_factor
+        l_vacancy_factor = 1 + l_vacancy_factor
+        cppGENERAL_ALIAS:VACANCY_FACTOR[1] = L_VACANCY_FACTOR
+        cppGENERAL_ALIAS:VACANCY_FACTOR[2] = L_VACANCY_FACTOR
+        cppGENERAL_ALIAS:VACANCY_FACTOR[3] = L_VACANCY_FACTOR
+        cppGENERAL_ALIAS:VACANCY_FACTOR[4] = L_VACANCY_FACTOR
+        cppGENERAL_ALIAS:VACANCY_FACTOR[5] = L_VACANCY_FACTOR
+        cppGENERAL_ALIAS:VACANCY_FACTOR[6] = L_VACANCY_FACTOR
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:VACANCY_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:VACANCY_FACTOR[2] = 1.00
+        cppGENERAL_ALIAS:VACANCY_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:VACANCY_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:VACANCY_FACTOR[5] = 1.00
+        cppGENERAL_ALIAS:VACANCY_FACTOR[6] = 1.00
+        End
+
+    End
+
+End
+
+Procedure RATE_COINSURANCE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_COINSURANCE = cppGENERAL_ALIAS:COINSURANCE
+L_EFF_DATE = sfpNAME:EFF_DATE
+L_CONSTRUCTION = cppGENERAL_ALIAS:CONSTRUCTION
+L_PROTECTION_2 = cppGENERAL_ALIAS:PROTECTION
+--L_RATE_TYPE = cppGENERAL_ALIAS:RATE_TYPE
+
+Include "cpscoins.pro"
+Include "cpsflatcoins.pro"
+
+End
+
+Procedure RATE_PUBLIC_INSTITUTIONAL
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpspublicinstitute.pro"
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppGENERAL_ALIAS:PUBLIC_INSTITUTIONAL = 1 Then
+        Begin
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] = L_PI_COINS_FIRE
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[2] = L_PI_COINS_EC
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[3] = L_PI_COINS_VMM
+        If cppGENERAL_ALIAS:FORM = 3 Then
+            cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[3] = L_PI_COINS_OPT3
+        If cppGENERAL_ALIAS:FORM = 5 Then
+            Begin
+            Switch(cppGENERAL_ALIAS:RATE_TYPE)
+            Case 1, 3, 5 : Switch(cppEXCLUSIONS:EXCLUDE_THEFT)
+                             Case 0  : cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] =
+                                       L_PI_COINS_OPT5_COVA
+                             Default : cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] =
+                                       L_PI_COINS_OPT5A_COVA
+                             End
+            Default      : Switch(cppEXCLUSIONS:EXCLUDE_THEFT)
+                             Case 0  : cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] =
+                                       L_PI_COINS_OPT5_COVB
+                             Default : cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] =
+                                       L_PI_COINS_OPT5A_COVB
+                             End
+            End
+            End
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[6] = L_PI_COINS_OPT4
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[2] = 1.00
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[5] = 1.00
+        cppGENERAL_ALIAS:PUBLIC_INSTITUTE_FACTOR[6] = 1.00
+        End
+
+    End
+
+End
+
+Procedure RATE_DEDUCTIBLE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_DEDUCTIBLE = cppGENERAL_ALIAS:DEDUCTIBLE
+If cppGENERAL_ALIAS:DEDUCTIBLE >= 5000 Then
+    L_LIMIT = cppGENERAL_ALIAS:LIMIT[1]
+Else
+    L_LIMIT = 0
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpsdeduct.pro"
+
+if sfscompany:boiler_Rating <> 4 then
+    begin
+    Change cppGENERAL_ALIAS
+        Begin
+        if (cppgeneral_alias:deductible_factor[1] = 0 or
+           (cppgeneral_alias:deductible_factor[1] <> 0 and
+           cppgeneral_alias:deductible < 5000)) then
+            begin
+            if cppgeneral_alias:form = 1 then
+                cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1] = L_DEDUCTIBLE_FACTOR_1
+            else
+                cppgeneral_alias:deductible_factor[1] = l_deductible_factor_2
+            cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[2] = L_DEDUCTIBLE_FACTOR_2
+            cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[3] = L_DEDUCTIBLE_FACTOR_2
+            cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] = L_DEDUCTIBLE_FACTOR_2
+            cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[5] = L_DEDUCTIBLE_FACTOR_2
+            cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[6] = L_DEDUCTIBLE_FACTOR_2
+            end
+        End
+   end
+
+Change cppGENERAL_ALIAS
+    Begin
+    If cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1] = 0 Then
+        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[1] = 1.00
+    If cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[2] = 0 Then
+        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[2] = 1.00
+    If cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[3] = 0 Then
+        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[3] = 1.00
+    If cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] = 0 Then
+        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[4] = 1.00
+    If cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[5] = 0 Then
+        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[5] = 1.00
+    If cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[6] = 0 Then
+        cppGENERAL_ALIAS:DEDUCTIBLE_FACTOR[6] = 1.00
+    End
+
+End
+
+procedure rate_weather_related
+begin
+l_company_id = sfpname:company_id
+l_state = cppgeneral_alias:state
+----l_line_of_business = cppgeneral:rating_line_of_business
+access cpsproprate, set cpsproprate:company_id       = l_company_id,
+                        cpsproprate:state            = l_state,
+                        cpsproprate:line_of_business = l_line_of_business, generic
+
+l_weather_factor = 1.00
+while cpsproprate:company_id       = l_company_id and
+      cpsproprate:state            = l_state and
+      cpsproprate:line_of_business = l_line_of_business
+        begin
+        if sfpname:eff_date >= cpsproprate:eff_date then
+            begin
+            if cppproperty:weather_related = 1 then
+                l_weather_factor = cpsproprate:weather_related_factor[1]
+            else
+            if cppproperty:weather_related = 2 then
+                l_weather_factor = cpsproprate:weather_related_factor[2]
+            else
+                l_weather_factor = 1.00
+
+            end
+
+        next cpsproprate
+        end
+
+Change cppGENERAL_ALIAS
+    Begin
+    If L_weather_factor <> 0 Then
+        Begin
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[6] = l_weather_factor
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[6] = 1.00
+        End
+    end
+
+end
+
+Procedure RATE_WIND_DEDUCTIBLE
+Begin
+L_COMPANY_ID = sfpNAME:COMPANY_ID
+L_STATE = cppGENERAL_ALIAS:STATE
+L_DEDUCTIBLE = cppGENERAL_ALIAS:DEDUCTIBLE
+L_WIND_DEDUCTIBLE = cppGENERAL_ALIAS:WIND_DEDUCTIBLE
+L_EFF_DATE = sfpNAME:EFF_DATE
+
+Include "cpswinddeduct.pro"
+
+Change cppGENERAL_ALIAS
+    Begin
+    If L_WIND_DEDUCT_FACTOR <> 0 Then
+        Begin
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[2] = L_WIND_DEDUCT_FACTOR
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[5] = 1.00
+        End
+    Else
+        Begin
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[1] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[2] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[3] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[4] = 1.00
+        cppGENERAL_ALIAS:WIND_DEDUCTIBLE_FACTOR[5] = 1.00
+        End
+    End
+End
+
+Procedure RATE_BOILERS
+Begin
+L_STATE = cppGENERAL_ALIAS:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        L_BOILER_FACTOR = CPSPROPRATE:BOILER_FACTOR
+        L_BOILER_LIMIT = CPSPROPRATE:BOILER_PER
+        L_BOILER_BI_LIMIT = CPSPROPRATE:BOILER_BI_LIMIT
+        L_BOILER_MINIMUM = CPSPROPRATE:BOILER_MINIMUM
+        End
+
+    Next CPSPROPRATE
+    End
+
+    If SFSCOMPANY:BOILER_RATING = 1 Then  -- Salem
+        Begin
+        L_LIMIT = cppGENERAL_ALIAS:LIMIT[1]
+        L_BOILER_PREMIUM = ((L_LIMIT
+                           Divide L_BOILER_LIMIT)
+                           * L_BOILER_FACTOR)
+        End
+    If SFSCOMPANY:BOILER_RATING = 2 Then -- Flemington
+        Begin
+        Access cppGENERAL_ALT, Set cppGENERAL_ALT:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                                   cppgeneral_alt:pol_year = cppgeneral_alias:pol_year,
+                                   cppgeneral_alt:end_sequence = cppgeneral_alias:end_sequence,
+                                   cppGENERAL_ALT:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                                   cppGENERAL_ALT:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO,
+                                   cppGENERAL_ALT:RATE_TYPE = cppGENERAL_ALIAS:RATE_TYPE, Generic
+
+        L_LIMIT = cppGENERAL_ALIAS:LIMIT[1] +
+                  cppPROPERTY:LOSS_UTILITY +
+                  cppPROPERTY:MECHANICAL_BREAKDOWN
+
+        L_BOILER_PREMIUM = ((L_LIMIT
+                           Divide L_BOILER_LIMIT)
+                           * L_BOILER_FACTOR *
+                           cppgeneral_alt:deductible_factor[1] *
+                           cppGENERAL_ALT:RATING_TERRITORY_FACTOR *
+                           cppGENERAL_ALT:COMPANY_DEVIATION[1] *
+                           cppGENERAL_ALT:PACKAGE_MOD[1])
+        End
+    If SFSCOMPANY:BOILER_RATING = 3 Then -- whitehall
+        Begin
+        L_LIMIT = cppGENERAL_ALIAS:LIMIT[1] +
+                  cppPROPERTY:LOSS_UTILITY +
+                  cppPROPERTY:MECHANICAL_BREAKDOWN
+
+       L_BOILER_PREMIUM = ((L_LIMIT
+                           Divide L_BOILER_LIMIT)
+                           * L_BOILER_FACTOR)
+        End
+
+End
+
+Procedure RATE_BUILDING_CODE
+Begin
+L_STATE = cppGENERAL_ALIAS:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE Then
+        Begin
+        If cppPROPERTY:BUILDING_CODE_PERCENT = 0 Then
+            L_FACTOR = CPSPROPRATE:BUILDING_CODE_DELETE_FACTOR
+        Else
+            Begin
+            L_FACTOR = CPSPROPRATE:BUILDING_LAW_RATES[2]
+            L_LIMIT = CPSPROPRATE:BUILDING_LAW_PERCENT
+            L_PER = CPSPROPRATE:BUILDING_LAW_INCREASE[1]
+            End
+        End
+
+    Next CPSPROPRATE
+    End
+
+Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                        cppproperty:pol_year = cppgeneral_alias:pol_year,
+                        cppproperty:end_sequence = cppgeneral_alias:end_sequence,
+                        cppPROPERTY:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                        cppPROPERTY:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+If cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO And
+   cppproperty:pol_year = cppgeneral_alias:pol_year and
+   cppproperty:end_sequence = cppgeneral_alias:end_sequence and
+   cppPROPERTY:PREM_NO = cppGENERAL_ALIAS:PREM_NO And
+   cppPROPERTY:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO Then
+    Change cppPROPERTY
+        Begin
+        If cppPROPERTY:BUILDING_CODE_PERCENT = 0 Then
+            begin
+            L_BUILDING_CODE_PREM = ((cppGENERAL_ALIAS:TOTAL_PREMIUM[1] +
+                                   cppgeneral_alias:total_premium[2] +
+                                   cppgeneral_alias:total_premium[3] +
+                                   cppgeneral_alias:total_premium[4] +
+                                   cppgeneral_alias:total_premium[5] +
+                                   cppgeneral_alias:total_premium[6]) *
+                                   L_FACTOR)
+            cppPROPERTY:BUILDING_CODE_PREM = (L_BUILDING_CODE_PREM -
+                                             (cppGENERAL_ALIAS:PREMIUM[1] +
+                                             cppGENERAL_ALIAS:PREMIUM[2] +
+                                             cppGENERAL_ALIAS:PREMIUM[3] +
+                                             cppGENERAL_ALIAS:PREMIUM[4] +
+                                             cppGENERAL_ALIAS:PREMIUM[5] +
+                                             cppGENERAL_ALIAS:PREMIUM[6]))
+            end
+        Else
+            Begin
+            L_BUILDING_CODE_FACTOR = ((((cppPROPERTY:BUILDING_CODE_PERCENT -
+                                      L_LIMIT) Divide L_PER) * L_FACTOR) + 1)
+            L_BUILDING_CODE_PREM = ((cppGENERAL_ALIAS:PREMIUM[1] +
+                                   cppGENERAL_ALIAS:PREMIUM[2] +
+                                   cppGENERAL_ALIAS:PREMIUM[3] +
+                                   cppGENERAL_ALIAS:PREMIUM[4] +
+                                   cppGENERAL_ALIAS:PREMIUM[5] +
+                                   cppGENERAL_ALIAS:PREMIUM[6]) * L_BUILDING_CODE_FACTOR)
+            cppPROPERTY:BUILDING_CODE_PREM = (L_BUILDING_CODE_PREM -
+                                             (cppGENERAL_ALIAS:PREMIUM[1] +
+                                             cppGENERAL_ALIAS:PREMIUM[2] +
+                                             cppGENERAL_ALIAS:PREMIUM[3] +
+                                             cppGENERAL_ALIAS:PREMIUM[4] +
+                                             cppGENERAL_ALIAS:PREMIUM[5] +
+                                             cppGENERAL_ALIAS:PREMIUM[6]))
+            End
+        End
+End
+
+End

@@ -1,0 +1,280 @@
+%%
+Screen
+        Name = "cppMT002e" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlight = Underscore ;
+        Screensize = "dynamic" ;
+        Domain = "cppisoblanket";
+        Windowtitle = "%a     %s Premium Breakout By Location - Ver. 7.00    %m" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global String G_LIB[10];
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_QUOTE_NO[8] ,
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_NEW_QUOTE_NO[8],
+                                     G_LINE_OF_BUSINESS[4],
+                                     G_CHECK_REFERENCE[7],
+                                     G_AGENT_NO[4],
+                                     G_OPT[2];
+
+        Global String G_COMPANY[10] ,
+                      G_COMPANY_ID[10] ,
+                      G_FUNCTION[10] ,
+                      G_FIRST[1],
+                      G_FIRST_1[1] ;
+
+        global MMDDYYYY date g_starting_date ,
+                             g_ending_date,
+                             g_eff_date ,
+                             g_exp_date ;
+
+        global string g_lib_1[10] ,
+                      g_name[50] ,
+                      g_inquiry[1] ,
+                      g_fob[1],
+                      g_fob_description[75] ,
+                      g_que[10] ;
+
+        global unsigned ascii number g_state[2] ,
+                                     g_rate_type[2] ;
+
+        global signed ascii number g_company_deviation[5]/dec=3 ;
+
+        local date i_eff_date[8] ,
+                   l_eff_date_1[8] ;
+
+        Local String l_desc[50] ,
+                     l_coverage[1] ,
+                     L_ADD_ENDORSEMENT[1],
+                     L_FORM_EDITION[25],
+                     L_DESCRIPTION[50] ,
+                     l_peril_1[8],
+                     l_peril_2[8],
+                     l_peril_3[8],
+                     l_peril_4[8],
+                     l_code[7] ;
+
+        Local Unsigned Ascii Number l_prem_no[4],
+                                    l_build_no[4],
+                                    l_short_rate[4]=0/dec=2,
+                                    l_form[1] ,
+                                    l_state[2],
+                                    l_line_of_business[4] ,
+                                    l_sub_code[4]=0,
+                                    l_group_i[6]=0/dec=4,
+                                    l_group_ii[6]=0/dec=4,
+                                    l_special[5]=0/dec=3,
+                                    l_broad[5]=0/dec=3,
+                                    l_special_office[3]=0,
+                                    l_special_relativities[4]=0,
+                                    l_special_theft[5]=0/dec=3,
+                                    l_theft_rate[8]=0/dec=3,
+                                    l_territory_factor[6]=0/dec=4,
+                                    l_protection_factor[5]=0/dec=3,
+                                    l_coinsurance_factor[5]=0/dec=3,
+                                    l_deductible_factor_1[6]=0/dec=4,
+                                    l_deductible_factor_2[6]=0/dec=4,
+                                    l_deductible_factor_3[6]=0/dec=4,
+                                    l_deductible_factor[6]=0/dec=4,
+                                    l_limit[8]=0,
+                                    l_limit_1[8]=0,
+                                    l_limit_2[8]=0,
+                                    l_adj_rate_1[6]=0/dec=3,
+                                    l_adj_rate_2[6]=0/dec=3,
+                                    l_adj_rate_3[6]=0/dec=3,
+                                    l_adj_rate_4[6]=0/dec=3,
+                                    l_adj_rate_5[6]=0/dec=3,
+                                    l_adj_rate_6[6]=0/dec=3,
+                                    l_adj_rate_7[6]=0/dec=3,
+                                    l_adj_rate_8[6]=0/dec=3,
+                                    l_premium_1[8]=0,
+                                    l_premium_2[8]=0,
+                                    l_premium_3[8]=0,
+                                    l_premium_4[8]=0,
+                                    l_premium_5[8]=0,
+                                    l_premium_6[8]=0,
+                                    l_premium_7[8]=0,
+                                    l_premium_8[8]=0,
+                                    l_deductible_limit[8]=0,
+                                    l_inflation_factor[4]=0/dec=2,
+                                    l_loss_cost[6]=0/dec=4 ,
+                                    l_base_rate_1[6]=0/dec=3,
+                                    l_total_premium[8]=0,
+                                    l_building_total[8]=0,
+                                    l_contents_total[8]=0;
+
+        include "prorata.var"
+
+        Access cppisoblanket, Set cppisoblanket:policy_NO  = G_policy_NO,
+                                  cppisoblanket:pol_year = g_year,
+                                  cppisoblanket:end_sequence = g_end_sequence, generic
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+
+Access Validation
+If cppisoblanket:policy_NO  <> G_policy_NO or
+   cppisoblanket:pol_year <> g_year or
+   cppisoblanket:end_sequence <> g_end_sequence then
+    Error 1000 ;
+
+screen
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____  Prem No:  ____    Build No:  ____          |
+*------------------------------------------------------------------------------*
+| ______________________________                                   ________    |
+|                                                                              |
+|   Peril     Rate      New       Mod       Limit      Premium      Short      |
+|                       Rate      Rate                              Term       |
+| ________  ________  ________  ________  __________  __________  __________   |
+| ________  ________  ________  ________  __________  __________  __________   |
+| ________  ________  ________  ________  __________  __________  __________   |
+| ________  ________  ________  ________  __________  __________  __________   |
+|                             Optional Charges:       __________               |
+|                             Total:                  __________  __________   |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+fields
+        function/noecho/showasguidetext ;
+0301    cppisoblanket:policy_no/displayonly ;
+0302    cppisoblanket:prem_no/displayonly ;
+0303    cppisoblanket:build_no/displayonly ;
+
+0501    cpsratetype:description ;
+0502    begin
+            do pro_rata
+        end
+        i_pro_rata/displayonly ;
+0901    begin
+            l_limit_1           = cppisoblanket:limit[1] divide 100
+            l_peril_1           = "Group I "
+            l_peril_2           = "Group II"
+            switch(cppisoblanket:form)
+              case 2  : begin
+                        l_peril_3           = "Broad"
+                        end
+              default : begin
+                        l_peril_3           = "Special"
+                        end
+              end
+            l_peril_4           = "Theft"
+        end
+        l_peril_1/displayonly;
+1001    l_peril_2/displayonly;
+1101    l_peril_3/displayonly
+        hide if cppisoblanket:form = 1;
+1201    l_peril_4/displayonly
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+
+0902    cppisoblanket:base_rate[1]/displayonly ;
+0903    cppisoblanket:new_rate[1] ;
+0904    cppisoblanket:adj_rate[1]/displayonly;
+0905    l_limit_1/displayonly;
+0906    cppisoblanket:blanket_premium[1]/displayonly;
+0907    cppisoblanket:blanket_premium[5]/displayonly ;
+
+1002    cppisoblanket:base_rate[2]/displayonly;
+1003    cppisoblanket:new_rate[2] ;
+1004    cppisoblanket:adj_rate[2]/displayonly ;
+1005    l_limit_1/displayonly;
+1006    cppisoblanket:blanket_premium[2]/displayonly ;
+1007    cppisoblanket:blanket_premium[6]/displayonly ;
+
+1102    cppisoblanket:base_rate[3]/displayonly
+        hide if cppisoblanket:form = 1;
+1103    cppisoblanket:new_rate[3]
+        hide if cppisoblanket:form = 1 ;
+1104    cppisoblanket:adj_rate[3]/displayonly
+        hide if cppisoblanket:form = 1 ;
+1105    l_limit_1/displayonly
+        hide if cppisoblanket:form = 1;
+1106    cppisoblanket:blanket_premium[3]/displayonly
+        hide if cppisoblanket:form = 1;
+1107    cppisoblanket:blanket_premium[7]/displayonly
+        hide if cppisoblanket:form = 1;
+
+1202    cppisoblanket:base_rate[4]/displayonly
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+1203    cppisoblanket:new_rate[4]
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+1204    cppisoblanket:adj_rate[4]/displayonly
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+1205    l_limit_1/displayonly
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+1206    cppisoblanket:blanket_premium[4]/displayonly
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+1207    cppisoblanket:blanket_premium[8]/displayonly
+        hide if cppisoblanket:form = 1
+        hide if cppisoblanket:rate_type = 1
+        hide if cppisoblanket:theft = 1 ;
+
+1301    cppisoblanket:total_endorsements/displayonly ;
+1401    cppisoblanket:total_premium[1]/displayonly ;
+1402    cppisoblanket:total_premium[2]/displayonly ;
+
+}
+
+procedure definition
+
+procedure pro_rata
+begin
+L_EFF_DATE_1 = Dateadd(sfpNAME:EFF_DATE,0,1)
+If sfpNAME:EXP_DATE < L_EFF_DATE_1 Then
+    begin
+    i_eff_date = dateadd(sfpname:exp_date,0,-1)
+    i_total_days = i_eff_date - sfpname:exp_date
+    i_cx_days = i_eff_date - sfpname:eff_date
+
+    include "prorata.pro"
+    end
+
+end
+
+End

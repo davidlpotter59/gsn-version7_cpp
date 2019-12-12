@@ -1,0 +1,465 @@
+%%
+Program
+        Name = "cppUP02f" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat";
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     G_PREM_NO[4] ,
+                                     G_BUILD_NO[4] ,
+                                     G_RATE_TYPE[2] ;
+
+        local unsigned ascii number l_state[2] ,
+                                    l_number[8],
+                                    l_line_of_business[4],
+                                    l_deductible[5],
+                                    l_boiler_deductible_factor[6]=0/dec=4,
+                                    l_limit[5],
+                                    l_cppgeneral_limit[8],
+                                    l_business_income_limit[8],
+                                    l_business_income_total[8]=0,
+                                    l_cppgeneral_total[8]=0,
+                                    l_inland_total[8]=0,
+                                    l_limit_1[8],
+                                    l_boiler_premium[6]=0,
+                                    l_factor_1[4]=0/dec=3,
+                                    l_prem_no[4],
+                                    l_build_no[4],
+                                    l_rate_type[2]=0,
+                                    l_factor_2[4]=0/dec=3 ;
+
+        local string l_filename[15]="",
+                     l_first[1]="Y",
+                     l_first_update[1]="Y",
+                     l_manual_rating[1]="N",
+                     l_mim_code[7]="",
+                     l_enter[1],
+                     l_code[7]="" ;
+
+Initialisation
+G_policy_NO = Val(COMMANDLINE[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+l_number = g_policy_no
+l_filename = "cppup02f.log"
+l_manual_rating = "N"
+
+-- log file to track why flemington has problems when calculating final total
+-- March 22, 2004
+include "loginitial.inc"
+
+Do RATE_LOCATION
+
+Update
+
+screen exit
+include "logscreenexit.inc"
+
+errors
+include "logerrors.inc"
+
+Procedure Definition
+
+Procedure RATE_LOCATION
+Begin
+access sfpname, set sfpname:policy_no = g_policy_no,
+                    sfpname:pol_year = g_year,
+                    sfpname:end_sequence = g_end_sequence, generic
+
+access sfpmaster, set sfpmaster:policy_no = g_policy_no,
+                      sfpmaster:pol_year = g_year,
+                      sfpmaster:end_sequence = g_end_sequence, generic
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO = G_policy_NO,
+                             cppgeneral_alias:pol_year = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence, Generic
+
+Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                        cppproperty:pol_year = cppgeneral_alias:pol_year,
+                        cppproperty:end_sequence = cppgeneral_alias:end_sequence, generic
+
+while cppproperty:policy_no = cppgeneral_alias:policy_no and
+      cppproperty:pol_year = cppgeneral_alias:pol_year and
+      cppproperty:end_sequence = cppgeneral_alias:end_sequence
+        begin
+        change cppproperty
+            begin
+            cppproperty:boiler_premium[1] = 0
+            cppproperty:boiler_premium[2] = 0
+            end
+
+        next cppproperty
+        end
+
+l_rate_type = cppgeneral_alias:rate_type
+l_prem_no = cppgeneral_alias:prem_no
+l_build_no = cppgeneral_alias:build_no
+While cppGENERAL_ALIAS:policy_NO = G_policy_NO and
+      cppgeneral_alias:pol_year = g_year and
+      cppgeneral_alias:end_sequence = g_end_sequence
+    Begin
+    if cppgeneral_alias:prem_no <> l_prem_no or
+       cppgeneral_alias:build_no <> l_build_no then
+        begin
+        l_prem_no = cppgeneral_alias:prem_no
+        l_build_no = cppgeneral_alias:build_no
+        l_rate_type = cppgeneral_alias:rate_type
+        end
+
+    Access cppPROPERTY, Set cppPROPERTY:policy_NO = cppGENERAL_ALIAS:policy_NO,
+                            cppproperty:pol_year = cppgeneral_alias:pol_year,
+                            cppproperty:end_sequence = cppgeneral_alias:end_sequence,
+                            cppPROPERTY:PREM_NO = cppGENERAL_ALIAS:PREM_NO,
+                            cppPROPERTY:BUILD_NO = cppGENERAL_ALIAS:BUILD_NO, Generic
+
+    l_line_of_business = cppgeneral_alias:rating_line_of_business
+    If cppPROPERTY:BOILER = 1 Then
+        Begin
+        if cppgeneral_alias:blanket = 1 and
+           cppgeneral_alias:limit[1] <> 0 then
+            Do RATE_BOILERS
+        else
+        if cppgeneral_alias:blanket = 0 then
+            do rate_boilers
+
+        if cppproperty:policy_no = cppgeneral_alias:policy_no and
+           cppproperty:pol_year = cppgeneral_alias:pol_year and
+           cppproperty:end_sequence = cppgeneral_alias:end_sequence and
+           cppproperty:prem_no = cppgeneral_alias:prem_no and
+           cppproperty:build_no = cppgeneral_alias:build_no then
+            begin
+            if l_manual_rating = "N" then
+                begin
+                Change cppPROPERTY
+                    Begin
+                    if cppgeneral_alias:blanket = 1 and
+                       cppgeneral_alias:limit[1] <> 0 then
+                        begin
+                        if cppgeneral_alias:rate_type not one of 2 then
+                            cppPROPERTY:BOILER_PREMIUM[1] = L_BOILER_PREMIUM
+                        else
+                            cppproperty:boiler_premium[2] = l_boiler_premium
+                        end
+                    else
+                    if cppgeneral_alias:blanket = 1 and
+                       cppgeneral_alias:limit[1] = 0 and
+                       cppgeneral_alias:rate_type = l_rate_type then
+                        begin
+                        cppproperty:boiler_premium[1] = 0
+                        cppproperty:boiler_premium[2] = 0
+                        end
+                    else
+                        begin
+                        if cppgeneral_alias:rate_type not one of 2, 4 then
+                            cppPROPERTY:BOILER_PREMIUM[1] = cppproperty:boiler_premium[1] +
+                                                            L_BOILER_PREMIUM
+                        else
+                            cppproperty:boiler_premium[2] = cppproperty:boiler_premium[2] +
+                                                            l_boiler_premium
+                        end
+                    end
+                end
+            End
+        End
+    Else
+        Begin
+        if cppproperty:policy_no = cppgeneral_alias:policy_no and
+           cppproperty:pol_year = cppgeneral_alias:pol_year and
+           cppproperty:end_sequence = cppgeneral_alias:end_sequence and
+           cppproperty:prem_no = cppgeneral_alias:prem_no and
+           cppproperty:build_no = cppgeneral_alias:build_no then
+            begin
+            Change cppPROPERTY
+                Begin
+                cppPROPERTY:BOILER_PREMIUM[1] = 0
+                cppproperty:boiler_premium[2] = 0
+                end
+            End
+
+        End
+
+    Next cppGENERAL_ALIAS
+    End
+
+Access cppGENERAL_ALIAS, Set cppGENERAL_ALIAS:policy_NO    = G_policy_NO,
+                             cppgeneral_alias:pol_year     = g_year,
+                             cppgeneral_alias:end_sequence = g_end_sequence, Generic
+
+if l_manual_rating = "Y" then
+    begin
+    Access cppPROPERTY, Set cppPROPERTY:policy_NO    = cppGENERAL_ALIAS:policy_NO,
+                            cppproperty:pol_year     = cppgeneral_alias:pol_year,
+                            cppproperty:end_sequence = cppgeneral_alias:end_sequence, generic
+
+    if cppproperty:policy_no    = cppgeneral_alias:policy_no and
+       cppproperty:pol_year     = cppgeneral_alias:pol_year and
+       cppproperty:end_sequence = cppgeneral_alias:end_sequence then
+        begin
+        Change cppPROPERTY
+            Begin
+            if cppgeneral_alias:rate_type not one of 2, 4 then
+                cppPROPERTY:BOILER_PREMIUM[1] = L_BOILER_PREMIUM
+            else
+                cppproperty:boiler_premium[2] = l_boiler_premium
+            end
+        end
+    end
+End
+
+Procedure RATE_BOILERS
+Begin
+L_STATE = cppGENERAL_ALIAS:STATE
+Access CPSPROPRATE, Set CPSPROPRATE:COMPANY_ID = sfpNAME:COMPANY_ID,
+                        CPSPROPRATE:STATE = L_STATE,
+                        CPSPROPRATE:LINE_OF_BUSINESS = L_LINE_OF_BUSINESS, Generic
+
+Repeat Begin
+    Exit If CPSPROPRATE:COMPANY_ID <> sfpNAME:COMPANY_ID Or
+            CPSPROPRATE:STATE <> L_STATE Or
+            CPSPROPRATE:LINE_OF_BUSINESS <> L_LINE_OF_BUSINESS
+
+    If (sfpNAME:EFF_DATE >= CPSPROPRATE:EFF_DATE and
+       (sfpname:eff_date <= cpsproprate:exp_date or
+       cpsproprate:exp_date = 0)) Then
+        Begin
+        L_FACTOR_1            = cpsproprate:BOILER_FACTOR
+        l_factor_2            = cpsproprate:boilers_factor_1
+        l_code                = cpsproprate:boiler_code_1
+        l_limit_1             = cpsproprate:boiler_restaurant_limit
+        l_limit               = cpsproprate:boiler_per
+        End
+
+    Next CPSPROPRATE
+    End
+
+If SFSCOMPANY:BOILER_RATING one of 4 and
+   sfpname:eff_date <= 02.28.2014 Then -- delos
+    Begin
+    if l_prem_no   = cppgeneral_alias:prem_no and
+       l_build_no  = cppgeneral_alias:build_no and
+       l_rate_type = cppgeneral_alias:rate_type then
+        begin
+        do get_business_income
+        end
+    else
+        begin
+        l_business_income_total = 0
+        end
+    do get_cppgeneral
+    if l_prem_no   = cppgeneral_alias:prem_no and
+       l_build_no  = cppgeneral_alias:build_no and
+       l_rate_type = cppgeneral_alias:rate_type then
+        begin
+        do get_inland_marine
+        end
+    else
+        begin
+        l_inland_total = 0
+        end
+    access cppendorse, set cppendorse:policy_no = cppgeneral_alias:policy_no,
+                           cppendorse:pol_year = cppgeneral_alias:pol_year,
+                           cppendorse:end_sequence = cppgeneral_alias:end_sequence,
+                           cppendorse:prem_no  = 0,
+                           cppendorse:build_no = 0,
+                           cppendorse:code     = l_code, generic
+
+    if cppendorse:limit[1] = l_limit_1 and
+       cppendorse:limit[1] <> 0 and
+       l_factor_2 <> 0 then
+        l_factor_1 = l_factor_2
+
+    if cppendorse:premium[1] <> 0 then
+        begin
+        l_boiler_premium = cppendorse:premium[1]
+        l_manual_rating = "Y"
+        end
+    else
+        begin
+        if cppgeneral_alias:blanket = 1 then
+            begin
+            l_boiler_premium = ((l_cppgeneral_total +
+                               l_business_income_total +
+                               l_inland_total) *
+                              (l_factor_1 divide 100))
+            end
+        else
+            begin
+            l_boiler_premium = ((l_cppgeneral_total +
+                               l_business_income_total +
+                               l_inland_total) *
+                               (l_factor_1 divide 100))
+            end
+        end
+    End
+If SFSCOMPANY:BOILER_RATING one of 4 and
+   sfpname:eff_date > 02.28.2014 Then
+    Begin
+    if l_prem_no   = cppgeneral_alias:prem_no and
+       l_build_no  = cppgeneral_alias:build_no and
+       l_rate_type = cppgeneral_alias:rate_type then
+        begin
+        do get_business_income
+        end
+    else
+        begin
+        l_business_income_total = 0
+        end
+    do get_cppgeneral
+    access cppendorse, set cppendorse:policy_no    = cppgeneral_alias:policy_no,
+                           cppendorse:pol_year     = cppgeneral_alias:pol_year,
+                           cppendorse:end_sequence = cppgeneral_alias:end_sequence,
+                           cppendorse:prem_no      = 0,
+                           cppendorse:build_no     = 0,
+                           cppendorse:code         = l_code, generic
+
+    if cppendorse:limit[1] = l_limit_1 and
+       cppendorse:limit[1] <> 0 and
+       l_factor_2 <> 0 then
+        l_factor_1 = l_factor_2
+
+    do access_cpsboilerdeduct
+    l_BOILER_PREMIUM = (((l_cppgeneral_limit +
+                       l_business_income_limit)
+                       Divide L_LIMIT)
+                       * L_FACTOR_1 *
+                       l_boiler_deductible_factor)
+    if l_boiler_premium < 1 then
+        l_boiler_premium = 1
+    End
+
+End
+
+procedure access_cpsboilerdeduct
+begin
+l_state      = cppgeneral_alias:state
+l_deductible = cppgeneral_alias:deductible
+Access cpsboilerdeduct, Set cpsboilerdeduct:COMPANY_ID       = sfpname:company_id,
+                            cpsboilerdeduct:STATE            = l_STATE,
+                            cpsboilerdeduct:LINE_OF_BUSINESS = l_line_of_business,
+                            cpsboilerdeduct:deductible       = l_deductible, Generic
+
+l_boiler_deductible_factor = 0
+while cpsboilerdeduct:COMPANY_ID       = sfpname:company_id and
+      cpsboilerdeduct:STATE            = L_STATE and
+      cpsboilerdeduct:LINE_OF_BUSINESS = l_line_of_business and
+      cpsboilerdeduct:deductible       = l_deductible
+    begin
+    If sfpname:eff_date >= cpsboilerdeduct:rate_DATE Then
+        l_boiler_deductible_factor = cpsboilerdeduct:factor
+
+    Next cpsboilerdeduct
+    End
+
+end
+
+procedure get_business_income
+begin
+access cppbusiness, set cppbusiness:policy_no = cppgeneral_alias:policy_no,
+                        cppbusiness:pol_year = cppgeneral_alias:pol_year,
+                        cppbusiness:end_sequence = cppgeneral_alias:end_sequence,
+                        cppbusiness:prem_no  = cppgeneral_alias:prem_no,
+                        cppbusiness:build_no = cppgeneral_alias:build_no, generic
+
+l_business_income_total = 0
+l_first = "Y"
+l_business_income_limit = 0
+while cppbusiness:policy_no = cppgeneral_alias:policy_no and
+      cppbusiness:pol_year = cppgeneral_alias:pol_year and
+      cppbusiness:end_sequence = cppgeneral_alias:end_sequence and
+      cppbusiness:prem_no = cppgeneral_alias:prem_no and
+      cppbusiness:build_no = cppgeneral_alias:build_no
+    begin
+    if l_first = "Y" then
+        begin
+        l_business_income_limit = l_business_income_limit +
+                                  cppbusiness:limit
+        l_business_income_total = l_business_income_total +
+                                  cppbusiness:total_premium
+        l_first = "N"
+        end
+
+    next cppbusiness
+    end
+
+end
+
+procedure get_cppgeneral
+begin
+access cppgeneral_alt, set cppgeneral_alt:policy_no  = cppgeneral_alias:policy_no,
+                           cppgeneral_alt:pol_year  = cppgeneral_alias:pol_year,
+                           cppgeneral_alt:end_sequence = cppgeneral_alias:end_sequence,
+                           cppgeneral_alt:prem_no   = cppgeneral_alias:prem_no,
+                           cppgeneral_alt:build_no  = cppgeneral_alias:build_no,
+                           cppgeneral_alt:rate_type = cppgeneral_alias:rate_type, generic
+
+l_cppgeneral_total = 0
+l_cppgeneral_limit = 0
+while cppgeneral_alt:policy_no = cppgeneral_alias:policy_no and
+      cppgeneral_alt:pol_year  = cppgeneral_alias:pol_year and
+      cppgeneral_alt:end_sequence = cppgeneral_alias:end_sequence and
+      cppgeneral_alt:prem_no = cppgeneral_alias:prem_no and
+      cppgeneral_alt:build_no = cppgeneral_alias:build_no and
+      cppgeneral_alt:rate_type = cppgeneral_alias:rate_type
+    begin
+    l_cppgeneral_limit = l_cppgeneral_limit +
+                         cppgeneral_alt:limit[1] +
+                         cppgeneral_alt:limit[2]
+    l_cppgeneral_total = l_cppgeneral_total +
+                         cppgeneral_alt:total_premium[1] +
+                         cppgeneral_alt:total_premium[2]
+
+    next cppgeneral_alt
+    end
+
+end
+
+procedure get_inland_marine
+begin
+l_mim_code = "MIM100"
+access cppendorse, set cppendorse:policy_no  = cppgeneral_alias:policy_no,
+                       cppendorse:pol_year  = cppgeneral_alias:pol_year,
+                       cppendorse:end_sequence = cppgeneral_alias:end_sequence,
+                       cppendorse:prem_no   = cppgeneral_alias:prem_no,
+                       cppendorse:build_no  = cppgeneral_alias:build_no,
+                       cppendorse:code      = l_mim_code, generic
+
+l_inland_total = 0
+while cppendorse:policy_no = cppgeneral_alias:policy_no and
+      cppendorse:pol_year  = cppgeneral_alias:pol_year and
+      cppendorse:end_sequence = cppgeneral_alias:end_sequence and
+      cppendorse:prem_no = cppgeneral_alias:prem_no and
+      cppendorse:build_no = cppgeneral_alias:build_no and
+      cppendorse:code = l_mim_code
+    begin
+    access cppinland, set cppinland:policy_no = cppendorse:policy_no,
+                          cppinland:pol_year = cppendorse:pol_year,
+                          cppinland:end_sequence = cppendorse:end_sequence,
+                          cppinland:prem_no  = cppendorse:prem_no,
+                          cppinland:build_no = cppendorse:build_no, generic
+
+    l_inland_total = (l_inland_total +
+                     ((cppendorse:premium[1] +
+                     cppendorse:premium[2] +
+                     cppendorse:premium[3] +
+                     cppendorse:premium[4] +
+                     cppendorse:premium[5] +
+                     cppendorse:premium[6] +
+                     cppendorse:premium[7] +
+                     cppendorse:premium[8] +
+                     cppendorse:premium[9] +
+                     cppendorse:premium[10]) *
+                     cppinland:package_mod *
+                     cppinland:company_deviation *
+                     cppinland:irpm))
+
+    next cppendorse
+    end
+
+end
+
+End

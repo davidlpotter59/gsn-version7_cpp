@@ -1,0 +1,155 @@
+%%
+Screen
+        Name            = "cppmtmso295" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle= "%a     %s Optional Coverages     Ver 7.00 %m" ;
+        Domain          = "CPPPROPERTY" ;
+        iconline        = 0;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_YEAR[4];
+        Global Unsigned Ascii Number G_END_SEQUENCE[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Access CPPPROPERTY,
+           Set CPPPROPERTY:POLICY_NO = G_POLICY_NO ,
+               CPPPROPERTY:POL_YEAR = G_YEAR,
+               CPPPROPERTY:END_SEQUENCE = G_END_SEQUENCE,
+               CPPPROPERTY:PREM_NO = G_PREM_NO ,
+               CPPPROPERTY:BUILD_NO = G_BUILD_NO ;
+
+        Include "INQKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "INQFUNC7.INC"
+
+menu definition
+
+--        include "stdmenu7.inc"
+
+--}
+
+toolbar definition
+
+        include "stdblanktoolbar7.inc"
+
+}
+
+Access Validation
+If CPPPROPERTY:POLICY_NO <> G_POLICY_NO Or
+   CPPPROPERTY:POL_YEAR <> G_YEAR Or
+   CPPPROPERTY:END_SEQUENCE <> G_END_SEQUENCE Or
+   CPPPROPERTY:PREM_NO <> G_PREM_NO Or
+   CPPPROPERTY:BUILD_NO <> G_BUILD_NO Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| A/R Limit:     ________  _______  Outdoor prop Lmt:    ________  _______     |
+| Inflation                         Outdoor prop Per:    ______                |
+|  Coverage A:   __                 Personal Effects:    ________  _______     |
+|  Coverage B:   __                 Property Of Others:  ________  _______     |
+| Peak Season:   ___       _______  Valuable Papers:     ________  _______     |
+| Glass:         ________  _______  Precious Metals:     ________  _______     |
+| Glass Per:     ____               Limit Water Backup:         _              |
+| Signs                             Water Backup:        ________  _______     |
+|  Not Attached: ________  _______                                             |
+|  Attached:     ________  _______                                             |
+|  Delete Ded:   _                                                             |
+| Building Code: ___       _______                                             |
+| Utility:       ________  _______                                             |
+| Mechanical:    ________  _______                                             |
+| Debris:        ________  _______                                             |
+| Off Premises Property                                                        |
+|  At other loc: ________  _______                                             |
+|  In Transit:   ________  _______                                             |
+|  MCP505:       _                                                             |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     CPPPROPERTY:POLICY_NO/displayonly                   Mandatory;
+302     CPPPROPERTY:POL_YEAR/displayonly;
+303     CPPPROPERTY:END_SEQUENCE/displayonly;
+401     CPPPROPERTY:PREM_NO/displayonly                      Mandatory;
+501     CPPPROPERTY:BUILD_NO/displayonly                     Mandatory;
+
+701     CPPPROPERTY:AR_LIMIT/displayonly ;
+702     CPPPROPERTY:AR_PREM/displayonly ;
+901     CPPPROPERTY:INFLATION_GUARD[1]/displayonly ;
+1001    CPPPROPERTY:INFLATION_GUARD[2]/displayonly ;
+1101    CPPPROPERTY:PEAK_SEASON/displayonly ;
+1102    CPPPROPERTY:PEAK_SEASON_PREM/displayonly ;
+1201    CPPPROPERTY:GLASS_LIMIT/displayonly ;
+1202    CPPPROPERTY:GLASS_PREM/displayonly ;
+1301    CPPPROPERTY:GLASS_PER_PANE/displayonly ;
+1501    CPPPROPERTY:SIGNS_NOT_ATTACHED/displayonly ;
+1502    CPPPROPERTY:SIGNS_NOT_ATTACHED_PREM/displayonly ;
+1601    CPPPROPERTY:SIGNS_ATTACHED/displayonly ;
+1602    CPPPROPERTY:SIGNS_ATTACHED_PREM/displayonly ;
+1701    CPPPROPERTY:DELETE_SIGNS_DEDUCTIBLE/checkbox/values="0,1" ;
+1801    CPPPROPERTY:BUILDING_CODE_PERCENT/displayonly ;
+1802    CPPPROPERTY:BUILDING_CODE_PREM/displayonly ;
+1901    CPPPROPERTY:LOSS_UTILITY/displayonly ;
+1902    CPPPROPERTY:LOSS_UTILITY_PREM/displayonly ;
+2001    CPPPROPERTY:MECHANICAL_BREAKDOWN/displayonly ;
+2002    CPPPROPERTY:MECHANICAL_BREAKDOWN_PREM/displayonly ;
+2101    CPPPROPERTY:DEBRIS_REMOVAL/displayonly ;
+2102    cppproperty:debris_removal_prem/displayonly ;
+2301    CPPPROPERTY:OFF_PREM_OTHER_LOCATION/displayonly ;
+2302    CPPPROPERTY:OFF_PREM_OTHER_LOC_PREM/displayonly ;
+2401    CPPPROPERTY:OFF_PREM_IN_TRANSIT/displayonly ;
+2402    CPPPROPERTY:OFF_PREM_IN_TRANSIT_PREM/displayonly ;
+2501    CPPPROPERTY:MCP505_OPTION/checkbox/values="0,1" ;
+
+703     CPPPROPERTY:OUTDOOR_PROPERTY/displayonly ;
+704     CPPPROPERTY:OUTDOOR_PROPERTY_PREM/displayonly ;
+801     CPPPROPERTY:OUTDOOR_PROPERTY_PER/displayonly ;
+902     CPPPROPERTY:PERSONAL_EFFECTS/displayonly ;
+903     CPPPROPERTY:PERSONAL_EFFECTS_PREM/displayonly ;
+1002    cppproperty:personal_property_of_others/displayonly ;
+1003    cppproperty:personal_property_other_prem/displayonly ;
+1103    CPPPROPERTY:VALUABLE_PAPERS/displayonly ;
+1104    CPPPROPERTY:VALUABLE_PAPERS_PREM/displayonly ;
+1203    CPPPROPERTY:PRECIOUS_METALS/displayonly ;
+1204    CPPPROPERTY:PRECIOUS_METALS_PREM/displayonly ;
+1302    CPPPROPERTY:WATER_BACKUP_LIMITED/checkbox/values="0,1" ;
+1401    CPPPROPERTY:WATER_BACKUP/displayonly ;
+1402    CPPPROPERTY:WATER_BACKUP_PREMIUM/displayonly  ;
+
+}
+
+}
+
+End

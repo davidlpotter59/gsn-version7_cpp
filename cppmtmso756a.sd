@@ -1,0 +1,163 @@
+%%
+Screen
+        Name            = "cppmtmso756a"
+        Type            = "Detail" ;
+        Highlight       = Underscore ;
+        Padcharacter    = Space ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Misc Property Floater     Ver 7.00 %m" ;
+        Domain          = "cppdesc" ;
+
+        Global Unsigned Ascii Number G_POLICY_NO[9],
+                                     G_YEAR[4],
+                                     G_END_SEQUENCE[4],
+                                     G_PREM_NO[4],
+                                     G_BUILD_NO[4],
+                                     G_SUB_CODE[4];
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppdesc, Set cppdesc:POLICY_NO = G_POLICY_NO,
+                            cppdesc:POL_YEAR = G_YEAR,
+                            cppdesc:END_SEQUENCE = G_END_SEQUENCE,
+                            cppdesc:PREM_NO = G_PREM_NO,
+                            cppdesc:BUILD_NO = G_BUILD_NO ,
+                            cppdesc:CODE = G_CODE, Generic
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+Access Validation
+If cppdesc:POLICY_NO <> G_POLICY_NO Or
+   cppdesc:POL_YEAR <> G_YEAR Or
+   cppdesc:END_SEQUENCE <> G_END_SEQUENCE Or
+   cppdesc:PREM_NO <> G_PREM_NO Or
+   cppdesc:BUILD_NO <> G_BUILD_NO Or
+   cppdesc:CODE <> G_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Limit: ____________   Rate: _______     Premium: _______                     |
+*------------------------------------------------------------------------------*
+|                              Description                                     |
+|                                                                              |
+| ___________________________________________________________________________  |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            Do SUBCODE
+            cppdesc:SUB_CODE = L_SUB_CODE
+            End
+        End
+        cppdesc:LIMIT;
+302     cppdesc:RATE;
+303     Begin
+        If FUNCTION = "ADD" Or
+           FUNCTION = "CHANGE" Then
+            Begin
+            cppdesc:TOTAL_PREMIUM = ((cppdesc:LIMIT Divide 100) *
+                                    cppdesc:RATE)
+            If cppdesc:TOTAL_PREMIUM < 0 Then
+                cppdesc:TOTAL_PREMIUM = 1
+            End
+        End
+        cppdesc:TOTAL_PREMIUM/default ;
+701     cppdesc:DESCRIPTION/freetextlines=10;
+
+}
+
+}
+
+Assignments
+If FUNCTION = "ADD" Then
+    Begin
+    cppdesc:POLICY_NO = G_POLICY_NO
+    cppdesc:POL_YEAR = G_YEAR
+    cppdesc:END_SEQUENCE = G_END_SEQUENCE
+    cppdesc:PREM_NO = G_PREM_NO
+    cppdesc:BUILD_NO = G_BUILD_NO
+    cppdesc:CODE = G_CODE
+    End
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppdesc_ALIAS, Set cppdesc_ALIAS:POLICY_NO = G_POLICY_NO,
+                          cppdesc_ALIAS:POL_YEAR = G_YEAR,
+                          cppdesc_ALIAS:END_SEQUENCE = G_END_SEQUENCE,
+                          cppdesc_ALIAS:PREM_NO = G_PREM_NO,
+                          cppdesc_ALIAS:BUILD_NO = G_BUILD_NO,
+                          cppdesc_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While cppdesc_ALIAS:POLICY_NO = G_POLICY_NO And
+      cppdesc_ALIAS:POL_YEAR = G_YEAR And
+      cppdesc_ALIAS:END_SEQUENCE = G_END_SEQUENCE And
+      cppdesc_ALIAS:PREM_NO = G_PREM_NO And
+      cppdesc_ALIAS:BUILD_NO = G_BUILD_NO And
+      cppdesc_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = cppdesc_ALIAS:SUB_CODE
+
+        Next cppdesc_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

@@ -1,0 +1,204 @@
+%%
+Screen
+        Name = "cppmtmso900" ;
+        Type = "Detail" ;
+        Padcharacter = Space ;
+        Highlite = Underscore ;
+        Screensize = "dynamic" ;
+        Windowtitle = "%a     %s Commercial Umbrella Detail - Ver. 7.00    %m" ;
+        Domain = "sfpMASTER" ;
+--      resizeable = yes ;
+        iconline = 0 ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4] ;
+
+        Local Unsigned Ascii Number L_OPTION_1[1],
+                                    L_OPTION_2[1],
+                                    L_OPTION_3[1],
+                                    L_OPTION_4[1],
+                                    l_option_5[1],
+                                    L_checkbox_1[1],
+                                    L_checkbox_2[1],
+                                    L_checkbox_3[1],
+                                    L_checkbox_4[1],
+                                    l_checkbox_5[1];
+
+        Local String L_SCREEN[11]="" ,
+                     l_coverage[1]="" ;
+
+        access sfpmaster, set sfpmaster:policy_no    = g_policy_no ,
+                              sfpmaster:pol_year     = g_year,
+                              sfpmaster:end_sequence = g_end_sequence ;
+
+        Include "stdkeys7.inc"
+
+Style Definition
+
+        Include "styles.inc"
+
+Functions
+
+        "up" display l_screen ;
+
+        add/reuse  tagged add_fn;
+
+        Include "stdfunc7.inc"
+
+Menu Definition
+
+        Include "stdmenu7.inc"
+
+}
+
+Toolbar Definition
+
+        Include "stdtoolbar7.inc"
+}
+
+screen
+{
+%%
+                                                        ____________
+*------------------------------------------------------------------------------*
+| Policy No: _________  ____  ____                                             |
+*------------------------------------------------------------------------------*
+|                  _~Automobile Liability:   _                                 |
+|                  _~General Liability:      _                                 |
+|                  _~Employer's Liability:   _                                 |
+|                  _~Other Liability:        _                                 |
+|                  _~Garage Liability:       _                                 |
+*------------------------------------------------------------------------------*
+
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     sfpMASTER:policy_NO/displayonly                    Mandatory;
+302     sfpmaster:pol_year/displayonly ;
+303     sfpmaster:end_sequence/displayonly ;
+
+501     begin
+        l_coverage = "A"
+        access cppumdetail, set cppumdetail:policy_no = g_policy_no,
+                                cppumdetail:pol_year = g_year,
+                                cppumdetail:end_sequence = g_end_sequence,
+                                cppumdetail:coverage = l_coverage, generic
+
+        if cppumdetail:policy_no = g_policy_no and
+           cppumdetail:coverage = l_coverage then
+            l_checkbox_1 = 1
+        else
+            l_checkbox_1 = 0
+        end
+        l_checkbox_1/checkbox/values="0,1"/displayonly ;
+502     L_OPTION_1/checkbox/values="0,1"
+        If L_OPTION_1 = 1 Then
+            Begin
+            L_SCREEN = "cppmtmso901"
+            FUNCTION = "Up"
+            End
+        Hide If L_OPTION_2 = 1 Or
+                L_OPTION_3 = 1 Or
+                L_OPTION_4 = 1 ;
+601     begin
+        l_coverage = "G"
+        access cppumdetail, set cppumdetail:policy_no = g_policy_no,
+                                cppumdetail:pol_year = g_year,
+                                cppumdetail:end_sequence = g_end_sequence,
+                                cppumdetail:coverage = l_coverage, generic
+
+        if cppumdetail:policy_no = g_policy_no and
+           cppumdetail:coverage = l_coverage then
+            l_checkbox_2 = 1
+        else
+            l_checkbox_2 = 0
+        end
+        l_checkbox_2/checkbox/values="0,1"/displayonly ;
+602     L_OPTION_2/checkbox/values="0,1"
+        If L_OPTION_2 = 1 Then
+            Begin
+            L_SCREEN = "cppmtmso902"
+            FUNCTION = "Up"
+            End
+        Hide If L_OPTION_1 = 1 Or
+                L_OPTION_3 = 1 Or
+                L_OPTION_4 = 1 ;
+701     begin
+        l_coverage = "E"
+        access cppumdetail, set cppumdetail:policy_no = g_policy_no,
+                                cppumdetail:pol_year = g_year,
+                                cppumdetail:end_sequence = g_end_sequence,
+                                cppumdetail:coverage = l_coverage, generic
+
+        if cppumdetail:policy_no = g_policy_no and
+           cppumdetail:coverage = l_coverage then
+            l_checkbox_3 = 1
+        else
+            l_checkbox_3 = 0
+        end
+        l_checkbox_3/checkbox/values="0,1"/displayonly ;
+702     L_OPTION_3/checkbox/values="0,1"
+        If L_OPTION_3 = 1 Then
+            Begin
+            L_SCREEN = "cppmtmso903"
+            FUNCTION = "Up"
+            End
+        Hide If L_OPTION_1 = 1 Or
+                L_OPTION_2 = 1 Or
+                L_OPTION_4 = 1 ;
+801     begin
+        l_coverage = "O"
+        access cppumdetail, set cppumdetail:policy_no = g_policy_no,
+                                cppumdetail:pol_year = g_year,
+                                cppumdetail:end_sequence = g_end_sequence,
+                                cppumdetail:coverage = l_coverage, generic
+
+        if cppumdetail:policy_no = g_policy_no and
+           cppumdetail:coverage = l_coverage then
+            l_checkbox_3 = 1
+        else
+            l_checkbox_3 = 0
+        end
+        l_checkbox_3/checkbox/values="0,1"/displayonly ;
+802     L_OPTION_4/checkbox/values="0,1"
+        If L_OPTION_4 = 1 Then
+            Begin
+            L_SCREEN = "cppmtmso904"
+            FUNCTION = "Up"
+            End
+        Hide If L_OPTION_1 = 1 Or
+                L_OPTION_2 = 1 Or
+                L_OPTION_3 = 1 ;
+901     begin
+        l_coverage = "L"
+        access cppumdetail, set cppumdetail:policy_no = g_policy_no,
+                                cppumdetail:pol_year = g_year,
+                                cppumdetail:end_sequence = g_end_sequence,
+                                cppumdetail:coverage = l_coverage, generic
+
+        if cppumdetail:policy_no = g_policy_no and
+           cppumdetail:coverage = l_coverage then
+            l_checkbox_3 = 1
+        else
+            l_checkbox_3 = 0
+        end
+        l_checkbox_3/checkbox/values="0,1"/displayonly ;
+902     L_OPTION_5/checkbox/values="0,1"
+        If L_OPTION_5 = 1 Then
+            Begin
+            L_SCREEN = "cppmtmso905"
+            FUNCTION = "Up"
+            End
+        Hide If L_OPTION_1 = 1 Or
+                L_OPTION_2 = 1 Or
+                L_OPTION_3 = 1 or
+                l_option_4 = 1 or
+                cpsumdefault:garage_liability = 1 ;
+
+}
+
+End

@@ -1,0 +1,80 @@
+%%
+Program
+        Name = "cppup997" ;
+        Type = "File" ;
+        Padcharacter = Space ;
+        Domain = "flat" ;
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_prem_no[4],
+                                     g_build_no[4],
+                                     g_state[2] ;
+
+        global string g_code[7] ;
+
+        local string l_add_code[7],
+                     l_remove_code[7] ;
+
+        local date l_terror_eff_date[8] ;
+
+initialisation
+g_policy_no = val(commandline[1,9])
+g_year = val(commandline[10,13])
+g_end_sequence = val(commandline[14,17])
+g_code = uppercase(commandline[18,24])
+g_prem_no = 1
+g_build_no = 1
+
+do remove_terrorism_forms
+
+update
+
+procedure definition
+
+procedure remove_terrorism_forms
+begin
+If G_CODE one of "MCL761" Then
+    Begin
+    Access sfpEND, Set sfpEND:policy_NO = g_policy_NO,
+                       sfpend:pol_year = g_year,
+                       sfpend:end_sequence = g_end_sequence, Generic
+
+    While sfpEND:policy_NO = g_policy_NO and
+          sfpend:pol_year = g_Year and
+          sfpend:end_sequence = g_end_sequence
+        Begin
+        If sfpEND:CODE one of "MCL760" Then
+            begin
+            Delete sfpEND
+            end
+
+        Next sfpEND
+        End
+
+    End
+
+If g_CODE one of "MCL760" Then
+    Begin
+    access sfpEND, Set sfpEND:policy_NO = g_policy_NO,
+                       sfpend:pol_year = g_year,
+                       sfpend:end_sequence = g_end_sequence, Generic
+
+    While sfpEND:policy_NO = g_policy_NO and
+          sfpend:pol_year = g_Year and
+          sfpend:end_sequence = g_end_sequence
+            Begin
+            If sfpEND:CODE one of "MCL761" Then
+                begin
+                Delete sfpEND
+                end
+
+            Next sfpEND
+            End
+
+    End
+
+end
+
+End

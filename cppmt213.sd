@@ -1,0 +1,169 @@
+%%
+Screen
+        Name            = "cppmt213" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Domain          = "CPPENDORSE" ;
+        Windowtitle = "%a     %s Loss Payable Special Conditions     Ver 7.00 %m" ;
+        iconline        = 0;
+
+
+        Global Unsigned Ascii Number G_POLICY_NO[9] ;
+        Global Unsigned Ascii Number G_year[4] ;
+        Global Unsigned Ascii Number G_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access CPPENDORSE,
+           Set CPPENDORSE:POLICY_NO = G_POLICY_NO ,
+               cppendorse:pol_year = g_year,
+               cppendorse:end_sequence = g_end_sequence,
+               CPPENDORSE:PREM_NO = G_PREM_NO ,
+               CPPENDORSE:BUILD_NO = G_BUILD_NO ,
+               CPPENDORSE:CODE = G_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        Include "styles.inc"
+
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+}
+
+
+Access Validation
+If CPPENDORSE:POLICY_NO <> G_POLICY_NO Or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   CPPENDORSE:PREM_NO <> G_PREM_NO Or
+   CPPENDORSE:BUILD_NO <> G_BUILD_NO Or
+   CPPENDORSE:CODE <> G_CODE Then
+    Error 1000 ;
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________ ____ ____                                             |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Description: __________________________________________________              |
+*------------------------------------------------------------------------------*
+| Name:        __________________________________________________              |
+|              __________________________________________________              |
+|              __________________________________________________              |
+| Address:     __________________________________________________              |
+|              __________________________________________________              |
+|              __________________________________________________              |
+| City:        ______________________________  State: ____   Zip: __________   |
+*------------------------------------------------------------------------------*
+| Loss Payable: _    Lendor's Loss Payable: _    Contract of Sale: _           |
+*------------------------------------------------------------------------------*
+%%
+
+Components
+
+Fields
+101     FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            CPPENDORSE:POLICY_NO = G_POLICY_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            CPPENDORSE:PREM_NO = G_PREM_NO
+            CPPENDORSE:BUILD_NO = G_BUILD_NO
+            CPPENDORSE:CODE = G_CODE
+            Do SUBCODE
+            CPPENDORSE:SUB_CODE = L_SUB_CODE
+            cppendorse:rating_line_of_business = 0008
+            End
+        End
+        CPPENDORSE:POLICY_NO/displayonly ;
+302     cppendorse:pol_year/displayonly  ;
+303     cppendorse:end_sequence/display ;
+401     CPPENDORSE:PREM_NO/displayonly ;
+501     CPPENDORSE:BUILD_NO/displayonly ;
+701     cppendorse:description ;
+901     CPPENDORSE:NAME[1];
+1001     CPPENDORSE:NAME[2];
+1101     CPPENDORSE:NAME[3];
+1201    CPPENDORSE:ADDRESS;
+1301    CPPENDORSE:ADDRESS1[1]/UPPERCASE;
+1401    CPPENDORSE:ADDRESS1[2]/UPPERCASE;
+1501    CPPENDORSE:CITY;
+1502    CPPENDORSE:STR_STATE;
+1503    CPPENDORSE:STR_ZIPCODE;
+1503    Begin
+        If CPPENDORSE:STR_ZIPCODE[6,9] = "" Then
+            CPPENDORSE:STR_ZIPCODE[6,9] = "0000"
+        End
+        CPPENDORSE:STR_ZIPCODE/displayonly ;
+1701    cppendorse:mcp231/checkbox/values="0,1" ;
+1702    cppendorse:mcp233/checkbox/values="0,1" ;
+1703    cppendorse:mcp235/checkbox/values="0,1" ;
+
+
+}
+
+}
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access CPPENDORSE_ALIAS, Set CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO,
+                             cppendorse_alias:pol_year = g_year,
+                             cppendorse_alias:end_sequence = g_end_sequence,
+                             CPPENDORSE_ALIAS:PREM_NO = G_PREM_NO,
+                             CPPENDORSE_ALIAS:BUILD_NO = G_BUILD_NO,
+                             CPPENDORSE_ALIAS:CODE = G_CODE, Generic
+
+L_SUB_CODE = 0
+While CPPENDORSE_ALIAS:POLICY_NO = G_POLICY_NO And
+      cppendorse_alias:pol_year = g_year and
+      cppendorse_alias:end_sequence = g_end_sequence and
+      CPPENDORSE_ALIAS:PREM_NO = G_PREM_NO And
+      CPPENDORSE_ALIAS:BUILD_NO = G_BUILD_NO And
+      CPPENDORSE_ALIAS:CODE = G_CODE
+        Begin
+        L_SUB_CODE = CPPENDORSE_ALIAS:SUB_CODE
+
+        Next CPPENDORSE_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

@@ -1,0 +1,177 @@
+%%
+Screen
+        Name            = "cppmtmso452" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space ;
+        Highlite        = Underscore ;
+        Screensize      = "dynamic" ;
+        Windowtitle = "%a     %s Glass Supplemental    Ver 7.00 %m" ;
+        Domain          = "cppglass" ;
+        iconline        = 0
+
+        Global Unsigned Ascii Number G_policy_NO[9] ;
+        global unsigned ascii number g_year[4] ;
+        global unsigned ascii number g_end_sequence[4] ;
+        Global Unsigned Ascii Number G_PREM_NO[4] ;
+        Global Unsigned Ascii Number G_BUILD_NO[4] ;
+        Global Unsigned Ascii Number G_SUB_CODE[4] ;
+
+        Global String G_CODE[7] ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+        Local Unsigned Ascii Number L_no_plates[3] ;
+        Local Unsigned Ascii Number L_length[4] ;
+        Local Unsigned Ascii Number L_width[4] ;
+
+        Access cppglass,
+           Set cppglass:policy_NO = G_policy_NO ,
+               cppglass:pol_year = g_year,
+               cppglass:end_sequence = g_end_sequence,
+               cppglass:PREM_NO = G_PREM_NO ,
+               cppglass:BUILD_NO = G_BUILD_NO ,
+               cppglass:SUB_CODE = G_SUB_CODE ;
+
+        Include "STDKEYS7.INC"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "STDFUNC7.INC"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+Access Validation
+If cppglass:policy_NO <> G_policy_NO Or
+   cppglass:pol_year <> g_year or
+   cppglass:end_sequence <> g_end_sequence or
+   cppglass:PREM_NO <> G_PREM_NO Or
+   cppglass:BUILD_NO <> G_BUILD_NO Or
+   cppglass:SUB_CODE <> G_SUB_CODE Then
+    Error 1000 ;
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+| Policy No:   _________  ____  ____                                           |
+| Location No: ____                                                            |
+| Building No: ____                                                            |
+*------------------------------------------------------------------------------*
+| Glass Deductible:        _____                                               |
+| 50/50 Retention Amount:  ________                                            |
+| Plate No:                ___                                                 |
+| Number of Plates:        ___                                                 |
+| Length:                  ____                                                |
+| Width:                   ____                                                |
+| Limit of Liability:      ________                                            |
+| Description: __________________________________________________              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+        FUNCTION/noecho/showasguidetext ;
+301     Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppglass:policy_NO = G_policy_NO
+            cppglass:pol_year = g_year
+            cppglass:end_sequence = g_end_sequence
+            cppglass:PREM_NO = G_PREM_NO
+            cppglass:BUILD_NO = G_BUILD_NO
+            cppglass:SUB_CODE = G_SUB_CODE
+--            Do SUBCODE
+--            cppglass:SUB_CODE = L_SUB_CODE
+            cppglass:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppglass:policy_NO/displayonly ;
+302     cppglass:pol_year/displayonly ;
+303     cppglass:end_sequence/displayonly ;
+401     cppglass:PREM_NO/displayonly ;
+501     cppglass:BUILD_NO/displayonly ;
+701     cppglass:deductible[1];
+801     cppglass:limit[1];
+--901     cppglass:plate_number ;
+1001    l_no_plates[3];
+1101    l_length[4];
+1201    l_width[4];
+1301    cppglass:limit[2];
+1401    cppglass:DESCRIPTION[1]/freetextlines=10 ;
+
+}
+
+}
+
+
+Procedure Definition
+
+Procedure SUBCODE
+Begin
+Access cppglass_ALIAS,
+   Set cppglass_ALIAS:policy_NO = cppglass:policy_NO ,
+       cppglass_alias:pol_Year = cppglass:pol_year,
+       cppglass_alias:end_sequence = cppglass:end_sequence,
+       cppglass_ALIAS:PREM_NO = cppglass:PREM_NO,
+       cppglass_ALIAS:BUILD_NO = cppglass:BUILD_NO,
+       cppglass_ALIAS:SUB_CODE = cppglass:SUB_CODE, Generic
+
+L_SUB_CODE = 0
+While cppglass_ALIAS:policy_NO = cppglass:policy_NO And
+      cppglass_alias:pol_year = cppglass:pol_Year and
+      cppglass_alias:end_sequence = cppglass:end_sequence and
+      cppglass_ALIAS:PREM_NO = cppglass:PREM_NO And
+      cppglass_ALIAS:BUILD_NO = cppglass:BUILD_NO And
+      cppglass_ALIAS:SUB_CODE = cppglass:SUB_CODE
+        Begin
+
+        L_SUB_CODE = cppglass_ALIAS:SUB_CODE
+
+        Next cppglass_ALIAS
+        End
+
+L_SUB_CODE = L_SUB_CODE + 10
+End
+
+End

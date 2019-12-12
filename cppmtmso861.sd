@@ -1,0 +1,134 @@
+%%
+Screen
+        Name            = "cppmtmso861" ;
+        Type            = "Detail" ;
+        Padcharacter    = Space;
+        Highlite        = Underscore;
+        Screensize      = "dynamic";
+        Domain          = "cppendorse" ;
+        Windowtitle="%a    %s Hired/Nonowned Autos    Ver 7.00 %m";
+        iconline        = 0;
+
+/*  Change Log
+
+    Date     Initials  Description
+===============================================================================
+  06/18/1999    DLP     comp and collision deductibles were not being reset to
+                        0 when the user decided not to have these coverages
+*/
+
+        Global Unsigned Ascii Number G_policy_NO[9] ,
+                                     g_year[4],
+                                     g_end_sequence[4],
+                                     g_prem_no[4],
+                                     g_build_no[4];
+
+        global string g_code[7] ;
+
+        Local String L_CODE[7] ,
+                     L_FORM_EDITION[18],
+                     L_DESCRIPTION[55],
+                     L_ADD_ENDORSEMENT[1]="Y" ;
+
+        Local Unsigned Ascii Number L_SUB_CODE[4] ;
+
+        Access cppendorse,
+                Set cppendorse:policy_NO = G_policy_NO ,
+                    cppendorse:pol_year = g_year,
+                    cppendorse:end_sequence = g_End_sequence,
+                    cppendorse:prem_no = g_prem_no,
+                    cppendorse:build_no = g_build_no,
+                    cppendorse:code = g_code, generic ;
+
+        Include "stdkeys7.inc"
+
+style definition
+
+        include "styles.inc"
+
+Functions
+
+        Include "stdfunc7.inc"
+
+menu definition
+
+        include "stdmenu7.inc"
+
+}
+
+toolbar definition
+
+        include "stdtoolbar7.inc"
+
+}
+
+screen entry
+access sfsline, set sfsline:company_id = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline = "00", generic
+
+Access Validation
+If cppendorse:policy_NO <> G_policy_NO or
+   cppendorse:pol_year <> g_year or
+   cppendorse:end_sequence <> g_end_sequence or
+   cppendorse:prem_no <> g_prem_no or
+   cppendorse:build_no <> g_build_no or
+   cppendorse:code <> g_code Then
+     Error 1000
+
+
+screen at 1,1 to 20,80
+Properties
+        {
+        Layouttype = column
+        }
+{
+Panel
+Properties
+        {
+        Borderstyle     = raised
+        Scrollbarpolicy = asneeded
+        }
+{
+%%
+                                                        _______________
+*------------------------------------------------------------------------------*
+|                             HIRED AUTOS                                      |
+*------------------------------------------------------------------------------*
+| Estimated Annual Cost of Hire:   _________                                   |
+*------------------------------------------------------------------------------*
+|                         NONOWNED AUTO LIABILITY                              |
+*------------------------------------------------------------------------------*
+| Number of Employees:             _____                                       |
+*------------------------------------------------------------------------------*
+%%
+
+components
+
+Fields
+0101    FUNCTION/noecho/showasguidetext ;
+0501    Begin
+        If FUNCTION = "ADD" Then
+            Begin
+            cppendorse:policy_NO = G_policy_NO
+            cppendorse:pol_year = g_year
+            cppendorse:end_sequence = g_end_sequence
+            cppendorse:prem_no = g_prem_no
+            cppendorse:build_no = g_build_no
+            cppendorse:code = g_code
+            cppendorse:sub_code = 10
+            cppendorse:rating_line_of_business = sfsline:rating_line_of_business
+            End
+        End
+        cppendorse:limit[1]/displayonly ;
+0501    cppendorse:limit[1]
+        hide if g_code = "MCL411" ;
+0901    cppendorse:NO_EMPLOYEES
+        hide if g_code = "MCL410" ;
+
+}
+
+}
+
+
+End

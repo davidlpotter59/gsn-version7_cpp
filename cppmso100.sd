@@ -1,0 +1,896 @@
+%%
+program
+        name = "cppmso100" ;
+        type = "file" ;
+        padcharacter = space ;
+        domain="flat" ;
+
+        local string l_macro[15],
+                     l_macroa[15],
+                     l_dec[15],
+                     l_dec_pdf[15] ,
+                     l_business_income[1]="N",
+                     l_first[1]="Y",
+                     l_print_first[1]="Y",
+                     l_property[1]="N",
+                     l_csexec_application[25] ,
+                     l_lob_code[10] ,
+                     l_code[7],
+                     l_fob[25] ,
+                     l_package[1] ,
+                     l_coverage[2],
+                     l_company_rate[3],
+                     l_apt_condo[1],
+                     l_company_rate_1[3],
+                     l_risk_type[1],
+                     l_builders_risk[1],
+                     l_condo_assoc[1],
+                     l_condo_unit_owner[1],
+                     l_public[1],
+                     l_res_condo[1],
+                     l_shopping_center[1],
+                     l_multiple[1],
+                     l_mercantile_apt[1],
+                     l_replacement_cost[1],
+                     l_exclusions[1],
+                     l_sprinkler_leakage[1],
+                     l_agreed_value[1],
+                     l_sprinklered[1],
+                     l_vacancy[1],
+                     l_protective_systems[1],
+                     l_key_risk[1],
+                     l_earthquake[1],
+                     l_blanket[1],
+                     l_base_rate[7],
+                     l_company_id[10],
+                     l_alpha_look[50] ;
+
+        local unsigned ascii number l_csexec_number[12] ,
+                                    l_state[2] ,
+                                    l_percent[2]=0,
+                                    l_factor[5]=0/dec=3,
+                                    l_building_code_prem_1[6]=0,
+                                    l_building_code_prem_2[6]=0,
+                                    l_building_code_prem_3[6]=0,
+                                    l_building_code_prem_4[6]=0,
+                                    l_factor_1[5]=0/dec=3,
+                                    l_limit[8]=0,
+                                    l_per[4]=0,
+                                    l_building_code_factor[7]=0/dec=3,
+                                    l_building_code_factor_1[7]=0/dec=3,
+                                    l_inflation_premium_1[6]=0,
+                                    l_inflation_premium_2[6]=0,
+                                    l_line_of_business[4],
+                                    l_charge[6]=0,
+                                    l_basic_limit[8]=0,
+                                    l_up_to_limit_1[8]=0,
+                                    l_up_to_limit_2[8]=0,
+                                    l_up_to_limit_rate_1[4]=0/dec=3,
+                                    l_up_to_limit_rate_2[4]=0/dec=3,
+                                    l_up_to_limit_per_1[4]=0,
+                                    l_up_to_limit_per_2[4]=0,
+                                    l_water_backup_premium[6]=0,
+                                    l_group_no[2],
+                                    l_sub_group[2],
+                                    l_sub_code[4],
+                                    l_county[3],
+                                    l_count[1],
+                                    l_prem_no[4],
+                                    l_build_no[4],
+                                    l_recovery_set[1],
+                                    l_class_code[5],
+                                    l_receptacles[2],
+                                    l_duplicate_records[1] ,
+                                    l_lob[4],
+                                    l_rate_type[2],
+                                    l_form[2],
+                                    l_rate_adj[6]=0/dec=4,
+                                    l_construction[1],
+                                    l_policy_no[9] ,
+                                    l_liability_terror_premium[8]=0,
+                                    l_artisan_terror_premium[8]=0,
+                                    l_premium_1[8]=0,
+                                    l_liab_mod_rate[6]=0/dec=3,
+                                    l_liab_mod_rate_1[6]=0/dec=3,
+                                    l_total[8] ,
+                                    l_total_1[8] ,
+                                    l_fire_rate[5]=0/dec=3,
+                                    l_ec_rate[5]=0/dec=3,
+                                    l_vmm_rate[5]=0/dec=3,
+                                    l_pp_fire_rate[5]=0/dec=3,
+                                    l_pp_ec_rate[5]=0/dec=3,
+                                    l_pp_vmm_rate[5]=0/dec=3,
+                                    l_pp_other_rate[5]=0/dec=3,
+                                    l_bi_final_rate_1[5]=0/dec=3,
+                                    l_bi_final_rate_2[5]=0/dec=3,
+                                    l_bi_final_rate_3[5]=0/dec=3,
+                                    l_bi_final_rate_4[5]=0/dec=3,
+                                    l_theft_adj_rate[6]=0,
+                                    l_other_rate[5]=0/dec=3,
+                                    l_final_rate[5]=0/dec=3,
+                                    l_final_rate_2[5]=0/dec=3,
+                                    l_final_rate_3[5]=0/dec=3,
+                                    l_final_rate_4[5]=0/dec=3,
+                                    l_pp_final_rate[5]=0/dec=3,
+                                    l_pp_final_rate_2[5]=0/dec=3,
+                                    l_pp_final_rate_3[5]=0/dec=3,
+                                    l_pp_final_rate_4[5]=0/dec=3,
+                                    l_pp_final_rate_5[8]=0/dec=0,
+                                    l_theft_premium[8]=0/dec=3,
+                                    l_net_factor[5]=0/dec=3 ,
+                                    l_net_factor_2[5]=0/dec=3,
+                                    l_net_factor_3[5]=0/dec=3,
+                                    l_net_factor_4[5]=0/dec=3 ,
+                                    l_net_factor_5[5]=0/dec=3,
+                                    l_net_factor_6[5]=0/dec=3,
+                                    l_net_factor_7[5]=0/dec=3,
+                                    l_net_factor_8[5]=0/dec=3;
+
+        local signed ascii number l_deviation[5]=0/dec=3,
+                                  l_irpm_deviation[5]=0/dec=3,
+                                  l_exp_factor[5]=0/dec=3,
+                                  l_multi_loc[5]=0/dec=3,
+                                  l_package_mod[5]=0/dec=3 ,
+                                  l_liab_package_mod[5]=0/dec=3,
+                                  l_liab_irpm_deviation[5]=0/dec=3,
+                                  l_liab_exp_factor[5]=0/dec=3,
+                                  l_liab_deviation[5]=0/dec=3 ;
+
+        local date l_exp_date[8] ;
+
+        include "sfscsexec.var"
+
+        include "csfonts.inc"
+
+        include "sfsrevname.var"
+
+initialisation
+l_policy_no = 0
+access sfpprint8, set sfpprint8:policy_no = l_policy_no, approximate
+
+access sfpname, set sfpname:policy_no = sfpprint8:policy_no,
+                    sfpname:pol_year = sfpprint8:pol_year,
+                    sfpname:end_sequence = sfpprint8:end_sequence, generic
+
+access sfpmaster, set sfpmaster:policy_no = sfpprint8:policy_no,
+                      sfpmaster:pol_year = sfpprint8:pol_year,
+                      sfpmaster:end_sequence = sfpprint8:end_sequence, generic
+
+access sfscompany, set sfscompany:company_id = sfpname:company_id, generic
+
+access sfsagent, set sfsagent:company_id = sfpname:company_id,
+                     sfsagent:agent_no   = sfpname:agent_no, generic
+
+access sfsline, set sfsline:company_id       = sfpname:company_id,
+                    sfsline:line_of_business = sfpname:line_of_business,
+                    sfsline:lob_subline      = "00", generic
+
+l_state    = sfpmaster:state
+l_lob_code = sfsline:lob_code
+access scipscontrol, set scipscontrol:company_id = sfpname:company_id,
+                         scipscontrol:state      = l_state,
+                         scipscontrol:lob_code   = l_lob_code, generic
+
+L_CSEXEC_APPLICATION = "PRINT"/raw
+
+Access SFSCSEXEC, Set SFSCSEXEC:APPLICATION = L_CSEXEC_APPLICATION, Exact
+
+If SFSCSEXEC:APPLICATION_NUMBER = 0 Then
+    Begin
+    L_CSEXEC_NUMBER = 99999
+    End
+Else
+    Begin
+    L_CSEXEC_NUMBER = SFSCSEXEC:APPLICATION_NUMBER + 1
+
+    Change SFSCSEXEC
+        Begin
+        SFSCSEXEC:APPLICATION_NUMBER = L_CSEXEC_NUMBER
+        End
+    End
+
+l_dec = "cppmso100.cq"
+deletefile(l_dec)
+
+do create_header
+if sfscompany:boiler_rating = 4 then
+    do delos_worksheet
+else
+    do worksheet
+
+if sfscompany:boiler_rating <> 4 then
+    begin
+    access sfpend, set sfpend:policy_no = sfpprint8:policy_no,
+                       sfpend:pol_year = sfpprint8:pol_year,
+                       sfpend:end_sequence = sfpprint8:end_sequence,
+                       sfpend:prem_no  = 0,
+                       sfpend:build_no = 0, generic
+
+    if sfpend:policy_no = sfpprint8:policy_no and
+       sfpend:pol_year = sfpprint8:pol_year and
+       sfpend:end_sequence = sfpprint8:end_sequence and
+       sfpend:prem_no  = 0 and
+       sfpend:build_no = 0 then
+        begin
+        writefile(l_dec,"%s",l_arial)
+        writefile(l_dec,"%s","<NL>")
+        writefile(l_dec,"%s","<NL>")
+        writefile(l_dec,"%s","<033>&a300h+0V")
+        writefile(l_dec,"%s","POLICY WIDE ENDORSEMENTS")
+        writefile(l_dec,"%s","<NL>")
+        writefile(l_dec,"%s","<NL>")
+        writefile(l_dec,"%s","<033>&a300h+0V")
+        writefile(l_dec,"%s","FORM EDITION")
+        writefile(l_dec,"%s","<033>&a1500h+0V")
+        writefile(l_dec,"%s","DESCRIPTION")
+        writefile(l_dec,"%s","<033>&a4000h+0V")
+        writefile(l_dec,"%s","PREMIUM")
+        writefile(l_dec,"%s","<NL>")
+        writefile(l_dec,"%s","<NL>")
+        end
+
+    while sfpend:policy_no = sfpprint8:policy_no and
+          sfpend:pol_year = sfpprint8:pol_year and
+          sfpend:end_sequence = sfpprint8:end_sequence and
+          sfpend:prem_no  = 0 and
+          sfpend:build_no = 0
+        begin
+        writefile(l_dec,"%s","<033>&a300h+0V")
+        writefile(l_dec,"%s",l_arial)
+        writefile(l_dec,"%s",sfpend:form_edition)
+        writefile(l_dec,"%s","<033>&a1500h+0V")
+        writefile(l_dec,"%s",sfpend:description)
+        if sfpend:premium <> 0 then
+            begin
+            writefile(l_dec,"%s","<033>&a4000h+0V")
+            writefile(l_dec,"%s",str(sfpend:premium,"ZZZ,ZZZ.99-"))
+            end
+        else
+        if sfpend:manual_premium <> 0 then
+            begin
+            writefile(l_dec,"%s","<033>&a4000h+0V")
+            writefile(l_dec,"%s",str(sfpend:manual_premium,"ZZZ,ZZZ.99-"))
+            end
+        writefile(l_dec,"%s","<NL>")
+
+        next sfpend
+        end
+
+    writefile(l_dec,"%s",l_arial)
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s","OPTIONAL ENDORSEMENTS")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s","FORM EDITION")
+    writefile(l_dec,"%s","<033>&a1500h+0V")
+    writefile(l_dec,"%s","DESCRIPTION")
+    writefile(l_dec,"%s","<033>&a4000h+0V")
+    writefile(l_dec,"%s","PREMIUM")
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+
+access sfpend,
+   set sfpend:policy_no = sfpprint8:policy_no,
+       sfpend:pol_year = sfpprint8:pol_year,
+       sfpend:end_sequence = sfpprint8:end_sequence, generic
+
+    if sfpend:policy_no = sfpprint8:policy_no and
+       sfpend:pol_year = sfpprint8:pol_year and
+       sfpend:end_sequence = sfpprint8:end_sequence and
+       sfpend:prem_no  >= 1 and
+       sfpend:build_no >= 1 then
+        begin
+        end
+
+    while sfpend:policy_no = sfpprint8:policy_no and
+          sfpend:pol_year = sfpprint8:pol_year and
+          sfpend:end_sequence = sfpprint8:end_sequence
+      begin
+        if sfpend:prem_no >= 1 and
+           sfpend:build_no >= 1 then
+          {
+            writefile(l_dec,"%s","<033>&a300h+0V")
+            writefile(l_dec,"%s",l_arial)
+            writefile(l_dec,"%s",sfpend:form_edition)
+            writefile(l_dec,"%s","<033>&a1500h+0V")
+            writefile(l_dec,"%s",sfpend:description)
+            if sfpend:premium <> 0 then
+              begin
+                writefile(l_dec,"%s","<033>&a4000h+0V")
+                writefile(l_dec,"%s",str(sfpend:premium,"ZZZ,ZZZ.99-"))
+              end
+            else
+            if sfpend:manual_premium <> 0 then
+              begin
+                writefile(l_dec,"%s","<033>&a4000h+0V")
+                writefile(l_dec,"%s",str(sfpend:manual_premium,"ZZZ,ZZZ.99-"))
+              end
+            writefile(l_dec,"%s","<NL>")
+           }
+        next sfpend
+        end
+
+    writefile(l_dec,"%s","<NL>")
+    writefile(l_dec,"%s","<NL>")
+    Writefile(l_dec,"%s",l_arial)
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s","* MANDATORY ENDORSEMENTS")
+    end
+
+closefile(l_macro)
+
+update
+
+procedure definition
+
+procedure worksheet
+begin
+access cppgeneral, set cppgeneral:policy_no = sfpprint8:policy_no, generic
+
+/*if cppgeneral:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100a.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppbusiness, set cppbusiness:policy_no = sfpprint8:policy_no, generic
+
+/*if cppbusiness:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100b.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppglass, set cppglass:policy_no = sfpprint8:policy_no, generic
+
+/*if cppglass:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100c.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppcrime, set cppcrime:policy_no = sfpprint8:policy_no, generic
+
+/*if cppcrime:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100d.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppliability, set cppliability:policy_no = sfpprint8:policy_no, generic
+
+/*if cppliability:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100e.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppinland, set cppinland:policy_no = sfpprint8:policy_no, generic
+
+/*if cppinland:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100f.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppfarm, set cppfarm:policy_no = sfpprint8:policy_no, generic
+
+/*if cppfarm:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100g.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppfarmliab, set cppfarmliab:policy_no = sfpprint8:policy_no, generic
+
+/*if cppfarmliab:policy_no = sfpprint8:policy_no then
+    begin
+    include "cppmso100h.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+end
+
+procedure delos_worksheet
+begin
+access cppgeneral, set cppgeneral:policy_no = sfpprint8:policy_no,
+                       cppgeneral:pol_year = sfpprint8:pol_year,
+                       cppgeneral:end_sequence = sfpprint8:end_sequence, generic
+
+if cppgeneral:policy_no = sfpprint8:policy_no and
+   cppgeneral:pol_year = sfpprint8:pol_year and
+   cppgeneral:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100a_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end
+
+access cppproperty, set cppproperty:policy_no = sfpprint8:policy_no,
+                       cppproperty:pol_year = sfpprint8:pol_year,
+                       cppproperty:end_sequence = sfpprint8:end_sequence, generic
+
+if cppproperty:policy_no = sfpprint8:policy_no and
+   cppproperty:pol_year = sfpprint8:pol_year and
+   cppproperty:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100p_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end
+
+access cppbusiness, set cppbusiness:policy_no = sfpprint8:policy_no,
+                        cppbusiness:pol_year = sfpprint8:pol_year,
+                        cppbusiness:end_sequence = sfpprint8:end_sequence, generic
+
+if cppbusiness:policy_no = sfpprint8:policy_no and
+   cppbusiness:pol_year = sfpprint8:pol_year and
+   cppbusiness:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100b_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end
+
+access cppglass, set cppglass:policy_no = sfpprint8:policy_no,
+                     cppglass:pol_year = sfpprint8:pol_year,
+                     cppglass:end_sequence = sfpprint8:end_sequence, generic
+
+/*if cppglass:policy_no = sfpprint8:policy_no and
+   cppglass:pol_year = sfpprint8:pol_year and
+   cppglass:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100c_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppcrime, set cppcrime:policy_no = sfpprint8:policy_no,
+                     cppcrime:pol_year = sfpprint8:pol_year,
+                     cppcrime:end_sequence = sfpprint8:end_sequence, generic
+
+/*if cppcrime:policy_no = sfpprint8:policy_no and
+   cppcrime:pol_year = sfpprint8:pol_year and
+   cppcrime:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100d_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+access cppliability, set cppliability:policy_no = sfpprint8:policy_no,
+                         cppliability:pol_year = sfpprint8:pol_year,
+                         cppliability:end_sequence = sfpprint8:end_sequence, generic
+
+if cppliability:policy_no = sfpprint8:policy_no and
+   cppliability:pol_year = sfpprint8:pol_year and
+   cppliability:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100e_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end
+
+access cppinland, set cppinland:policy_no = sfpprint8:policy_no,
+                      cppinland:pol_year = sfpprint8:pol_year,
+                      cppinland:end_sequence = sfpprint8:end_sequence, generic
+
+/*if cppinland:policy_no = sfpprint8:policy_no and
+   cppinland:pol_year = sfpprint8:pol_year and
+   cppinland:end_sequence = sfpprint8:end_sequence then
+    begin
+    include "cppmso100f_delos.inc"
+    writefile(l_dec,"%s","<033>&l0H")
+    writefile(l_dec,"%s",l_reset)
+    end*/
+
+end
+
+Procedure PACKAGE_MOD
+Begin
+if cppgeneral:package_mod[1] = 0 then
+    begin
+    l_package_mod = 1.00
+    end
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:package_mod[1] <> 1.00 then
+        l_package_mod = (1 + (cppgeneral:package_mod[1] * 0.01))
+    else
+        l_package_mod = cppgeneral:package_mod[1]
+    end
+
+End
+
+Procedure LIAB_PACKAGE_MOD
+Begin
+access cppdeviation, set cppdeviation:policy_no = sfpprint8:policy_no,
+                         cppdeviation:pol_year = sfpprint8:pol_year,
+                         cppdeviation:end_sequence = sfpprint8:end_sequence, generic
+
+if cppdeviation:package_mod = 0 then
+    begin
+    l_liab_package_mod = 1.00
+    end
+else
+    begin
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:package_mod <> 1.00 then
+        l_liab_package_mod = (1 + (cppdeviation:package_mod * 0.01))
+    else
+        l_liab_package_mod = cppdeviation:package_mod
+    end
+
+End
+
+Procedure COMPANY_DEVIATION
+Begin
+if cppgeneral:company_deviation[1] = 0 then
+    l_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[1] <> 1.00 then
+        l_deviation = (1 + (cppgeneral:company_deviation[1] * 0.01))
+    else
+        l_deviation = cppgeneral:company_deviation[1]
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral:company_deviation[2] = 0 then
+        l_irpm_deviation = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[2] <> 1.00 then
+        l_irpm_deviation = (1 + (cppgeneral:company_deviation[2] * 0.01))
+    else
+        l_irpm_deviation = cppgeneral:company_deviation[2]
+
+    end
+else
+    l_irpm_deviation = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral:company_deviation[3] = 0 then
+        l_exp_factor = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:company_deviation[3] <> 1.00 then
+        l_exp_factor = (1 + (cppgeneral:company_deviation[3] * 0.01))
+    else
+        l_exp_factor = cppgeneral:company_deviation[3]
+
+    end
+else
+    l_exp_factor = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppgeneral:multi_location_credit = 0 then
+        l_multi_loc = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppgeneral:multi_location_credit <> 1.00 then
+        l_multi_loc = (1 + (cppgeneral:multi_location_credit * 0.01))
+    else
+        l_multi_loc = cppgeneral:multi_location_credit
+
+    end
+else
+    l_multi_loc = 1.00
+
+End
+
+Procedure LIAB_COMPANY_DEVIATION
+Begin
+access cppdeviation, set cppdeviation:policy_no = sfpprint8:policy_no,
+                         cppdeviation:pol_year = sfpprint8:pol_year,
+                         cppdeviation:end_sequence = sfpprint8:end_sequence, generic
+
+if cppdeviation:company_deviation = 0 then
+    l_liab_deviation = 1.00
+else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:company_deviation <> 1.00 then
+        l_liab_deviation = (1 + (cppdeviation:company_deviation * 0.01))
+    else
+        l_liab_deviation = cppdeviation:company_deviation
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppdeviation:irpm_deviation = 0 then
+        l_liab_irpm_deviation = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:irpm_deviation <> 1.00 then
+        l_liab_irpm_deviation = (1 + (cppdeviation:irpm_deviation * 0.01))
+    else
+        l_liab_irpm_deviation = cppdeviation:irpm_deviation
+
+    end
+else
+    l_liab_irpm_deviation = 1.00
+
+if sfscompany:boiler_rating = 4 then
+    begin
+    if cppdeviation:exp_factor = 0 then
+        l_liab_exp_factor = 1.00
+    else
+    if cpsdefault:deviation_number_not_factor = 1 and
+       cppdeviation:exp_factor <> 1.00 then
+        l_liab_exp_factor = (1 + (cppdeviation:exp_factor * 0.01))
+    else
+        l_liab_exp_factor = cppdeviation:exp_factor
+
+    end
+else
+    l_liab_exp_factor = 1.00
+
+End
+
+procedure create_header
+begin
+Writefile(l_dec,"%s",l_arial)
+Writefile(l_dec,"%s","<033>&a1500h+0V")
+Writefile(l_dec,"%s",Trun(SFSCOMPANY:NAME[1]))
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+
+writefile(l_dec,"%s","<033>&a300h+0V")
+writefile(l_dec,"%s%s","Policy No:  ",str(sfpname:policy_no) +
+                       "  " + str(sfpname:pol_year) +
+                       "  " + str(sfpend:end_sequence))
+writefile(l_dec,"%s","<033>&a2500h+0V")
+writefile(l_dec,"%s%s%s%s","Agent:  ",trun(sfsagent:name[1])," - ",str(sfpname:agent_no))
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+
+i_name = sfpname:name[1]
+include "sfsrevname.pro"
+writefile(l_dec,"%s","<033>&a300h+0V")
+writefile(l_dec,"%s",i_rev_name)
+writefile(l_dec,"%s","<NL>")
+i_name = sfpname:name[2]
+include "sfsrevname.pro"
+if i_rev_name <> "" then
+    begin
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s",i_rev_name)
+    writefile(l_dec,"%s","<NL>")
+    end
+i_name = sfpname:name[3]
+include "sfsrevname.pro"
+if i_rev_name <> "" then
+    begin
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s",i_rev_name)
+    writefile(l_dec,"%s","<NL>")
+    end
+if sfpname:address[1] <> "" then
+    begin
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s",sfpname:address[1])
+    writefile(l_dec,"%s","<NL>")
+    end
+if sfpname:address[2] <> "" then
+    begin
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s",sfpname:address[2])
+    writefile(l_dec,"%s","<NL>")
+    end
+if sfpname:address[3] <> "" then
+    begin
+    writefile(l_dec,"%s","<033>&a300h+0V")
+    writefile(l_dec,"%s",sfpname:address[3])
+    writefile(l_dec,"%s","<NL>")
+    end
+writefile(l_dec,"%s","<033>&a300h+0V")
+writefile(l_dec,"%s%s%s%s%s",trun(sfpname:city),", ",sfpname:str_state," ",str(sfpname:zipcode,"99999-9999"))
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+
+writefile(l_dec,"%s","<033>&a300h+0V")
+writefile(l_dec,"%s%d","Effective Date:  ",sfpname:eff_date)
+writefile(l_dec,"%s","<033>&a2500h+0V")
+writefile(l_dec,"%s%d","Expiration Date  ",sfpname:exp_date)
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+
+writefile(l_dec,"%s","<033>&a300h+0V")
+switch(sfpmaster:form_of_business)
+  case "C" : l_fob = "Corporation"
+  case "I" : l_fob = "Individual"
+  case "J" : l_fob = "Joint Venture"
+  case "O" : l_fob = "Organization"
+  case "P" : l_fob = "Partnership"
+  case "L" : l_fob = "LLC"
+  default  : l_fob = sfpmaster:fob_description
+  end
+writefile(l_dec,"%s%s","Form of Business:  ",l_fob)
+
+writefile(l_dec,"%s","<033>&a2500h+0V")
+writefile(l_dec,"%s%s","Special Commission:  ",str(sfpname:spec_comm_rate,"Z9.99"))
+writefile(l_dec,"%s","<NL>")
+
+writefile(l_dec,"%s","<033>&a300h+0V")
+switch(sfpname:package)
+  case 1  : l_package = "Y"
+  default : l_package = "N"
+  end
+writefile(l_dec,"%s%s","Package Policy:  ",l_package)
+
+writefile(l_dec,"%s","<033>&a2500h+0V")
+writefile(l_dec,"%s%s","Previous Policy:  ",str(sfpname:previous_policy_no,"ZZZZZZZZZ"))
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Property Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[1] <> 0 then
+    {
+    if sfscompany:boiler_rating = 4 then
+        writefile(l_dec,"%s",str(sfpmaster:total[1] -
+                                 sfpmaster:other_totals[4],"ZZZ,ZZZ,ZZZ.99"))
+    else
+        writefile(l_dec,"%s",str(sfpmaster:total[1],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Boiler & Machinery")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:other_totals[4] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:other_totals[4],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Business Income Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[2] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[2],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Glass Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[3] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[3],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Crime Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[4] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[4],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Liability Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[5] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[5],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Inland Marine Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[6] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[6],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Farm Property Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[7] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[7],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Farm Liability Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[10] <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:total[10],"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Terrorism Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:terrorism_premium <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:terrorism_premium,"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Total Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:total[18] <> 0 then
+    {
+    if sfscompany:boiler_rating = 4 then
+        begin
+        writefile(l_dec,"%s",str(sfpmaster:total[18],"ZZZ,ZZZ,ZZZ.99"))
+        l_exp_date = dateadd(sfpname:eff_date,0,1)
+        if month(l_exp_date) = 2 and
+           day(l_exp_date) = 29 and
+           sfscompany:boiler_rating = 4 then
+            l_exp_date = l_exp_date - 1
+
+        if sfpname:exp_date <> l_exp_date then
+            writefile(l_dec,"%s","  Pro Rata Amount")
+        end
+    else
+        begin
+        writefile(l_dec,"%s",str(sfpmaster:total[1] +
+                                sfpmaster:other_totals[4] +
+                                sfpmaster:total[2] +
+                                sfpmaster:total[3] +
+                                sfpmaster:total[4] +
+                                sfpmaster:total[5] +
+                                sfpmaster:total[15] +
+                                sfpmaster:total[6] +
+                                sfpmaster:total[7] +
+                                sfpmaster:total[10] +
+                                sfpmaster:terrorism_premium,"ZZZ,ZZZ,ZZZ.99"))
+        end
+    }
+writefile(l_dec,"%s","<NL>")
+Writefile(l_dec,"%s",l_arial)
+writefile(l_dec,"%s","<033>&a750h+0V")
+writefile(l_dec,"%s","Surcharge Premium")
+writefile(l_dec,"%s","<033>&a2500h+0V")
+Writefile(l_dec,"%s",l_letter_gothic_bold_10)
+if sfpmaster:surcharge <> 0 then
+    {
+    writefile(l_dec,"%s",str(sfpmaster:surcharge,"ZZZ,ZZZ,ZZZ.99"))
+    }
+writefile(l_dec,"%s","<NL>")
+writefile(l_dec,"%s","<NL>")
+if sfscompany:boiler_rating = 4 then
+    writefile(l_dec,"%s","<FF>")
+
+end
+
+end
